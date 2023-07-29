@@ -1,0 +1,23 @@
+navbar:
+  structure:
+    left:
+    - intro
+    - reference
+    - articles
+    - tutorials
+    - news
+    right: github
+  components:
+    reference:
+      text: Reference
+      href: reference/index.html
+
+reference:
+- title: All functions
+  contents:
+  - '`detect3`'
+  - '`detect3clim`'
+  - '`detect3event`'
+
+articles: ~
+

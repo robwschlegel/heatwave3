@@ -1,5 +1,5 @@
 
-# heatwave3
+# heatwave3 <img src="logo.png" width=200 align="right" />
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/robwschlegel/heatwave3/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/robwschlegel/heatwave3/actions/workflows/R-CMD-check.yaml)

@@ -6,7 +6,7 @@
 [![Codecov test coverage](https://codecov.io/gh/robwschlegel/heatwave3/branch/main/graph/badge.svg)](https://app.codecov.io/gh/robwschlegel/heatwave3?branch=main)
 <!-- badges: end -->
 
-The goal of heatwave3 is to ...
+Welcome to heatwave3. The goal of this package is to improve on the serial application of the Hobday et al. 2016, 2018 marine heatwave (MHW) definition on time series data. Traditionally we have had to detect MHW within one time series at a time. For large gridded datasets 
 
 ## Installation
 

@@ -1,3 +1,5 @@
 test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
+  file_name <- "data/oisst_short.nc"
+  detect_res <- detect3(file_in = file_name, return_rast = TRUE)
+  expect_s4_class(detect_res, "SpatRasterDataset")
 })

@@ -258,3 +258,4 @@ devtools::check_win_release()
 library(heatwaveR)
 library(profvis)
 profvis(detect_event(ts2clm(sst_WA, climatologyPeriod = c("1982-01-01", "2011-12-31"))))
+

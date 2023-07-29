@@ -1,7 +1,7 @@
 #' detect3clim
 #'
-#' @param x
-#' @param y
+#' @param x Data used for detection.
+#' @param time_dim The time dimension.
 #'
 #' @return
 #' @export

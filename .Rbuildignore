@@ -1,3 +1,6 @@
 ^heatwave3\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^\.github$
+^codecov\.yml$
+^CODE_OF_CONDUCT\.md$

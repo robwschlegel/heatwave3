@@ -4,10 +4,12 @@
 \alias{detect3clim}
 \title{detect3clim}
 \usage{
-detect3clim(x, y)
+detect3clim(x, time_dim)
 }
 \arguments{
-\item{y}{}
+\item{x}{Data used for detection.}
+
+\item{time_dim}{The time dimension.}
 }
 \description{
 detect3clim

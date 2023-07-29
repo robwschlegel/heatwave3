@@ -4,10 +4,12 @@
 \alias{detect3event}
 \title{detect3event}
 \usage{
-detect3event(x, y)
+detect3event(x, time_dim)
 }
 \arguments{
-\item{y}{}
+\item{x}{Data used for detection.}
+
+\item{time_dim}{The time dimension.}
 }
 \description{
 detect3event

@@ -117,9 +117,8 @@ devtools::check()
 
 # After doing so one must manually create an Rscript for these data
 # There is currently no shortcut for this
-# use_r(name = "sst_Med")
-# use_r(name = "sst_NW_Atl")
-# use_r(name = "sst_WA")
+use_r(name = "oisst_short")
+
 # Once this has been done run:
 # document()
 

@@ -1,3 +1,5 @@
+url: https://robwschlegel.github.io/heatwave3/index.html
+
 navbar:
   structure:
     left:
@@ -6,7 +8,10 @@ navbar:
     - articles
     - tutorials
     - news
-    right: github
+  right:
+  - icon: fa-github fa-lg
+    text: "github"
+    href: https://github.com/robwschlegel/heatwave3
   components:
     reference:
       text: Reference

@@ -22,9 +22,10 @@ detect3 <- function(file_in, file_out = NULL, return_rast = FALSE){
   nc_seas <- terra::app(x = nc_rast, fun = detect3clim, time_dim = terra::time(nc_rast))
 
   # Add correct names
-  names(nc_seas) <- c(rep(paste0("temp.", 1:length(names(nc_rast)))),
-                      rep(paste0("seas.", 1:length(names(nc_rast)))),
-                      rep(paste0("thresh.", 1:length(names(nc_rast)))))
+  names(nc_seas) <- c(rep(paste0("temp.", 1:terra::nlyr(nc_rast))),
+                      rep(paste0("seas.", 1:terra::nlyr(nc_rast))),
+                      rep(paste0("thresh.", 1:terra::nlyr(nc_rast)))
+                      )
 
   # Calculate event metrics
   nc_event <- terra::app(x = nc_seas, fun = detect3event,

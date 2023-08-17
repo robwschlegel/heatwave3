@@ -5,12 +5,23 @@
 #' @param file_in A NetCDF file
 #' @param file_out File output location
 #' @param return_rast Default FALSE will prevent the data being saved in memory.
+#'                    Other options are "rast", to return a SpatRasterDataset, and "df", to return a data.frame with the events organized by raster cell
 #'
 #' @return
 #' @export
 #'
 #' @examples
-detect3 <- function(file_in, file_out = NULL, return_rast = FALSE){
+detect3 <- function(file_in, file_out = NULL, return_type = NULL){
+
+  # Test if output types are all empty
+  if (is.null(file_out) & is.null(return_type)) {
+    stop("No output selected for the function.\nPlease enter file_out and/or return_type.", call. = FALSE)
+  }
+
+  # Test if the output format if correct
+  if (!(return_type %in% c("rast", "df"))) {
+    stop(shQuote("Invalid return_type.\nPlease enter a valid return_type (\'rast\' or \'df\')"), call. = FALSE)
+  }
 
   # file_in <- "data/oisst_short.nc"
   # rm(file_in, file_out, return_rast, y, nc_seas); gc()
@@ -25,7 +36,7 @@ detect3 <- function(file_in, file_out = NULL, return_rast = FALSE){
   names(nc_seas) <- c(rep(paste0("temp.", 1:terra::nlyr(nc_rast))),
                       rep(paste0("seas.", 1:terra::nlyr(nc_rast))),
                       rep(paste0("thresh.", 1:terra::nlyr(nc_rast)))
-                      )
+  )
 
   # Calculate event metrics
   nc_event <- terra::app(x = nc_seas, fun = detect3event,
@@ -91,9 +102,29 @@ detect3 <- function(file_in, file_out = NULL, return_rast = FALSE){
   # Save as desired
   if(!is.null(file_out)) terra::writeCDF(nc_sds, file_out, overwrite = TRUE)
 
-  # Output results
-  if(return_rast){
-    return(nc_sds)
+  # Output results to R environment
+  if(!is.null(return_type)){
+
+    if(return_type == "rast"){
+      #comment(nc_sds) <- paste0("Dates on indexes based on days since ",  min(terra::time(nc_rast)))
+      return(nc_sds)
+    }
+
+    # Transform the SpatRasterDataset into a data.frame
+    if(return_type == "df"){
+      nc_csv <- terra::as.data.frame(nc_no_NA, xy = T, cells = T)
+      nc_csv <- nc_csv[,!colnames(nc_csv) %in% colnames(nc_csv)[grepl("event_no.", colnames(nc_csv))]]
+      nc_csv <- tidyr::pivot_longer(data = nc_csv, cols = !c("cell", "x", "y"), names_to = c(".value", "event_no"), names_sep = "[.]")
+      nc_csv <- nc_csv[complete.cases(nc_csv),]
+
+      nc_csv$index_start <- as.Date(nc_csv$index_start, origin = min(terra::time(nc_rast)))
+      nc_csv$index_peak <- as.Date(nc_csv$index_peak, origin = min(terra::time(nc_rast)))
+      nc_csv$index_end <- as.Date(nc_csv$index_end, origin = min(terra::time(nc_rast)))
+
+      #write.csv2(nc_csv, file = file_out, row.names = F)
+      return(nc_csv)
+    }
+
   } else {
     print("Finished. Good job team :)")
   }

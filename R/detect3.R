@@ -11,7 +11,9 @@
 #' @export
 #'
 #' @examples
+
 detect3 <- function(file_in, file_out = NULL, return_type = NULL){
+
 
   # Test if output types are all empty
   if (is.null(file_out) & is.null(return_type)) {

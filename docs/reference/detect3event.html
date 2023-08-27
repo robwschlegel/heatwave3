@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">heatwave3</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9004</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.1</span>
       </span>
     </div>
 
@@ -45,7 +45,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>detect3event</h1>
-    
+    <small class="dont-index">Source: <a href="https://github.com/robwschlegel/heatwave3/blob/HEAD/R/detect3event.R" class="external-link"><code>R/detect3event.R</code></a></small>
     <div class="hidden name"><code>detect3event.Rd</code></div>
     </div>
 
@@ -54,7 +54,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3event</span><span class="op">(</span><span class="va">x</span>, <span class="va">time_dim</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3event</span><span class="op">(</span><span class="va">x</span>, <span class="va">time_dim</span>, dur <span class="op">=</span> <span class="fl">5</span>, gap <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -66,7 +66,21 @@
 <dt>time_dim</dt>
 <dd><p>The time dimension.</p></dd>
 
+
+<dt>dur</dt>
+<dd><p>The minimum duration (days) for an event to be detected.</p></dd>
+
+
+<dt>gap</dt>
+<dd><p>The maximum gap (days) across which two events will be considered one.</p></dd>
+
 </dl></div>
+    <div id="value">
+    <h2>Value</h2>
+    
+
+<p>Given the necessary file structure this will detect events within a raster.</p>
+    </div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -76,7 +90,7 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by First Last.</p>
+  <p></p><p>Developed by Robert W. Schlegel, Guilherme Pinto, Lily Genevier, Jacob Cohen, Panini Dasgupta, Evan Meeker, Elise Beaudin, Albertus J. Smit.</p>
 </div>
 
 <div class="pkgdown">

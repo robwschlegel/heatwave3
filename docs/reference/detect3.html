@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">heatwave3</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.0.9004</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.1</span>
       </span>
     </div>
 
@@ -45,7 +45,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>detect3</h1>
-    
+    <small class="dont-index">Source: <a href="https://github.com/robwschlegel/heatwave3/blob/HEAD/R/detect3.R" class="external-link"><code>R/detect3.R</code></a></small>
     <div class="hidden name"><code>detect3.Rd</code></div>
     </div>
 
@@ -54,7 +54,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3</span><span class="op">(</span><span class="va">file_in</span>, file_out <span class="op">=</span> <span class="cn">NULL</span>, return_rast <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3</span><span class="op">(</span><span class="va">file_in</span>, file_out <span class="op">=</span> <span class="cn">NULL</span>, return_type <span class="op">=</span> <span class="cn">NULL</span>, save_to_file <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -64,13 +64,27 @@
 
 
 <dt>file_out</dt>
-<dd><p>File output location</p></dd>
+<dd><p>File output location with name and extension of the file</p></dd>
 
 
-<dt>return_rast</dt>
-<dd><p>Default FALSE will prevent the data being saved in memory.</p></dd>
+<dt>return_type</dt>
+<dd><p>Default NULL will prevent the data being saved in memory.
+Other options are "rast", to return a SpatRasterDataset, and "df",
+to return a data.frame with the events organized by raster cell</p></dd>
+
+
+<dt>save_to_file</dt>
+<dd><p>Default NULL will prevent the data being saved in memory.
+Other options are "nc", to save a NetCDF, and "csv", to save as a csv file.</p></dd>
 
 </dl></div>
+    <div id="value">
+    <h2>Value</h2>
+    
+
+<p>Depending on the arguments set, this function will return the heatwaves detected in
+the NetCDF file provide. It may also output the results as a CSV file.</p>
+    </div>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -80,7 +94,7 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by First Last.</p>
+  <p></p><p>Developed by Robert W. Schlegel, Guilherme Pinto, Lily Genevier, Jacob Cohen, Panini Dasgupta, Evan Meeker, Elise Beaudin, Albertus J. Smit.</p>
 </div>
 
 <div class="pkgdown">

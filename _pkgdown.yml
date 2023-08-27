@@ -23,6 +23,8 @@ reference:
   - '`detect3`'
   - '`detect3clim`'
   - '`detect3event`'
+  - '`rast_to_df`'
+  - '`sst_q`'
 
 articles: ~
 

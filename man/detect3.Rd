@@ -4,14 +4,23 @@
 \alias{detect3}
 \title{detect3}
 \usage{
-detect3(file_in, file_out = NULL, return_rast = FALSE)
+detect3(file_in, file_out = NULL, return_type = NULL, save_to_file = NULL)
 }
 \arguments{
 \item{file_in}{A NetCDF file}
 
-\item{file_out}{File output location}
+\item{file_out}{File output location with name and extension of the file}
 
-\item{return_rast}{Default FALSE will prevent the data being saved in memory.}
+\item{return_type}{Default NULL will prevent the data being saved in memory.
+Other options are "rast", to return a SpatRasterDataset, and "df",
+to return a data.frame with the events organized by raster cell}
+
+\item{save_to_file}{Default NULL will prevent the data being saved in memory.
+Other options are "nc", to save a NetCDF, and "csv", to save as a csv file.}
+}
+\value{
+Depending on the arguments set, this function will return the heatwaves detected in
+the NetCDF file provide. It may also output the results as a CSV file.
 }
 \description{
 Function to detect events within a NetCDF file using the Hobday et al. 2016 definition.

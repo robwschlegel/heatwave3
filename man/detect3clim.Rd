@@ -11,6 +11,9 @@ detect3clim(x, time_dim)
 
 \item{time_dim}{The time dimension.}
 }
+\value{
+Given the necessary file structure this will create climatologies within a raster.
+}
 \description{
 detect3clim
 }

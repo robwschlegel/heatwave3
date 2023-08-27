@@ -5,7 +5,7 @@
 #' @param dur The minimum duration (days) for an event to be detected.
 #' @param gap The maximum gap (days) across which two events will be considered one.
 #'
-#' @return
+#' @return Given the necessary file structure this will detect events within a raster.
 #' @export
 #'
 #' @examples

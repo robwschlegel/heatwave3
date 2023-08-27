@@ -4,12 +4,19 @@
 \alias{detect3event}
 \title{detect3event}
 \usage{
-detect3event(x, time_dim)
+detect3event(x, time_dim, dur = 5, gap = 2)
 }
 \arguments{
 \item{x}{Data used for detection.}
 
 \item{time_dim}{The time dimension.}
+
+\item{dur}{The minimum duration (days) for an event to be detected.}
+
+\item{gap}{The maximum gap (days) across which two events will be considered one.}
+}
+\value{
+Given the necessary file structure this will detect events within a raster.
 }
 \description{
 detect3event

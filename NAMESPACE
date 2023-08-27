@@ -3,3 +3,4 @@
 export(detect3)
 export(detect3clim)
 export(detect3event)
+export(rast_to_df)

@@ -3,7 +3,7 @@
 #' @param x Data used for detection.
 #' @param time_dim The time dimension.
 #'
-#' @return
+#' @return Given the necessary file structure this will create climatologies within a raster.
 #' @export
 #'
 #' @examples

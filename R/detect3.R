@@ -4,12 +4,14 @@
 #'
 #' @param file_in A NetCDF file
 #' @param file_out File output location with name and extension of the file
-#' @param return_rast Default NULL will prevent the data being saved in memory.
-#'                    Other options are "rast", to return a SpatRasterDataset, and "df", to return a data.frame with the events organized by raster cell
+#' @param return_type Default NULL will prevent the data being saved in memory.
+#'                    Other options are "rast", to return a SpatRasterDataset, and "df",
+#'                    to return a data.frame with the events organized by raster cell
 #' @param save_to_file Default NULL will prevent the data being saved in memory.
 #'                    Other options are "nc", to save a NetCDF, and "csv", to save as a csv file.
 #'
-#' @return
+#' @return Depending on the arguments set, this function will return the heatwaves detected in
+#' the NetCDF file provide. It may also output the results as a CSV file.
 #' @export
 #'
 #' @examples
@@ -134,7 +136,7 @@ detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file =
   if(!is.null(save_to_file)) {
     if (save_to_file == "csv") {
       nc_csv <- rast_to_df(x = nc_no_NA, time_dim = min(terra::time(nc_rast)))
-      write.csv2(nc_csv, file = file_out, row.names = F)
+      utils::write.csv(nc_csv, file = file_out, row.names = F)
     }
   }
 

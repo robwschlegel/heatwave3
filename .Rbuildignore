@@ -8,3 +8,5 @@
 ^docs$
 ^pkgdown$
 ^data-raw$
+^logo.png
+^package_development.R

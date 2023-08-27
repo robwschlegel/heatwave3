@@ -4,12 +4,31 @@
 \name{heatwave3-package}
 \alias{heatwave3}
 \alias{heatwave3-package}
-\title{heatwave3: What the Package Does (One Line, Title Case)}
+\title{heatwave3: Detect Heatwaves and Cold-Spells within cubed data}
 \description{
-What the package does (one paragraph).
+This package is an extension to heatwaveR that allows the user to detect extreme events a la Hobday definition directly on cubed data files (e.g. NetCDF format).
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://robwschlegel.github.io/heatwave3/index.html}
+  \item \url{https://github.com/robwschlegel/heatwave3}
+}
+
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Robert W. Schlegel \email{robwschlegel@gmail.com} (\href{https://orcid.org/0000-0002-0705-1287}{ORCID}) [contributor]
+
+Authors:
+\itemize{
+  \item Guilherme Pinto [contributor]
+  \item Lily Genevier [contributor]
+  \item Jacob Cohen [contributor]
+  \item Panini Dasgupta [contributor]
+  \item Evan Meeker [contributor]
+  \item Elise Beaudin [contributor]
+  \item Albertus J. Smit (\href{https://orcid.org/0000-0002-3799-6126}{ORCID}) [contributor]
+}
 
 }
 \keyword{internal}

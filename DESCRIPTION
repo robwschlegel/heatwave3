@@ -1,20 +1,34 @@
 Package: heatwave3
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9004
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Version: 0.0.1
+Date: 2023-08-27
+Title: Detect Heatwaves and Cold-Spells within cubed data
+Description: This package is an extension to heatwaveR that allows the user to detect extreme 
+    events a la Hobday definition directly on cubed data files (e.g. NetCDF format).
+Type: Package
+Authors@R: c(person("Robert W.", "Schlegel", role = c("aut", "cre", "ctb"),
+                    email = "robwschlegel@gmail.com",
+                    comment = c(ORCID = "0000-0002-0705-1287")),
+            person("Guilherme", "Pinto", role = c("aut", "ctb")),
+            person("Lily", "Genevier", role = c("aut", "ctb")),
+            person("Jacob", "Cohen", role = c("aut", "ctb")),
+            person("Panini", "Dasgupta", role = c("aut", "ctb")),
+            person("Evan", "Meeker", role = c("aut", "ctb")),
+            person("Elise", "Beaudin", role = c("aut", "ctb")),
+            person("Albertus J.", "Smit", role = c("aut", "ctb"),
+                    comment = c(ORCID = "0000-0002-3799-6126")))
+Maintainer: Robert W. Schlegel <robwschlegel@gmail.com>
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     heatwaveR,
-    terra
+    terra,
+    tidyr
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
 LazyData: true
+URL: https://robwschlegel.github.io/heatwave3/index.html, https://github.com/robwschlegel/heatwave3

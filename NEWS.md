@@ -1,3 +1,7 @@
+# heatwave3 0.0.1 (2023-08-28)
+
+* Updating examples and adding tests
+
 # heatwave3 0.0.1 (2023-08-27)
 
 * Package now checks and builds correctly

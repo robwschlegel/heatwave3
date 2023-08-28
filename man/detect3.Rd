@@ -25,3 +25,8 @@ the NetCDF file provide. It may also output the results as a CSV file.
 \description{
 Function to detect events within a NetCDF file using the Hobday et al. 2016 definition.
 }
+\examples{
+mhw_cube <- detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
+                    return_type = "df")
+head(mhw_cube)
+}

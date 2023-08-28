@@ -79,7 +79,8 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>Welcome to heatwave3. The goal of this package is to improve on the serial application of the Hobday et al. 2016, 2018 marine heatwave (MHW) definition on time series data. Traditionally we have had to detect MHW within one time series at a time. For large gridded datasets</p>
+<p>Welcome to <strong><code>heatwave3</code></strong>. The goal of this package is to improve on the serial application of the Hobday et al. 2016, 2018 marine heatwave (MHW) definition on time series data. Traditionally we have had to detect MHW within one time series at a time. For large gridded datasets this can be a technically difficult and time consuming process. Now, thanks to developments in the <strong><code>terra</code></strong> package it is possible to apply any numbers of functions directly to gridded data (e.g. NetCDF files). <strong><code>heatwave3</code></strong> therefore serves as an extension to the <a href="https://robwschlegel.github.io/heatwaveR/index.html" class="external-link"><strong><code>heatwaveR</code></strong></a> package and helps the user to easily and quickly detect MHWs within their gridded dataset. It can output the results as a raster, NetCDF, or CSV file.</p>
+<p>The package is still in its infancy and is being actively developed. Any and all feedback is very welcome!</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -91,13 +92,16 @@
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
+<p>The use of <strong><code>heatwave3</code></strong> has been designed to be as easy ass possible. There is a lot happening behind the scenes that allows this package to determine the structure of the users data without needing to provide any additional arguments. Please see the following example:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Set a file pathway</span></span>
-<span><span class="va">my_nc</span> <span class="op">&lt;-</span> <span class="st">"~/Documents/ncdf/data.nc"</span></span>
-<span><span class="fu"><a href="reference/detect3.html">detect3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="va">my_nc</span>, file_out <span class="op">=</span> <span class="st">"~/Documents/ncdf/res.nc"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">mhw_cube</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/detect3.html">detect3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/oisst_short.nc"</span>, package <span class="op">=</span> <span class="st">"heatwave3"</span><span class="op">)</span>,</span>
+<span>               return_type <span class="op">=</span> <span class="st">"df"</span><span class="op">)</span></span>
+<span><span class="co"># Show the first few rows</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mhw_cube</span><span class="op">)</span></span></code></pre></div>
+<p>Of course, there are possibly more ways to organise a data file than there are stars in the sky. If this function doesn’t work on your dataset, please contact us! We are actively looking for ways to improve the usability of <strong>`heatwave3’</strong></p>
 </div>
 <div class="section level2">
 <h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>

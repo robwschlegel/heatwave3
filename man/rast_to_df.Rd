@@ -15,5 +15,6 @@ rast_to_df(x, time_dim)
 This function will convert a raster object to a dataframe.
 }
 \description{
-rast_to_df
+Function for converting a raster to a dataframe.
 }
+\keyword{internal}

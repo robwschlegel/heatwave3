@@ -19,5 +19,6 @@ detect3event(x, time_dim, dur = 5, gap = 2)
 Given the necessary file structure this will detect events within a raster.
 }
 \description{
-detect3event
+Detects the marine heatwaves within a raster file based on the climatologies.
 }
+\keyword{internal}

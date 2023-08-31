@@ -12,6 +12,7 @@
 #'
 #' @return Depending on the arguments set, this function will return the heatwaves detected in
 #' the NetCDF file provide. It may also output the results as a CSV file.
+#'
 #' @export
 #'
 #' @examples
@@ -53,9 +54,6 @@ detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file =
       stop(shQuote("Invalid saving option.\nPlease enter a valid save_to_file (\'nc\' or \'csv\')"), call. = FALSE)
     }
   }
-
-  # file_in <- "data/oisst_short.nc"
-  # rm(file_in, file_out, return_rast, y, nc_seas); gc()
 
   # Load NetCDF as terra::rast
   nc_rast <- terra::rast(file_in)

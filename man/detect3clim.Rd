@@ -15,5 +15,6 @@ detect3clim(x, time_dim)
 Given the necessary file structure this will create climatologies within a raster.
 }
 \description{
-detect3clim
+Determines the climatologies within a raster file.
 }
+\keyword{internal}

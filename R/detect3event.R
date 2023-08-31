@@ -1,5 +1,9 @@
 #' detect3event
 #'
+#' Detects the marine heatwaves within a raster file based on the climatologies.
+#'
+#' @keywords internal
+#'
 #' @param x Data used for detection.
 #' @param time_dim The time dimension.
 #' @param dur The minimum duration (days) for an event to be detected.

@@ -1,5 +1,9 @@
 #' rast_to_df
 #'
+#' Function for converting a raster to a dataframe.
+#'
+#' @keywords internal
+#'
 #' @param x Rast stack resulted from detect3event and re-organized until 'nc_no_NA' (see detect3 function)
 #' @param time_dim The time dimension. It should be a single value to use as the origin for the date indexes
 #'

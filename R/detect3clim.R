@@ -1,5 +1,9 @@
 #' detect3clim
 #'
+#' Determines the climatologies within a raster file.
+#'
+#' @keywords internal
+#'
 #' @param x Data used for detection.
 #' @param time_dim The time dimension.
 #'

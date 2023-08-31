@@ -1,3 +1,7 @@
+# heatwave3 0.0.1 (2023-08-31)
+
+* Connecting to codecov
+
 # heatwave3 0.0.1 (2023-08-28)
 
 * Updating examples and adding tests

@@ -131,6 +131,25 @@ detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file =
   # Save as NetCDF
   if(!is.null(save_to_file)) {
     if (save_to_file == "nc") {
+      terra::longnames(nc_sds) <- c("A sequential number indicating the ID and order of the events",
+                                    paste0("Start date of event [date], as days since ", min(terra::time(nc_rast))),
+                                    paste0("Date of event peak [date], as days since ", min(terra::time(nc_rast))),
+                                    paste0("End date of event [date], as days since ", min(terra::time(nc_rast))),
+                                    "Duration of event [days]",
+                                    "Mean intensity [deg. C]",
+                                    "Maximum (peak) intensity [deg. C]",
+                                    "Intensity variability (standard deviation) [deg. C]",
+                                    "Cumulative intensity [deg. C x days]",
+                                    "Mean intensity [deg. C] relative to the threshold (e.g., 90th percentile)",
+                                    "Maximum (peak) intensity [deg. C] relative to the threshold (e.g., 90th percentile)",
+                                    "Intensity variability (standard deviation) [deg. C] relative to the threshold (e.g., 90th percentile)",
+                                    "Cumulative intensity [deg. C x days] relative to the threshold (e.g., 90th percentile)",
+                                    "Mean absolute intensity [deg. C]",
+                                    "Maximum (peak) absolute intensity [deg. C]",
+                                    "Absolute intensity variability (standard deviation) [deg. C]",
+                                    "Absolute cumulative intensity [deg. C x days]",
+                                    "Onset rate of event [deg. C / day]",
+                                    "Decline rate of event [deg. C / day]")
       terra::writeCDF(nc_sds, file_out, overwrite = TRUE)
     }
   }

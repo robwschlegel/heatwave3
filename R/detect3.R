@@ -3,12 +3,20 @@
 #' Function to detect events within a NetCDF file using the Hobday et al. 2016 definition.
 #'
 #' @param file_in A NetCDF file
+#' @param clim_period The climatology baseline period provided as two date values.
+#' E.g. \code{c("1982-01-01", "2011-12-31")}
+#' @param min_dur The minimum duration for acceptance of detected events.
+#' The default is \code{5} days.
+#' @param max_gap The maximum length of gap allowed for the joining of MHWs. The
+#' default is \code{2} days.
 #' @param file_out File output location with name and extension of the file
 #' @param return_type Default NULL will prevent the data being saved in memory.
 #'                    Other options are "rast", to return a SpatRasterDataset, and "df",
 #'                    to return a data.frame with the events organized by raster cell
 #' @param save_to_file Default NULL will prevent the data being saved in memory.
 #'                    Other options are "nc", to save a NetCDF, and "csv", to save as a csv file.
+#' @param ... One may pass any arguments to this functions that would be used via
+#' \code{heatwaveR::ts2clm()} or \code{heatwaveR::detect_event()}.
 #'
 #' @return Depending on the arguments set, this function will return the heatwaves detected in
 #' the NetCDF file provide. It may also output the results as a CSV file.
@@ -18,16 +26,23 @@
 #' @examples
 #' \donttest{
 #' mhw_cube <- detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
-#'                     return_type = "df")
+#'                     return_type = "df", clim_period = c("1982-01-01", "2011-12-31"))
 #' }
 #'
-detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file = NULL){
+detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = NULL, return_type = NULL, save_to_file = NULL, ...){
 
+
+  # Test that required arguments are given
+  if (missing(file_in))
+    stop("Please provide an input file.", call. = FALSE)
+  if (missing(clim_period))
+    stop("Please provide a climatology period.", call. = FALSE)
+  if (length(clim_period) != 2)
+    stop("Please provide BOTH start and end dates for the climatology period.")
 
   # Test if output types are all empty
-  if (is.null(file_out) & is.null(return_type)) {
+  if (is.null(file_out) & is.null(return_type))
     stop("No output selected for the function.\nPlease enter file_out and/or return_type.", call. = FALSE)
-  }
 
   # Test if the output type is correct
   if (!is.null(return_type)){
@@ -50,7 +65,8 @@ detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file =
   nc_rast <- terra::rast(file_in)
 
   # Create temp+seas+clim rasters
-  nc_seas <- terra::app(x = nc_rast, fun = detect3clim, time_dim = terra::time(nc_rast))
+  nc_seas <- terra::app(x = nc_rast, fun = detect3clim, time_dim = terra::time(nc_rast),
+                        clim_period = clim_period, ...)
 
   # Add correct names
   names(nc_seas) <- c(rep(paste0("temp.", 1:terra::nlyr(nc_rast))),
@@ -59,8 +75,8 @@ detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file =
   )
 
   # Calculate event metrics
-  nc_event <- terra::app(x = nc_seas, fun = detect3event,
-                         time_dim = terra::time(nc_rast))#, ndays=terra::nlyr(nc_rast))
+  nc_event <- terra::app(x = nc_seas, fun = detect3event, time_dim = terra::time(nc_rast),
+                         min_dur = min_dur, max_gap = max_gap, ...)
 
   ## Get the number of layers of each MHW metric
   max_layers <- terra::nlyr(nc_event)/19

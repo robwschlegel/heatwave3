@@ -4,10 +4,28 @@
 \alias{detect3}
 \title{detect3}
 \usage{
-detect3(file_in, file_out = NULL, return_type = NULL, save_to_file = NULL)
+detect3(
+  file_in,
+  clim_period,
+  min_dur = 5,
+  max_gap = 2,
+  file_out = NULL,
+  return_type = NULL,
+  save_to_file = NULL,
+  ...
+)
 }
 \arguments{
 \item{file_in}{A NetCDF file}
+
+\item{clim_period}{The climatology baseline period provided as two date values.
+E.g. \code{c("1982-01-01", "2011-12-31")}}
+
+\item{min_dur}{The minimum duration for acceptance of detected events.
+The default is \code{5} days.}
+
+\item{max_gap}{The maximum length of gap allowed for the joining of MHWs. The
+default is \code{2} days.}
 
 \item{file_out}{File output location with name and extension of the file}
 
@@ -17,6 +35,9 @@ to return a data.frame with the events organized by raster cell}
 
 \item{save_to_file}{Default NULL will prevent the data being saved in memory.
 Other options are "nc", to save a NetCDF, and "csv", to save as a csv file.}
+
+\item{...}{One may pass any arguments to this functions that would be used via
+\code{heatwaveR::ts2clm()} or \code{heatwaveR::detect_event()}.}
 }
 \value{
 Depending on the arguments set, this function will return the heatwaves detected in
@@ -28,7 +49,7 @@ Function to detect events within a NetCDF file using the Hobday et al. 2016 defi
 \examples{
 \donttest{
 mhw_cube <- detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
-                    return_type = "df")
+                    return_type = "df", clim_period = c("1982-01-01", "2011-12-31"))
 }
 
 }

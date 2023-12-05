@@ -22,6 +22,5 @@ rast_to_df <- function(x, time_dim){
   nc_csv$index_peak <- as.Date(nc_csv$index_peak, origin = time_dim)
   nc_csv$index_end <- as.Date(nc_csv$index_end, origin = time_dim)
 
-  #write.csv2(nc_csv, file = file_out, row.names = F)
   return(nc_csv)
 }

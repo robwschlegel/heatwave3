@@ -4,12 +4,15 @@
 \alias{detect3clim}
 \title{detect3clim}
 \usage{
-detect3clim(x, time_dim)
+detect3clim(x, time_dim, clim_period, ...)
 }
 \arguments{
 \item{x}{Data used for detection.}
 
 \item{time_dim}{The time dimension.}
+
+\item{clim_period}{The climatology baseline period provided as two date values.
+E.g. \code{c("1982-01-01", "2011-12-31")}}
 }
 \value{
 Given the necessary file structure this will create climatologies within a raster.

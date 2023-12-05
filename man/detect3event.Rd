@@ -4,16 +4,18 @@
 \alias{detect3event}
 \title{detect3event}
 \usage{
-detect3event(x, time_dim, dur = 5, gap = 2)
+detect3event(x, time_dim, min_dur, max_gap, ...)
 }
 \arguments{
 \item{x}{Data used for detection.}
 
 \item{time_dim}{The time dimension.}
 
-\item{dur}{The minimum duration (days) for an event to be detected.}
+\item{min_dur}{The minimum duration for acceptance of detected events.
+The default is \code{5} days.}
 
-\item{gap}{The maximum gap (days) across which two events will be considered one.}
+\item{max_gap}{The maximum length of gap allowed for the joining of MHWs. The
+default is \code{2} days.}
 }
 \value{
 Given the necessary file structure this will detect events within a raster.

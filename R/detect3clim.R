@@ -18,7 +18,7 @@ detect3clim <- function(x, time_dim, clim_period, ...){
   df_sub <- data.frame(t = as.Date(time_dim), temp = x)
 
   # Calculate climatology
-  df_seas <- heatwaveR::ts2clm(df_sub, climatologyPeriod = clim_period, ...)
+  df_seas <- heatwaveR::ts2clm3(df_sub, climatologyPeriod = clim_period, ...)
 
   # Return as matrix
   as.matrix(df_seas[,c("temp", "seas", "thresh")])

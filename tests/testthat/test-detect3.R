@@ -33,6 +33,7 @@ test_that("Arguments can be passed to ts2clm and detect_event via the ...", {
   expect_equal(ncol(res_base), 22)
   expect_equal(nrow(res_base), 340)
   expect_equal(nrow(res_99), 35)
+  expect_lt(res_MCS$intensity_mean[1], 0)
 })
 
 test_that("Saving types works correctly", {

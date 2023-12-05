@@ -39,7 +39,9 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
-      - run: Rscript -e 'devtools::install_github("robwschlegel/heatwaveR")'
+      - name: Install development heatwaveR
+        run: devtools::install_github("robwschlegel/heatwaveR")
+        shell: Rscript {0}
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:

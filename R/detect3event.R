@@ -12,7 +12,6 @@
 #' @return Given the necessary file structure this will detect events within a raster.
 #' @export
 #'
-#' @examples
 detect3event <- function(x, time_dim, dur = 5, gap = 2){
 
   # Get the maximum possible number of layers we need
@@ -27,7 +26,7 @@ detect3event <- function(x, time_dim, dur = 5, gap = 2){
   df_sub <- data.frame(t = as.Date(time_dim), temp = temp_vec, seas = seas_vec, thresh = thresh_vec)
 
   # Detect events
-  df_event <- heatwaveR::detect_event(df_sub, minDuration = dur, maxGap = gap)$event
+  df_event <- heatwaveR::detect_event3(df_sub, minDuration = dur, maxGap = gap)$event
 
   # keep only the date indices and not date characters
   as.matrix(df_event[1:max_layers, c(1:5, 9:22)])

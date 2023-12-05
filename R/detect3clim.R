@@ -10,7 +10,6 @@
 #' @return Given the necessary file structure this will create climatologies within a raster.
 #' @export
 #'
-#' @examples
 detect3clim <- function(x, time_dim){
 
   # Create data.frame

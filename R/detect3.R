@@ -16,10 +16,11 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' mhw_cube <- detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
 #'                     return_type = "df")
-#' head(mhw_cube)
-
+#' }
+#'
 detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file = NULL){
 
 
@@ -31,27 +32,17 @@ detect3 <- function(file_in, file_out = NULL, return_type = NULL, save_to_file =
   # Test if the output type is correct
   if (!is.null(return_type)){
     if (!(return_type %in% c("rast", "df"))) {
-      stop(shQuote("Invalid return_type.\nPlease enter a valid return_type (\'rast\' or \'df\')"), call. = FALSE)
+      stop("Invalid return_type.\nPlease enter a valid return_type (\'rast\' or \'df\')", call. = FALSE)
     }
   }
 
-  # Test if the save format is correct
+  # Test if the save format and output is correct
   if (!is.null(save_to_file)){
     if (!(save_to_file %in% c("nc", "csv"))) {
-      stop(shQuote("Invalid saving option.\nPlease enter a valid save_to_file (\'nc\' or \'csv\')"), call. = FALSE)
+      stop("Invalid saving option.\nPlease enter a valid save_to_file (\'nc\' or \'csv\')", call. = FALSE)
     }
     if (is.null(file_out)){
-      stop(shQuote("Missing file destination and name."), call. = FALSE)
-    }
-  }
-
-  # Test if the file format is correct
-  if (!is.null(file_out)) {
-    if (is.null(save_to_file)){
-      stop(shQuote("Invalid saving option.\nPlease enter a valid save_to_file (\'nc\' or \'csv\')"), call. = FALSE)
-    }
-    if (!(save_to_file %in% c("nc", "csv"))) {
-      stop(shQuote("Invalid saving option.\nPlease enter a valid save_to_file (\'nc\' or \'csv\')"), call. = FALSE)
+      stop("Missing file destination and name.", call. = FALSE)
     }
   }
 

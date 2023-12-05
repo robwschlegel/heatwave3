@@ -1,6 +1,6 @@
 Package: heatwave3
-Version: 0.0.1
-Date: 2023-08-28
+Version: 0.0.2
+Date: 2023-12-05
 Title: Detect Heatwaves and Cold-Spells within cubed data
 Description: This package is an extension to heatwaveR that allows the user to detect extreme 
     events a la Hobday definition directly on cubed data files (e.g. NetCDF format).
@@ -23,6 +23,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
     heatwaveR,
+    ncdf4,
     terra,
     tidyr
 Suggests: 

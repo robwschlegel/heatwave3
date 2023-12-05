@@ -26,7 +26,7 @@ Imports:
     ncdf4,
     terra,
     tidyr
-Remotes: url::https://github.com/robwschlegel/heatwaveR
+Remotes: robwschlegel/heatwaveR
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

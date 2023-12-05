@@ -28,7 +28,7 @@ library(heatwave3)
 
 # Run directly on a file without needing to load it first
 mhw_cube <- detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
-               return_type = "df")
+                     return_type = "df", clim_period = c("1982-01-01", "2011-12-31"))
                
 # Show the first few rows
 head(mhw_cube)

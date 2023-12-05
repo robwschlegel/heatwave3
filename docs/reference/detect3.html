@@ -54,13 +54,37 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3</span><span class="op">(</span><span class="va">file_in</span>, file_out <span class="op">=</span> <span class="cn">NULL</span>, return_type <span class="op">=</span> <span class="cn">NULL</span>, save_to_file <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3</span><span class="op">(</span></span>
+<span>  <span class="va">file_in</span>,</span>
+<span>  <span class="va">clim_period</span>,</span>
+<span>  min_dur <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  max_gap <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  file_out <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  return_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  save_to_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">...</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>file_in</dt>
 <dd><p>A NetCDF file</p></dd>
+
+
+<dt>clim_period</dt>
+<dd><p>The climatology baseline period provided as two date values.
+E.g. <code>c("1982-01-01", "2011-12-31")</code></p></dd>
+
+
+<dt>min_dur</dt>
+<dd><p>The minimum duration for acceptance of detected events.
+The default is <code>5</code> days.</p></dd>
+
+
+<dt>max_gap</dt>
+<dd><p>The maximum length of gap allowed for the joining of MHWs. The
+default is <code>2</code> days.</p></dd>
 
 
 <dt>file_out</dt>
@@ -77,6 +101,11 @@ to return a data.frame with the events organized by raster cell</p></dd>
 <dd><p>Default NULL will prevent the data being saved in memory.
 Other options are "nc", to save a NetCDF, and "csv", to save as a csv file.</p></dd>
 
+
+<dt>...</dt>
+<dd><p>One may pass any arguments to this functions that would be used via
+<code><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code> or <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>.</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
@@ -90,7 +119,7 @@ the NetCDF file provide. It may also output the results as a CSV file.</p>
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">mhw_cube</span> <span class="op">&lt;-</span> <span class="fu">detect3</span><span class="op">(</span>file_in <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/oisst_short.nc"</span>, package <span class="op">=</span> <span class="st">"heatwave3"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                    return_type <span class="op">=</span> <span class="st">"df"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                    return_type <span class="op">=</span> <span class="st">"df"</span>, clim_period <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

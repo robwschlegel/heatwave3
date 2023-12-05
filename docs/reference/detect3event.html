@@ -54,7 +54,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3event</span><span class="op">(</span><span class="va">x</span>, <span class="va">time_dim</span>, dur <span class="op">=</span> <span class="fl">5</span>, gap <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect3event</span><span class="op">(</span><span class="va">x</span>, <span class="va">time_dim</span>, <span class="va">min_dur</span>, <span class="va">max_gap</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -67,12 +67,14 @@
 <dd><p>The time dimension.</p></dd>
 
 
-<dt>dur</dt>
-<dd><p>The minimum duration (days) for an event to be detected.</p></dd>
+<dt>min_dur</dt>
+<dd><p>The minimum duration for acceptance of detected events.
+The default is <code>5</code> days.</p></dd>
 
 
-<dt>gap</dt>
-<dd><p>The maximum gap (days) across which two events will be considered one.</p></dd>
+<dt>max_gap</dt>
+<dd><p>The maximum length of gap allowed for the joining of MHWs. The
+default is <code>2</code> days.</p></dd>
 
 </dl></div>
     <div id="value">

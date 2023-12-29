@@ -14,6 +14,9 @@ test_that("Error messages return as expected", {
                        clim_period = c("1982-01-01", "2011-12-31"), save_to_file = "banana"))
   expect_error(detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
                        clim_period = c("1982-01-01", "2011-12-31"),
+                       return_type = "rast", save_to_file = "cvs"))
+  expect_error(detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
+                       clim_period = c("1982-01-01", "2011-12-31"),
                        return_type = "rast", save_to_file = "csv"))
 })
 

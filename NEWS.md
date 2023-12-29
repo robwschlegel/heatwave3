@@ -1,3 +1,7 @@
+# heatwave3 0.0.2 (2023-12-29)
+
+* Small tweak to get codecov to 100%
+
 # heatwave3 0.0.2 (2023-12-05)
 
 * Pushing codecov up towards 100%

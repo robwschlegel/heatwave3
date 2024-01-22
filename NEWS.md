@@ -1,5 +1,10 @@
 # heatwave3 0.0.2 (2023-12-29)
 
+* `detect3()` now converts hourly data to daily before running detection code
+* It also checks for pixels with missing data and handles them accordingly
+
+# heatwave3 0.0.2 (2023-12-29)
+
 * Small tweak to get codecov to 100%
 
 # heatwave3 0.0.2 (2023-12-05)

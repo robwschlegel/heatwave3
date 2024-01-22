@@ -31,7 +31,6 @@
 #'
 detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = NULL, return_type = NULL, save_to_file = NULL, ...){
 
-
   # Test that required arguments are given
   if (missing(file_in))
     stop("Please provide an input file.", call. = FALSE)
@@ -64,18 +63,32 @@ detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = N
   # Load NetCDF as terra::rast
   nc_rast <- terra::rast(file_in)
 
+  # Check for daily data
+  time_dim <- terra::time(nc_rast)
+  daily_dim <- unique(as.Date(terra::time(nc_rast)))
+  if(length(time_dim) > length(daily_dim)){
+    nc_rast_daily <- terra::tapp(nc_rast, "days", mean)
+  } else {
+    nc_rast_daily <- nc_rast
+  }
+
+  # Check that lon/lat range exists
+  # range(nc_rast_daily@cpp$range_max, na.rm = TRUE)
+
   # Create temp+seas+clim rasters
-  nc_seas <- terra::app(x = nc_rast, fun = detect3clim, time_dim = terra::time(nc_rast),
+  nc_seas <- terra::app(x = nc_rast_daily, fun = detect3clim,
+                        time_dim = terra::time(nc_rast_daily),
                         clim_period = clim_period, ...)
 
   # Add correct names
-  names(nc_seas) <- c(rep(paste0("temp.", 1:terra::nlyr(nc_rast))),
-                      rep(paste0("seas.", 1:terra::nlyr(nc_rast))),
-                      rep(paste0("thresh.", 1:terra::nlyr(nc_rast)))
+  names(nc_seas) <- c(rep(paste0("temp.", 1:terra::nlyr(nc_rast_daily))),
+                      rep(paste0("seas.", 1:terra::nlyr(nc_rast_daily))),
+                      rep(paste0("thresh.", 1:terra::nlyr(nc_rast_daily)))
   )
 
   # Calculate event metrics
-  nc_event <- terra::app(x = nc_seas, fun = detect3event, time_dim = terra::time(nc_rast),
+  nc_event <- terra::app(x = nc_seas, fun = detect3event,
+                         time_dim = terra::time(nc_rast_daily),
                          min_dur = min_dur, max_gap = max_gap, ...)
 
   ## Get the number of layers of each MHW metric
@@ -104,7 +117,8 @@ detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = N
   )
 
   # Remove layers with no data
-  nc_no_NA <- nc_event[[!is.na(terra::global(nc_event, sum, na.rm=TRUE))]]
+  # nc_no_NA <- nc_event[[1]]
+  nc_no_NA <- nc_event[[!is.na(terra::global(nc_event, sum, na.rm = TRUE))]]
 
   # Create sds object
   nc_sds <- terra::sds(
@@ -139,9 +153,9 @@ detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = N
   if(!is.null(save_to_file)) {
     if (save_to_file == "nc") {
       terra::longnames(nc_sds) <- c("A sequential number indicating the ID and order of the events",
-                                    paste0("Start date of event [date], as days since ", min(terra::time(nc_rast))),
-                                    paste0("Date of event peak [date], as days since ", min(terra::time(nc_rast))),
-                                    paste0("End date of event [date], as days since ", min(terra::time(nc_rast))),
+                                    paste0("Start date of event [date], as days since ", min(terra::time(nc_rast_daily))),
+                                    paste0("Date of event peak [date], as days since ", min(terra::time(nc_rast_daily))),
+                                    paste0("End date of event [date], as days since ", min(terra::time(nc_rast_daily))),
                                     "Duration of event [days]",
                                     "Mean intensity [deg. C]",
                                     "Maximum (peak) intensity [deg. C]",
@@ -164,7 +178,7 @@ detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = N
   # Save as csv
   if(!is.null(save_to_file)) {
     if (save_to_file == "csv") {
-      nc_csv <- rast_to_df(x = nc_no_NA, time_dim = min(terra::time(nc_rast)))
+      nc_csv <- rast_to_df(x = nc_no_NA, time_dim = min(terra::time(nc_rast_daily)))
       utils::write.csv(nc_csv, file = file_out, row.names = F)
     }
   }
@@ -173,13 +187,13 @@ detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = N
   if(!is.null(return_type)){
 
     if(return_type == "rast"){
-      #comment(nc_sds) <- paste0("Dates on indexes based on days since ",  min(terra::time(nc_rast)))
+      #comment(nc_sds) <- paste0("Dates on indexes based on days since ",  min(terra::time(nc_rast_daily)))
       return(nc_sds)
     }
 
     # Transform the SpatRasterDataset into a data.frame
     if(return_type == "df"){
-      nc_csv <- rast_to_df(x = nc_no_NA, time_dim = min(terra::time(nc_rast)))
+      nc_csv <- rast_to_df(x = nc_no_NA, time_dim = min(terra::time(nc_rast_daily)))
       return(nc_csv)
     }
 

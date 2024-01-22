@@ -17,8 +17,14 @@ detect3clim <- function(x, time_dim, clim_period, ...){
   # Create data.frame
   df_sub <- data.frame(t = as.Date(time_dim), temp = x)
 
-  # Calculate climatology
-  df_seas <- heatwaveR::ts2clm3(df_sub, climatologyPeriod = clim_period, ...)
+  # Check for missing pixels
+  df_check <- df_sub[!is.na(df_sub$temp),]
+  if (nrow(df_check) < nrow(df_sub)) {
+    df_seas <- data.frame(t = time, temp = NA, seas = NA, thresh = NA)
+  } else {
+    # Calculate climatology
+    df_seas <- heatwaveR::ts2clm3(df_sub, climatologyPeriod = clim_period, ...)
+  }
 
   # Return as matrix
   as.matrix(df_seas[,c("temp", "seas", "thresh")])

@@ -1,4 +1,8 @@
-# heatwave3 0.0.2 (2023-12-29)
+# heatwave3 0.0.4 (2024-06-13)
+
+* `detect3()` catches NA pixels before calculating climatologies
+
+# heatwave3 0.0.3 (2024-01-22)
 
 * `detect3()` now converts hourly data to daily before running detection code
 * It also checks for pixels with missing data and handles them accordingly

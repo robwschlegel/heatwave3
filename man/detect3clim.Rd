@@ -19,5 +19,6 @@ Given the necessary file structure this will create climatologies within a raste
 }
 \description{
 Determines the climatologies within a raster file.
+NB: Will not work with pixels with all NA values. E.g. land pixels.
 }
 \keyword{internal}

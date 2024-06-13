@@ -75,15 +75,18 @@ detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = N
   # Check that lon/lat range exists
   # range(nc_rast_daily@cpp$range_max, na.rm = TRUE)
 
+  # Remove missing pixels
+  nc_daily_no_NA <- nc_rast_daily[[!is.na(terra::global(nc_rast_daily, sum, na.rm = TRUE))]]
+
   # Create temp+seas+clim rasters
-  nc_seas <- terra::app(x = nc_rast_daily, fun = detect3clim,
-                        time_dim = terra::time(nc_rast_daily),
+  nc_seas <- terra::app(x = nc_daily_no_NA, fun = detect3clim,
+                        time_dim = terra::time(nc_daily_no_NA),
                         clim_period = clim_period, ...)
 
   # Add correct names
-  names(nc_seas) <- c(rep(paste0("temp.", 1:terra::nlyr(nc_rast_daily))),
-                      rep(paste0("seas.", 1:terra::nlyr(nc_rast_daily))),
-                      rep(paste0("thresh.", 1:terra::nlyr(nc_rast_daily)))
+  names(nc_seas) <- c(rep(paste0("temp.", 1:terra::nlyr(nc_daily_no_NA))),
+                      rep(paste0("seas.", 1:terra::nlyr(nc_daily_no_NA))),
+                      rep(paste0("thresh.", 1:terra::nlyr(nc_daily_no_NA)))
   )
 
   # Calculate event metrics
@@ -127,10 +130,10 @@ detect3 <- function(file_in, clim_period, min_dur = 5, max_gap = 2, file_out = N
     nc_no_NA[[grepl("index_peak.", names(nc_no_NA))]],
     nc_no_NA[[grepl("index_end.", names(nc_no_NA))]],
     nc_no_NA[[grepl("duration.", names(nc_no_NA))]],
-    nc_no_NA[[grepl("intensity_mean.", names(nc_no_NA), fixed=T)]],
-    nc_no_NA[[grepl("intensity_max.", names(nc_no_NA), fixed=T)]],
-    nc_no_NA[[grepl("intensity_var.", names(nc_no_NA), fixed=T)]],
-    nc_no_NA[[grepl("intensity_cumulative.", names(nc_no_NA), fixed=T)]],
+    nc_no_NA[[grepl("intensity_mean.", names(nc_no_NA), fixed = T)]],
+    nc_no_NA[[grepl("intensity_max.", names(nc_no_NA), fixed = T)]],
+    nc_no_NA[[grepl("intensity_var.", names(nc_no_NA), fixed = T)]],
+    nc_no_NA[[grepl("intensity_cumulative.", names(nc_no_NA), fixed = T)]],
     nc_no_NA[[grepl("intensity_mean_relThresh.", names(nc_no_NA))]],
     nc_no_NA[[grepl("intensity_max_relThresh.", names(nc_no_NA))]],
     nc_no_NA[[grepl("intensity_var_relThresh.", names(nc_no_NA))]],

@@ -1,0 +1,396 @@
+---
+title: "Getting started with heatwave3"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with heatwave3}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+# Chunks that need large external data are tagged eval = FALSE individually
+has_test_data <- file.exists(
+  system.file("extdata/sst_test.nc", package = "heatwave3")
+)
+```
+
+## Introduction
+
+**heatwave3** detects marine heatwaves (MHWs) and cold-spells directly on
+gridded NetCDF data using the Hobday et al. (2016, 2018) definition. All core
+algorithms are implemented in C++ with OpenMP parallelism, making it orders of
+magnitude faster than per-pixel processing with heatwaveR.
+
+The typical workflow has three steps:
+
+1. `ts2clm3()` — compute seasonal and threshold climatologies
+2. `detect_event3()` — detect events based on the climatologies
+3. Analyse/visualise with `category3()`, `block_average3()`, `detect_blob3()`,
+   or the plotting functions
+
+## Data input
+
+heatwave3 accepts three kinds of SST input:
+
+- **A single multi-timestep NetCDF file** (e.g. a merged time series)
+- **A vector of daily NetCDF file paths**
+- **A directory** containing daily `.nc` or `.nc4` files
+
+NetCDF variable and dimension names are auto-detected using CF conventions
+(`axis`, `standard_name`, `units` attributes) and common naming patterns. This
+means the package works with GHRSST, OISST, OSTIA, ERA5, CMIP6, and other
+datasets without needing to specify dimension names.
+
+```{r data-input, eval = FALSE}
+library(heatwave3)
+
+# Single multi-timestep file
+sst_file <- "/path/to/sst_merged.nc"
+clim_file <- tempfile(fileext = ".nc")
+ts2clm3(file_in = sst_file,
+        file_out = clim_file,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        lon_range = c(15, 35), lat_range = c(-38, -28),
+        n_threads = 4)
+
+# Directory of daily files
+ts2clm3(file_in = "/path/to/daily_sst/",
+        file_out = clim_file,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        n_threads = 4)
+
+# Explicit vector of file paths
+daily_files <- list.files("/path/to/daily/", pattern = "[.]nc4$",
+                          full.names = TRUE)
+ts2clm3(file_in = daily_files,
+        file_out = clim_file,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        n_threads = 4)
+```
+
+## Basic pipeline
+
+Here we demonstrate the full pipeline using the bundled OSTIA test dataset (3×2
+pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
+
+```{r basic-pipeline, eval = has_test_data}
+library(heatwave3)
+
+sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+clim_file <- tempfile(fileext = ".nc")
+event_file <- tempfile(fileext = ".nc")
+
+# All-in-one: climatology + event detection
+detect3(file_in = sst_file,
+        file_out_clim = clim_file,
+        file_out_event = event_file,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        n_threads = 2)
+```
+
+## Per-pixel time series plot
+
+Extract a single pixel and produce a heatwaveR-style event line plot with
+flame polygons showing events above the threshold.
+
+```{r event-line, fig.width = 8, fig.height = 4, eval = has_test_data}
+event_line3(sst_file = sst_file,
+            clim_file = clim_file,
+            lon = 26.525, lat = -34.125,
+            start_date = "2010-01-01",
+            end_date = "2012-12-31")
+```
+
+## Spatial maps
+
+Visualise the spatial distribution of any event metric across the grid.
+
+```{r spatial-map, fig.width = 7, fig.height = 5, eval = has_test_data}
+plot_metric3(event_file, metric = "intensity_max", summary = "mean")
+```
+
+## Event categories and yearly aggregation
+
+```{r categories, eval = has_test_data}
+cats <- category3(event_file, clim_file)
+head(cats)
+table(cats$category)
+```
+
+```{r block-average, eval = has_test_data}
+ba <- block_average3(event_file)
+head(ba)
+```
+
+## Detrended climatology
+
+By default, `ts2clm3()` follows Hobday et al. (2016) with a fixed baseline. To
+remove the long-term warming trend before computing the climatology — following
+Jacox et al. (2020) — set `detrend = TRUE`:
+```{r detrend, eval = FALSE}
+ts2clm3(file_in = sst_file,
+        file_out = tempfile(fileext = ".nc"),
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        detrend = TRUE)
+```
+
+## Output formats
+
+The primary output is always NetCDF. Additional companion files can be written
+alongside in CSV, RDA, or Parquet format:
+
+```{r output-formats, eval = FALSE}
+# Write events as Parquet alongside the NetCDF
+detect_event3(file_in = sst_file,
+              clim_file = clim_file,
+              file_out = event_file,
+              save_format = "parquet")
+
+# Or export after the fact
+hw3_export(event_file, format = "csv", type = "event")
+hw3_export(clim_file, format = "rda", type = "clim")
+```
+
+## Cold spells
+
+Detect marine cold-spells by setting `pctile = 10` for the climatology and
+`coldSpells = TRUE` for detection.
+
+```{r cold-spells, eval = FALSE}
+clim_cold <- tempfile(fileext = ".nc")
+event_cold <- tempfile(fileext = ".nc")
+
+ts2clm3(file_in = sst_file,
+        file_out = clim_cold,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        pctile = 10, n_threads = 2)
+
+detect_event3(file_in = sst_file,
+              clim_file = clim_cold,
+              file_out = event_cold,
+              coldSpells = TRUE, n_threads = 2)
+```
+
+## Spatial blob detection
+
+The examples below reproduce the spatial blob analysis from Schlegel et al.,
+using the OSTIA dataset covering the South African coast (15–35°E, 28–38°S).
+They demonstrate heatwave blob footprints, daily area evolution, centroid
+trajectories, persistence maps, and the cold-spell equivalents.
+
+All six figure types correspond to the example outputs in `heatwaveR/dev_doc/figs/`.
+
+### Setup: climatology and blob detection
+
+```{r blob-setup, eval = FALSE}
+library(heatwave3)
+library(ggplot2)
+
+sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
+clim_file <- tempfile(fileext = ".nc")
+xlim <- c(15, 35); ylim <- c(-38, -28)
+
+ts2clm3(file_in = sst_file,
+        file_out = clim_file,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        lon_range = xlim, lat_range = ylim,
+        var_name = "analysed_sst",
+        n_threads = 4)
+
+# Detect spatial blobs — include voxel data for footprint maps
+blobs <- detect_blob3(file_in = sst_file,
+                      clim_file = clim_file,
+                      var_name = "analysed_sst",
+                      minVoxels = 200L,
+                      topN = 10L,
+                      rankBy = "cumI_km2_day",
+                      return = c("event", "daily", "voxel"))
+
+# Coastline for map overlays
+land <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+land_clip <- sf::st_crop(land, xmin = xlim[1], xmax = xlim[2],
+                         ymin = ylim[1], ymax = ylim[2])
+```
+
+### Figure 1: Top 6 blob peak-day footprints
+
+```{r fig01-top6-peak, fig.width = 11, fig.height = 7, eval = FALSE}
+top6 <- blobs$event[1:6, ]
+top6$blob_lbl <- paste0("#", top6$rank, " | ", top6$date_peak)
+vox6 <- blobs$voxel[blobs$voxel$blob %in% top6$blob, ]
+vox6$blob_lbl <- top6$blob_lbl[match(vox6$blob, top6$blob)]
+
+# Filter to peak date for each blob
+vox6_peak <- do.call(rbind, lapply(split(vox6, vox6$blob), function(sub) {
+  peak <- top6$date_peak[top6$blob == sub$blob[1]]
+  sub[sub$date == peak, ]
+}))
+
+ggplot() +
+  geom_sf(data = land_clip, fill = "grey92", colour = "grey60", linewidth = 0.2) +
+  geom_raster(data = vox6_peak, aes(lon, lat, fill = delta)) +
+  scale_fill_viridis_c(name = expression(Delta ~ "(K)"),
+                       option = "inferno", direction = 1) +
+  facet_wrap(~ blob_lbl, ncol = 3) +
+  coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
+  labs(title = "OSTIA spatial heatwave blobs: top 6 by |cumI|, peak-day footprints",
+       subtitle = "Region 15-35 E, 38-28 S",
+       x = "Longitude", y = "Latitude") +
+  theme_minimal(base_size = 10) +
+  theme(strip.text = element_text(face = "bold"))
+```
+
+### Figure 2: Daily area of top 6 blobs
+
+```{r fig02-daily-area, fig.width = 9, fig.height = 5, eval = FALSE}
+daily6 <- blobs$daily[blobs$daily$blob %in% top6$blob, ]
+daily6$blob_lbl <- factor(top6$blob_lbl[match(daily6$blob, top6$blob)],
+                          levels = top6$blob_lbl)
+
+ggplot(daily6, aes(date, area_km2 / 1000, colour = blob_lbl)) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_viridis_d(name = "rank", option = "turbo") +
+  labs(title = "Daily area of top 6 spatial heatwave blobs",
+       x = NULL, y = expression(Area ~ (10^3 ~ km^2))) +
+  theme_minimal(base_size = 11)
+```
+
+### Figure 3: Centroid trajectories of top 3 blobs
+
+```{r fig03-centroids, fig.width = 11, fig.height = 5, eval = FALSE}
+top3 <- blobs$event[1:3, ]
+top3$blob_lbl <- paste0("#", top3$rank, " (", top3$date_peak, ")")
+daily3 <- blobs$daily[blobs$daily$blob %in% top3$blob, ]
+daily3$blob_lbl <- factor(top3$blob_lbl[match(daily3$blob, top3$blob)],
+                          levels = top3$blob_lbl)
+
+for (b in unique(daily3$blob)) {
+  idx <- daily3$blob == b
+  daily3$day_from_start[idx] <- as.numeric(
+    daily3$date[idx] - min(daily3$date[idx])
+  )
+}
+
+ggplot() +
+  geom_sf(data = land_clip, fill = "grey92", colour = "grey60", linewidth = 0.2) +
+  geom_path(data = daily3, aes(centroid_lon, centroid_lat,
+                                colour = day_from_start), linewidth = 0.6) +
+  geom_point(data = daily3, aes(centroid_lon, centroid_lat,
+                                 colour = day_from_start,
+                                 size = area_km2 / 1000), alpha = 0.7) +
+  scale_colour_viridis_c(name = "day from start") +
+  scale_size_continuous(name = expression(Area ~ (10^3 ~ km^2)),
+                        range = c(0.5, 5)) +
+  facet_wrap(~ blob_lbl, ncol = 3) +
+  coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
+  labs(title = "Centroid trajectories of top 3 blobs",
+       x = "Longitude", y = "Latitude") +
+  theme_minimal(base_size = 10)
+```
+
+### Figure 4: Persistence — days under heatwave per pixel
+
+```{r fig04-persistence, fig.width = 11, fig.height = 4.5, eval = FALSE}
+vox3 <- blobs$voxel[blobs$voxel$blob %in% top3$blob, ]
+vox3$blob_lbl <- factor(top3$blob_lbl[match(vox3$blob, top3$blob)],
+                        levels = top3$blob_lbl)
+
+# Count days per (blob, lon, lat)
+vox3_persist <- aggregate(date ~ blob_lbl + lon + lat, data = vox3,
+                          FUN = length)
+names(vox3_persist)[4] <- "n_days"
+
+ggplot() +
+  geom_sf(data = land_clip, fill = "grey92", colour = "grey60", linewidth = 0.2) +
+  geom_raster(data = vox3_persist, aes(lon, lat, fill = n_days)) +
+  scale_fill_viridis_c(name = "days under event", option = "plasma") +
+  facet_wrap(~ blob_lbl, ncol = 3) +
+  coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
+  labs(title = "Footprint persistence: days under heatwave per pixel, top 3 blobs",
+       x = "Longitude", y = "Latitude") +
+  theme_minimal(base_size = 10)
+```
+
+### Figure 5: Cold-spell blob footprints
+
+```{r fig05-mcs-setup, eval = FALSE}
+clim_cold <- tempfile(fileext = ".nc")
+ts2clm3(file_in = sst_file,
+        file_out = clim_cold,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        lon_range = xlim, lat_range = ylim,
+        var_name = "analysed_sst",
+        pctile = 10, n_threads = 4)
+
+mcs_blobs <- detect_blob3(file_in = sst_file,
+                          clim_file = clim_cold,
+                          var_name = "analysed_sst",
+                          coldSpells = TRUE,
+                          minVoxels = 200L,
+                          topN = 10L,
+                          rankBy = "cumI_km2_day",
+                          return = c("event", "daily", "voxel"))
+```
+
+```{r fig05-mcs-top6-peak, fig.width = 11, fig.height = 7, eval = FALSE}
+mcs6 <- mcs_blobs$event[1:6, ]
+mcs6$blob_lbl <- paste0("#", mcs6$rank, " | ", mcs6$date_peak)
+mvox6 <- mcs_blobs$voxel[mcs_blobs$voxel$blob %in% mcs6$blob, ]
+mvox6$blob_lbl <- mcs6$blob_lbl[match(mvox6$blob, mcs6$blob)]
+
+mvox6_peak <- do.call(rbind, lapply(split(mvox6, mvox6$blob), function(sub) {
+  peak <- mcs6$date_peak[mcs6$blob == sub$blob[1]]
+  sub[sub$date == peak, ]
+}))
+mvox6_peak$delta <- -mvox6_peak$delta  # show negative anomalies
+
+ggplot() +
+  geom_sf(data = land_clip, fill = "grey92", colour = "grey60", linewidth = 0.2) +
+  geom_raster(data = mvox6_peak, aes(lon, lat, fill = delta)) +
+  scale_fill_viridis_c(name = expression(Delta ~ "(K)"),
+                       option = "mako", direction = 1) +
+  facet_wrap(~ blob_lbl, ncol = 3) +
+  coord_sf(xlim = xlim, ylim = ylim, expand = FALSE) +
+  labs(title = "OSTIA cold-spell blobs: top 6 by |cumI|, peak-day footprints",
+       subtitle = "Region 15-35 E, 38-28 S",
+       x = "Longitude", y = "Latitude") +
+  theme_minimal(base_size = 10) +
+  theme(strip.text = element_text(face = "bold"))
+```
+
+### Figure 6: Cold-spell daily area
+
+```{r fig06-mcs-daily-area, fig.width = 9, fig.height = 5, eval = FALSE}
+mdaily6 <- mcs_blobs$daily[mcs_blobs$daily$blob %in% mcs6$blob, ]
+mdaily6$blob_lbl <- factor(mcs6$blob_lbl[match(mdaily6$blob, mcs6$blob)],
+                           levels = mcs6$blob_lbl)
+
+ggplot(mdaily6, aes(date, area_km2 / 1000, colour = blob_lbl)) +
+  geom_line(linewidth = 0.8) +
+  scale_colour_viridis_d(name = "rank", option = "mako") +
+  labs(title = "Daily area of top 6 spatial cold-spell blobs",
+       x = NULL, y = expression(Area ~ (10^3 ~ km^2))) +
+  theme_minimal(base_size = 11)
+```
+
+## Performance
+
+heatwave3 achieves significant speedups over per-pixel processing with
+heatwaveR. On a 20×20 grid (400 pixels, 14,276 daily time steps each):
+
+| Method | Time | Speedup |
+|--------|------|---------|
+| heatwaveR (serial, 400 pixels) | ~38 sec | 1× |
+| heatwave3 (4 threads) | 0.53 sec | **~71×** |
+
+The speedup comes from:
+
+1. **C++ implementation** of all core algorithms (climatology + event detection)
+2. **OpenMP parallelism** across pixels
+3. **Direct NetCDF I/O** via libnetcdf (no R overhead)

@@ -1,36 +1,46 @@
 Package: heatwave3
-Version: 0.0.4
-Date: 2024-06-13
-Title: Detect Heatwaves and Cold-Spells within cubed data
-Description: This package is an extension to heatwaveR that allows the user to detect extreme 
-    events a la Hobday definition directly on cubed data files (e.g. NetCDF format).
+Version: 1.0.0
+Date: 2026-05-23
+Title: Detect Heatwaves and Cold-Spells in Gridded Data
+Description: Detect marine heatwaves (MHWs) and cold-spells directly on gridded
+    NetCDF data using the Hobday et al. (2016, 2018) definition. Implements
+    climatology calculation, event detection, exceedance analysis, event
+    categorisation, blob detection, and visualisation. All core algorithms are
+    written in C++ with OpenMP parallelism for high performance on large datasets.
 Type: Package
-Authors@R: c(person("Robert W.", "Schlegel", role = c("aut", "cre", "ctb"),
+Authors@R: c(person("Robert W.", "Schlegel", role = c("aut", "ctb"),
                     email = "robwschlegel@gmail.com",
                     comment = c(ORCID = "0000-0002-0705-1287")),
-            person("Guilherme", "Pinto", role = c("aut", "ctb")),
-            person("Lily", "Genevier", role = c("aut", "ctb")),
-            person("Jacob", "Cohen", role = c("aut", "ctb")),
-            person("Panini", "Dasgupta", role = c("aut", "ctb")),
-            person("Evan", "Meeker", role = c("aut", "ctb")),
-            person("Elise", "Beaudin", role = c("aut", "ctb")),
-            person("Albertus J.", "Smit", role = c("aut", "ctb"),
+            person("Albertus J.", "Smit", role = c("aut", "cre", "ctb"),
+                    email = "albertus.smit@gmail.com",
                     comment = c(ORCID = "0000-0002-3799-6126")))
-Maintainer: Robert W. Schlegel <robwschlegel@gmail.com>
+Maintainer: Albertus J. Smit <albertus.smit@gmail.com>
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 Imports:
-    heatwaveR,
+    Rcpp (>= 1.0.0),
+    ggplot2,
+    rlang,
+    scales
+LinkingTo:
+    Rcpp,
+    RcppArmadillo
+Suggests:
+    testthat (>= 3.0.0),
     ncdf4,
-    terra,
-    tidyr
-Remotes: robwschlegel/heatwaveR
-Suggests: 
-    testthat (>= 3.0.0)
+    heatwaveR,
+    knitr,
+    rmarkdown,
+    rnaturalearth,
+    sf,
+    arrow,
+    bench
+VignetteBuilder: knitr
 Config/testthat/edition: 3
-Depends: 
-    R (>= 2.10)
-LazyData: true
+Depends:
+    R (>= 4.1.0)
+SystemRequirements: GNU make, netcdf (>= 4.0), C++17
 URL: https://robwschlegel.github.io/heatwave3/index.html, https://github.com/robwschlegel/heatwave3
+NeedsCompilation: yes

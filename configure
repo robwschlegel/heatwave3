@@ -1,0 +1,87 @@
+#!/bin/sh
+
+# Find netcdf via nc-config, pkg-config, or common paths
+
+NETCDF_CPPFLAGS=""
+NETCDF_LIBS=""
+NETCDF_LIBDIR=""
+
+if command -v nc-config > /dev/null 2>&1; then
+  NETCDF_CPPFLAGS=$(nc-config --cflags 2>/dev/null)
+  NETCDF_LIBS=$(nc-config --libs 2>/dev/null)
+  NETCDF_LIBDIR=$(nc-config --prefix 2>/dev/null)/lib
+elif command -v pkg-config > /dev/null 2>&1 && pkg-config --exists netcdf 2>/dev/null; then
+  NETCDF_CPPFLAGS=$(pkg-config --cflags netcdf 2>/dev/null)
+  NETCDF_LIBS=$(pkg-config --libs netcdf 2>/dev/null)
+  NETCDF_LIBDIR=$(pkg-config --variable=libdir netcdf 2>/dev/null)
+else
+  for prefix in /usr/local /usr /opt/homebrew /opt/local; do
+    if [ -f "${prefix}/include/netcdf.h" ]; then
+      NETCDF_CPPFLAGS="-I${prefix}/include"
+      NETCDF_LIBS="-L${prefix}/lib -lnetcdf"
+      NETCDF_LIBDIR="${prefix}/lib"
+      break
+    fi
+  done
+fi
+
+if [ -z "${NETCDF_LIBS}" ]; then
+  echo "-----------------------------------------------------"
+  echo "ERROR: netcdf library not found."
+  echo ""
+  echo "Install netcdf-c (>= 4.0) and ensure nc-config or"
+  echo "pkg-config can find it."
+  echo ""
+  echo "  macOS:   brew install netcdf"
+  echo "  Ubuntu:  apt install libnetcdf-dev"
+  echo "  Fedora:  dnf install netcdf-devel"
+  echo "-----------------------------------------------------"
+  exit 1
+fi
+
+# Add rpath on macOS so dylib is found at runtime
+case "$(uname -s)" in
+  Darwin*)
+    if [ -n "${NETCDF_LIBDIR}" ]; then
+      NETCDF_LIBS="${NETCDF_LIBS} -Wl,-rpath,${NETCDF_LIBDIR}"
+    fi
+    ;;
+esac
+
+# Detect OpenMP support
+OPENMP_CXXFLAGS=""
+OPENMP_LIBS=""
+
+case "$(uname -s)" in
+  Darwin*)
+    # macOS: check for Homebrew libomp
+    # Must use full path to avoid R's bundled (older) libomp being loaded
+    for omp_prefix in /opt/homebrew/opt/libomp /usr/local/opt/libomp; do
+      if [ -f "${omp_prefix}/lib/libomp.dylib" ]; then
+        OPENMP_CXXFLAGS="-I${omp_prefix}/include -Xclang -fopenmp"
+        OPENMP_LIBS="${omp_prefix}/lib/libomp.dylib"
+        break
+      fi
+    done
+    ;;
+  *)
+    # Linux: gcc supports -fopenmp natively
+    OPENMP_CXXFLAGS="-fopenmp"
+    OPENMP_LIBS="-fopenmp"
+    ;;
+esac
+
+echo "Using netcdf:"
+echo "  CPPFLAGS: ${NETCDF_CPPFLAGS}"
+echo "  LIBS:     ${NETCDF_LIBS}"
+echo "Using OpenMP:"
+echo "  CXXFLAGS: ${OPENMP_CXXFLAGS}"
+echo "  LIBS:     ${OPENMP_LIBS}"
+
+sed -e "s|@NETCDF_CPPFLAGS@|${NETCDF_CPPFLAGS}|" \
+    -e "s|@NETCDF_LIBS@|${NETCDF_LIBS}|" \
+    -e "s|@OPENMP_CXXFLAGS@|${OPENMP_CXXFLAGS}|" \
+    -e "s|@OPENMP_LIBS@|${OPENMP_LIBS}|" \
+    src/Makevars.in > src/Makevars
+
+exit 0

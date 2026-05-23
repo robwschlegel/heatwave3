@@ -4,9 +4,9 @@
 \name{heatwave3-package}
 \alias{heatwave3}
 \alias{heatwave3-package}
-\title{heatwave3: Detect Heatwaves and Cold-Spells within cubed data}
+\title{heatwave3: Detect Heatwaves and Cold-Spells in Gridded Data}
 \description{
-This package is an extension to heatwaveR that allows the user to detect extreme events a la Hobday definition directly on cubed data files (e.g. NetCDF format).
+Detect marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++ with OpenMP parallelism for high performance on large datasets.
 }
 \seealso{
 Useful links:
@@ -17,17 +17,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Robert W. Schlegel \email{robwschlegel@gmail.com} (\href{https://orcid.org/0000-0002-0705-1287}{ORCID}) [contributor]
+\strong{Maintainer}: Albertus J. Smit \email{albertus.smit@gmail.com} (\href{https://orcid.org/0000-0002-3799-6126}{ORCID}) [contributor]
 
 Authors:
 \itemize{
-  \item Guilherme Pinto [contributor]
-  \item Lily Genevier [contributor]
-  \item Jacob Cohen [contributor]
-  \item Panini Dasgupta [contributor]
-  \item Evan Meeker [contributor]
-  \item Elise Beaudin [contributor]
-  \item Albertus J. Smit (\href{https://orcid.org/0000-0002-3799-6126}{ORCID}) [contributor]
+  \item Robert W. Schlegel \email{robwschlegel@gmail.com} (\href{https://orcid.org/0000-0002-0705-1287}{ORCID}) [contributor]
 }
 
 }

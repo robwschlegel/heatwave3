@@ -2,54 +2,90 @@
 % Please edit documentation in R/detect3.R
 \name{detect3}
 \alias{detect3}
-\title{detect3}
+\title{All-in-one marine heatwave detection for gridded data}
 \usage{
 detect3(
   file_in,
-  clim_period,
-  min_dur = 5,
-  max_gap = 2,
-  file_out = NULL,
-  return_type = NULL,
-  save_to_file = NULL,
-  ...
+  file_out_clim,
+  file_out_event,
+  climatologyPeriod,
+  var_name = NULL,
+  lon_range = NULL,
+  lat_range = NULL,
+  time_range = NULL,
+  depth = NULL,
+  maxPadLength = FALSE,
+  windowHalfWidth = 5L,
+  pctile = 90,
+  smoothPercentile = TRUE,
+  smoothPercentileWidth = 31L,
+  minDuration = 5L,
+  joinAcrossGaps = TRUE,
+  maxGap = 2L,
+  coldSpells = FALSE,
+  roundClm = 4L,
+  roundRes = 4L,
+  n_threads = 1L
 )
 }
 \arguments{
-\item{file_in}{A NetCDF file}
+\item{file_in}{Path to input NetCDF file containing SST data.}
 
-\item{clim_period}{The climatology baseline period provided as two date values.
-E.g. \code{c("1982-01-01", "2011-12-31")}}
+\item{file_out_clim}{Path for the output climatology NetCDF file.}
 
-\item{min_dur}{The minimum duration for acceptance of detected events.
-The default is \code{5} days.}
+\item{file_out_event}{Path for the output event NetCDF file.}
 
-\item{max_gap}{The maximum length of gap allowed for the joining of MHWs. The
-default is \code{2} days.}
+\item{climatologyPeriod}{Character vector of length 2 with start and end
+dates of the baseline period.}
 
-\item{file_out}{File output location with name and extension of the file}
+\item{var_name}{Name of the SST variable. If \code{NULL}, auto-detected.}
 
-\item{return_type}{Default NULL will prevent the data being saved in memory.
-Other options are "rast", to return a SpatRasterDataset, and "df",
-to return a data.frame with the events organized by raster cell}
+\item{lon_range}{Optional \code{c(min, max)} longitude range.}
 
-\item{save_to_file}{Default NULL will prevent the data being saved in memory.
-Other options are "nc", to save a NetCDF, and "csv", to save as a csv file.}
+\item{lat_range}{Optional \code{c(min, max)} latitude range.}
 
-\item{...}{One may pass any arguments to this functions that would be used via
-\code{heatwaveR::ts2clm()} or \code{heatwaveR::detect_event()}.}
+\item{time_range}{Optional \code{c("start", "end")} date range.}
+
+\item{depth}{Optional depth/level index for 4D data.}
+
+\item{maxPadLength}{Max consecutive NAs to interpolate. Default \code{FALSE}.}
+
+\item{windowHalfWidth}{Half-width of climatology window. Default \code{5}.}
+
+\item{pctile}{Percentile for threshold. Default \code{90}.}
+
+\item{smoothPercentile}{Apply rolling mean smoothing? Default \code{TRUE}.}
+
+\item{smoothPercentileWidth}{Smoothing window width. Default \code{31}.}
+
+\item{minDuration}{Minimum event duration in days. Default \code{5}.}
+
+\item{joinAcrossGaps}{Join events across short gaps? Default \code{TRUE}.}
+
+\item{maxGap}{Maximum gap length to join. Default \code{2}.}
+
+\item{coldSpells}{Detect cold-spells? Default \code{FALSE}.}
+
+\item{roundClm}{Decimal places for climatology rounding. Default \code{4}.}
+
+\item{roundRes}{Decimal places for event metric rounding. Default \code{4}.}
+
+\item{n_threads}{Number of OpenMP threads. Default \code{1}.}
 }
 \value{
-Depending on the arguments set, this function will return the heatwaves detected in
-the NetCDF file provide. It may also output the results as a CSV file.
+Invisibly returns a list with \code{clim_file} and \code{event_file} paths.
 }
 \description{
-Function to detect events within a NetCDF file using the Hobday et al. 2016 definition.
+Convenience wrapper that runs \code{\link{ts2clm3}} followed by
+\code{\link{detect_event3}} in a single call.
 }
 \examples{
 \donttest{
-mhw_cube <- detect3(file_in = system.file("extdata/oisst_short.nc", package = "heatwave3"),
-                    return_type = "df", clim_period = c("1982-01-01", "2011-12-31"))
-}
+sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+clim_file <- tempfile(fileext = ".nc")
+event_file <- tempfile(fileext = ".nc")
 
+detect3(sst_file, clim_file, event_file,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"))
+}
 }

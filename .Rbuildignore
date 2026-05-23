@@ -10,3 +10,7 @@
 ^data-raw$
 ^logo.png
 ^package_development.R
+^heatwave3\.code-workspace$
+^configure\.win$
+^src/Makevars$
+^CLAUDE\.md$

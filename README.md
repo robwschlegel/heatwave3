@@ -60,8 +60,6 @@ heatwave3 requires the **netCDF C library** (version 4.0+). The `configure` scri
 **macOS:**
 ```bash
 brew install netcdf
-# Optional: for OpenMP parallelism
-brew install libomp
 ```
 
 **Ubuntu / Debian:**
@@ -73,6 +71,22 @@ sudo apt install libnetcdf-dev
 ```bash
 sudo dnf install netcdf-devel
 ```
+
+### Enabling OpenMP on macOS (optional)
+
+On Linux, OpenMP parallelism works out of the box. On macOS, it is disabled by default because R ships an older `libomp` that conflicts with Homebrew's version. To enable multi-threaded execution on macOS:
+
+```bash
+brew install libomp
+```
+
+Then create or edit `~/.R/Makevars`:
+
+```makefile
+SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp
+```
+
+Reinstall heatwave3 after making this change. If you encounter `Symbol not found: ___kmpc_dispatch_deinit` errors, remove the `SHLIB_OPENMP_CXXFLAGS` line &mdash; the package works correctly in single-threaded mode.
 
 ## Quick start
 

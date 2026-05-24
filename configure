@@ -49,25 +49,26 @@ case "$(uname -s)" in
 esac
 
 # Detect OpenMP support
+# On Linux, gcc supports -fopenmp natively.
+# On macOS, Apple Clang requires libomp but R ships an older version that
+# conflicts with Homebrew's. We only enable OpenMP on macOS if the user has
+# explicitly set SHLIB_OPENMP_CXXFLAGS in ~/.R/Makevars (indicating a
+# compatible setup). Otherwise macOS runs single-threaded.
 OPENMP_CXXFLAGS=""
 OPENMP_LIBS=""
 
 case "$(uname -s)" in
-  Darwin*)
-    # macOS: check for Homebrew libomp
-    # Must use full path to avoid R's bundled (older) libomp being loaded
-    for omp_prefix in /opt/homebrew/opt/libomp /usr/local/opt/libomp; do
-      if [ -f "${omp_prefix}/lib/libomp.dylib" ]; then
-        OPENMP_CXXFLAGS="-I${omp_prefix}/include -Xclang -fopenmp"
-        OPENMP_LIBS="${omp_prefix}/lib/libomp.dylib"
-        break
-      fi
-    done
-    ;;
-  *)
-    # Linux: gcc supports -fopenmp natively
+  Linux*)
     OPENMP_CXXFLAGS="-fopenmp"
     OPENMP_LIBS="-fopenmp"
+    ;;
+  Darwin*)
+    # Respect user's explicit OpenMP configuration if set
+    if [ -n "${SHLIB_OPENMP_CXXFLAGS}" ]; then
+      OPENMP_CXXFLAGS="${SHLIB_OPENMP_CXXFLAGS}"
+      OPENMP_LIBS="${SHLIB_OPENMP_CXXFLAGS}"
+    fi
+    # Otherwise: no OpenMP on macOS by default (avoids libomp version conflict)
     ;;
 esac
 
@@ -75,8 +76,11 @@ echo "Using netcdf:"
 echo "  CPPFLAGS: ${NETCDF_CPPFLAGS}"
 echo "  LIBS:     ${NETCDF_LIBS}"
 echo "Using OpenMP:"
-echo "  CXXFLAGS: ${OPENMP_CXXFLAGS}"
-echo "  LIBS:     ${OPENMP_LIBS}"
+if [ -n "${OPENMP_CXXFLAGS}" ]; then
+  echo "  CXXFLAGS: ${OPENMP_CXXFLAGS}"
+else
+  echo "  disabled (single-threaded; see ?heatwave3 for enabling on macOS)"
+fi
 
 sed -e "s|@NETCDF_CPPFLAGS@|${NETCDF_CPPFLAGS}|" \
     -e "s|@NETCDF_LIBS@|${NETCDF_LIBS}|" \

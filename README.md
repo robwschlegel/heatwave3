@@ -13,7 +13,7 @@
 
 Working with large gridded SST datasets (e.g. OSTIA, OISST, ERA5, CMIP6) using heatwaveR requires looping over each pixel individually in R. For a 400 &times; 200 grid with 40 years of daily data, this takes over an hour. **heatwave3** solves this by:
 
-1. **C++17 implementation** of all core algorithms (climatology, event detection, blob labelling)
+1. **C++17 implementation** of all core algorithms (climatology, event detection, categorisation, block averages)
 2. **OpenMP parallelism** across pixels &mdash; each pixel is independent
 3. **Direct NetCDF I/O** via libnetcdf &mdash; no R NetCDF packages needed at runtime
 
@@ -32,13 +32,15 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 ## Features
 
 - **Climatology** (`ts2clm3`) &mdash; sliding-window percentile with Type-7 quantile, circular-padded rolling mean smoothing, optional linear detrending (Jacox et al. 2020)
-- **Event detection** (`detect_event3`) &mdash; threshold exceedance, run-length encoding, gap joining, 19 event metrics. Cold-spell support.
+- **Event detection** (`detect_event3`) &mdash; threshold exceedance, run-length encoding, gap joining, 19 event metrics. Cold-spell support. Optional inline Hobday et al. (2018) severity categories.
+- **All-in-one pipeline** (`detect3`) &mdash; climatology + detection + optional categories in a single call, with `return_df = TRUE` for immediate interactive use
 - **Spatial blob detection** (`detect_blob3`) &mdash; 3D connected-component labelling with voxel-level footprint output
-- **Event categorisation** (`category3`) &mdash; Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories
+- **Event categorisation** (`category3`) &mdash; Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories. Works for both heatwaves and cold-spells.
 - **Yearly aggregation** (`block_average3`) and **static threshold exceedance** (`exceedance3`)
-- **Plotting** &mdash; `event_line3`, `geom_flame3`, `geom_lolli3`, `plot_metric3`
+- **Plotting** &mdash; `event_line3`, `geom_flame3`, `geom_lolli3`, `plot_metric3` (C++-backed spatial aggregation)
 - **Flexible input** &mdash; single multi-timestep NetCDF, directory of daily files, or explicit file vector
 - **Robust dimension detection** &mdash; auto-detects lon/lat/time/SST from CF attributes, standard names, and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO)
+- **Progress reporting** &mdash; percentage-complete updates during long climatology and detection runs
 - **Multiple output formats** &mdash; NetCDF (always), plus optional CSV, RDA, or Parquet companion files
 - **Numerical equivalence** &mdash; climatology and event metrics match heatwaveR to rounding precision (validated pixel-by-pixel)
 
@@ -97,27 +99,67 @@ sst_file <- "path/to/sst.nc"  # or a directory of daily files
 clim_file <- tempfile(fileext = ".nc")
 event_file <- tempfile(fileext = ".nc")
 
-# All-in-one: climatology + event detection
-detect3(
-  file_in         = sst_file,
-  file_out_clim   = clim_file,
-  file_out_event  = event_file,
+# All-in-one: climatology + event detection + categories
+events <- detect3(
+  file_in           = sst_file,
+  file_out_clim     = clim_file,
+  file_out_event    = event_file,
   climatologyPeriod = c("1991-01-01", "2020-12-31"),
-  lon_range       = c(15, 35),
-  lat_range       = c(-38, -28),
-  n_threads       = 4
+  lon_range         = c(15, 35),
+  lat_range         = c(-38, -28),
+  category          = TRUE,
+  hemisphere        = "south",
+  return_df         = TRUE,
+  n_threads         = 4
 )
 
-# Per-pixel time series plot
+head(events)
+table(events$category)
+```
+
+### Cold-spell detection
+
+```r
+# Use pctile = 10 for the cold tail
+events_cold <- detect3(
+  file_in           = sst_file,
+  file_out_clim     = "clim_10pct.nc",
+  file_out_event    = "events_cold.nc",
+  climatologyPeriod = c("1991-01-01", "2020-12-31"),
+  pctile            = 10,
+  coldSpells        = TRUE,
+  category          = TRUE,
+  hemisphere        = "south",
+  return_df         = TRUE,
+  n_threads         = 12
+)
+
+table(events_cold$category)
+```
+
+### Per-pixel time series plot
+
+```r
 event_line3(sst_file, clim_file, lon = 25.0, lat = -34.0,
             start_date = "2018-01-01", end_date = "2019-12-31")
+```
 
-# Spatial map of peak intensity
+### Spatial map of peak intensity
+
+```r
+# C++-backed per-pixel aggregation — efficient even for millions of events
 plot_metric3(event_file, metric = "intensity_max", summary = "mean")
+```
 
-# Event categories
-cats <- category3(event_file, clim_file)
+### Event categories (standalone)
+
+```r
+# Reads pre-computed categories from event file (no clim_file needed)
+cats <- category3(event_file)
 table(cats$category)
+
+# Or compute from scratch for older event files
+cats <- category3(event_file, clim_file, hemisphere = "south")
 ```
 
 ### Using daily files
@@ -164,17 +206,17 @@ All functions are suffixed with `3` to avoid namespace conflicts with heatwaveR:
 
 | Function | Purpose |
 |----------|---------|
+| `detect3()` | **Primary entry point** &mdash; climatology + detection + optional categories |
 | `ts2clm3()` | Compute climatology (NetCDF &rarr; NetCDF) |
-| `detect_event3()` | Detect per-pixel events |
-| `detect3()` | All-in-one convenience wrapper |
+| `detect_event3()` | Detect per-pixel events (with optional inline categories) |
 | `detect_blob3()` | 3D spatial blob detection |
-| `category3()` | Hobday et al. (2018) event categories |
+| `category3()` | Hobday et al. (2018) event categories (reads or computes) |
 | `block_average3()` | Yearly aggregation of event metrics |
 | `exceedance3()` | Static threshold exceedance |
 | `event_line3()` | Per-pixel time series plot |
 | `geom_flame3()` | ggplot2 flame polygon geom |
 | `geom_lolli3()` | ggplot2 lollipop geom |
-| `plot_metric3()` | Spatial map of event metrics |
+| `plot_metric3()` | Spatial map of event metrics (C++-backed aggregation) |
 | `hw3_export()` | Export NetCDF output to CSV/RDA/Parquet |
 
 ## Vignettes

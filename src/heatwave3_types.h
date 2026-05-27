@@ -50,6 +50,45 @@ struct EventResult {
     double intensity_cumulative_abs;
     double rate_onset;
     double rate_decline;
+    int category;       // 0=unset/NA, 1=I Moderate, 2=II Strong, 3=III Severe, 4=IV Extreme
+    double p_moderate;
+    double p_strong;
+    double p_severe;
+    double p_extreme;
+    int season;         // 0=unset, 1=Summer, 2=Fall, 3=Winter, 4=Spring (hemisphere-dependent)
+};
+
+struct EventData {
+    std::vector<double> lon;
+    std::vector<double> lat;
+    std::vector<int> pixel_index;
+    std::vector<int> event_no;
+    std::vector<int> date_start;
+    std::vector<int> date_peak;
+    std::vector<int> date_end;
+    std::vector<int> duration;
+    std::vector<double> intensity_mean;
+    std::vector<double> intensity_max;
+    std::vector<double> intensity_var;
+    std::vector<double> intensity_cumulative;
+    std::vector<double> intensity_mean_relThresh;
+    std::vector<double> intensity_max_relThresh;
+    std::vector<double> intensity_var_relThresh;
+    std::vector<double> intensity_cumulative_relThresh;
+    std::vector<double> intensity_mean_abs;
+    std::vector<double> intensity_max_abs;
+    std::vector<double> intensity_var_abs;
+    std::vector<double> intensity_cumulative_abs;
+    std::vector<double> rate_onset;
+    std::vector<double> rate_decline;
+    std::vector<int> category;
+    std::vector<double> p_moderate;
+    std::vector<double> p_strong;
+    std::vector<double> p_severe;
+    std::vector<double> p_extreme;
+    std::vector<int> season;
+    int ref_date_jd;
+    int nevents;
 };
 
 } // namespace hw3

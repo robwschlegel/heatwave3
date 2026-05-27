@@ -3,6 +3,8 @@
 #include <cmath>
 #include <numeric>
 #include <cstring>
+#include <atomic>
+#include <Rcpp.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -388,6 +390,9 @@ void compute_climatology_grid(
     if (n_threads > 0) omp_set_num_threads(n_threads);
 #endif
 
+    std::atomic<int> done_pixels{0};
+    int report_interval = std::max(1, npixels / 20);
+
     #pragma omp parallel for schedule(dynamic)
     for (int px = 0; px < npixels; ++px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
@@ -397,7 +402,17 @@ void compute_climatology_grid(
         for (int t = 0; t < ntime; ++t) {
             if (!is_na(pixel_temp[t])) { has_data = true; break; }
         }
-        if (!has_data) continue;
+        if (!has_data) {
+            int cur = ++done_pixels;
+            if (cur % report_interval == 0 || cur == npixels) {
+                #pragma omp critical
+                {
+                    Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+                                << (100 * cur / npixels) << "%)" << std::flush;
+                }
+            }
+            continue;
+        }
 
         PixelClimResult cr = compute_pixel_climatology(
             pixel_temp, time_jd, ntime,
@@ -415,7 +430,18 @@ void compute_climatology_grid(
                 std::memcpy(var_out + offset, cr.var, 366 * sizeof(double));
             }
         }
+
+        int cur = ++done_pixels;
+        if (cur % report_interval == 0 || cur == npixels) {
+            #pragma omp critical
+            {
+                Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+                            << (100 * cur / npixels) << "%)" << std::flush;
+            }
+        }
     }
+
+    Rcpp::Rcout << std::endl;
 }
 
 } // namespace hw3

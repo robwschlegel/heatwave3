@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include <cstdlib>
+#include <map>
 #include "heatwave3_types.h"
 #include "netcdf_io.h"
 #include "climatology.h"
@@ -370,7 +371,8 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
                                     const std::string& clim_file,
                                     int minDuration, int minDuration2,
                                     bool joinAcrossGaps, int maxGap, int maxGap2,
-                                    bool coldSpells, int roundRes, int n_threads) {
+                                    bool coldSpells, int roundRes, int n_threads,
+                                    bool category, bool southHemisphere) {
     if (gd.nlon != cd.nlon || gd.nlat != cd.nlat) {
         Rcpp::stop("Grid mismatch: SST is %d x %d but climatology is %d x %d",
                    gd.nlon, gd.nlat, cd.nlon, cd.nlat);
@@ -393,6 +395,7 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
         minDuration, minDuration2,
         joinAcrossGaps, maxGap, maxGap2,
         coldSpells, roundRes, n_threads,
+        category, southHemisphere,
         event_lon, event_lat, pixel_idx, all_events,
         ds, dp, de,
         gd.lon, gd.lat, gd.nlon, gd.nlat
@@ -420,7 +423,8 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
         file_out, event_lon, event_lat, pixel_idx, all_events,
         ds_rel, dp_rel, de_rel, ref_jd,
         source_label, clim_file,
-        minDuration, maxGap, coldSpells
+        minDuration, maxGap, coldSpells,
+        southHemisphere
     );
 
     Rcpp::Rcout << "Done." << std::endl;
@@ -439,7 +443,9 @@ void hw3_detect_events(std::string file_in,
                        int maxGap2 = 2,
                        bool coldSpells = false,
                        int roundRes = 4,
-                       int n_threads = 1) {
+                       int n_threads = 1,
+                       bool category = false,
+                       bool southHemisphere = true) {
 
     Rcpp::Rcout << "Reading climatology from " << clim_file << "..." << std::endl;
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
@@ -458,7 +464,8 @@ void hw3_detect_events(std::string file_in,
     detect_and_write_events(gd, cd, file_out, file_in, clim_file,
                             minDuration, minDuration2,
                             joinAcrossGaps, maxGap, maxGap2,
-                            coldSpells, roundRes, n_threads);
+                            coldSpells, roundRes, n_threads,
+                            category, southHemisphere);
 }
 
 // Multi-file event detection
@@ -474,7 +481,9 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              int maxGap2 = 2,
                              bool coldSpells = false,
                              int roundRes = 4,
-                             int n_threads = 1) {
+                             int n_threads = 1,
+                             bool category = false,
+                             bool southHemisphere = true) {
 
     Rcpp::Rcout << "Reading climatology from " << clim_file << "..." << std::endl;
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
@@ -499,5 +508,369 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
     detect_and_write_events(gd, cd, file_out, source_label, clim_file,
                             minDuration, minDuration2,
                             joinAcrossGaps, maxGap, maxGap2,
-                            coldSpells, roundRes, n_threads);
+                            coldSpells, roundRes, n_threads,
+                            category, southHemisphere);
+}
+
+// [[Rcpp::export]]
+Rcpp::List hw3_read_event_nc(std::string event_file) {
+    hw3::EventData ed = hw3::read_event_netcdf(event_file);
+    return Rcpp::List::create(
+        Rcpp::Named("lon") = ed.lon,
+        Rcpp::Named("lat") = ed.lat,
+        Rcpp::Named("pixel_index") = ed.pixel_index,
+        Rcpp::Named("event_no") = ed.event_no,
+        Rcpp::Named("date_start") = ed.date_start,
+        Rcpp::Named("date_peak") = ed.date_peak,
+        Rcpp::Named("date_end") = ed.date_end,
+        Rcpp::Named("duration") = ed.duration,
+        Rcpp::Named("intensity_mean") = ed.intensity_mean,
+        Rcpp::Named("intensity_max") = ed.intensity_max,
+        Rcpp::Named("intensity_var") = ed.intensity_var,
+        Rcpp::Named("intensity_cumulative") = ed.intensity_cumulative,
+        Rcpp::Named("intensity_mean_relThresh") = ed.intensity_mean_relThresh,
+        Rcpp::Named("intensity_max_relThresh") = ed.intensity_max_relThresh,
+        Rcpp::Named("intensity_var_relThresh") = ed.intensity_var_relThresh,
+        Rcpp::Named("intensity_cumulative_relThresh") = ed.intensity_cumulative_relThresh,
+        Rcpp::Named("intensity_mean_abs") = ed.intensity_mean_abs,
+        Rcpp::Named("intensity_max_abs") = ed.intensity_max_abs,
+        Rcpp::Named("intensity_var_abs") = ed.intensity_var_abs,
+        Rcpp::Named("intensity_cumulative_abs") = ed.intensity_cumulative_abs,
+        Rcpp::Named("rate_onset") = ed.rate_onset,
+        Rcpp::Named("rate_decline") = ed.rate_decline,
+        Rcpp::Named("category") = ed.category,
+        Rcpp::Named("p_moderate") = ed.p_moderate,
+        Rcpp::Named("p_strong") = ed.p_strong,
+        Rcpp::Named("p_severe") = ed.p_severe,
+        Rcpp::Named("p_extreme") = ed.p_extreme,
+        Rcpp::Named("season") = ed.season,
+        Rcpp::Named("ref_date_jd") = ed.ref_date_jd,
+        Rcpp::Named("nevents") = ed.nevents
+    );
+}
+
+// [[Rcpp::export]]
+Rcpp::DataFrame hw3_category(std::string event_file,
+                             std::string clim_file,
+                             std::string hemisphere = "south",
+                             int roundVal = 4) {
+    hw3::EventData ed = hw3::read_event_netcdf(event_file);
+    bool southHemisphere = (hemisphere == "south");
+
+    int n = ed.nevents;
+
+    Rcpp::CharacterVector category(n, NA_STRING);
+    Rcpp::NumericVector p_moderate(n, 0.0);
+    Rcpp::NumericVector p_strong(n, 0.0);
+    Rcpp::NumericVector p_severe(n, 0.0);
+    Rcpp::NumericVector p_extreme(n, 0.0);
+    Rcpp::CharacterVector season(n);
+    Rcpp::DateVector peak_date(n);
+
+    double round_mult = std::pow(10.0, roundVal);
+
+    // Check if event file already has category data
+    bool has_precomputed = !ed.category.empty();
+
+    if (has_precomputed) {
+        // Use pre-computed category data from event file
+        const char* cat_labels[] = {"", "I Moderate", "II Strong", "III Severe", "IV Extreme"};
+        const char* season_labels[] = {"", "Summer", "Fall", "Winter", "Spring"};
+
+        for (int i = 0; i < n; ++i) {
+            int peak_jd = ed.ref_date_jd + ed.date_peak[i];
+            peak_date[i] = Rcpp::Date(peak_jd - 2440588);
+
+            int cat = ed.category[i];
+            if (cat >= 1 && cat <= 4) {
+                category[i] = cat_labels[cat];
+            }
+            p_moderate[i] = ed.p_moderate[i];
+            p_strong[i] = ed.p_strong[i];
+            p_severe[i] = ed.p_severe[i];
+            p_extreme[i] = ed.p_extreme[i];
+
+            int sea = ed.season[i];
+            if (sea >= 1 && sea <= 4) {
+                season[i] = season_labels[sea];
+            }
+        }
+    } else {
+        if (clim_file.empty())
+            Rcpp::stop("Event file has no pre-computed categories; clim_file is required.");
+        hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
+
+        for (int i = 0; i < n; ++i) {
+            // Convert relative date to absolute JD
+            int peak_jd = ed.ref_date_jd + ed.date_peak[i];
+
+            // Peak date as R Date (days since 1970-01-01)
+            // JD of 1970-01-01 = 2440588
+            peak_date[i] = Rcpp::Date(peak_jd - 2440588);
+
+            // DOY in 1..366 (heatwaveR convention: non-leap skips 60)
+            int doy = hw3::jd_to_doy_366(peak_jd);
+
+            // Find nearest pixel in climatology grid
+            double ev_lon = ed.lon[i];
+            double ev_lat = ed.lat[i];
+            int lon_idx = 0, lat_idx = 0;
+            double best_lon = std::abs(cd.lon[0] - ev_lon);
+            for (int j = 1; j < cd.nlon; ++j) {
+                double d = std::abs(cd.lon[j] - ev_lon);
+                if (d < best_lon) { best_lon = d; lon_idx = j; }
+            }
+            double best_lat = std::abs(cd.lat[0] - ev_lat);
+            for (int j = 1; j < cd.nlat; ++j) {
+                double d = std::abs(cd.lat[j] - ev_lat);
+                if (d < best_lat) { best_lat = d; lat_idx = j; }
+            }
+
+            // Climatology layout: [pixel * 366 + doy-1] where pixel = ilon * nlat + ilat
+            int px = lon_idx * cd.nlat + lat_idx;
+            double s = cd.seas[px * 366 + (doy - 1)];
+            double th = cd.thresh[px * 366 + (doy - 1)];
+
+            // Category width: |seas - thresh|, always positive
+            double diff = std::abs(s - th);
+            if (hw3::is_na(s) || hw3::is_na(th) || diff <= 0.0) continue;
+
+            double ix = ed.intensity_max[i];
+
+            if (ix >= 4.0 * diff) {
+                category[i] = "IV Extreme";
+            } else if (ix >= 3.0 * diff) {
+                category[i] = "III Severe";
+            } else if (ix >= 2.0 * diff) {
+                category[i] = "II Strong";
+            } else {
+                category[i] = "I Moderate";
+            }
+
+            auto rnd = [&](double v) {
+                return std::round(v * round_mult) / round_mult;
+            };
+            p_moderate[i] = rnd(std::min(1.0, std::max(0.0, ix / diff)));
+            p_strong[i]   = rnd(std::min(1.0, std::max(0.0, (ix - diff) / diff)));
+            p_severe[i]   = rnd(std::min(1.0, std::max(0.0, (ix - 2.0 * diff) / diff)));
+            p_extreme[i]  = rnd(std::min(1.0, std::max(0.0, (ix - 3.0 * diff) / diff)));
+
+            // Season from peak month
+            int y, m, d;
+            hw3::jd_to_ymd(peak_jd, y, m, d);
+            if (southHemisphere) {
+                if (m == 12 || m <= 2)      season[i] = "Summer";
+                else if (m >= 3 && m <= 5)  season[i] = "Fall";
+                else if (m >= 6 && m <= 8)  season[i] = "Winter";
+                else                        season[i] = "Spring";
+            } else {
+                if (m == 12 || m <= 2)      season[i] = "Winter";
+                else if (m >= 3 && m <= 5)  season[i] = "Spring";
+                else if (m >= 6 && m <= 8)  season[i] = "Summer";
+                else                        season[i] = "Fall";
+            }
+        }
+    }
+
+    // Round lon/lat for display
+    Rcpp::NumericVector out_lon(n), out_lat(n), out_imax(n);
+    for (int i = 0; i < n; ++i) {
+        out_lon[i] = std::round(ed.lon[i] * round_mult) / round_mult;
+        out_lat[i] = std::round(ed.lat[i] * round_mult) / round_mult;
+        out_imax[i] = std::round(ed.intensity_max[i] * round_mult) / round_mult;
+    }
+
+    return Rcpp::DataFrame::create(
+        Rcpp::Named("event_no") = ed.event_no,
+        Rcpp::Named("lon") = out_lon,
+        Rcpp::Named("lat") = out_lat,
+        Rcpp::Named("peak_date") = peak_date,
+        Rcpp::Named("category") = category,
+        Rcpp::Named("intensity_max") = out_imax,
+        Rcpp::Named("duration") = ed.duration,
+        Rcpp::Named("p_moderate") = p_moderate,
+        Rcpp::Named("p_strong") = p_strong,
+        Rcpp::Named("p_severe") = p_severe,
+        Rcpp::Named("p_extreme") = p_extreme,
+        Rcpp::Named("season") = season,
+        Rcpp::Named("stringsAsFactors") = false
+    );
+}
+
+// [[Rcpp::export]]
+Rcpp::DataFrame hw3_block_average(std::string event_file) {
+    hw3::EventData ed = hw3::read_event_netcdf(event_file);
+
+    int n = ed.nevents;
+    if (n == 0) {
+        return Rcpp::DataFrame::create(
+            Rcpp::Named("lon") = Rcpp::NumericVector(0),
+            Rcpp::Named("lat") = Rcpp::NumericVector(0),
+            Rcpp::Named("year") = Rcpp::IntegerVector(0),
+            Rcpp::Named("count") = Rcpp::IntegerVector(0),
+            Rcpp::Named("duration_mean") = Rcpp::NumericVector(0),
+            Rcpp::Named("duration_max") = Rcpp::IntegerVector(0),
+            Rcpp::Named("intensity_mean") = Rcpp::NumericVector(0),
+            Rcpp::Named("intensity_max_mean") = Rcpp::NumericVector(0),
+            Rcpp::Named("intensity_max_max") = Rcpp::NumericVector(0),
+            Rcpp::Named("intensity_cumulative_mean") = Rcpp::NumericVector(0),
+            Rcpp::Named("total_days") = Rcpp::IntegerVector(0),
+            Rcpp::Named("total_icum") = Rcpp::NumericVector(0),
+            Rcpp::Named("stringsAsFactors") = false
+        );
+    }
+
+    // Compute year from date_start for each event
+    std::vector<int> year(n);
+    for (int i = 0; i < n; ++i) {
+        int jd = ed.ref_date_jd + ed.date_start[i];
+        int y, m, d;
+        hw3::jd_to_ymd(jd, y, m, d);
+        year[i] = y;
+    }
+
+    // Group by (pixel_index, year) using a map
+    struct BlockAccum {
+        double lon, lat;
+        int year;
+        int count = 0;
+        int duration_sum = 0;
+        int duration_max = 0;
+        double imean_sum = 0.0;
+        double imax_sum = 0.0;
+        double imax_max = -1e30;
+        double icum_sum = 0.0;
+    };
+    std::map<std::pair<int,int>, BlockAccum> groups;
+
+    for (int i = 0; i < n; ++i) {
+        auto key = std::make_pair(ed.pixel_index[i], year[i]);
+        auto& g = groups[key];
+        if (g.count == 0) {
+            g.lon = ed.lon[i];
+            g.lat = ed.lat[i];
+            g.year = year[i];
+        }
+        g.count++;
+        g.duration_sum += ed.duration[i];
+        if (ed.duration[i] > g.duration_max) g.duration_max = ed.duration[i];
+        g.imean_sum += ed.intensity_mean[i];
+        g.imax_sum += ed.intensity_max[i];
+        if (ed.intensity_max[i] > g.imax_max) g.imax_max = ed.intensity_max[i];
+        g.icum_sum += ed.intensity_cumulative[i];
+    }
+
+    int ng = static_cast<int>(groups.size());
+    Rcpp::NumericVector o_lon(ng), o_lat(ng), o_dur_mean(ng);
+    Rcpp::NumericVector o_imean(ng), o_imax_mean(ng), o_imax_max(ng);
+    Rcpp::NumericVector o_icum_mean(ng), o_total_icum(ng);
+    Rcpp::IntegerVector o_year(ng), o_count(ng), o_dur_max(ng), o_total_days(ng);
+
+    int idx = 0;
+    for (auto& [key, g] : groups) {
+        o_lon[idx] = g.lon;
+        o_lat[idx] = g.lat;
+        o_year[idx] = g.year;
+        o_count[idx] = g.count;
+        o_dur_mean[idx] = static_cast<double>(g.duration_sum) / g.count;
+        o_dur_max[idx] = g.duration_max;
+        o_imean[idx] = g.imean_sum / g.count;
+        o_imax_mean[idx] = g.imax_sum / g.count;
+        o_imax_max[idx] = g.imax_max;
+        o_icum_mean[idx] = g.icum_sum / g.count;
+        o_total_days[idx] = g.duration_sum;
+        o_total_icum[idx] = g.icum_sum;
+        idx++;
+    }
+
+    return Rcpp::DataFrame::create(
+        Rcpp::Named("lon") = o_lon,
+        Rcpp::Named("lat") = o_lat,
+        Rcpp::Named("year") = o_year,
+        Rcpp::Named("count") = o_count,
+        Rcpp::Named("duration_mean") = o_dur_mean,
+        Rcpp::Named("duration_max") = o_dur_max,
+        Rcpp::Named("intensity_mean") = o_imean,
+        Rcpp::Named("intensity_max_mean") = o_imax_mean,
+        Rcpp::Named("intensity_max_max") = o_imax_max,
+        Rcpp::Named("intensity_cumulative_mean") = o_icum_mean,
+        Rcpp::Named("total_days") = o_total_days,
+        Rcpp::Named("total_icum") = o_total_icum,
+        Rcpp::Named("stringsAsFactors") = false
+    );
+}
+
+// [[Rcpp::export]]
+Rcpp::DataFrame hw3_read_metric_summary(std::string event_file,
+                                        std::string metric = "intensity_max",
+                                        std::string summary = "mean") {
+    hw3::EventData ed = hw3::read_event_netcdf(event_file);
+    int n = ed.nevents;
+    if (n == 0) {
+        return Rcpp::DataFrame::create(
+            Rcpp::Named("lon") = Rcpp::NumericVector(0),
+            Rcpp::Named("lat") = Rcpp::NumericVector(0),
+            Rcpp::Named("value") = Rcpp::NumericVector(0),
+            Rcpp::Named("stringsAsFactors") = false
+        );
+    }
+
+    // Select the metric vector
+    const std::vector<double>* vals = nullptr;
+    const std::vector<int>* ivals = nullptr;
+    if (metric == "intensity_max") vals = &ed.intensity_max;
+    else if (metric == "intensity_mean") vals = &ed.intensity_mean;
+    else if (metric == "intensity_var") vals = &ed.intensity_var;
+    else if (metric == "intensity_cumulative") vals = &ed.intensity_cumulative;
+    else if (metric == "intensity_mean_relThresh") vals = &ed.intensity_mean_relThresh;
+    else if (metric == "intensity_max_relThresh") vals = &ed.intensity_max_relThresh;
+    else if (metric == "intensity_var_relThresh") vals = &ed.intensity_var_relThresh;
+    else if (metric == "intensity_cumulative_relThresh") vals = &ed.intensity_cumulative_relThresh;
+    else if (metric == "intensity_mean_abs") vals = &ed.intensity_mean_abs;
+    else if (metric == "intensity_max_abs") vals = &ed.intensity_max_abs;
+    else if (metric == "intensity_var_abs") vals = &ed.intensity_var_abs;
+    else if (metric == "intensity_cumulative_abs") vals = &ed.intensity_cumulative_abs;
+    else if (metric == "rate_onset") vals = &ed.rate_onset;
+    else if (metric == "rate_decline") vals = &ed.rate_decline;
+    else if (metric == "duration") ivals = &ed.duration;
+    else Rcpp::stop("Unknown metric: %s", metric.c_str());
+
+    // Group by pixel_index and aggregate
+    struct Accum { double lon, lat, sum; double mx, mn; int count; };
+    std::map<int, Accum> groups;
+    for (int i = 0; i < n; ++i) {
+        double v = vals ? (*vals)[i] : static_cast<double>((*ivals)[i]);
+        auto& g = groups[ed.pixel_index[i]];
+        if (g.count == 0) {
+            g.lon = ed.lon[i]; g.lat = ed.lat[i];
+            g.sum = v; g.mx = v; g.mn = v; g.count = 1;
+        } else {
+            g.sum += v;
+            if (v > g.mx) g.mx = v;
+            if (v < g.mn) g.mn = v;
+            g.count++;
+        }
+    }
+
+    int ng = static_cast<int>(groups.size());
+    Rcpp::NumericVector o_lon(ng), o_lat(ng), o_val(ng);
+    int idx = 0;
+    for (auto& [key, g] : groups) {
+        o_lon[idx] = g.lon;
+        o_lat[idx] = g.lat;
+        if (summary == "mean") o_val[idx] = g.sum / g.count;
+        else if (summary == "max") o_val[idx] = g.mx;
+        else if (summary == "min") o_val[idx] = g.mn;
+        else if (summary == "sum") o_val[idx] = g.sum;
+        else if (summary == "count") o_val[idx] = static_cast<double>(g.count);
+        else Rcpp::stop("Unknown summary: %s", summary.c_str());
+        idx++;
+    }
+
+    return Rcpp::DataFrame::create(
+        Rcpp::Named("lon") = o_lon,
+        Rcpp::Named("lat") = o_lat,
+        Rcpp::Named("value") = o_val,
+        Rcpp::Named("stringsAsFactors") = false
+    );
 }

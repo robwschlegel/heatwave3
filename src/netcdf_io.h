@@ -79,9 +79,12 @@ void write_event_netcdf(const std::string& file_out,
                         const std::string& clim_file,
                         int minDuration,
                         int maxGap,
-                        bool coldSpells);
+                        bool coldSpells,
+                        bool southHemisphere);
 
 ClimData read_clim_netcdf(const std::string& clim_file);
+
+EventData read_event_netcdf(const std::string& event_file);
 
 // Read and merge multiple daily NetCDF files into a single GridData
 GridData read_sst_multi_netcdf(const std::vector<std::string>& files,

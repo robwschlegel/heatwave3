@@ -5,6 +5,8 @@
 #include <numeric>
 #include <cstring>
 #include <mutex>
+#include <atomic>
+#include <Rcpp.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -99,7 +101,9 @@ PixelEvents detect_pixel_events(
     int maxGap,
     int maxGap2,
     bool coldSpells,
-    int roundRes) {
+    int roundRes,
+    bool category,
+    bool southHemisphere) {
 
     PixelEvents result;
     result.valid = false;
@@ -157,6 +161,9 @@ PixelEvents detect_pixel_events(
     for (auto& pe : events) {
         EventResult er;
         er.event_no = pe.event_no;
+        er.category = 0;
+        er.p_moderate = er.p_strong = er.p_severe = er.p_extreme = 0.0;
+        er.season = 0;
         er.index_start = pe.start;
         er.index_end = pe.end;
         er.duration = pe.end - pe.start + 1;
@@ -267,6 +274,45 @@ PixelEvents detect_pixel_events(
             er.rate_decline = round_to(er.rate_decline, roundRes);
         }
 
+        // Category computation (inline, zero extra I/O)
+        if (category) {
+            int peak_doy_idx = doy[er.index_peak] - 1;
+            double s = seas[peak_doy_idx];
+            double th = thresh[peak_doy_idx];
+            double diff = std::abs(s - th);
+
+            if (!is_na(s) && !is_na(th) && diff > 0.0) {
+                double ix = er.intensity_max;
+                if (ix >= 4.0 * diff) er.category = 4;
+                else if (ix >= 3.0 * diff) er.category = 3;
+                else if (ix >= 2.0 * diff) er.category = 2;
+                else er.category = 1;
+
+                double round_mult = std::pow(10.0, roundRes > 0 ? roundRes : 4);
+                auto rnd = [&](double v) { return std::round(v * round_mult) / round_mult; };
+                er.p_moderate = rnd(std::min(1.0, std::max(0.0, ix / diff)));
+                er.p_strong   = rnd(std::min(1.0, std::max(0.0, (ix - diff) / diff)));
+                er.p_severe   = rnd(std::min(1.0, std::max(0.0, (ix - 2.0 * diff) / diff)));
+                er.p_extreme  = rnd(std::min(1.0, std::max(0.0, (ix - 3.0 * diff) / diff)));
+            }
+
+            // Season from peak date
+            int peak_jd = time_jd[er.index_peak];
+            int y, m, d;
+            jd_to_ymd(peak_jd, y, m, d);
+            if (southHemisphere) {
+                if (m == 12 || m <= 2) er.season = 1; // Summer
+                else if (m <= 5) er.season = 2; // Fall
+                else if (m <= 8) er.season = 3; // Winter
+                else er.season = 4; // Spring
+            } else {
+                if (m == 12 || m <= 2) er.season = 3; // Winter
+                else if (m <= 5) er.season = 4; // Spring
+                else if (m <= 8) er.season = 1; // Summer
+                else er.season = 2; // Fall
+            }
+        }
+
         result.events.push_back(er);
     }
 
@@ -291,6 +337,8 @@ void detect_events_grid(
     bool coldSpells,
     int roundRes,
     int n_threads,
+    bool category,
+    bool southHemisphere,
     std::vector<double>& event_lon,
     std::vector<double>& event_lat,
     std::vector<int>& pixel_index,
@@ -324,6 +372,9 @@ void detect_events_grid(
 #endif
     thread_results.resize(actual_threads);
 
+    std::atomic<int> done_pixels{0};
+    int report_interval = std::max(1, npixels / 20);
+
     #pragma omp parallel for schedule(dynamic)
     for (int px = 0; px < npixels; ++px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
@@ -335,21 +386,42 @@ void detect_events_grid(
         for (int t = 0; t < ntime; ++t) {
             if (!is_na(pixel_temp[t])) { has_data = true; break; }
         }
-        if (!has_data) continue;
+        if (!has_data) {
+            int cur = ++done_pixels;
+            if (cur % report_interval == 0 || cur == npixels) {
+                #pragma omp critical
+                {
+                    Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+                                << (100 * cur / npixels) << "%)" << std::flush;
+                }
+            }
+            continue;
+        }
 
         // Skip pixels with no valid climatology
         bool has_clim = false;
         for (int d = 0; d < 366; ++d) {
             if (!is_na(pixel_seas[d])) { has_clim = true; break; }
         }
-        if (!has_clim) continue;
+        if (!has_clim) {
+            int cur = ++done_pixels;
+            if (cur % report_interval == 0 || cur == npixels) {
+                #pragma omp critical
+                {
+                    Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+                                << (100 * cur / npixels) << "%)" << std::flush;
+                }
+            }
+            continue;
+        }
 
         PixelEvents pe = detect_pixel_events(
             pixel_temp, pixel_seas, pixel_thresh,
             time_jd, doy_arr.data(), ntime,
             minDuration, minDuration2,
             joinAcrossGaps, maxGap, maxGap2,
-            coldSpells, roundRes
+            coldSpells, roundRes,
+            category, southHemisphere
         );
 
         if (pe.valid && !pe.events.empty()) {
@@ -363,7 +435,18 @@ void detect_events_grid(
             pr.pe = std::move(pe);
             thread_results[tid].push_back(std::move(pr));
         }
+
+        int cur = ++done_pixels;
+        if (cur % report_interval == 0 || cur == npixels) {
+            #pragma omp critical
+            {
+                Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+                            << (100 * cur / npixels) << "%)" << std::flush;
+            }
+        }
     }
+
+    Rcpp::Rcout << std::endl;
 
     // Merge thread results
     for (auto& tr : thread_results) {

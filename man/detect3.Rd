@@ -23,20 +23,23 @@ detect3(
   joinAcrossGaps = TRUE,
   maxGap = 2L,
   coldSpells = FALSE,
+  category = FALSE,
+  hemisphere = "south",
   roundClm = 4L,
   roundRes = 4L,
+  return_df = FALSE,
   n_threads = 1L
 )
 }
 \arguments{
-\item{file_in}{Path to input NetCDF file containing SST data.}
+\item{file_in}{Path to input NetCDF file (or directory/vector of daily files).}
 
 \item{file_out_clim}{Path for the output climatology NetCDF file.}
 
 \item{file_out_event}{Path for the output event NetCDF file.}
 
 \item{climatologyPeriod}{Character vector of length 2 with start and end
-dates of the baseline period.}
+dates of the baseline period, e.g. \code{c("1991-01-01", "2020-12-31")}.}
 
 \item{var_name}{Name of the SST variable. If \code{NULL}, auto-detected.}
 
@@ -52,7 +55,8 @@ dates of the baseline period.}
 
 \item{windowHalfWidth}{Half-width of climatology window. Default \code{5}.}
 
-\item{pctile}{Percentile for threshold. Default \code{90}.}
+\item{pctile}{Percentile for threshold. Default \code{90} (heatwaves);
+use \code{10} for cold-spells.}
 
 \item{smoothPercentile}{Apply rolling mean smoothing? Default \code{TRUE}.}
 
@@ -66,18 +70,29 @@ dates of the baseline period.}
 
 \item{coldSpells}{Detect cold-spells? Default \code{FALSE}.}
 
+\item{category}{Logical. Compute Hobday et al. (2018) severity categories
+inline? Default \code{FALSE}.}
+
+\item{hemisphere}{Character. \code{"south"} (default) or \code{"north"}.}
+
 \item{roundClm}{Decimal places for climatology rounding. Default \code{4}.}
 
 \item{roundRes}{Decimal places for event metric rounding. Default \code{4}.}
 
+\item{return_df}{Logical. Return the event table as a \code{data.frame}?
+Default \code{FALSE}.}
+
 \item{n_threads}{Number of OpenMP threads. Default \code{1}.}
 }
 \value{
-Invisibly returns a list with \code{clim_file} and \code{event_file} paths.
+If \code{return_df = FALSE} (the default), invisibly returns a list
+with \code{clim_file} and \code{event_file} paths. If
+\code{return_df = TRUE}, returns a \code{data.frame} of event metrics.
 }
 \description{
-Convenience wrapper that runs \code{\link{ts2clm3}} followed by
-\code{\link{detect_event3}} in a single call.
+The primary entry point for \code{heatwave3}. Runs
+\code{\link{ts2clm3}} followed by \code{\link{detect_event3}} in a
+single call, with optional inline category computation.
 }
 \examples{
 \donttest{

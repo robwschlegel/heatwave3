@@ -19,7 +19,7 @@ event_line3(
 )
 }
 \arguments{
-\item{sst_file}{Path to the SST NetCDF file.}
+\item{sst_file}{Path to the SST NetCDF file (or directory of daily files).}
 
 \item{clim_file}{Path to the climatology NetCDF from \code{\link{ts2clm3}}.}
 
@@ -29,26 +29,32 @@ event_line3(
 
 \item{var_name}{SST variable name. If \code{NULL}, auto-detected.}
 
-\item{start_date}{Optional start date for the plot window.}
+\item{start_date, end_date}{Optional date range for the plot window
+(character, e.g. \code{"2010-01-01"}). If both are \code{NULL}, the
+plot is centred on the most intense event (see \code{spread}).}
 
-\item{end_date}{Optional end date for the plot window.}
+\item{spread}{Number of days before and after the peak event to show.
+Default \code{150}. Only used when \code{start_date}/\code{end_date}
+are not set.}
 
-\item{spread}{Number of days around the peak event to show. Default \code{150}.
-Only used when \code{start_date} and \code{end_date} are not set.}
+\item{metric}{Event metric to use for selecting the peak event when
+\code{event_file} is supplied. Default \code{"intensity_cumulative"}.}
 
-\item{metric}{Event metric to use for selecting the peak event.
-Default \code{"intensity_cumulative"}.}
+\item{event_file}{Optional path to event NetCDF for centring the window
+on the most intense event.}
 
-\item{event_file}{Optional path to event NetCDF for event highlighting.}
-
-\item{coldSpells}{Logical. Plot cold spells? Default \code{FALSE}.}
+\item{coldSpells}{Logical. Render cold-spell (blue) or heatwave (red)
+flames? Default \code{FALSE}.}
 }
 \value{
-A ggplot object.
+A ggplot object that can be further customised with the
+standard \code{+} operator.
 }
 \description{
 Extracts a single pixel's time series from the SST and climatology NetCDF
-files and produces an event_line-style plot with flame polygons.
+files and produces an event_line-style plot with flame polygons. The SST
+and climatology data are read via the C++ backend; no external NetCDF
+packages are required.
 }
 \examples{
 \donttest{

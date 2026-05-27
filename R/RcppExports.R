@@ -45,11 +45,27 @@ hw3_read_clim_nc <- function(clim_file) {
     .Call(`_heatwave3_hw3_read_clim_nc`, clim_file)
 }
 
-hw3_detect_events <- function(file_in, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L) {
-    invisible(.Call(`_heatwave3_hw3_detect_events`, file_in, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads))
+hw3_detect_events <- function(file_in, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE) {
+    invisible(.Call(`_heatwave3_hw3_detect_events`, file_in, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere))
 }
 
-hw3_detect_events_multi <- function(files, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L) {
-    invisible(.Call(`_heatwave3_hw3_detect_events_multi`, files, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads))
+hw3_detect_events_multi <- function(files, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE) {
+    invisible(.Call(`_heatwave3_hw3_detect_events_multi`, files, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere))
+}
+
+hw3_read_event_nc <- function(event_file) {
+    .Call(`_heatwave3_hw3_read_event_nc`, event_file)
+}
+
+hw3_category <- function(event_file, clim_file, hemisphere = "south", roundVal = 4L) {
+    .Call(`_heatwave3_hw3_category`, event_file, clim_file, hemisphere, roundVal)
+}
+
+hw3_block_average <- function(event_file) {
+    .Call(`_heatwave3_hw3_block_average`, event_file)
+}
+
+hw3_read_metric_summary <- function(event_file, metric = "intensity_max", summary = "mean") {
+    .Call(`_heatwave3_hw3_read_metric_summary`, event_file, metric, summary)
 }
 

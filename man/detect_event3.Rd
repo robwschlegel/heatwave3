@@ -15,13 +15,18 @@ detect_event3(
   maxGap = 2L,
   maxGap2 = maxGap,
   coldSpells = FALSE,
+  category = FALSE,
+  hemisphere = "south",
   roundRes = 4L,
+  return_df = FALSE,
   save_format = NULL,
   n_threads = 1L
 )
 }
 \arguments{
-\item{file_in}{Path to the input NetCDF file containing SST data.}
+\item{file_in}{Path to the input NetCDF file containing SST data.
+May also be a character vector of file paths or a directory path
+containing daily \code{.nc}/\code{.nc4} files.}
 
 \item{clim_file}{Path to the climatology NetCDF file produced by
 \code{\link{ts2clm3}}.}
@@ -45,8 +50,20 @@ Default \code{TRUE}.}
 \item{coldSpells}{Logical. Detect cold-spells instead of heatwaves?
 Default \code{FALSE}.}
 
+\item{category}{Logical. Compute Hobday et al. (2018) severity categories
+(I Moderate through IV Extreme) inline during detection? Categories are
+written to the event NetCDF as additional variables. Default \code{FALSE}.}
+
+\item{hemisphere}{Character. Season-naming convention: \code{"south"}
+(default, austral: DJF = Summer) or \code{"north"} (boreal:
+DJF = Winter). Only used when \code{category = TRUE}.}
+
 \item{roundRes}{Number of decimal places for rounding event metrics.
 Default \code{4}.}
+
+\item{return_df}{Logical. If \code{TRUE}, return the event table as a
+\code{data.frame} in addition to writing the NetCDF file. Default
+\code{FALSE} (returns the file path invisibly).}
 
 \item{save_format}{Additional output format. Default \code{NULL} (NetCDF only).
 Options: \code{"csv"}, \code{"rda"}, \code{"parquet"}.}
@@ -54,8 +71,9 @@ Options: \code{"csv"}, \code{"rda"}, \code{"parquet"}.}
 \item{n_threads}{Number of OpenMP threads. Default \code{1}.}
 }
 \value{
-Invisibly returns the path to the output file. Events are written as
-a CF ragged array NetCDF with 19 event metrics per event.
+If \code{return_df = FALSE} (the default), invisibly returns the
+path to the output file. If \code{return_df = TRUE}, returns a
+\code{data.frame} of event metrics (the NetCDF is still written).
 }
 \description{
 Detects marine heatwave (or cold-spell) events for each pixel in a gridded
@@ -72,10 +90,5 @@ ts2clm3(sst_file, clim_file,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 
 detect_event3(sst_file, clim_file, event_file)
-
-# Read the result
-nc <- ncdf4::nc_open(event_file)
-cat("Events detected:", nc$dim$event$len, "\n")
-ncdf4::nc_close(nc)
 }
 }

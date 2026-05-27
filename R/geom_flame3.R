@@ -2,6 +2,7 @@
 #'
 #' A ggplot2 geom that fills the area between two lines (temperature and
 #' threshold) where the first exceeds the second, creating "flame" polygons.
+#' For cold-spells, set \code{reverse = TRUE} to fill where \code{y < y2}.
 #'
 #' @param mapping Set of aesthetic mappings. Requires \code{x}, \code{y}, and \code{y2}.
 #' @param data The data to display.
@@ -10,6 +11,8 @@
 #' @param ... Additional arguments passed to the layer.
 #' @param n Minimum number of consecutive exceeding points. Default \code{0}.
 #' @param n_gap Maximum gap to bridge between exceeding segments. Default \code{0}.
+#' @param reverse Logical. If \code{TRUE}, fill where \code{y < y2} (for
+#'   cold-spells). Default \code{FALSE} (fill where \code{y > y2}).
 #' @param na.rm Remove NAs? Default \code{FALSE}.
 #' @param show.legend Show legend? Default \code{NA}.
 #' @param inherit.aes Inherit aesthetics from the plot? Default \code{TRUE}.
@@ -32,13 +35,14 @@
 #'
 geom_flame3 <- function(mapping = NULL, data = NULL, stat = "identity",
                         position = "identity", ..., n = 0, n_gap = 0,
+                        reverse = FALSE,
                         na.rm = FALSE, show.legend = NA,
                         inherit.aes = TRUE) {
   ggplot2::layer(
     data = data, mapping = mapping, stat = stat,
     geom = GeomFlame3, position = position,
     show.legend = show.legend, inherit.aes = inherit.aes,
-    params = list(n = n, n_gap = n_gap, na.rm = na.rm, ...)
+    params = list(n = n, n_gap = n_gap, reverse = reverse, na.rm = na.rm, ...)
   )
 }
 
@@ -55,21 +59,22 @@ GeomFlame3 <- ggplot2::ggproto("GeomFlame3", ggplot2::Geom,
     linetype = 1, alpha = NA
   ),
 
-  extra_params = c("na.rm", "n", "n_gap"),
+  extra_params = c("na.rm", "n", "n_gap", "reverse"),
 
-  draw_group = function(data, panel_params, coord, n = 0, n_gap = 0, na.rm = FALSE) {
-    # Find where y > y2
-    exceed <- data$y > data$y2
+  draw_group = function(data, panel_params, coord,
+                        n = 0, n_gap = 0, reverse = FALSE, na.rm = FALSE) {
+    if (reverse) {
+      exceed <- data$y < data$y2
+    } else {
+      exceed <- data$y > data$y2
+    }
 
-    # Run-length encode exceeding segments
     rle_exc <- rle(exceed)
     ends <- cumsum(rle_exc$lengths)
     starts <- c(1L, ends[-length(ends)] + 1L)
 
-    # Filter by minimum duration
     keep <- rle_exc$values & rle_exc$lengths >= max(1, n + 1)
 
-    # Bridge gaps
     if (n_gap > 0 && sum(keep) > 1) {
       for (i in seq_along(keep)[-1]) {
         if (!keep[i] && !rle_exc$values[i] && rle_exc$lengths[i] <= n_gap) {
@@ -82,17 +87,19 @@ GeomFlame3 <- ggplot2::ggproto("GeomFlame3", ggplot2::Geom,
 
     if (!any(keep)) return(grid::nullGrob())
 
-    # Build polygon data for each flame segment
     polys <- list()
     seg_id <- 0
     for (i in which(keep)) {
       s <- starts[i]; e <- ends[i]
       seg <- data[s:e, , drop = FALSE]
 
-      # Upper boundary: y values
-      upper <- data.frame(x = seg$x, y = seg$y)
-      # Lower boundary: y2 values (reversed)
-      lower <- data.frame(x = rev(seg$x), y = rev(seg$y2))
+      if (reverse) {
+        upper <- data.frame(x = seg$x, y = seg$y2)
+        lower <- data.frame(x = rev(seg$x), y = rev(seg$y))
+      } else {
+        upper <- data.frame(x = seg$x, y = seg$y)
+        lower <- data.frame(x = rev(seg$x), y = rev(seg$y2))
+      }
       poly <- rbind(upper, lower)
 
       seg_id <- seg_id + 1

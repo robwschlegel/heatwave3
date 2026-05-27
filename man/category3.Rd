@@ -4,27 +4,42 @@
 \alias{category3}
 \title{Categorise marine heatwave events}
 \usage{
-category3(event_file, clim_file, S = TRUE, name = "Event", roundVal = 4L)
+category3(
+  event_file,
+  clim_file = NULL,
+  hemisphere = "south",
+  roundVal = 4L,
+  S = NULL
+)
 }
 \arguments{
 \item{event_file}{Path to the event NetCDF file from \code{\link{detect_event3}}.}
 
 \item{clim_file}{Path to the climatology NetCDF from \code{\link{ts2clm3}}.
-Required for computing category thresholds.}
+Only required when the event file does not contain pre-computed categories.}
 
-\item{S}{Logical. Use the Southern Hemisphere season convention? Default \code{TRUE}.}
-
-\item{name}{Character string to prepend to event names. Default \code{"Event"}.}
+\item{hemisphere}{Character. Either \code{"south"} (default, austral:
+DJF = Summer) or \code{"north"} (boreal: DJF = Winter).}
 
 \item{roundVal}{Decimal places for rounding. Default \code{4}.}
+
+\item{S}{Deprecated. Use \code{hemisphere} instead.}
 }
 \value{
 A data.frame with columns: event_no, lon, lat, peak_date, category,
 intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme, season.
 }
 \description{
-Assigns Hobday et al. (2018) categories (Moderate, Strong, Severe, Extreme)
-to events based on intensity relative to the threshold-to-seasonal difference.
+Assigns Hobday et al. (2018) categories (I Moderate, II Strong, III Severe,
+IV Extreme) to events. If the event file was produced with
+\code{category = TRUE} in \code{\link{detect_event3}}, the pre-computed
+categories are read directly. Otherwise they are computed from the
+climatology file.
+}
+\details{
+Works for both marine heatwaves and cold-spells: the category width is
+\code{|seas - thresh|}, which is always positive regardless of whether the
+threshold is above (heatwave) or below (cold-spell) the seasonal mean.
 }
 \examples{
 \donttest{

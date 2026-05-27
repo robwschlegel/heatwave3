@@ -607,6 +607,99 @@ ClimData read_clim_netcdf(const std::string& clim_file) {
     return cd;
 }
 
+// ---- Read event NetCDF (ragged array) ----
+
+EventData read_event_netcdf(const std::string& event_file) {
+    EventData ed;
+    int ncid;
+    nc_check(nc_open(event_file.c_str(), NC_NOWRITE, &ncid), "open " + event_file);
+
+    int event_dimid;
+    nc_check(nc_inq_dimid(ncid, "event", &event_dimid), "inq dim event");
+    size_t nevents;
+    nc_check(nc_inq_dimlen(ncid, event_dimid, &nevents), "inq nevents");
+    ed.nevents = static_cast<int>(nevents);
+
+    auto read_dvec = [&](const char* name, std::vector<double>& v) {
+        int vid;
+        nc_check(nc_inq_varid(ncid, name, &vid), std::string("inq ") + name);
+        v.resize(nevents);
+        nc_check(nc_get_var_double(ncid, vid, v.data()), std::string("get ") + name);
+    };
+    auto read_ivec = [&](const char* name, std::vector<int>& v) {
+        int vid;
+        nc_check(nc_inq_varid(ncid, name, &vid), std::string("inq ") + name);
+        v.resize(nevents);
+        nc_check(nc_get_var_int(ncid, vid, v.data()), std::string("get ") + name);
+    };
+
+    read_dvec("lon", ed.lon);
+    read_dvec("lat", ed.lat);
+    read_ivec("pixel_index", ed.pixel_index);
+    read_ivec("event_no", ed.event_no);
+    read_ivec("date_start", ed.date_start);
+    read_ivec("date_peak", ed.date_peak);
+    read_ivec("date_end", ed.date_end);
+    read_ivec("duration", ed.duration);
+    read_dvec("intensity_mean", ed.intensity_mean);
+    read_dvec("intensity_max", ed.intensity_max);
+    read_dvec("intensity_var", ed.intensity_var);
+    read_dvec("intensity_cumulative", ed.intensity_cumulative);
+    read_dvec("intensity_mean_relThresh", ed.intensity_mean_relThresh);
+    read_dvec("intensity_max_relThresh", ed.intensity_max_relThresh);
+    read_dvec("intensity_var_relThresh", ed.intensity_var_relThresh);
+    read_dvec("intensity_cumulative_relThresh", ed.intensity_cumulative_relThresh);
+    read_dvec("intensity_mean_abs", ed.intensity_mean_abs);
+    read_dvec("intensity_max_abs", ed.intensity_max_abs);
+    read_dvec("intensity_var_abs", ed.intensity_var_abs);
+    read_dvec("intensity_cumulative_abs", ed.intensity_cumulative_abs);
+    read_dvec("rate_onset", ed.rate_onset);
+    read_dvec("rate_decline", ed.rate_decline);
+
+    // Optional category fields (may not exist in older files)
+    auto try_read_ivec = [&](const char* name, std::vector<int>& v) {
+        int vid;
+        if (nc_inq_varid(ncid, name, &vid) == NC_NOERR) {
+            v.resize(nevents);
+            nc_get_var_int(ncid, vid, v.data());
+        }
+    };
+    auto try_read_dvec = [&](const char* name, std::vector<double>& v) {
+        int vid;
+        if (nc_inq_varid(ncid, name, &vid) == NC_NOERR) {
+            v.resize(nevents);
+            nc_get_var_double(ncid, vid, v.data());
+        }
+    };
+
+    try_read_ivec("category", ed.category);
+    try_read_dvec("p_moderate", ed.p_moderate);
+    try_read_dvec("p_strong", ed.p_strong);
+    try_read_dvec("p_severe", ed.p_severe);
+    try_read_dvec("p_extreme", ed.p_extreme);
+    try_read_ivec("season", ed.season);
+
+    // Parse reference date from date_start units attribute
+    int ds_vid;
+    nc_check(nc_inq_varid(ncid, "date_start", &ds_vid), "inq date_start");
+    std::string units_str;
+    nc_get_att_str(ncid, ds_vid, "units", units_str);
+    // Parse "days since YYYY-MM-DD"
+    std::regex re(R"(days\s+since\s+(\d{4})-(\d{1,2})-(\d{1,2}))");
+    std::smatch match;
+    if (std::regex_search(units_str, match, re)) {
+        int ry = std::stoi(match[1].str());
+        int rm = std::stoi(match[2].str());
+        int rd = std::stoi(match[3].str());
+        ed.ref_date_jd = date_to_jd(ry, rm, rd);
+    } else {
+        ed.ref_date_jd = 0;
+    }
+
+    nc_close(ncid);
+    return ed;
+}
+
 // ---- Write event NetCDF (ragged array) ----
 
 void write_event_netcdf(const std::string& file_out,
@@ -622,7 +715,8 @@ void write_event_netcdf(const std::string& file_out,
                         const std::string& clim_file,
                         int minDuration,
                         int maxGap,
-                        bool coldSpells) {
+                        bool coldSpells,
+                        bool southHemisphere) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -673,6 +767,12 @@ void write_event_netcdf(const std::string& file_out,
     int v_ica = def_dvar("intensity_cumulative_abs", "cumulative absolute intensity", "degC days");
     int v_ro = def_dvar("rate_onset", "onset rate", "degC/day");
     int v_rd = def_dvar("rate_decline", "decline rate", "degC/day");
+    int v_cat = def_ivar("category", "event category", nullptr);
+    int v_pm = def_dvar("p_moderate", "proportion moderate", nullptr);
+    int v_ps = def_dvar("p_strong", "proportion strong", nullptr);
+    int v_pv = def_dvar("p_severe", "proportion severe", nullptr);
+    int v_pe = def_dvar("p_extreme", "proportion extreme", nullptr);
+    int v_sea = def_ivar("season", "peak season", nullptr);
 
     // Reference date attribute
     int ref_y, ref_m, ref_d;
@@ -697,6 +797,8 @@ void write_event_netcdf(const std::string& file_out,
     nc_put_att_text(ncid, NC_GLOBAL, "Conventions", 6, conv);
     const char* created_by = "heatwave3";
     nc_put_att_text(ncid, NC_GLOBAL, "created_by", 9, created_by);
+    const char* hemi = southHemisphere ? "south" : "north";
+    nc_put_att_text(ncid, NC_GLOBAL, "hemisphere", strlen(hemi), hemi);
 
     nc_check(nc_enddef(ncid), "enddef");
 
@@ -711,6 +813,8 @@ void write_event_netcdf(const std::string& file_out,
     std::vector<double> imrt(nevents), ixrt(nevents), ivrt(nevents), icrt(nevents);
     std::vector<double> ima(nevents), ixa(nevents), iva(nevents), ica(nevents);
     std::vector<double> ro(nevents), rd(nevents);
+    std::vector<int> cat(nevents), sea(nevents);
+    std::vector<double> pm(nevents), ps(nevents), pv2(nevents), pex(nevents);
 
     for (size_t i = 0; i < nevents; ++i) {
         const auto& e = events[i];
@@ -730,6 +834,12 @@ void write_event_netcdf(const std::string& file_out,
         ica[i] = e.intensity_cumulative_abs;
         ro[i] = e.rate_onset;
         rd[i] = e.rate_decline;
+        cat[i] = e.category;
+        pm[i] = e.p_moderate;
+        ps[i] = e.p_strong;
+        pv2[i] = e.p_severe;
+        pex[i] = e.p_extreme;
+        sea[i] = e.season;
     }
 
     nc_check(nc_put_var_int(ncid, v_eno, eno.data()), "put event_no");
@@ -751,6 +861,12 @@ void write_event_netcdf(const std::string& file_out,
     nc_check(nc_put_var_double(ncid, v_ica, ica.data()), "put ica");
     nc_check(nc_put_var_double(ncid, v_ro, ro.data()), "put rate_onset");
     nc_check(nc_put_var_double(ncid, v_rd, rd.data()), "put rate_decline");
+    nc_check(nc_put_var_int(ncid, v_cat, cat.data()), "put category");
+    nc_check(nc_put_var_double(ncid, v_pm, pm.data()), "put p_moderate");
+    nc_check(nc_put_var_double(ncid, v_ps, ps.data()), "put p_strong");
+    nc_check(nc_put_var_double(ncid, v_pv, pv2.data()), "put p_severe");
+    nc_check(nc_put_var_double(ncid, v_pe, pex.data()), "put p_extreme");
+    nc_check(nc_put_var_int(ncid, v_sea, sea.data()), "put season");
 
     nc_check(nc_close(ncid), "close " + file_out);
 }

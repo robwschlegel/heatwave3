@@ -25,7 +25,9 @@ PixelEvents detect_pixel_events(
     int maxGap,
     int maxGap2,
     bool coldSpells,
-    int roundRes
+    int roundRes,
+    bool category,
+    bool southHemisphere
 );
 
 // Detect events for entire grid with OpenMP
@@ -44,6 +46,8 @@ void detect_events_grid(
     bool coldSpells,
     int roundRes,
     int n_threads,
+    bool category,
+    bool southHemisphere,
     // Outputs (populated by function)
     std::vector<double>& event_lon,
     std::vector<double>& event_lat,

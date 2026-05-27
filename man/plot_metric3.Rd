@@ -16,24 +16,29 @@ plot_metric3(
 \item{event_file}{Path to the event NetCDF file from \code{\link{detect_event3}}.}
 
 \item{metric}{Character. The event metric to map. Options include
-\code{"intensity_max"}, \code{"intensity_mean"}, \code{"duration"},
-\code{"intensity_cumulative"}, etc. Default \code{"intensity_max"}.}
+\code{"intensity_max"} (default), \code{"intensity_mean"},
+\code{"intensity_cumulative"}, \code{"duration"}, \code{"rate_onset"},
+\code{"rate_decline"}, and all \code{relThresh}/\code{abs} variants.}
 
 \item{summary}{Character. How to aggregate across events per pixel.
-One of \code{"mean"}, \code{"max"}, \code{"count"}, or \code{"sum"}.
-Default \code{"mean"}.}
+One of \code{"mean"} (default), \code{"max"}, \code{"min"},
+\code{"sum"}, or \code{"count"}.}
 
 \item{coastline}{Logical. Add a coastline layer? Requires the
-\code{rnaturalearth} package. Default \code{TRUE}.}
+\code{rnaturalearth} and \code{sf} packages. Default \code{TRUE}.}
 
-\item{...}{Additional arguments passed to \code{ggplot2::scale_fill_viridis_c}.}
+\item{...}{Additional arguments passed to
+\code{ggplot2::scale_fill_viridis_c}.}
 }
 \value{
-A ggplot object.
+A ggplot object. The underlying data is accessible via
+\code{ggplot2::layer_data()} or by calling
+\code{hw3_read_metric_summary()} directly.
 }
 \description{
 Creates a map showing the spatial distribution of a chosen event metric
-from the event NetCDF output.
+from the event NetCDF output. The per-pixel aggregation is performed in
+C++ for efficiency; the R layer handles only the ggplot2 rendering.
 }
 \examples{
 \donttest{

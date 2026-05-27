@@ -14,6 +14,7 @@ geom_flame3(
   ...,
   n = 0,
   n_gap = 0,
+  reverse = FALSE,
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = TRUE
@@ -34,6 +35,9 @@ geom_flame3(
 
 \item{n_gap}{Maximum gap to bridge between exceeding segments. Default \code{0}.}
 
+\item{reverse}{Logical. If \code{TRUE}, fill where \code{y < y2} (for
+cold-spells). Default \code{FALSE} (fill where \code{y > y2}).}
+
 \item{na.rm}{Remove NAs? Default \code{FALSE}.}
 
 \item{show.legend}{Show legend? Default \code{NA}.}
@@ -46,6 +50,7 @@ A ggplot2 layer.
 \description{
 A ggplot2 geom that fills the area between two lines (temperature and
 threshold) where the first exceeds the second, creating "flame" polygons.
+For cold-spells, set \code{reverse = TRUE} to fill where \code{y < y2}.
 }
 \examples{
 library(ggplot2)

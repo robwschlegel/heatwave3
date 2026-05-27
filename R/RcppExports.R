@@ -9,6 +9,18 @@ blob_daily_summary_cpp <- function(labels, ix, iy, it, delta, cell_area_lat, lon
     .Call(`_heatwave3_blob_daily_summary_cpp`, labels, ix, iy, it, delta, cell_area_lat, lons, lats, nt)
 }
 
+hw3_get_threads <- function() {
+    .Call(`_heatwave3_hw3_get_threads`)
+}
+
+hw3_set_threads <- function(n) {
+    .Call(`_heatwave3_hw3_set_threads`, n)
+}
+
+hw3_init_fork_safety <- function() {
+    invisible(.Call(`_heatwave3_hw3_init_fork_safety`))
+}
+
 hw3_version <- function() {
     .Call(`_heatwave3_hw3_version`)
 }

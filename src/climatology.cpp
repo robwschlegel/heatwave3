@@ -1,14 +1,11 @@
 #include "climatology.h"
+#include "hw3_omp.h"
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <cstring>
 #include <atomic>
 #include <Rcpp.h>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 namespace hw3 {
 
@@ -386,14 +383,13 @@ void compute_climatology_grid(
         if (var_out) var_out[i] = NA_DOUBLE;
     }
 
-#ifdef _OPENMP
-    if (n_threads > 0) omp_set_num_threads(n_threads);
-#endif
+    int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
+    (void)nt;  // used by OpenMP num_threads clause
 
     std::atomic<int> done_pixels{0};
     int report_interval = std::max(1, npixels / 20);
 
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic) num_threads(nt)
     for (int px = 0; px < npixels; ++px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
 

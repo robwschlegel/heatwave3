@@ -2,9 +2,28 @@
 #include <cstdlib>
 #include <map>
 #include "heatwave3_types.h"
+#include "hw3_omp.h"
 #include "netcdf_io.h"
 #include "climatology.h"
 #include "event_detect.h"
+
+// ---- Thread management (exported to R) ----
+
+// [[Rcpp::export]]
+int hw3_get_threads() {
+    return hw3::get_threads();
+}
+
+// [[Rcpp::export]]
+int hw3_set_threads(int n) {
+    hw3::set_threads(n);
+    return hw3::get_threads();
+}
+
+// [[Rcpp::export]]
+void hw3_init_fork_safety() {
+    hw3::hw3_init_fork_handler();
+}
 
 // Parse "YYYY-MM-DD" to Julian Day Number
 static int parse_date_to_jd(const std::string& s) {

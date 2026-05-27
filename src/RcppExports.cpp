@@ -46,6 +46,36 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// hw3_get_threads
+int hw3_get_threads();
+RcppExport SEXP _heatwave3_hw3_get_threads() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(hw3_get_threads());
+    return rcpp_result_gen;
+END_RCPP
+}
+// hw3_set_threads
+int hw3_set_threads(int n);
+RcppExport SEXP _heatwave3_hw3_set_threads(SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_set_threads(n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// hw3_init_fork_safety
+void hw3_init_fork_safety();
+RcppExport SEXP _heatwave3_hw3_init_fork_safety() {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    hw3_init_fork_safety();
+    return R_NilValue;
+END_RCPP
+}
 // hw3_version
 Rcpp::List hw3_version();
 RcppExport SEXP _heatwave3_hw3_version() {
@@ -296,6 +326,9 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_label_components_3d_cpp", (DL_FUNC) &_heatwave3_label_components_3d_cpp, 5},
     {"_heatwave3_blob_daily_summary_cpp", (DL_FUNC) &_heatwave3_blob_daily_summary_cpp, 9},
+    {"_heatwave3_hw3_get_threads", (DL_FUNC) &_heatwave3_hw3_get_threads, 0},
+    {"_heatwave3_hw3_set_threads", (DL_FUNC) &_heatwave3_hw3_set_threads, 1},
+    {"_heatwave3_hw3_init_fork_safety", (DL_FUNC) &_heatwave3_hw3_init_fork_safety, 0},
     {"_heatwave3_hw3_version", (DL_FUNC) &_heatwave3_hw3_version, 0},
     {"_heatwave3_hw3_read_sst", (DL_FUNC) &_heatwave3_hw3_read_sst, 6},
     {"_heatwave3_hw3_read_sst_multi", (DL_FUNC) &_heatwave3_hw3_read_sst_multi, 5},

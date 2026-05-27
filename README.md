@@ -74,21 +74,31 @@ sudo apt install libnetcdf-dev
 sudo dnf install netcdf-devel
 ```
 
-### Enabling OpenMP on macOS (optional)
+### OpenMP parallelism
 
-On Linux, OpenMP parallelism works out of the box. On macOS, it is disabled by default because R ships an older `libomp` that conflicts with Homebrew's version. To enable multi-threaded execution on macOS:
+On Linux, OpenMP works out of the box. On macOS, the `configure` script automatically probes for a working OpenMP runtime (Apple Clang + R's bundled libomp, Homebrew libomp, or user-supplied flags) using a compile-link-run test. If no working runtime is found, heatwave3 falls back to single-threaded mode gracefully.
+
+To install Homebrew's libomp (may help on some macOS configurations):
 
 ```bash
 brew install libomp
 ```
 
-Then create or edit `~/.R/Makevars`:
+### Thread management
 
-```makefile
-SHLIB_OPENMP_CXXFLAGS = -Xclang -fopenmp
+heatwave3 defaults to **50% of available cores** (overridable via `R_HEATWAVE3_NUM_THREADS`). Control threads at the session level or per function call:
+
+```r
+library(heatwave3)
+getHW3threads()       # check current default
+setHW3threads(8)      # use 8 threads for all subsequent calls
+setHW3threads(0)      # reset to default (50% of cores)
+
+# Or override per call:
+detect_event3(..., n_threads = 12)
 ```
 
-Reinstall heatwave3 after making this change. If you encounter `Symbol not found: ___kmpc_dispatch_deinit` errors, remove the `SHLIB_OPENMP_CXXFLAGS` line &mdash; the package works correctly in single-threaded mode.
+heatwave3 never calls `omp_set_num_threads()`, so it does not change thread counts for other OpenMP-using packages. It is also safe under `parallel::mclapply()` (fork-safe via `pthread_atfork`).
 
 ## Quick start
 

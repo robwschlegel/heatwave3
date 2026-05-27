@@ -1,5 +1,6 @@
 #include "event_detect.h"
 #include "climatology.h"
+#include "hw3_omp.h"
 #include <algorithm>
 #include <cmath>
 #include <numeric>
@@ -7,10 +8,6 @@
 #include <mutex>
 #include <atomic>
 #include <Rcpp.h>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 namespace hw3 {
 
@@ -362,20 +359,15 @@ void detect_events_grid(
         PixelEvents pe;
     };
 
-    std::vector<std::vector<PixelResult>> thread_results;
+    int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
 
-#ifdef _OPENMP
-    if (n_threads > 0) omp_set_num_threads(n_threads);
-    int actual_threads = omp_get_max_threads();
-#else
-    int actual_threads = 1;
-#endif
-    thread_results.resize(actual_threads);
+    std::vector<std::vector<PixelResult>> thread_results;
+    thread_results.resize(nt);
 
     std::atomic<int> done_pixels{0};
     int report_interval = std::max(1, npixels / 20);
 
-    #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic) num_threads(nt)
     for (int px = 0; px < npixels; ++px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
         const double* pixel_seas = seas_clim + static_cast<size_t>(px) * 366;
@@ -425,11 +417,7 @@ void detect_events_grid(
         );
 
         if (pe.valid && !pe.events.empty()) {
-#ifdef _OPENMP
             int tid = omp_get_thread_num();
-#else
-            int tid = 0;
-#endif
             PixelResult pr;
             pr.px = px;
             pr.pe = std::move(pe);

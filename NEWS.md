@@ -1,3 +1,47 @@
+# heatwave3 1.1.0 (2026-05-27)
+
+## OpenMP thread management overhaul
+
+Adopts data.table-style OpenMP patterns for safer, more portable
+parallelism.
+
+### New features
+
+* **`getHW3threads()` / `setHW3threads()`** — package-level thread
+  management. Defaults to 50% of available cores (polite). Overridable
+  via the `R_HEATWAVE3_NUM_THREADS` environment variable. The
+  per-function `n_threads` parameter still takes precedence when set.
+
+* **Auto-detect OpenMP on macOS** — the `configure` script now performs a
+  compile-link-run test (following data.table's approach) that probes
+  five OpenMP variants in order: user flags, `-fopenmp`, Apple Clang
+  `-Xclang -fopenmp -lomp`, Homebrew libomp (ARM64 and Intel). Each
+  test compiles a small program with `schedule(dynamic)` and runs a
+  parallel reduction in R, catching runtime symbol conflicts that
+  compile-only tests miss. Falls back to single-threaded gracefully.
+
+* **Fork safety** — a `pthread_atfork` handler (registered at package
+  load via `.onLoad`) drops to 1 thread before fork and restores
+  afterward, preventing deadlocks when heatwave3 is used inside
+  `parallel::mclapply()`.
+
+### Internal improvements
+
+* **Never calls `omp_set_num_threads()`** — all parallel regions now use
+  `#pragma omp parallel for num_threads(nt)` with a private thread
+  count, eliminating the global side effect that changed thread counts
+  for other OpenMP-using packages in the R session.
+
+* **`src/hw3_omp.h` compatibility header** — provides stub macros
+  (`omp_get_thread_num()`, `omp_get_max_threads()`, etc.) when
+  `_OPENMP` is not defined, eliminating `#ifdef _OPENMP` guards from
+  source files.
+
+* **Thread throttling** — at least 100 iterations per thread to avoid
+  OpenMP overhead on small grids.
+
+---
+
 # heatwave3 1.0.0 (2026-05-27)
 
 ## Major: C++ reimplementation

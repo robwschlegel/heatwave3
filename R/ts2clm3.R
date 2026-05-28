@@ -77,6 +77,10 @@ ts2clm3 <- function(file_in, file_out,
   if (missing(climatologyPeriod) || length(climatologyPeriod) != 2)
     stop("climatologyPeriod must be a character vector of length 2.", call. = FALSE)
 
+  out_dir <- dirname(file_out)
+  if (!dir.exists(out_dir))
+    stop("Output directory does not exist: ", out_dir, call. = FALSE)
+
   pad <- if (is.numeric(maxPadLength)) as.integer(maxPadLength) else 0L
   rnd <- if (is.numeric(roundClm)) as.integer(roundClm) else 0L
   vn <- if (is.null(var_name)) "" else var_name

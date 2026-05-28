@@ -55,8 +55,8 @@ hw3_export <- function(nc_file, format = c("csv", "rda", "parquet"),
     lon <- ncdf4::ncvar_get(nc, "lon")
     lat <- ncdf4::ncvar_get(nc, "lat")
     doy <- ncdf4::ncvar_get(nc, "doy")
-    seas <- ncdf4::ncvar_get(nc, "seas")
-    thresh <- ncdf4::ncvar_get(nc, "thresh")
+    seas   <- ncdf4::ncvar_get(nc, "seas",   collapse_degen = FALSE)
+    thresh <- ncdf4::ncvar_get(nc, "thresh", collapse_degen = FALSE)
 
     # Reshape from [doy, lat, lon] to long data.frame
     rows <- list()
@@ -89,6 +89,19 @@ hw3_export <- function(nc_file, format = c("csv", "rda", "parquet"),
           hw3_data[[dvar]] <- ref + hw3_data[[dvar]]
         }
       }
+    }
+
+    # Convert integer category and season codes to Hobday et al. (2018)
+    # labels (matches what category3() returns).
+    cat_labels    <- c("I Moderate", "II Strong", "III Severe", "IV Extreme")
+    season_labels <- c("Summer", "Fall", "Winter", "Spring")
+    if ("category" %in% names(hw3_data)) {
+      ci <- hw3_data$category
+      hw3_data$category <- ifelse(ci >= 1 & ci <= 4, cat_labels[ci], NA_character_)
+    }
+    if ("season" %in% names(hw3_data)) {
+      si <- hw3_data$season
+      hw3_data$season <- ifelse(si >= 1 & si <= 4, season_labels[si], NA_character_)
     }
   }
 

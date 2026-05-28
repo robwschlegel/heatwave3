@@ -1,3 +1,30 @@
+# heatwave3 1.1.1 (2026-05-28)
+
+## Bug fixes
+
+* **`ts2clm3()`** now validates that the parent directory of `file_out`
+  exists before running the climatology computation. Previously, an
+  invalid path (e.g. a typo such as `dev/test/clim.nc` when only
+  `dev/tests/` exists) caused libnetcdf to fail at the *write* step
+  with a misleading `Permission denied`, after the full per-pixel
+  climatology had already been computed. The new check fires
+  immediately with a clear `Output directory does not exist: ...`
+  message.
+
+* **`hw3_export()`** now correctly handles climatology files whose grid
+  has a singleton longitude or latitude dimension. Previously
+  `ncdf4::ncvar_get()` dropped the singleton dimension by default,
+  causing `seas[, j, i]` to fail with
+  *incorrect number of dimensions*. The variable is now read with
+  `collapse_degen = FALSE`.
+
+* **`hw3_export()`** now writes Hobday et al. (2018) **category** and
+  **season** values as human-readable labels (`"I Moderate"`,
+  `"II Strong"`, …, `"Summer"`, `"Fall"`, …) when exporting an event
+  file, matching the labels returned by `category3()`. Previously the
+  raw integer codes (1–4) were written, making the exported CSV / RDA /
+  Parquet hard to use directly.
+
 # heatwave3 1.1.0 (2026-05-27)
 
 ## OpenMP thread management overhaul

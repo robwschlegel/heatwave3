@@ -21,7 +21,8 @@ ts2clm3(
   var = FALSE,
   detrend = FALSE,
   roundClm = 4L,
-  save_format = NULL,
+  save_file = NULL,
+  return_df = FALSE,
   n_threads = 1L
 )
 }
@@ -74,16 +75,21 @@ approach (Jacox et al. 2020).}
 \item{roundClm}{Number of decimal places for rounding. Default \code{4}.
 Set to \code{FALSE} to disable.}
 
-\item{save_format}{Additional output formats. Default \code{NULL} (NetCDF only).
-Options: \code{"csv"}, \code{"rda"}, \code{"parquet"}. The NetCDF file is
-always produced; additional formats are written alongside it.}
+\item{save_file}{Optional path for an additional output file. The extension
+determines the format and must be one of \code{.csv}, \code{.rds}, or
+\code{.parquet}. If \code{NULL}, no companion file is written.}
+
+\item{return_df}{Logical. If \code{TRUE}, return the climatology as a long
+\code{data.frame} in addition to writing the NetCDF file. Default
+\code{FALSE} (returns the file path invisibly).}
 
 \item{n_threads}{Number of OpenMP threads for parallel computation. Default \code{1}.}
 }
 \value{
-Invisibly returns the path to the output file. The climatology is written
-to \code{file_out} as a NetCDF file with variables \code{seas}, \code{thresh},
-and optionally \code{var}, each with dimensions \code{[lon, lat, doy]}.
+If \code{return_df = FALSE} (the default), invisibly returns the
+path to the output file. If \code{return_df = TRUE}, returns a
+\code{data.frame} with columns \code{lon}, \code{lat}, \code{doy},
+\code{seas}, and \code{thresh}. The NetCDF is still written.
 }
 \description{
 Calculates seasonal and threshold climatologies for each pixel in a gridded

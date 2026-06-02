@@ -56,4 +56,30 @@ test_that("ts2clm3 input validation works", {
                "does not exist")
   expect_error(ts2clm3("in.nc", "out.nc", "1982-01-01"),
                "length 2")
+  expect_error(ts2clm3("in.nc", "out.nc", c("1982-01-01", "2011-12-31"),
+                       save_file = "custom.txt"),
+               "save_file")
+})
+
+test_that("ts2clm3 can return a data frame and write a custom companion file", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+
+  out_dir <- tempfile()
+  dir.create(out_dir)
+  clim_file <- file.path(out_dir, "clim.nc")
+  csv_file <- file.path(out_dir, "custom_climatology.csv")
+
+  clim_df <- ts2clm3(
+    file_in = sst_file,
+    file_out = clim_file,
+    climatologyPeriod = c("1982-01-01", "2011-12-31"),
+    save_file = csv_file,
+    return_df = TRUE
+  )
+
+  expect_s3_class(clim_df, "data.frame")
+  expect_named(clim_df, c("lon", "lat", "doy", "seas", "thresh"))
+  expect_true(file.exists(csv_file))
+  expect_equal(nrow(clim_df), 2 * 3 * 366)
 })

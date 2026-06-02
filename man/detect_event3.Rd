@@ -19,7 +19,7 @@ detect_event3(
   hemisphere = "south",
   roundRes = 4L,
   return_df = FALSE,
-  save_format = NULL,
+  save_file = NULL,
   n_threads = 1L
 )
 }
@@ -65,8 +65,9 @@ Default \code{4}.}
 \code{data.frame} in addition to writing the NetCDF file. Default
 \code{FALSE} (returns the file path invisibly).}
 
-\item{save_format}{Additional output format. Default \code{NULL} (NetCDF only).
-Options: \code{"csv"}, \code{"rda"}, \code{"parquet"}.}
+\item{save_file}{Optional path for an additional output file. The extension
+determines the format and must be one of \code{.csv}, \code{.rds}, or
+\code{.parquet}. If \code{NULL}, no companion file is written.}
 
 \item{n_threads}{Number of OpenMP threads. Default \code{1}.}
 }

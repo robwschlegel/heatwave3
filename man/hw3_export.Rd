@@ -4,16 +4,13 @@
 \alias{hw3_export}
 \title{Export heatwave3 output to additional formats}
 \usage{
-hw3_export(
-  nc_file,
-  format = c("csv", "rda", "parquet"),
-  type = c("clim", "event")
-)
+hw3_export(nc_file, file_out, type = c("clim", "event"))
 }
 \arguments{
 \item{nc_file}{Path to the heatwave3 NetCDF output file.}
 
-\item{format}{Character. One of \code{"csv"}, \code{"rda"}, or \code{"parquet"}.}
+\item{file_out}{Path for the exported companion file. The extension must be
+one of \code{.csv}, \code{.rds}, or \code{.parquet}.}
 
 \item{type}{Character. One of \code{"clim"} or \code{"event"}, indicating the
 type of output file.}
@@ -23,15 +20,14 @@ Invisibly returns the path to the exported file.
 }
 \description{
 Reads a heatwave3 NetCDF output file (climatology or events) and writes it
-in an additional format. The NetCDF file is always the primary output; this
-function creates a companion file alongside it.
+to a companion file. The output format is inferred from the extension of
+\code{file_out}.
 }
 \details{
 \itemize{
 \item \code{"csv"}: Writes a flat CSV file. Not recommended for large grids
 as it can produce very large files.
-\item \code{"rda"}: Writes an R data file (.rda) containing a list named
-\code{hw3_data}.
+\item \code{"rds"}: Writes the data frame with \code{saveRDS()}.
 \item \code{"parquet"}: Writes an Apache Parquet file. Requires the
 \pkg{arrow} package.
 }
@@ -46,10 +42,11 @@ detect3(sst_file, clim_file, event_file,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 
 # Export events as CSV
-csv_path <- hw3_export(event_file, format = "csv", type = "event")
+csv_path <- hw3_export(event_file, file_out = tempfile(fileext = ".csv"),
+                       type = "event")
 head(read.csv(csv_path))
 
-# Export climatology as RDA
-hw3_export(clim_file, format = "rda", type = "clim")
+# Export climatology as RDS
+hw3_export(clim_file, file_out = tempfile(fileext = ".rds"), type = "clim")
 }
 }

@@ -1,3 +1,25 @@
+# heatwave3 1.1.3 (2026-06-02)
+
+## New features
+
+* **`ts2clm3(return_df = TRUE)`** now returns the computed climatology as a
+  long data frame with `lon`, `lat`, `doy`, `seas`, and `thresh`, while still
+  writing the primary NetCDF output.
+
+* **Companion exports now use `save_file` only.** `ts2clm3()` and
+  `detect_event3()` now infer the requested companion export format from the
+  extension of `save_file`. Supported extensions are `.csv`, `.rds`, and
+  `.parquet`. If `save_file = NULL`, no companion file is written.
+
+## Bug fixes
+
+* **`detect_event3(return_df = TRUE)` now matches saved event CSV output.**
+  The returned data frame now includes the full event-variable set written to
+  the event NetCDF and companion CSV, including `pixel_index`, threshold-relative
+  intensity metrics, and absolute intensity metrics. Category and season labels
+  are returned as character values so that CSV reads and `return_df` output
+  compare cleanly.
+
 # heatwave3 1.1.2 (2026-06-02)
 
 ## Bug fixes

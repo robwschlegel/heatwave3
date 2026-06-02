@@ -1,5 +1,5 @@
 Package: heatwave3
-Version: 1.1.2
+Version: 1.1.3
 Date: 2026-06-02
 Title: Detect Heatwaves and Cold-Spells in Gridded Data
 Description: Detect marine heatwaves (MHWs) and cold-spells directly on gridded

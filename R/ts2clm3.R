@@ -36,14 +36,18 @@
 #'   approach (Jacox et al. 2020).
 #' @param roundClm Number of decimal places for rounding. Default \code{4}.
 #'   Set to \code{FALSE} to disable.
-#' @param save_format Additional output formats. Default \code{NULL} (NetCDF only).
-#'   Options: \code{"csv"}, \code{"rda"}, \code{"parquet"}. The NetCDF file is
-#'   always produced; additional formats are written alongside it.
+#' @param save_file Optional path for an additional output file. The extension
+#'   determines the format and must be one of \code{.csv}, \code{.rds}, or
+#'   \code{.parquet}. If \code{NULL}, no companion file is written.
+#' @param return_df Logical. If \code{TRUE}, return the climatology as a long
+#'   \code{data.frame} in addition to writing the NetCDF file. Default
+#'   \code{FALSE} (returns the file path invisibly).
 #' @param n_threads Number of OpenMP threads for parallel computation. Default \code{1}.
 #'
-#' @return Invisibly returns the path to the output file. The climatology is written
-#'   to \code{file_out} as a NetCDF file with variables \code{seas}, \code{thresh},
-#'   and optionally \code{var}, each with dimensions \code{[lon, lat, doy]}.
+#' @return If \code{return_df = FALSE} (the default), invisibly returns the
+#'   path to the output file. If \code{return_df = TRUE}, returns a
+#'   \code{data.frame} with columns \code{lon}, \code{lat}, \code{doy},
+#'   \code{seas}, and \code{thresh}. The NetCDF is still written.
 #'
 #' @export
 #'
@@ -69,7 +73,8 @@ ts2clm3 <- function(file_in, file_out,
                     var = FALSE,
                     detrend = FALSE,
                     roundClm = 4L,
-                    save_format = NULL,
+                    save_file = NULL,
+                    return_df = FALSE,
                     n_threads = 1L) {
 
   if (missing(file_in) || missing(file_out))
@@ -80,6 +85,8 @@ ts2clm3 <- function(file_in, file_out,
   out_dir <- dirname(file_out)
   if (!dir.exists(out_dir))
     stop("Output directory does not exist: ", out_dir, call. = FALSE)
+  if (!is.null(save_file))
+    .validate_save_file(save_file)
 
   pad <- if (is.numeric(maxPadLength)) as.integer(maxPadLength) else 0L
   rnd <- if (is.numeric(roundClm)) as.integer(roundClm) else 0L
@@ -143,8 +150,12 @@ ts2clm3 <- function(file_in, file_out,
     )
   }
 
-  if (!is.null(save_format)) {
-    hw3_export(file_out, format = save_format, type = "clim")
+  if (!is.null(save_file)) {
+    hw3_export(file_out, file_out = save_file, type = "clim")
+  }
+
+  if (return_df) {
+    return(.read_clim_df(file_out))
   }
 
   invisible(file_out)

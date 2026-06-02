@@ -66,6 +66,40 @@ test_that("detect_event3 input validation works", {
   expect_error(detect_event3(), "file_in")
 })
 
+test_that("detect_event3 writes a custom companion file", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+
+  out_dir <- tempfile()
+  dir.create(out_dir)
+  clim_file <- file.path(out_dir, "clim.nc")
+  event_file <- file.path(out_dir, "events.nc")
+  csv_file <- file.path(out_dir, "custom_events.csv")
+
+  ts2clm3(
+    file_in = sst_file,
+    file_out = clim_file,
+    climatologyPeriod = c("1982-01-01", "2011-12-31")
+  )
+
+  event_df <- detect_event3(
+    file_in = sst_file,
+    clim_file = clim_file,
+    file_out = event_file,
+    save_file = csv_file,
+    return_df = TRUE
+  )
+
+  expect_s3_class(event_df, "data.frame")
+  expect_true(file.exists(csv_file))
+  expect_gt(nrow(event_df), 0)
+
+  csv_df <- utils::read.csv(csv_file, stringsAsFactors = FALSE)
+  date_cols <- c("date_start", "date_peak", "date_end")
+  csv_df[date_cols] <- lapply(csv_df[date_cols], as.Date)
+  expect_equal(csv_df, event_df, ignore_attr = TRUE)
+})
+
 test_that("Cold spell detection works", {
   skip_if_not(file.exists("/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"),
               "SWIO test data not available")

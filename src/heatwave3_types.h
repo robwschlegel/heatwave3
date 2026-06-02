@@ -35,6 +35,9 @@ struct EventResult {
     int index_start;
     int index_peak;
     int index_end;
+    int jd_start;
+    int jd_peak;
+    int jd_end;
     int duration;
     double intensity_mean;
     double intensity_max;

@@ -105,10 +105,38 @@ PixelEvents detect_pixel_events(
     PixelEvents result;
     result.valid = false;
 
-    // Build per-day seas and thresh from 366-day climatology
-    std::vector<double> daily_seas(ntime), daily_thresh(ntime);
+    if (ntime <= 0) return result;
+
+    // Step 0: Expand the (possibly sparse) input series to a dense daily
+    // array, filling missing dates with NA. This mirrors heatwaveR's
+    // make_whole() and ensures that proto_event(), which walks indices,
+    // does not glue runs together across calendar-day gaps in the input.
+    int first_jd = time_jd[0];
+    int last_jd = time_jd[ntime - 1];
+    int dntime = last_jd - first_jd + 1;
+
+    std::vector<double> dense_temp(dntime, NA_DOUBLE);
+    std::vector<int>    dense_jd(dntime);
+    std::vector<int>    dense_doy(dntime);
+    for (int i = 0; i < dntime; ++i) {
+        dense_jd[i] = first_jd + i;
+        dense_doy[i] = jd_to_doy_366(dense_jd[i]);
+    }
     for (int t = 0; t < ntime; ++t) {
-        int d = doy[t] - 1; // 0-based DOY index
+        int idx = time_jd[t] - first_jd;
+        if (idx >= 0 && idx < dntime) {
+            dense_temp[idx] = temp[t];
+        }
+    }
+    // From here on we work entirely on the dense arrays. The original
+    // sparse `temp`, `time_jd`, `doy` and `ntime` are NOT used below;
+    // `index_*` fields in EventResult therefore index the dense array.
+    (void)doy;
+
+    // Build per-day seas and thresh from 366-day climatology
+    std::vector<double> daily_seas(dntime), daily_thresh(dntime);
+    for (int t = 0; t < dntime; ++t) {
+        int d = dense_doy[t] - 1; // 0-based DOY index
         if (d >= 0 && d < 366) {
             daily_seas[t] = seas[d];
             daily_thresh[t] = thresh[d];
@@ -120,33 +148,34 @@ PixelEvents detect_pixel_events(
 
     // Step 1: Threshold criterion
     // Using char instead of bool to allow .data() access
-    std::vector<char> thresh_raw(ntime, 0);
-    std::vector<double> temp_filled(ntime);
+    std::vector<char> thresh_raw(dntime, 0);
+    std::vector<double> temp_filled(dntime);
 
-    for (int t = 0; t < ntime; ++t) {
-        if (is_na(temp[t])) {
+    for (int t = 0; t < dntime; ++t) {
+        double tv = dense_temp[t];
+        if (is_na(tv)) {
             // Missing values set to seas (breaks event continuity)
             temp_filled[t] = daily_seas[t];
             thresh_raw[t] = 0;
         } else if (is_na(daily_thresh[t])) {
-            temp_filled[t] = temp[t];
+            temp_filled[t] = tv;
             thresh_raw[t] = 0;
         } else {
-            temp_filled[t] = temp[t];
+            temp_filled[t] = tv;
             if (coldSpells) {
-                thresh_raw[t] = (temp[t] < daily_thresh[t]) ? 1 : 0;
+                thresh_raw[t] = (tv < daily_thresh[t]) ? 1 : 0;
             } else {
-                thresh_raw[t] = (temp[t] > daily_thresh[t]) ? 1 : 0;
+                thresh_raw[t] = (tv > daily_thresh[t]) ? 1 : 0;
             }
         }
     }
 
     // Convert to bool array for proto_event
-    std::vector<bool> thresh_criterion(ntime);
-    for (int t = 0; t < ntime; ++t) thresh_criterion[t] = (thresh_raw[t] != 0);
+    std::vector<bool> thresh_criterion(dntime);
+    for (int t = 0; t < dntime; ++t) thresh_criterion[t] = (thresh_raw[t] != 0);
 
     // Step 2: Detect proto-events — use manual loop since vector<bool> lacks .data()
-    auto events = proto_event(thresh_criterion, ntime,
+    auto events = proto_event(thresh_criterion, dntime,
                               minDuration, joinAcrossGaps, maxGap);
 
     if (events.empty()) {
@@ -163,6 +192,8 @@ PixelEvents detect_pixel_events(
         er.season = 0;
         er.index_start = pe.start;
         er.index_end = pe.end;
+        er.jd_start = dense_jd[pe.start];
+        er.jd_end   = dense_jd[pe.end];
         er.duration = pe.end - pe.start + 1;
 
         // Intensity relative to seas
@@ -213,6 +244,7 @@ PixelEvents detect_pixel_events(
         }
 
         er.index_peak = peak_idx;
+        er.jd_peak    = dense_jd[peak_idx];
 
         if (n_valid > 0) {
             er.intensity_mean = sum_rel_seas / n_valid;
@@ -273,7 +305,7 @@ PixelEvents detect_pixel_events(
 
         // Category computation (inline, zero extra I/O)
         if (category) {
-            int peak_doy_idx = doy[er.index_peak] - 1;
+            int peak_doy_idx = dense_doy[er.index_peak] - 1;
             double s = seas[peak_doy_idx];
             double th = thresh[peak_doy_idx];
             double diff = std::abs(s - th);
@@ -293,8 +325,10 @@ PixelEvents detect_pixel_events(
                 er.p_extreme  = rnd(std::min(1.0, std::max(0.0, (ix - 3.0 * diff) / diff)));
             }
 
-            // Season from peak date
-            int peak_jd = time_jd[er.index_peak];
+            // Season from peak date (use dense JD; the original `time_jd[]`
+            // is the caller's sparse array and would index the wrong day
+            // when the input series had gaps).
+            int peak_jd = er.jd_peak;
             int y, m, d;
             jd_to_ymd(peak_jd, y, m, d);
             if (southHemisphere) {
@@ -447,9 +481,9 @@ void detect_events_grid(
                 event_lon.push_back(lon[ilon]);
                 event_lat.push_back(lat[ilat]);
                 pixel_index.push_back(px);
-                date_start.push_back(time_jd[ev.index_start]);
-                date_peak.push_back(time_jd[ev.index_peak]);
-                date_end.push_back(time_jd[ev.index_end]);
+                date_start.push_back(ev.jd_start);
+                date_peak.push_back(ev.jd_peak);
+                date_end.push_back(ev.jd_end);
                 all_events.push_back(ev);
             }
         }

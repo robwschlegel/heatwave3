@@ -1,3 +1,31 @@
+# heatwave3 1.1.2 (2026-06-02)
+
+## Bug fixes
+
+* **`detect_event3()` no longer glues events across calendar gaps in the
+  input SST stack.** When the input had missing days (e.g. unavailable
+  OSTIA files), the run-length-encoding in `detect_pixel_events()` walked
+  array indices rather than calendar dates. An event that had
+  above-threshold days on both sides of a missing-data window was joined
+  into one event whose reported `date_end − date_start + 1` was larger
+  than `duration` (calendar-span > index-count). The fix expands the
+  per-pixel series to a dense daily array up front (mirroring what
+  `ts2clm3()` has always done in `compute_pixel_clim`), filling missing
+  dates with `NA`. `proto_event()` then breaks runs at the gap exactly
+  as `heatwaveR::detect_event()` does via `make_whole()`. Verified by
+  pixel-by-pixel agreement with heatwaveR (1705 / 1705 events on a
+  Cape Town OSTIA region match exactly: same count, same date_start /
+  peak / end, same duration, intensities to rounding precision) and by
+  a synthetic 30-day-gap reproducer.
+
+  Internal API change: `EventResult` gains three integer fields
+  (`jd_start`, `jd_peak`, `jd_end`) holding the absolute Julian Day of
+  the start, peak, and end of each event. `index_*` fields are now
+  indices into the dense (gap-filled) array rather than the sparse
+  input. Downstream code that uses `hw3_read_event_nc()` /
+  `category3()` / `block_average3()` is unaffected: the NetCDF
+  event-file layout and the R-facing return values are unchanged.
+
 # heatwave3 1.1.1 (2026-05-28)
 
 ## Bug fixes

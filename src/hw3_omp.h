@@ -28,7 +28,12 @@ namespace hw3 {
 // ---- Private thread manager ------------------------------------------------
 //
 // All parallel regions use:
-//   #pragma omp parallel for schedule(dynamic) num_threads(hw3::get_threads(n))
+//   #pragma omp parallel for schedule(static, 1) num_threads(hw3::get_threads(n))
+//
+// static (not dynamic) scheduling is deliberate: it emits only
+// __kmpc_for_static_init, which every libomp provides, whereas
+// schedule(dynamic) needs __kmpc_dispatch_deinit, absent from R's bundled
+// libomp. The chunk size of 1 round-robins pixels for load balance.
 //
 // This avoids calling omp_set_num_threads(), which is a global side effect
 // that changes thread counts for every OpenMP-using package in the R session.

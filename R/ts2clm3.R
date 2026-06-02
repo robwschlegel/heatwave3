@@ -43,6 +43,8 @@
 #'   \code{data.frame} in addition to writing the NetCDF file. Default
 #'   \code{FALSE} (returns the file path invisibly).
 #' @param n_threads Number of OpenMP threads for parallel computation. Default \code{1}.
+#' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
+#'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #'
 #' @return If \code{return_df = FALSE} (the default), invisibly returns the
 #'   path to the output file. If \code{return_df = TRUE}, returns a
@@ -75,7 +77,8 @@ ts2clm3 <- function(file_in, file_out,
                     roundClm = 4L,
                     save_file = NULL,
                     return_df = FALSE,
-                    n_threads = 1L) {
+                    n_threads = 1L,
+                    skip_bad_files = FALSE) {
 
   if (missing(file_in) || missing(file_out))
     stop("Both file_in and file_out must be provided.", call. = FALSE)
@@ -126,7 +129,8 @@ ts2clm3 <- function(file_in, file_out,
       compute_var = var,
       roundClm = rnd,
       n_threads = as.integer(n_threads),
-      detrend = detrend
+      detrend = detrend,
+      skip_bad_files = skip_bad_files
     )
   } else {
     hw3_compute_clim(

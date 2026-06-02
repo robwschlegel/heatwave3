@@ -29,8 +29,8 @@ hw3_read_sst <- function(file_in, var_name, lon_range = NULL, lat_range = NULL, 
     .Call(`_heatwave3_hw3_read_sst`, file_in, var_name, lon_range, lat_range, time_range, depth)
 }
 
-hw3_read_sst_multi <- function(files, var_name, lon_range = NULL, lat_range = NULL, depth = -1L) {
-    .Call(`_heatwave3_hw3_read_sst_multi`, files, var_name, lon_range, lat_range, depth)
+hw3_read_sst_multi <- function(files, var_name, lon_range = NULL, lat_range = NULL, depth = -1L, skip_bad_files = FALSE) {
+    .Call(`_heatwave3_hw3_read_sst_multi`, files, var_name, lon_range, lat_range, depth, skip_bad_files)
 }
 
 hw3_pixel_clim <- function(temp, time_jd, clim_start, clim_end, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, maxPadLength = 0L, detrend = FALSE) {
@@ -41,8 +41,8 @@ hw3_compute_clim <- function(file_in, file_out, var_name, climatologyPeriod, lon
     invisible(.Call(`_heatwave3_hw3_compute_clim`, file_in, file_out, var_name, climatologyPeriod, lon_range, lat_range, time_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend))
 }
 
-hw3_compute_clim_multi <- function(files, file_out, var_name, climatologyPeriod, lon_range = NULL, lat_range = NULL, depth = -1L, maxPadLength = 0L, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, compute_var = FALSE, roundClm = 4L, n_threads = 1L, detrend = FALSE) {
-    invisible(.Call(`_heatwave3_hw3_compute_clim_multi`, files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend))
+hw3_compute_clim_multi <- function(files, file_out, var_name, climatologyPeriod, lon_range = NULL, lat_range = NULL, depth = -1L, maxPadLength = 0L, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, compute_var = FALSE, roundClm = 4L, n_threads = 1L, detrend = FALSE, skip_bad_files = FALSE) {
+    invisible(.Call(`_heatwave3_hw3_compute_clim_multi`, files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, skip_bad_files))
 }
 
 hw3_write_const_clim <- function(file_in, clim_file, var_name, threshold, lon_range = NULL, lat_range = NULL, time_range = NULL, depth = -1L) {
@@ -57,12 +57,12 @@ hw3_read_clim_nc <- function(clim_file) {
     .Call(`_heatwave3_hw3_read_clim_nc`, clim_file)
 }
 
-hw3_detect_events <- function(file_in, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE) {
-    invisible(.Call(`_heatwave3_hw3_detect_events`, file_in, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere))
+hw3_detect_events <- function(file_in, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE, threshClim2_file = "", threshClim2_var_name = "") {
+    invisible(.Call(`_heatwave3_hw3_detect_events`, file_in, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_file, threshClim2_var_name))
 }
 
-hw3_detect_events_multi <- function(files, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE) {
-    invisible(.Call(`_heatwave3_hw3_detect_events_multi`, files, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere))
+hw3_detect_events_multi <- function(files, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE, threshClim2_files = NULL, threshClim2_var_name = "", skip_bad_files = FALSE) {
+    invisible(.Call(`_heatwave3_hw3_detect_events_multi`, files, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_files, threshClim2_var_name, skip_bad_files))
 }
 
 hw3_read_event_nc <- function(event_file) {

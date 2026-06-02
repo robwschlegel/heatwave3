@@ -11,7 +11,7 @@ setHW3threads(threads = 0L)
 }
 \arguments{
 \item{threads}{Integer. Number of threads to use. \code{0} resets to
-the default (50\\% of cores).}
+the default (50 percent of cores).}
 }
 \value{
 Integer: the current (or newly set) thread count.
@@ -21,7 +21,7 @@ Integer: the current (or newly set) thread count.
 \code{setHW3threads()} sets it and returns the new value.
 }
 \details{
-The default is 50\\% of available cores, which can be overridden by the
+The default is 50 percent of available cores, which can be overridden by the
 environment variable \code{R_HEATWAVE3_NUM_THREADS}. The per-function
 \code{n_threads} parameter, when greater than zero, takes precedence
 over the package-level setting for that call.

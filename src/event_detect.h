@@ -14,6 +14,7 @@ struct PixelEvents {
 // Detect events for a single pixel
 PixelEvents detect_pixel_events(
     const double* temp,        // daily temperature
+    const double* thresh2,     // optional secondary logical criterion
     const double* seas,        // seasonal climatology (366 DOY)
     const double* thresh,      // threshold climatology (366 DOY)
     const int* time_jd,        // Julian Day numbers
@@ -33,6 +34,7 @@ PixelEvents detect_pixel_events(
 // Detect events for entire grid with OpenMP
 void detect_events_grid(
     const double* sst,         // [npixels * ntime] pixel-major
+    const double* thresh2,     // optional [npixels * ntime] secondary criterion
     const double* seas_clim,   // [npixels * 366]
     const double* thresh_clim, // [npixels * 366]
     const int* time_jd,        // [ntime]

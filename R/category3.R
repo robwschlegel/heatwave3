@@ -1,10 +1,16 @@
-#' Categorise marine heatwave events
+#' Convenience wrapper for marine heatwave event categories
 #'
-#' Assigns Hobday et al. (2018) categories (I Moderate, II Strong, III Severe,
-#' IV Extreme) to events. If the event file was produced with
-#' \code{category = TRUE} in \code{\link{detect_event3}}, the pre-computed
-#' categories are read directly. Otherwise they are computed from the
-#' climatology file.
+#' \code{category3()} is a convenience wrapper for adding or reading Hobday
+#' et al. (2018) categories (I Moderate, II Strong, III Severe, IV Extreme)
+#' for an event NetCDF file. New analyses should usually set
+#' \code{category = TRUE} in \code{\link{detect_event3}} or
+#' \code{\link{detect3}}, which computes the same categories during event
+#' detection and avoids a second pass over the files.
+#'
+#' If the event file already contains categories, \code{category3()} reads
+#' those values directly and \code{clim_file} may be omitted. If the event file
+#' does not contain categories, \code{clim_file} is required so the category
+#' width can be computed from the seasonal and threshold climatologies.
 #'
 #' Works for both marine heatwaves and cold-spells: the category width is
 #' \code{|seas - thresh|}, which is always positive regardless of whether the
@@ -41,12 +47,27 @@ category3 <- function(event_file, clim_file = NULL,
                       S = NULL) {
 
   if (!is.null(S)) {
+    warning("S is deprecated; use hemisphere instead.", call. = FALSE)
     hemisphere <- if (isTRUE(S)) "south" else "north"
   }
   hemisphere <- match.arg(hemisphere, c("south", "north"))
 
+  if (missing(event_file) || !file.exists(event_file)) {
+    stop("Event file does not exist: ", event_file, call. = FALSE)
+  }
+
   if (is.null(clim_file)) {
+    ev <- hw3_read_event_nc(event_file)
+    if (length(ev$category) == 0 || !any(ev$category > 0)) {
+      stop(
+        "clim_file is required because the event file does not contain ",
+        "pre-computed categories.",
+        call. = FALSE
+      )
+    }
     clim_file <- ""
+  } else if (!file.exists(clim_file)) {
+    stop("Climatology file does not exist: ", clim_file, call. = FALSE)
   }
 
   hw3_category(event_file, clim_file, hemisphere = hemisphere,

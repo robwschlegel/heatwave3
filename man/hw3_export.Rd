@@ -4,7 +4,7 @@
 \alias{hw3_export}
 \title{Export heatwave3 output to additional formats}
 \usage{
-hw3_export(nc_file, file_out, type = c("clim", "event"))
+hw3_export(nc_file, file_out, type = c("clim", "event"), chunk_size = 1000000L)
 }
 \arguments{
 \item{nc_file}{Path to the heatwave3 NetCDF output file.}
@@ -14,6 +14,9 @@ one of \code{.csv}, \code{.rds}, or \code{.parquet}.}
 
 \item{type}{Character. One of \code{"clim"} or \code{"event"}, indicating the
 type of output file.}
+
+\item{chunk_size}{Number of rows per CSV or Parquet write chunk. Default
+\code{1000000}.}
 }
 \value{
 Invisibly returns the path to the exported file.
@@ -25,11 +28,10 @@ to a companion file. The output format is inferred from the extension of
 }
 \details{
 \itemize{
-\item \code{"csv"}: Writes a flat CSV file. Not recommended for large grids
-as it can produce very large files.
+\item \code{"csv"}: Writes a flat CSV file in row chunks.
 \item \code{"rds"}: Writes the data frame with \code{saveRDS()}.
-\item \code{"parquet"}: Writes an Apache Parquet file. Requires the
-\pkg{arrow} package.
+\item \code{"parquet"}: Writes a single Apache Parquet file in row groups.
+Requires the \pkg{arrow} package.
 }
 }
 \examples{

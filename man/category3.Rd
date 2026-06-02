@@ -2,7 +2,7 @@
 % Please edit documentation in R/category3.R
 \name{category3}
 \alias{category3}
-\title{Categorise marine heatwave events}
+\title{Convenience wrapper for marine heatwave event categories}
 \usage{
 category3(
   event_file,
@@ -30,13 +30,19 @@ A data.frame with columns: event_no, lon, lat, peak_date, category,
 intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme, season.
 }
 \description{
-Assigns Hobday et al. (2018) categories (I Moderate, II Strong, III Severe,
-IV Extreme) to events. If the event file was produced with
-\code{category = TRUE} in \code{\link{detect_event3}}, the pre-computed
-categories are read directly. Otherwise they are computed from the
-climatology file.
+\code{category3()} is a convenience wrapper for adding or reading Hobday
+et al. (2018) categories (I Moderate, II Strong, III Severe, IV Extreme)
+for an event NetCDF file. New analyses should usually set
+\code{category = TRUE} in \code{\link{detect_event3}} or
+\code{\link{detect3}}, which computes the same categories during event
+detection and avoids a second pass over the files.
 }
 \details{
+If the event file already contains categories, \code{category3()} reads
+those values directly and \code{clim_file} may be omitted. If the event file
+does not contain categories, \code{clim_file} is required so the category
+width can be computed from the seasonal and threshold climatologies.
+
 Works for both marine heatwaves and cold-spells: the category width is
 \code{|seas - thresh|}, which is always positive regardless of whether the
 threshold is above (heatwave) or below (cold-spell) the seasonal mean.

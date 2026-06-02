@@ -87,6 +87,7 @@ static double round_to(double val, int decimals) {
 
 PixelEvents detect_pixel_events(
     const double* temp,
+    const double* thresh2,
     const double* seas,
     const double* thresh,
     const int* time_jd,
@@ -126,6 +127,16 @@ PixelEvents detect_pixel_events(
         int idx = time_jd[t] - first_jd;
         if (idx >= 0 && idx < dntime) {
             dense_temp[idx] = temp[t];
+        }
+    }
+    std::vector<char> dense_thresh2;
+    if (thresh2 != nullptr) {
+        dense_thresh2.assign(dntime, 0);
+        for (int t = 0; t < ntime; ++t) {
+            int idx = time_jd[t] - first_jd;
+            if (idx >= 0 && idx < dntime) {
+                dense_thresh2[idx] = (!is_na(thresh2[t]) && thresh2[t] != 0.0) ? 1 : 0;
+            }
         }
     }
     // From here on we work entirely on the dense arrays. The original
@@ -177,6 +188,23 @@ PixelEvents detect_pixel_events(
     // Step 2: Detect proto-events — use manual loop since vector<bool> lacks .data()
     auto events = proto_event(thresh_criterion, dntime,
                               minDuration, joinAcrossGaps, maxGap);
+
+    if (thresh2 != nullptr && !events.empty()) {
+        std::vector<bool> primary_event(dntime, false);
+        for (const auto& pe : events) {
+            for (int t = pe.start; t <= pe.end; ++t) {
+                primary_event[t] = true;
+            }
+        }
+
+        std::vector<bool> secondary_criterion(dntime, false);
+        for (int t = 0; t < dntime; ++t) {
+            secondary_criterion[t] = primary_event[t] && (dense_thresh2[t] != 0);
+        }
+
+        events = proto_event(secondary_criterion, dntime,
+                             minDuration2, joinAcrossGaps, maxGap2);
+    }
 
     if (events.empty()) {
         result.valid = true;
@@ -285,6 +313,8 @@ PixelEvents detect_pixel_events(
                 (max_rel_seas - end_rel) / (days_from_peak + 0.5) : 0.0;
         }
 
+        double category_intensity_max = er.intensity_max;
+
         // Round
         if (roundRes > 0) {
             er.intensity_mean = round_to(er.intensity_mean, roundRes);
@@ -311,7 +341,7 @@ PixelEvents detect_pixel_events(
             double diff = std::abs(s - th);
 
             if (!is_na(s) && !is_na(th) && diff > 0.0) {
-                double ix = er.intensity_max;
+                double ix = category_intensity_max;
                 if (ix >= 4.0 * diff) er.category = 4;
                 else if (ix >= 3.0 * diff) er.category = 3;
                 else if (ix >= 2.0 * diff) er.category = 2;
@@ -355,6 +385,7 @@ PixelEvents detect_pixel_events(
 
 void detect_events_grid(
     const double* sst,
+    const double* thresh2,
     const double* seas_clim,
     const double* thresh_clim,
     const int* time_jd,
@@ -401,9 +432,13 @@ void detect_events_grid(
     std::atomic<int> done_pixels{0};
     int report_interval = std::max(1, npixels / 20);
 
-    #pragma omp parallel for schedule(dynamic) num_threads(nt)
+    // schedule(static, 1): round-robin pixels across threads — same load
+    // balance as schedule(dynamic), but without the dynamic-dispatch symbols
+    // (e.g. __kmpc_dispatch_deinit) that R's bundled libomp lacks. See configure.
+    #pragma omp parallel for schedule(static, 1) num_threads(nt)
     for (int px = 0; px < npixels; ++px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
+        const double* pixel_thresh2 = thresh2 ? thresh2 + static_cast<size_t>(px) * ntime : nullptr;
         const double* pixel_seas = seas_clim + static_cast<size_t>(px) * 366;
         const double* pixel_thresh = thresh_clim + static_cast<size_t>(px) * 366;
 
@@ -442,7 +477,7 @@ void detect_events_grid(
         }
 
         PixelEvents pe = detect_pixel_events(
-            pixel_temp, pixel_seas, pixel_thresh,
+            pixel_temp, pixel_thresh2, pixel_seas, pixel_thresh,
             time_jd, doy_arr.data(), ntime,
             minDuration, minDuration2,
             joinAcrossGaps, maxGap, maxGap2,

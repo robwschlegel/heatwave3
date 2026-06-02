@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 #include <cstdlib>
 #include <map>
+#include <memory>
 #include "heatwave3_types.h"
 #include "hw3_omp.h"
 #include "netcdf_io.h"
@@ -88,7 +89,8 @@ Rcpp::List hw3_read_sst_multi(Rcpp::CharacterVector files,
                               std::string var_name,
                               Rcpp::Nullable<Rcpp::NumericVector> lon_range = R_NilValue,
                               Rcpp::Nullable<Rcpp::NumericVector> lat_range = R_NilValue,
-                              int depth = -1) {
+                              int depth = -1,
+                              bool skip_bad_files = false) {
     hw3::SubsetSpec ss;
     if (lon_range.isNotNull()) {
         Rcpp::NumericVector lr(lon_range);
@@ -105,12 +107,12 @@ Rcpp::List hw3_read_sst_multi(Rcpp::CharacterVector files,
         file_vec.push_back(Rcpp::as<std::string>(files[i]));
     }
 
-    if (var_name.empty() && !file_vec.empty()) {
+    if (var_name.empty() && !skip_bad_files && !file_vec.empty()) {
         var_name = hw3::detect_sst_variable(file_vec[0]);
     }
 
     Rcpp::Rcout << "Reading " << file_vec.size() << " files..." << std::endl;
-    hw3::GridData gd = hw3::read_sst_multi_netcdf(file_vec, var_name, ss);
+    hw3::GridData gd = hw3::read_sst_multi_netcdf(file_vec, var_name, ss, skip_bad_files);
     Rcpp::Rcout << "Merged: " << gd.nlon << " lon x " << gd.nlat << " lat x "
                 << gd.ntime << " time" << std::endl;
 
@@ -222,7 +224,8 @@ static void compute_and_write_clim(hw3::GridData& gd,
         file_out, gd.lon, gd.lat, gd.nlon, gd.nlat,
         seas, thresh, var_clim, compute_var,
         source_label, cp0, cp1,
-        pctile, windowHalfWidth, smoothPercentileWidth
+        pctile, windowHalfWidth, smoothPercentileWidth,
+        gd.temp_units
     );
 
     Rcpp::Rcout << "Done." << std::endl;
@@ -293,7 +296,8 @@ void hw3_compute_clim_multi(Rcpp::CharacterVector files,
                             bool compute_var = false,
                             int roundClm = 4,
                             int n_threads = 1,
-                            bool detrend = false) {
+                            bool detrend = false,
+                            bool skip_bad_files = false) {
 
     hw3::SubsetSpec ss;
     if (lon_range.isNotNull()) {
@@ -310,11 +314,11 @@ void hw3_compute_clim_multi(Rcpp::CharacterVector files,
     for (int i = 0; i < files.size(); ++i)
         file_vec.push_back(Rcpp::as<std::string>(files[i]));
 
-    if (var_name.empty() && !file_vec.empty())
+    if (var_name.empty() && !skip_bad_files && !file_vec.empty())
         var_name = hw3::detect_sst_variable(file_vec[0]);
 
     Rcpp::Rcout << "Reading " << file_vec.size() << " daily files..." << std::endl;
-    hw3::GridData gd = hw3::read_sst_multi_netcdf(file_vec, var_name, ss);
+    hw3::GridData gd = hw3::read_sst_multi_netcdf(file_vec, var_name, ss, skip_bad_files);
 
     std::string cp0 = Rcpp::as<std::string>(climatologyPeriod[0]);
     std::string cp1 = Rcpp::as<std::string>(climatologyPeriod[1]);
@@ -361,7 +365,7 @@ void hw3_write_const_clim(std::string file_in,
     hw3::write_clim_netcdf(clim_file, gd.lon, gd.lat, gd.nlon, gd.nlat,
                            seas, thresh, {}, false,
                            file_in, "static", "static",
-                           90.0, 5, 31);
+                           90.0, 5, 31, gd.temp_units);
 }
 
 // [[Rcpp::export]]
@@ -385,6 +389,7 @@ Rcpp::List hw3_read_clim_nc(std::string clim_file) {
 
 // Shared helper: detect events from pre-loaded GridData + ClimData
 static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
+                                    const hw3::GridData* thresh2_gd,
                                     const std::string& file_out,
                                     const std::string& source_label,
                                     const std::string& clim_file,
@@ -395,6 +400,19 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
     if (gd.nlon != cd.nlon || gd.nlat != cd.nlat) {
         Rcpp::stop("Grid mismatch: SST is %d x %d but climatology is %d x %d",
                    gd.nlon, gd.nlat, cd.nlon, cd.nlat);
+    }
+    if (thresh2_gd != nullptr) {
+        if (gd.nlon != thresh2_gd->nlon || gd.nlat != thresh2_gd->nlat ||
+            gd.ntime != thresh2_gd->ntime) {
+            Rcpp::stop("Grid mismatch: SST is %d x %d x %d but threshClim2 is %d x %d x %d",
+                       gd.nlon, gd.nlat, gd.ntime,
+                       thresh2_gd->nlon, thresh2_gd->nlat, thresh2_gd->ntime);
+        }
+        for (int t = 0; t < gd.ntime; ++t) {
+            if (gd.time_days[t] != thresh2_gd->time_days[t]) {
+                Rcpp::stop("Time mismatch between SST and threshClim2 at time index %d", t + 1);
+            }
+        }
     }
 
     int npixels = gd.nlon * gd.nlat;
@@ -409,7 +427,9 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
     Rcpp::Rcout << "Detecting events with " << n_threads << " thread(s)..." << std::endl;
 
     hw3::detect_events_grid(
-        gd.sst.data(), cd.seas.data(), cd.thresh.data(),
+        gd.sst.data(),
+        thresh2_gd ? thresh2_gd->sst.data() : nullptr,
+        cd.seas.data(), cd.thresh.data(),
         gd.time_days.data(), npixels, gd.ntime,
         minDuration, minDuration2,
         joinAcrossGaps, maxGap, maxGap2,
@@ -443,7 +463,7 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
         ds_rel, dp_rel, de_rel, ref_jd,
         source_label, clim_file,
         minDuration, maxGap, coldSpells,
-        southHemisphere
+        southHemisphere, gd.temp_units
     );
 
     Rcpp::Rcout << "Done." << std::endl;
@@ -464,7 +484,9 @@ void hw3_detect_events(std::string file_in,
                        int roundRes = 4,
                        int n_threads = 1,
                        bool category = false,
-                       bool southHemisphere = true) {
+                       bool southHemisphere = true,
+                       std::string threshClim2_file = "",
+                       std::string threshClim2_var_name = "") {
 
     Rcpp::Rcout << "Reading climatology from " << clim_file << "..." << std::endl;
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
@@ -480,7 +502,15 @@ void hw3_detect_events(std::string file_in,
     Rcpp::Rcout << "Reading SST data from " << file_in << "..." << std::endl;
     hw3::GridData gd = hw3::read_sst_netcdf(file_in, var_name, ss);
 
-    detect_and_write_events(gd, cd, file_out, file_in, clim_file,
+    std::unique_ptr<hw3::GridData> thresh2_gd;
+    if (!threshClim2_file.empty()) {
+        std::string t2_var = threshClim2_var_name;
+        if (t2_var.empty()) t2_var = hw3::detect_sst_variable(threshClim2_file);
+        Rcpp::Rcout << "Reading secondary threshold from " << threshClim2_file << "..." << std::endl;
+        thresh2_gd.reset(new hw3::GridData(hw3::read_sst_netcdf(threshClim2_file, t2_var, ss)));
+    }
+
+    detect_and_write_events(gd, cd, thresh2_gd.get(), file_out, file_in, clim_file,
                             minDuration, minDuration2,
                             joinAcrossGaps, maxGap, maxGap2,
                             coldSpells, roundRes, n_threads,
@@ -502,7 +532,10 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              int roundRes = 4,
                              int n_threads = 1,
                              bool category = false,
-                             bool southHemisphere = true) {
+                             bool southHemisphere = true,
+                             Rcpp::Nullable<Rcpp::CharacterVector> threshClim2_files = R_NilValue,
+                             std::string threshClim2_var_name = "",
+                             bool skip_bad_files = false) {
 
     Rcpp::Rcout << "Reading climatology from " << clim_file << "..." << std::endl;
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
@@ -517,14 +550,28 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
     for (int i = 0; i < files.size(); ++i)
         file_vec.push_back(Rcpp::as<std::string>(files[i]));
 
-    if (var_name.empty() && !file_vec.empty())
+    if (var_name.empty() && !skip_bad_files && !file_vec.empty())
         var_name = hw3::detect_sst_variable(file_vec[0]);
 
     Rcpp::Rcout << "Reading " << file_vec.size() << " daily files..." << std::endl;
-    hw3::GridData gd = hw3::read_sst_multi_netcdf(file_vec, var_name, ss);
+    hw3::GridData gd = hw3::read_sst_multi_netcdf(file_vec, var_name, ss, skip_bad_files);
+
+    std::unique_ptr<hw3::GridData> thresh2_gd;
+    if (threshClim2_files.isNotNull()) {
+        Rcpp::CharacterVector t2_files_cv(threshClim2_files);
+        std::vector<std::string> t2_files;
+        for (int i = 0; i < t2_files_cv.size(); ++i)
+            t2_files.push_back(Rcpp::as<std::string>(t2_files_cv[i]));
+        std::string t2_var = threshClim2_var_name;
+        if (t2_var.empty() && !skip_bad_files && !t2_files.empty())
+            t2_var = hw3::detect_sst_variable(t2_files[0]);
+        Rcpp::Rcout << "Reading " << t2_files.size()
+                    << " secondary threshold files..." << std::endl;
+        thresh2_gd.reset(new hw3::GridData(hw3::read_sst_multi_netcdf(t2_files, t2_var, ss, skip_bad_files)));
+    }
 
     std::string source_label = std::to_string(file_vec.size()) + " daily files";
-    detect_and_write_events(gd, cd, file_out, source_label, clim_file,
+    detect_and_write_events(gd, cd, thresh2_gd.get(), file_out, source_label, clim_file,
                             minDuration, minDuration2,
                             joinAcrossGaps, maxGap, maxGap2,
                             coldSpells, roundRes, n_threads,

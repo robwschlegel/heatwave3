@@ -1,0 +1,428 @@
+---
+title: "Parallel performance: OpenMP threads vs R-side parallelism"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Parallel performance: OpenMP threads vs R-side parallelism}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+## Two kinds of parallelism
+
+`heatwave3` detects marine heatwaves one pixel at a time, and pixels are
+completely independent of one another: a pixel's climatology and events depend
+only on its own temperature time series. That independence is what makes the
+problem *embarrassingly parallel*, and it can be exploited in two distinct
+ways.
+
+1. **OpenMP threads (in-process).** The C++ core spreads pixels across CPU
+   cores using OpenMP. Everything happens inside a single R process: the data
+   slab is read once into shared memory, the threads compute, and one set of
+   output files is written. Controlled by the `n_threads` argument (or
+   `setHW3threads()`). This is the fast path, when it is available.
+
+2. **R-side parallelism (across processes).** Several R processes each run
+   `heatwave3` single-threaded on a *spatial tile* of the grid, and the results
+   are combined. Controlled with the `parallel` package. This works even when
+   OpenMP is not compiled in, and it is the only way to scale across more than
+   one machine.
+
+This vignette measures both, on the same dataset, and explains when to reach
+for each. It closes with platform-by-platform setup advice (Linux, macOS,
+Windows).
+
+> **Why this matters on macOS.** Apple's compiler ships without OpenMP, so a
+> default macOS build of `heatwave3` runs single-threaded no matter what you
+> pass to `n_threads`. The [Setup](#enabling-openmp) section shows how to enable
+> OpenMP; the [R-side](#method-3-r-side-parallelism-psock) section shows how to
+> get parallelism without it.
+
+## Is OpenMP active?
+
+`getHW3threads()` reports the default thread count. With OpenMP enabled it
+returns roughly half your cores; if it returns `1`, the package was built
+without OpenMP and `n_threads` will have no effect.
+
+```{r check-omp}
+library(heatwave3)
+getHW3threads()
+#> [1] 9        # OpenMP active (here: 50% of 18 cores)
+#> [1] 1        # OpenMP NOT compiled in -> single-threaded
+```
+
+You can also confirm at the binary level (macOS/Linux):
+
+```sh
+# Should list an OpenMP runtime (libomp.dylib / libgomp.so / libomp.so)
+otool -L $(Rscript -e 'cat(system.file("libs/heatwave3.so", package="heatwave3"))') | grep -i omp   # macOS
+ldd       $(Rscript -e 'cat(system.file("libs/heatwave3.so", package="heatwave3"))') | grep -i omp   # Linux
+```
+
+## The dataset
+
+The OSTIA reanalysis over the South-West Indian Ocean / South African east
+coast: a 400 × 200 grid at 0.05° resolution (15–35°E, 38–28°S), 14,276 daily
+time steps (1982–2021), of which roughly 50,000 pixels are ocean. The
+climatological baseline is 1982–2011.
+
+```{r data}
+sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
+var_name <- "analysed_sst"
+clim_period <- c("1982-01-01", "2011-12-31")
+```
+
+All three methods produce the **same deliverable** — the full event table as an
+in-memory `data.frame` — so their wall-clock times are directly comparable.
+
+## Method 1: single-threaded
+
+The baseline. `n_threads = 1` forces one core regardless of the package
+default.
+
+```{r single}
+library(heatwave3)
+
+run_once <- function(nthreads, lon_range = NULL) {
+  cf <- tempfile(fileext = ".nc")
+  ef <- tempfile(fileext = ".nc")
+  on.exit(unlink(c(cf, ef)))
+  detect3(
+    sst_file,
+    cf,
+    ef,
+    climatologyPeriod = clim_period,
+    var_name = var_name,
+    lon_range = lon_range,
+    category = TRUE,
+    return_df = TRUE,
+    n_threads = nthreads
+  )
+}
+
+system.time(ev1 <- run_once(1L))
+```
+
+## Method 2: OpenMP multithreading
+
+Identical call, more threads. Because pixels are independent, OpenMP simply
+hands each thread a share of them — no locking, no coordination.
+
+```{r openmp}
+system.time(ev12 <- run_once(12L))
+
+# Results are independent of thread count:
+nrow(ev1) == nrow(ev12)
+#> [1] TRUE
+```
+
+Sweeping the thread count maps the scaling curve:
+
+```{r openmp-sweep}
+for (nt in c(1, 2, 4, 8, 12, 16)) {
+  t <- system.time(run_once(nt))[["elapsed"]]
+  cat(sprintf("%2d threads: %5.1f s\n", nt, t))
+}
+```
+
+## Method 3: R-side parallelism (PSOCK)
+
+When OpenMP is unavailable — or to scale across machines — split the grid into
+longitude tiles and run one single-threaded `heatwave3` per worker process.
+Since pixels are independent, the union of the tiles is **identical** to a
+whole-domain run.
+
+We use a **PSOCK cluster** (independent R processes) rather than fork-based
+`mclapply()`. On macOS, forking after the NetCDF/HDF5 and Apple Objective-C
+runtimes have initialised is unsafe (sporadic worker crashes, and the
+`+[NSCharacterSet initialize] ... fork()` abort). PSOCK launches clean
+processes that each open their own files, like running several `Rscript` jobs
+side by side. It is also the only option on Windows, where `fork()` does not
+exist.
+
+```{r psock}
+library(parallel)
+
+# Read the longitude coordinate once (cheap), to cut non-overlapping tiles.
+g <- heatwave3:::hw3_read_sst(
+  sst_file,
+  var_name,
+  time_range = c("1982-01-01", "1982-01-02")
+)
+lon <- sort(unique(g$lon))
+
+make_tiles <- function(n) {
+  pad <- 0.45 * min(diff(lon)) # < half the grid spacing
+  grp <- cut(seq_along(lon), breaks = n, labels = FALSE)
+  unname(lapply(split(lon, grp), function(L) c(min(L) - pad, max(L) + pad)))
+}
+
+run_psock <- function(n_workers) {
+  cl <- makeCluster(n_workers, setup_strategy = "sequential")
+  on.exit(stopCluster(cl))
+  clusterEvalQ(cl, suppressPackageStartupMessages(library(heatwave3)))
+  clusterExport(cl, c("sst_file", "var_name", "clim_period"))
+  tiles <- make_tiles(n_workers)
+  parts <- parLapply(cl, tiles, function(lr) {
+    cf <- tempfile(fileext = ".nc")
+    ef <- tempfile(fileext = ".nc")
+    on.exit(unlink(c(cf, ef)))
+    detect3(
+      sst_file,
+      cf,
+      ef,
+      climatologyPeriod = clim_period,
+      var_name = var_name,
+      lon_range = lr,
+      category = TRUE,
+      return_df = TRUE,
+      n_threads = 1L
+    ) # 1 thread per worker!
+  })
+  do.call(rbind, parts)
+}
+
+system.time(evp <- run_psock(16L))
+```
+
+The `n_threads = 1L` inside each worker is essential: with OpenMP active, each
+freshly-loaded `heatwave3` would otherwise default to *all* its threads, so 16
+workers × 9 threads would oversubscribe the machine badly. See
+[Don't oversubscribe](#dont-oversubscribe).
+
+## Results
+
+```{r results-data, eval = TRUE, echo = FALSE}
+# Wall-clock seconds to build the full event data.frame for the whole 400x200
+# domain (4,863,985 events; identical for every method). Measured on
+# macOS (Darwin 25.5, Apple Silicon arm64), 18 cores, R 4.5.3, on a warm OS
+# file cache, 2026-06-02. Source: dev/benchmark_threads.R.
+perf <- data.frame(
+  method = c(
+    "openmp",
+    "openmp",
+    "openmp",
+    "openmp",
+    "openmp",
+    "openmp",
+    "psock",
+    "psock",
+    "psock"
+  ),
+  n = c(1L, 2L, 4L, 8L, 12L, 16L, 4L, 8L, 16L),
+  elapsed = c(109.30, 72.47, 50.28, 40.16, 36.95, 35.67, 42.50, 24.91, 17.15)
+)
+```
+
+```{r results-table, eval = TRUE, echo = FALSE, results = "asis"}
+if (nrow(perf)) {
+  base <- perf$elapsed[perf$method == "openmp" & perf$n == 1]
+  perf$speedup <- round(base / perf$elapsed, 1)
+  lab <- c(openmp = "OpenMP (threads)", psock = "PSOCK (R workers)")
+  tab <- perf
+  tab$Method <- lab[tab$method]
+  knitr::kable(
+    data.frame(
+      Method = tab$Method,
+      `Workers/threads` = tab$n,
+      `Time (s)` = round(tab$elapsed, 1),
+      `Speed-up` = tab$speedup,
+      check.names = FALSE
+    ),
+    caption = "Wall-clock time to produce the full event table."
+  )
+}
+```
+
+```{r results-plot, eval = TRUE, echo = FALSE, fig.width = 7, fig.height = 4.5, fig.alt = "Speed-up versus number of threads or workers for OpenMP and PSOCK, against the ideal linear line."}
+if (nrow(perf)) {
+  library(ggplot2)
+  base <- perf$elapsed[perf$method == "openmp" & perf$n == 1]
+  perf$speedup <- base / perf$elapsed
+  ideal <- data.frame(n = seq(1, max(perf$n)))
+  ggplot(perf, aes(n, speedup, colour = method)) +
+    geom_line(
+      data = ideal,
+      aes(n, n),
+      inherit.aes = FALSE,
+      linetype = 2,
+      colour = "grey60"
+    ) +
+    geom_line(linewidth = 0.8) +
+    geom_point(size = 2) +
+    annotate(
+      "text",
+      x = max(perf$n) * 0.78,
+      y = max(perf$n) * 0.92,
+      label = "ideal linear",
+      colour = "grey55",
+      size = 3.3
+    ) +
+    scale_colour_manual(
+      values = c(openmp = "#1b9e77", psock = "#d95f02"),
+      labels = c(openmp = "OpenMP threads", psock = "PSOCK R workers"),
+      name = NULL
+    ) +
+    labs(
+      x = "threads / worker processes",
+      y = "speed-up vs 1 thread",
+      title = "Parallel scaling: OpenMP vs R-side parallelism"
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "top")
+}
+```
+
+On this run (whole domain, ~50,000 ocean pixels, warm file cache): the
+single-threaded baseline took **109 s**. OpenMP reached **3.1×** (36 s) at 16
+threads; R-side PSOCK reached **6.4×** (17 s) at 16 workers. Every method
+returned the same 4,863,985 events.
+
+### Reading the curves
+
+Both methods speed the analysis up substantially, and both fall short of ideal
+linear scaling — but PSOCK pulls clearly ahead of OpenMP here, and the reason is
+worth understanding.
+
+The work has three phases: **read** the NetCDF slab, **compute** per pixel, and
+**assemble** the 4.9-million-row event `data.frame`. OpenMP parallelises only
+the middle phase; the read and the assembly happen single-threaded in the one R
+process. By Amdahl's law that serial read-plus-assemble fraction caps OpenMP's
+speed-up — hence the plateau around 3×, no matter how many threads.
+
+PSOCK parallelises **all three** phases. Each worker process reads only its own
+longitude slice and builds only its own sub-frame, concurrently, so the I/O and
+the assembly scale with the worker count too. With the file already in the OS
+cache, those concurrent reads are cheap, and PSOCK keeps gaining past the point
+where OpenMP has flattened.
+
+Two caveats keep this from being a blanket "PSOCK wins":
+
+- **Endpoint.** This benchmark returns the events as an in-memory `data.frame`,
+  which makes the serial assembly a large part of OpenMP's tail. The usual
+  production endpoint — write one event NetCDF, `return_df = FALSE` — removes
+  that assembly, shrinking OpenMP's serial fraction and narrowing the gap.
+- **Storage.** PSOCK's edge depends on those per-worker reads being cheap. On a
+  cold cache or slow/network disk, sixteen processes reading at once can
+  contend, eroding or reversing the advantage. OpenMP reads the slab exactly
+  once.
+
+OpenMP also stays the *simpler* option: one call, one output file, no tiling or
+merge, and no inter-process serialisation. PSOCK earns its overhead by working
+with no OpenMP at all, by isolating failures to a single tile, and by scaling
+across separate machines.
+
+## Discussion
+
+### When to use which
+
+- **OpenMP** is the default choice on a single machine when the package is
+  built with it: lowest overhead, shared memory, one NetCDF written. Set
+  `n_threads`, or leave it at the package default.
+- **R-side parallelism (PSOCK)** is for when (a) you cannot enable OpenMP (e.g.
+  a managed Mac), (b) you want to spread work across **multiple machines** in a
+  cluster, or (c) you want process isolation so one failing tile cannot crash
+  the whole run. Each worker writes its own tile; merge afterwards.
+- The two are **not** mutually exclusive across a cluster: one PSOCK (or MPI)
+  worker per node, each using OpenMP across that node's cores, is the standard
+  HPC pattern. On a single workstation, pick one.
+
+### Correctness
+
+Because pixels are independent, every method returns the **identical** event
+table (we assert `nrow()` equality above; the per-pixel metrics match to the
+bit). Tiling changes only *which* process computes a pixel, never the result.
+The one exception is `detect_blob3()`, which finds spatially **connected**
+heatwave blobs across pixels — that computation must see the whole grid and
+**cannot** be tiled this way.
+
+### Don't oversubscribe {#dont-oversubscribe}
+
+Running *N* worker processes that each launch *M* OpenMP threads creates
+*N × M* threads. If that exceeds your physical cores the threads fight over
+them and everything slows down. Rules of thumb:
+
+- Pure OpenMP: `n_threads` ≤ physical cores.
+- Pure PSOCK: `n_workers` ≤ physical cores, **`n_threads = 1` in every worker**.
+- Hybrid (cluster): `n_workers_per_node × n_threads ≈ cores_per_node`.
+
+`heatwave3` defaults to ~50% of cores precisely so that a careless nested call
+does not instantly saturate the machine, but explicit is better than implicit.
+
+## Enabling OpenMP, by platform {#enabling-openmp}
+
+`heatwave3`'s `configure` script probes for a working OpenMP toolchain at
+install time (compile → link → load → run a parallel reduction) and falls back
+to single-threaded if none is found. The install log prints which path it took:
+
+```
+Detecting OpenMP...
+  Trying Apple Clang + R's bundled libomp
+  -> works
+Using OpenMP:
+  CXXFLAGS: -Xclang -fopenmp -I/opt/homebrew/opt/libomp/include
+  LIBS:     /Library/Frameworks/R.framework/Resources/lib/libomp.dylib
+```
+
+### Linux — works out of the box
+
+GCC and Clang support OpenMP natively and R already advertises the flags. Just
+install NetCDF and a compiler:
+
+```sh
+sudo apt install libnetcdf-dev build-essential   # Debian/Ubuntu
+sudo dnf install netcdf-devel gcc-c++             # Fedora/RHEL
+R CMD INSTALL heatwave3
+```
+
+OpenMP scaling is typically the best of the three platforms (low thread
+creation overhead). Fork-based `mclapply()` is also safe here, though PSOCK
+remains the portable choice.
+
+### macOS — provide an omp.h header
+
+The R 4.x framework already ships the OpenMP runtime (`libomp.dylib`), and
+`heatwave3` links *that* one so the whole R process shares a single OpenMP
+runtime. Apple Clang only lacks the `omp.h` **header**, which `configure` finds
+from Homebrew (or `/usr/local`). So the one-time setup is just:
+
+```sh
+brew install libomp netcdf      # libomp here supplies omp.h; netcdf is required
+R CMD INSTALL heatwave3          # configure links R's own libomp, header from brew
+```
+
+Why this works (and the trap it avoids): R's bundled `libomp.dylib` is older and
+lacks `__kmpc_dispatch_deinit`, the symbol Apple Clang emits for
+`schedule(dynamic)`. Linking a *second*, newer libomp (e.g. Homebrew's) appears
+to work until another package — or your environment's library search path —
+redirects `libomp.dylib` back to R's copy at load time, and the package then
+fails with `symbol not found ... ___kmpc_dispatch_deinit`. `heatwave3` sidesteps
+this entirely by using `schedule(static, 1)`, which needs only symbols R's own
+libomp already provides; there is then just one OpenMP runtime and no conflict.
+
+For **R-side** parallelism on macOS, prefer PSOCK. If you must use `mclapply()`,
+export `OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES` before starting R and be aware
+that concurrent forked NetCDF/HDF5 access is not guaranteed safe.
+
+### Windows — OpenMP yes, fork no
+
+Rtools (GCC/MinGW) supports OpenMP out of the box and `configure.win` locates
+NetCDF, so multithreading via `n_threads` works with no extra steps. There is
+no `fork()` on Windows, however, so `mclapply()` silently runs serially —
+R-side parallelism **must** use a PSOCK cluster (`makeCluster()` /
+`parLapply()`), exactly as shown above.
+
+## Summary
+
+| Approach | Enable with | Best when | Notes |
+|----------|-------------|-----------|-------|
+| Single-threaded | `n_threads = 1` | debugging, tiny grids | reference result |
+| OpenMP | `n_threads = N` | one machine, OpenMP built | fastest, shared memory, 1 output |
+| PSOCK | `parallel::makeCluster` | no OpenMP, or many machines | tile by longitude, `n_threads = 1` per worker |
+
+All three give the same science. OpenMP is the efficient default on a single
+host; R-side parallelism is the portable fallback and the route to multi-machine
+scaling.

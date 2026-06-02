@@ -14,13 +14,16 @@ detect_event3(
   joinAcrossGaps = TRUE,
   maxGap = 2L,
   maxGap2 = maxGap,
+  threshClim2 = NULL,
+  threshClim2_var_name = NULL,
   coldSpells = FALSE,
   category = FALSE,
   hemisphere = "south",
   roundRes = 4L,
   return_df = FALSE,
   save_file = NULL,
-  n_threads = 1L
+  n_threads = 1L,
+  skip_bad_files = FALSE
 )
 }
 \arguments{
@@ -37,15 +40,25 @@ containing daily \code{.nc}/\code{.nc4} files.}
 
 \item{minDuration}{Minimum duration (days) for an event. Default \code{5}.}
 
-\item{minDuration2}{Minimum duration for secondary threshold events.
-Default equals \code{minDuration}.}
+\item{minDuration2}{Minimum duration for events that also satisfy
+\code{threshClim2}. Used only when \code{threshClim2} is supplied.}
 
 \item{joinAcrossGaps}{Logical. Join events separated by short gaps?
 Default \code{TRUE}.}
 
 \item{maxGap}{Maximum gap length (days) to join across. Default \code{2}.}
 
-\item{maxGap2}{Maximum gap for secondary threshold. Default equals \code{maxGap}.}
+\item{maxGap2}{Maximum gap length for the secondary \code{threshClim2}
+criterion. Used only when \code{threshClim2} is supplied.}
+
+\item{threshClim2}{Optional gridded NetCDF logical criterion for the
+secondary event pass, equivalent to \code{heatwaveR::detect_event()}'s
+\code{threshClim2}. The file must align with \code{file_in}; non-zero and
+non-missing values are treated as \code{TRUE}. May be a single NetCDF file,
+a vector of files, or a directory of daily \code{.nc}/\code{.nc4} files.}
+
+\item{threshClim2_var_name}{Name of the secondary criterion variable. If
+\code{NULL}, it is auto-detected.}
 
 \item{coldSpells}{Logical. Detect cold-spells instead of heatwaves?
 Default \code{FALSE}.}
@@ -70,6 +83,9 @@ determines the format and must be one of \code{.csv}, \code{.rds}, or
 \code{.parquet}. If \code{NULL}, no companion file is written.}
 
 \item{n_threads}{Number of OpenMP threads. Default \code{1}.}
+
+\item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
+or files with mismatched grids instead of failing. Default \code{FALSE}.}
 }
 \value{
 If \code{return_df = FALSE} (the default), invisibly returns the

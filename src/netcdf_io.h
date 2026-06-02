@@ -21,6 +21,7 @@ struct GridData {
     std::vector<int> time_days;
     std::string time_units;
     std::string time_calendar;
+    std::string temp_units;
     int nlon;
     int nlat;
     int ntime;
@@ -64,7 +65,8 @@ void write_clim_netcdf(const std::string& file_out,
                        const std::string& clim_period_end,
                        double pctile,
                        int windowHalfWidth,
-                       int smoothPercentileWidth);
+                       int smoothPercentileWidth,
+                       const std::string& temp_units);
 
 void write_event_netcdf(const std::string& file_out,
                         const std::vector<double>& event_lon,
@@ -80,7 +82,8 @@ void write_event_netcdf(const std::string& file_out,
                         int minDuration,
                         int maxGap,
                         bool coldSpells,
-                        bool southHemisphere);
+                        bool southHemisphere,
+                        const std::string& temp_units);
 
 ClimData read_clim_netcdf(const std::string& clim_file);
 
@@ -89,7 +92,8 @@ EventData read_event_netcdf(const std::string& event_file);
 // Read and merge multiple daily NetCDF files into a single GridData
 GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
                                const std::string& var_name,
-                               const SubsetSpec& subset);
+                               const SubsetSpec& subset,
+                               bool skip_bad_files = false);
 
 } // namespace hw3
 

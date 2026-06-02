@@ -14,7 +14,8 @@ detect_blob3(
   topN = NULL,
   rankBy = "cumI_km2_day",
   coldSpells = FALSE,
-  return = c("event", "daily")
+  return = c("event", "daily"),
+  skip_bad_files = FALSE
 )
 }
 \arguments{
@@ -63,6 +64,10 @@ footprint. Required for spatial footprint maps and persistence
 analysis. Can be large.}
 }
 Default \code{c("event", "daily")}.}
+
+\item{skip_bad_files}{Logical. For multi-file SST inputs, skip unreadable
+files or files with mismatched grids instead of failing. Default
+\code{FALSE}.}
 }
 \value{
 A named list containing the requested components (\code{event},

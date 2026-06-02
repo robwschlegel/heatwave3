@@ -389,7 +389,11 @@ void compute_climatology_grid(
     std::atomic<int> done_pixels{0};
     int report_interval = std::max(1, npixels / 20);
 
-    #pragma omp parallel for schedule(dynamic) num_threads(nt)
+    // schedule(static, 1): round-robin pixels across threads. This balances
+    // the land/ocean cost mix as well as schedule(dynamic) did, but emits only
+    // __kmpc_for_static_init (present in every libomp) rather than the
+    // dynamic-dispatch symbols that R's bundled libomp lacks. See configure.
+    #pragma omp parallel for schedule(static, 1) num_threads(nt)
     for (int px = 0; px < npixels; ++px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
 

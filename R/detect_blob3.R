@@ -54,6 +54,9 @@
 #'       analysis. Can be large.}
 #'   }
 #'   Default \code{c("event", "daily")}.
+#' @param skip_bad_files Logical. For multi-file SST inputs, skip unreadable
+#'   files or files with mismatched grids instead of failing. Default
+#'   \code{FALSE}.
 #'
 #' @return A named list containing the requested components (\code{event},
 #'   \code{daily}, and/or \code{voxel} data.frames).
@@ -110,16 +113,69 @@ detect_blob3 <- function(sst_file, clim_file,
                          topN = NULL,
                          rankBy = "cumI_km2_day",
                          coldSpells = FALSE,
-                         return = c("event", "daily")) {
+                         return = c("event", "daily"),
+                         skip_bad_files = FALSE) {
+
+  if (missing(sst_file) || missing(clim_file)) {
+    stop("sst_file and clim_file must both be provided.", call. = FALSE)
+  }
+  if (!file.exists(clim_file)) {
+    stop("Climatology file does not exist: ", clim_file, call. = FALSE)
+  }
+
+  connectivity <- as.integer(connectivity)
+  if (!identical(connectivity, 6L)) {
+    stop("Only connectivity = 6 is currently supported.", call. = FALSE)
+  }
+
+  valid_return <- c("event", "daily", "voxel")
+  bad_return <- setdiff(return, valid_return)
+  if (length(bad_return) > 0) {
+    stop("return contains unsupported value: ", bad_return[1], call. = FALSE)
+  }
+  return <- unique(return)
+
+  valid_rank <- c("cumI_km2_day", "peakArea_km2", "duration", "meanArea_km2")
+  if (!rankBy %in% valid_rank) {
+    stop("rankBy must be one of: ", paste(valid_rank, collapse = ", "),
+         call. = FALSE)
+  }
 
   # Read SST and climatology
   vn <- if (is.null(var_name)) "" else var_name
   cd <- hw3_read_clim_nc(clim_file)
-  gd <- hw3_read_sst(sst_file, vn,
-                     lon_range = c(min(cd$lon), max(cd$lon)),
-                     lat_range = c(min(cd$lat), max(cd$lat)))
+  if (length(cd$lon) < 2 || length(cd$lat) < 2) {
+    stop(
+      "detect_blob3 requires at least two longitude and two latitude cells ",
+      "to compute cell area.",
+      call. = FALSE
+    )
+  }
+
+  sst_files <- .resolve_nc_input(sst_file, "sst_file")
+  if (length(sst_files) > 1 || (length(sst_file) == 1 && dir.exists(sst_file))) {
+    gd <- hw3_read_sst_multi(
+      sst_files, vn,
+      lon_range = c(min(cd$lon), max(cd$lon)),
+      lat_range = c(min(cd$lat), max(cd$lat)),
+      skip_bad_files = skip_bad_files
+    )
+  } else {
+    gd <- hw3_read_sst(
+      sst_files[1], vn,
+      lon_range = c(min(cd$lon), max(cd$lon)),
+      lat_range = c(min(cd$lat), max(cd$lat))
+    )
+  }
 
   nlon <- gd$nlon; nlat <- gd$nlat; ntime <- gd$ntime
+  if (nlon != cd$nlon || nlat != cd$nlat) {
+    stop(
+      "Grid mismatch: SST is ", nlon, " x ", nlat,
+      " but climatology is ", cd$nlon, " x ", cd$nlat,
+      call. = FALSE
+    )
+  }
   sst <- gd$sst
 
   # Map DOY for each time step
@@ -160,7 +216,11 @@ detect_blob3 <- function(sst_file, clim_file,
   n_components <- attr(labels, "n_components")
 
   if (n_components == 0) {
-    return(list(event = data.frame(), daily = data.frame()))
+    empty_result <- list()
+    if ("event" %in% return) empty_result$event <- data.frame()
+    if ("daily" %in% return) empty_result$daily <- data.frame()
+    if ("voxel" %in% return) empty_result$voxel <- data.frame()
+    return(empty_result)
   }
 
   # Extract voxel indices for labeled voxels

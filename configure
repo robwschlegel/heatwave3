@@ -1,10 +1,13 @@
 #!/bin/sh
 # configure — find netcdf and auto-detect OpenMP (including macOS)
 #
-# OpenMP detection follows the data.table approach: compile a small test
-# program, link it with R CMD SHLIB, and run a parallel reduction to verify
-# the runtime works. This catches the macOS libomp version mismatch that
-# causes ___kmpc_dispatch_deinit failures at runtime.
+# OpenMP detection: compile a small test program that mirrors heatwave3's own
+# parallel regions (schedule(static)), link it, load it in R, and run a
+# parallel reduction to confirm the runtime actually works. On macOS the
+# preferred runtime is R's OWN bundled libomp, so the whole process shares a
+# single OpenMP runtime; Homebrew/system libomp are fallbacks. heatwave3 uses
+# schedule(static) precisely so it needs no symbol (e.g. ___kmpc_dispatch_deinit)
+# that R's bundled libomp lacks.
 
 set -e
 
@@ -61,8 +64,8 @@ esac
 OPENMP_CXXFLAGS=""
 OPENMP_LIBS=""
 
-# Write a small test program that uses schedule(dynamic) — the construct
-# that triggers the ___kmpc_dispatch_deinit symbol issue on macOS
+# Write a small test program using schedule(static), exactly as heatwave3 does,
+# so the probe accepts a libomp iff it provides the symbols the package needs.
 TMPDIR="${TMPDIR:-/tmp}"
 TEST_SRC="${TMPDIR}/hw3_omp_test.cpp"
 TEST_OUT="${TMPDIR}/hw3_omp_test.so"
@@ -72,7 +75,7 @@ cat > "${TEST_SRC}" << 'OMPTEST'
 extern "C" {
   void hw3_omp_test(int* result) {
     int sum = 0;
-    #pragma omp parallel for schedule(dynamic) reduction(+:sum)
+    #pragma omp parallel for schedule(static, 1) reduction(+:sum)
     for (int i = 0; i < 100; i++) sum += i;
     *result = sum;
   }
@@ -84,7 +87,12 @@ OMPTEST
 CXX=$("${R_HOME}/bin/R" CMD config CXX17 2>/dev/null || "${R_HOME}/bin/R" CMD config CXX 2>/dev/null)
 CXXFLAGS=$("${R_HOME}/bin/R" CMD config CXX17FLAGS 2>/dev/null || "${R_HOME}/bin/R" CMD config CXXFLAGS 2>/dev/null)
 LDFLAGS=$("${R_HOME}/bin/R" CMD config LDFLAGS 2>/dev/null)
-SHLIB_CXXFLAGS=$("${R_HOME}/bin/R" CMD config SHLIB_CXX17FLAGS 2>/dev/null || echo "")
+# NB: on some R builds SHLIB_CXX17FLAGS is undefined; R CMD config then prints
+# "ERROR: no information for variable ..." to stdout and exits non-zero. Guard
+# against that text being spliced into the compile flags (which would break
+# every OpenMP probe below).
+SHLIB_CXXFLAGS=$("${R_HOME}/bin/R" CMD config SHLIB_CXX17FLAGS 2>/dev/null || true)
+case "${SHLIB_CXXFLAGS}" in *ERROR*) SHLIB_CXXFLAGS="" ;; esac
 
 # Test one OpenMP variant: compile, link, and run
 test_openmp() {
@@ -96,12 +104,13 @@ test_openmp() {
     -shared -fPIC -o "${TEST_OUT}" "${TEST_SRC}" ${OMP_LIBS} ${LDFLAGS} \
     > /dev/null 2>&1 || return 1
 
-  # Try to load and run in R
+  # Try to load and run in R. NB: .C() returns the modified arguments in a
+  # list rather than updating them in place, so the result must be read from
+  # the return value (res[[1]]), not the input vector.
   "${R_HOME}/bin/Rscript" --vanilla -e "
     dyn.load('${TEST_OUT}')
-    r <- integer(1)
-    .C('hw3_omp_test', r)
-    if (r != 4950L) quit(status = 1)
+    res <- .C('hw3_omp_test', integer(1))
+    if (res[[1]] != 4950L) quit(status = 1)
   " > /dev/null 2>&1 || return 1
 
   return 0
@@ -144,12 +153,21 @@ if [ ${FOUND_OMP} -eq 0 ]; then
   fi
 fi
 
-# 3. Apple Clang: -Xclang -fopenmp with -lomp (R's bundled libomp)
-if [ ${FOUND_OMP} -eq 0 ]; then
-  echo "  Trying -Xclang -fopenmp -lomp (Apple Clang + R libomp)"
-  if test_openmp "-Xclang -fopenmp" "-lomp" "Apple Clang"; then
-    OPENMP_CXXFLAGS="-Xclang -fopenmp"
-    OPENMP_LIBS="-lomp"
+# 3. Apple Clang + R's OWN bundled libomp (preferred on macOS).
+# Linking the libomp that R itself loads keeps a single OpenMP runtime in the
+# process and sidesteps the version conflicts that arise when a second libomp
+# (e.g. Homebrew's) is dragged in and then shadowed at load time. We link it by
+# absolute path so -L ordering cannot redirect it. An omp.h header is still
+# needed at compile time; take it from Homebrew or /usr/local if present.
+if [ ${FOUND_OMP} -eq 0 ] && [ -e "${R_HOME}/lib/libomp.dylib" ]; then
+  OMP_INC=""
+  for d in /opt/homebrew/opt/libomp/include /usr/local/opt/libomp/include /usr/local/include; do
+    if [ -f "${d}/omp.h" ]; then OMP_INC="-I${d}"; break; fi
+  done
+  echo "  Trying Apple Clang + R's bundled libomp"
+  if test_openmp "-Xclang -fopenmp ${OMP_INC}" "${R_HOME}/lib/libomp.dylib" "R libomp"; then
+    OPENMP_CXXFLAGS="-Xclang -fopenmp ${OMP_INC}"
+    OPENMP_LIBS="${R_HOME}/lib/libomp.dylib"
     FOUND_OMP=1
     echo "  -> works"
   else
@@ -158,9 +176,13 @@ if [ ${FOUND_OMP} -eq 0 ]; then
 fi
 
 # 4. Homebrew libomp (macOS ARM64)
+# NB: link the dylib by ABSOLUTE PATH, not -L...-lomp. R prepends its own
+# framework lib dir (which ships an older libomp lacking ___kmpc_dispatch_deinit,
+# the symbol emitted by schedule(dynamic)) to the link line, so -lomp would
+# resolve to R's libomp and fail to load. An absolute path bypasses -L ordering.
 if [ ${FOUND_OMP} -eq 0 ] && [ -d "/opt/homebrew/opt/libomp" ]; then
   HB_INC="-I/opt/homebrew/opt/libomp/include"
-  HB_LIB="-L/opt/homebrew/opt/libomp/lib -lomp -Wl,-rpath,/opt/homebrew/opt/libomp/lib"
+  HB_LIB="/opt/homebrew/opt/libomp/lib/libomp.dylib -Wl,-rpath,/opt/homebrew/opt/libomp/lib"
   echo "  Trying Homebrew libomp (ARM64)"
   if test_openmp "-Xclang -fopenmp ${HB_INC}" "${HB_LIB}" "Homebrew ARM64"; then
     OPENMP_CXXFLAGS="-Xclang -fopenmp ${HB_INC}"
@@ -172,10 +194,10 @@ if [ ${FOUND_OMP} -eq 0 ] && [ -d "/opt/homebrew/opt/libomp" ]; then
   fi
 fi
 
-# 5. Homebrew libomp (macOS Intel)
+# 5. Homebrew libomp (macOS Intel) — absolute path, see note on strategy 4
 if [ ${FOUND_OMP} -eq 0 ] && [ -d "/usr/local/opt/libomp" ]; then
   HB_INC="-I/usr/local/opt/libomp/include"
-  HB_LIB="-L/usr/local/opt/libomp/lib -lomp -Wl,-rpath,/usr/local/opt/libomp/lib"
+  HB_LIB="/usr/local/opt/libomp/lib/libomp.dylib -Wl,-rpath,/usr/local/opt/libomp/lib"
   echo "  Trying Homebrew libomp (Intel)"
   if test_openmp "-Xclang -fopenmp ${HB_INC}" "${HB_LIB}" "Homebrew Intel"; then
     OPENMP_CXXFLAGS="-Xclang -fopenmp ${HB_INC}"

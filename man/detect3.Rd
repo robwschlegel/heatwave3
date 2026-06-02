@@ -9,6 +9,8 @@ detect3(
   file_out_clim,
   file_out_event,
   climatologyPeriod,
+  save_file_clim = NULL,
+  save_file_event = NULL,
   var_name = NULL,
   lon_range = NULL,
   lat_range = NULL,
@@ -19,16 +21,22 @@ detect3(
   pctile = 90,
   smoothPercentile = TRUE,
   smoothPercentileWidth = 31L,
+  detrend = FALSE,
   minDuration = 5L,
+  minDuration2 = minDuration,
   joinAcrossGaps = TRUE,
   maxGap = 2L,
+  maxGap2 = maxGap,
+  threshClim2 = NULL,
+  threshClim2_var_name = NULL,
   coldSpells = FALSE,
   category = FALSE,
   hemisphere = "south",
   roundClm = 4L,
   roundRes = 4L,
   return_df = FALSE,
-  n_threads = 1L
+  n_threads = 1L,
+  skip_bad_files = FALSE
 )
 }
 \arguments{
@@ -40,6 +48,12 @@ detect3(
 
 \item{climatologyPeriod}{Character vector of length 2 with start and end
 dates of the baseline period, e.g. \code{c("1991-01-01", "2020-12-31")}.}
+
+\item{save_file_clim}{Optional companion output path for the climatology.
+The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.}
+
+\item{save_file_event}{Optional companion output path for the event table.
+The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.}
 
 \item{var_name}{Name of the SST variable. If \code{NULL}, auto-detected.}
 
@@ -62,11 +76,26 @@ use \code{10} for cold-spells.}
 
 \item{smoothPercentileWidth}{Smoothing window width. Default \code{31}.}
 
+\item{detrend}{Logical. Remove a linear trend before climatology calculation?
+Default \code{FALSE}.}
+
 \item{minDuration}{Minimum event duration in days. Default \code{5}.}
+
+\item{minDuration2}{Secondary minimum duration. See
+\code{\link{detect_event3}}.}
 
 \item{joinAcrossGaps}{Join events across short gaps? Default \code{TRUE}.}
 
 \item{maxGap}{Maximum gap length to join. Default \code{2}.}
+
+\item{maxGap2}{Secondary maximum gap length. See
+\code{\link{detect_event3}}.}
+
+\item{threshClim2}{Optional gridded NetCDF logical criterion for secondary
+event detection. See \code{\link{detect_event3}}.}
+
+\item{threshClim2_var_name}{Name of the \code{threshClim2} variable. If
+\code{NULL}, it is auto-detected.}
 
 \item{coldSpells}{Detect cold-spells? Default \code{FALSE}.}
 
@@ -83,6 +112,9 @@ inline? Default \code{FALSE}.}
 Default \code{FALSE}.}
 
 \item{n_threads}{Number of OpenMP threads. Default \code{1}.}
+
+\item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
+or files with mismatched grids instead of failing. Default \code{FALSE}.}
 }
 \value{
 If \code{return_df = FALSE} (the default), invisibly returns a list

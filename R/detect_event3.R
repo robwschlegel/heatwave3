@@ -12,12 +12,20 @@
 #' @param file_out Path for the output NetCDF file containing detected events.
 #' @param var_name Name of the SST variable. If \code{NULL}, auto-detected.
 #' @param minDuration Minimum duration (days) for an event. Default \code{5}.
-#' @param minDuration2 Minimum duration for secondary threshold events.
-#'   Default equals \code{minDuration}.
+#' @param minDuration2 Minimum duration for events that also satisfy
+#'   \code{threshClim2}. Used only when \code{threshClim2} is supplied.
 #' @param joinAcrossGaps Logical. Join events separated by short gaps?
 #'   Default \code{TRUE}.
 #' @param maxGap Maximum gap length (days) to join across. Default \code{2}.
-#' @param maxGap2 Maximum gap for secondary threshold. Default equals \code{maxGap}.
+#' @param maxGap2 Maximum gap length for the secondary \code{threshClim2}
+#'   criterion. Used only when \code{threshClim2} is supplied.
+#' @param threshClim2 Optional gridded NetCDF logical criterion for the
+#'   secondary event pass, equivalent to \code{heatwaveR::detect_event()}'s
+#'   \code{threshClim2}. The file must align with \code{file_in}; non-zero and
+#'   non-missing values are treated as \code{TRUE}. May be a single NetCDF file,
+#'   a vector of files, or a directory of daily \code{.nc}/\code{.nc4} files.
+#' @param threshClim2_var_name Name of the secondary criterion variable. If
+#'   \code{NULL}, it is auto-detected.
 #' @param coldSpells Logical. Detect cold-spells instead of heatwaves?
 #'   Default \code{FALSE}.
 #' @param category Logical. Compute Hobday et al. (2018) severity categories
@@ -35,6 +43,8 @@
 #'   \code{data.frame} in addition to writing the NetCDF file. Default
 #'   \code{FALSE} (returns the file path invisibly).
 #' @param n_threads Number of OpenMP threads. Default \code{1}.
+#' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
+#'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #'
 #' @return If \code{return_df = FALSE} (the default), invisibly returns the
 #'   path to the output file. If \code{return_df = TRUE}, returns a
@@ -63,13 +73,16 @@ detect_event3 <- function(
   joinAcrossGaps = TRUE,
   maxGap = 2L,
   maxGap2 = maxGap,
+  threshClim2 = NULL,
+  threshClim2_var_name = NULL,
   coldSpells = FALSE,
   category = FALSE,
   hemisphere = "south",
   roundRes = 4L,
   return_df = FALSE,
   save_file = NULL,
-  n_threads = 1L
+  n_threads = 1L,
+  skip_bad_files = FALSE
 ) {
   if (missing(file_in) || missing(clim_file) || missing(file_out)) {
     stop(
@@ -87,6 +100,7 @@ detect_event3 <- function(
   hemisphere <- match.arg(hemisphere, c("south", "north"))
   south <- hemisphere == "south"
   vn <- if (is.null(var_name)) "" else var_name
+  t2_vn <- if (is.null(threshClim2_var_name)) "" else threshClim2_var_name
 
   multi_file <- FALSE
   if (length(file_in) == 1 && dir.exists(file_in)) {
@@ -106,6 +120,18 @@ detect_event3 <- function(
     multi_file <- TRUE
   }
 
+  thresh2_files <- NULL
+  if (!is.null(threshClim2)) {
+    thresh2_files <- .resolve_nc_input(threshClim2, "threshClim2")
+    if (!multi_file && length(thresh2_files) > 1) {
+      stop(
+        "threshClim2 may only contain multiple files when file_in is also ",
+        "a directory or vector of files.",
+        call. = FALSE
+      )
+    }
+  }
+
   if (multi_file) {
     hw3_detect_events_multi(
       files = file_in,
@@ -121,7 +147,10 @@ detect_event3 <- function(
       roundRes = as.integer(roundRes),
       n_threads = as.integer(n_threads),
       category = category,
-      southHemisphere = south
+      southHemisphere = south,
+      threshClim2_files = thresh2_files,
+      threshClim2_var_name = t2_vn,
+      skip_bad_files = skip_bad_files
     )
   } else {
     if (!file.exists(file_in)) {
@@ -141,7 +170,9 @@ detect_event3 <- function(
       roundRes = as.integer(roundRes),
       n_threads = as.integer(n_threads),
       category = category,
-      southHemisphere = south
+      southHemisphere = south,
+      threshClim2_file = if (is.null(thresh2_files)) "" else thresh2_files[1],
+      threshClim2_var_name = t2_vn
     )
   }
 
@@ -156,47 +187,74 @@ detect_event3 <- function(
   invisible(file_out)
 }
 
+.resolve_nc_input <- function(path, arg_name) {
+  if (length(path) == 1 && dir.exists(path)) {
+    files <- sort(list.files(path, pattern = "\\.(nc|nc4)$", full.names = TRUE))
+    if (length(files) == 0) {
+      stop(
+        "No .nc or .nc4 files found in ", arg_name, " directory.",
+        call. = FALSE
+      )
+    }
+    return(files)
+  }
+
+  missing_files <- path[!file.exists(path)]
+  if (length(missing_files) > 0) {
+    stop(
+      arg_name, " file does not exist: ", missing_files[1],
+      call. = FALSE
+    )
+  }
+
+  path
+}
+
 # Internal helper: read event NetCDF into a tidy data.frame
 .read_event_df <- function(event_file) {
   ev <- hw3_read_event_nc(event_file)
+  .event_df_from_indices(ev, seq_len(ev$nevents))
+}
+
+.event_df_from_indices <- function(ev, idx) {
   ref_date <- as.Date("1970-01-01") + (ev$ref_date_jd - 2440588L)
 
   cat_labels <- c("I Moderate", "II Strong", "III Severe", "IV Extreme")
   sea_labels <- c("Summer", "Fall", "Winter", "Spring")
 
   df <- data.frame(
-    lon = ev$lon,
-    lat = ev$lat,
-    pixel_index = ev$pixel_index,
-    event_no = ev$event_no,
-    date_start = ref_date + ev$date_start,
-    date_peak = ref_date + ev$date_peak,
-    date_end = ref_date + ev$date_end,
-    duration = ev$duration,
-    intensity_mean = ev$intensity_mean,
-    intensity_max = ev$intensity_max,
-    intensity_var = ev$intensity_var,
-    intensity_cumulative = ev$intensity_cumulative,
-    intensity_mean_relThresh = ev$intensity_mean_relThresh,
-    intensity_max_relThresh = ev$intensity_max_relThresh,
-    intensity_var_relThresh = ev$intensity_var_relThresh,
-    intensity_cumulative_relThresh = ev$intensity_cumulative_relThresh,
-    intensity_mean_abs = ev$intensity_mean_abs,
-    intensity_max_abs = ev$intensity_max_abs,
-    intensity_var_abs = ev$intensity_var_abs,
-    intensity_cumulative_abs = ev$intensity_cumulative_abs,
-    rate_onset = ev$rate_onset,
-    rate_decline = ev$rate_decline,
+    lon = ev$lon[idx],
+    lat = ev$lat[idx],
+    pixel_index = ev$pixel_index[idx],
+    event_no = ev$event_no[idx],
+    date_start = ref_date + ev$date_start[idx],
+    date_peak = ref_date + ev$date_peak[idx],
+    date_end = ref_date + ev$date_end[idx],
+    duration = ev$duration[idx],
+    intensity_mean = ev$intensity_mean[idx],
+    intensity_max = ev$intensity_max[idx],
+    intensity_var = ev$intensity_var[idx],
+    intensity_cumulative = ev$intensity_cumulative[idx],
+    intensity_mean_relThresh = ev$intensity_mean_relThresh[idx],
+    intensity_max_relThresh = ev$intensity_max_relThresh[idx],
+    intensity_var_relThresh = ev$intensity_var_relThresh[idx],
+    intensity_cumulative_relThresh = ev$intensity_cumulative_relThresh[idx],
+    intensity_mean_abs = ev$intensity_mean_abs[idx],
+    intensity_max_abs = ev$intensity_max_abs[idx],
+    intensity_var_abs = ev$intensity_var_abs[idx],
+    intensity_cumulative_abs = ev$intensity_cumulative_abs[idx],
+    rate_onset = ev$rate_onset[idx],
+    rate_decline = ev$rate_decline[idx],
     stringsAsFactors = FALSE
   )
 
   if (length(ev$category) > 0 && any(ev$category > 0)) {
-    df$category <- cat_labels[ev$category]
-    df$p_moderate <- ev$p_moderate
-    df$p_strong <- ev$p_strong
-    df$p_severe <- ev$p_severe
-    df$p_extreme <- ev$p_extreme
-    df$season <- sea_labels[ev$season]
+    df$category <- cat_labels[ev$category[idx]]
+    df$p_moderate <- ev$p_moderate[idx]
+    df$p_strong <- ev$p_strong[idx]
+    df$p_severe <- ev$p_severe[idx]
+    df$p_extreme <- ev$p_extreme[idx]
+    df$season <- sea_labels[ev$season[idx]]
   }
 
   df

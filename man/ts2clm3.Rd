@@ -23,7 +23,8 @@ ts2clm3(
   roundClm = 4L,
   save_file = NULL,
   return_df = FALSE,
-  n_threads = 1L
+  n_threads = 1L,
+  skip_bad_files = FALSE
 )
 }
 \arguments{
@@ -84,6 +85,9 @@ determines the format and must be one of \code{.csv}, \code{.rds}, or
 \code{FALSE} (returns the file path invisibly).}
 
 \item{n_threads}{Number of OpenMP threads for parallel computation. Default \code{1}.}
+
+\item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
+or files with mismatched grids instead of failing. Default \code{FALSE}.}
 }
 \value{
 If \code{return_df = FALSE} (the default), invisibly returns the

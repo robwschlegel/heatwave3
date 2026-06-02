@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <regex>
+#include <cctype>
 
 namespace hw3 {
 
@@ -63,6 +64,16 @@ void parse_cf_time(const std::string& units,
                    const std::string& calendar,
                    const std::vector<double>& time_raw,
                    std::vector<int>& julian_days) {
+    std::string cal = calendar;
+    std::transform(cal.begin(), cal.end(), cal.begin(), ::tolower);
+    if (cal.empty()) cal = "proleptic_gregorian";
+    if (cal != "gregorian" && cal != "standard" && cal != "proleptic_gregorian") {
+        throw std::runtime_error(
+            "Unsupported CF calendar '" + calendar + "'. heatwave3 currently "
+            "supports only gregorian, standard, and proleptic_gregorian calendars."
+        );
+    }
+
     // Parse "seconds since YYYY-MM-DD" or "days since YYYY-MM-DD" etc.
     std::regex re(R"((seconds|minutes|hours|days)\s+since\s+(\d{4})-(\d{1,2})-(\d{1,2}))");
     std::smatch match;
@@ -307,6 +318,9 @@ GridData read_sst_netcdf(const std::string& file_in,
     if (!nc_get_att_str(ncid, time_varid, "calendar", gd.time_calendar)) {
         gd.time_calendar = "proleptic_gregorian";
     }
+    if (!nc_get_att_str(ncid, varid, "units", gd.temp_units)) {
+        gd.temp_units = "unknown";
+    }
 
     // Apply spatial subsetting
     size_t lon_start, lon_count, lat_start, lat_count;
@@ -478,7 +492,8 @@ void write_clim_netcdf(const std::string& file_out,
                        const std::string& clim_period_end,
                        double pctile,
                        int windowHalfWidth,
-                       int smoothPercentileWidth) {
+                       int smoothPercentileWidth,
+                       const std::string& temp_units) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -508,9 +523,9 @@ void write_clim_netcdf(const std::string& file_out,
     nc_check(nc_def_var(ncid, "thresh", NC_DOUBLE, 3, dims3, &thresh_varid), "def var thresh");
 
     nc_put_att_text(ncid, seas_varid, "long_name", 21, "seasonal climatology");
-    nc_put_att_text(ncid, seas_varid, "units", 6, "degC");
+    nc_put_att_text(ncid, seas_varid, "units", temp_units.size(), temp_units.c_str());
     nc_put_att_text(ncid, thresh_varid, "long_name", 30, "threshold climatology");
-    nc_put_att_text(ncid, thresh_varid, "units", 6, "degC");
+    nc_put_att_text(ncid, thresh_varid, "units", temp_units.size(), temp_units.c_str());
 
     // Enable compression
     nc_def_var_deflate(ncid, seas_varid, 1, 1, 4);
@@ -716,7 +731,8 @@ void write_event_netcdf(const std::string& file_out,
                         int minDuration,
                         int maxGap,
                         bool coldSpells,
-                        bool southHemisphere) {
+                        bool southHemisphere,
+                        const std::string& temp_units) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -753,20 +769,22 @@ void write_event_netcdf(const std::string& file_out,
     int v_dp = def_ivar("date_peak", "peak date", "days since reference");
     int v_de = def_ivar("date_end", "end date", "days since reference");
     int v_dur = def_ivar("duration", "event duration", "days");
-    int v_im = def_dvar("intensity_mean", "mean intensity", "degC");
-    int v_ix = def_dvar("intensity_max", "maximum intensity", "degC");
-    int v_iv = def_dvar("intensity_var", "intensity variability", "degC");
-    int v_ic = def_dvar("intensity_cumulative", "cumulative intensity", "degC days");
-    int v_imrt = def_dvar("intensity_mean_relThresh", "mean intensity rel. threshold", "degC");
-    int v_ixrt = def_dvar("intensity_max_relThresh", "max intensity rel. threshold", "degC");
-    int v_ivrt = def_dvar("intensity_var_relThresh", "intensity var rel. threshold", "degC");
-    int v_icrt = def_dvar("intensity_cumulative_relThresh", "cumulative intensity rel. threshold", "degC days");
-    int v_ima = def_dvar("intensity_mean_abs", "mean absolute intensity", "degC");
-    int v_ixa = def_dvar("intensity_max_abs", "max absolute intensity", "degC");
-    int v_iva = def_dvar("intensity_var_abs", "absolute intensity variability", "degC");
-    int v_ica = def_dvar("intensity_cumulative_abs", "cumulative absolute intensity", "degC days");
-    int v_ro = def_dvar("rate_onset", "onset rate", "degC/day");
-    int v_rd = def_dvar("rate_decline", "decline rate", "degC/day");
+    std::string cumulative_units = temp_units + " days";
+    std::string rate_units = temp_units + "/day";
+    int v_im = def_dvar("intensity_mean", "mean intensity", temp_units.c_str());
+    int v_ix = def_dvar("intensity_max", "maximum intensity", temp_units.c_str());
+    int v_iv = def_dvar("intensity_var", "intensity variability", temp_units.c_str());
+    int v_ic = def_dvar("intensity_cumulative", "cumulative intensity", cumulative_units.c_str());
+    int v_imrt = def_dvar("intensity_mean_relThresh", "mean intensity rel. threshold", temp_units.c_str());
+    int v_ixrt = def_dvar("intensity_max_relThresh", "max intensity rel. threshold", temp_units.c_str());
+    int v_ivrt = def_dvar("intensity_var_relThresh", "intensity var rel. threshold", temp_units.c_str());
+    int v_icrt = def_dvar("intensity_cumulative_relThresh", "cumulative intensity rel. threshold", cumulative_units.c_str());
+    int v_ima = def_dvar("intensity_mean_abs", "mean absolute intensity", temp_units.c_str());
+    int v_ixa = def_dvar("intensity_max_abs", "max absolute intensity", temp_units.c_str());
+    int v_iva = def_dvar("intensity_var_abs", "absolute intensity variability", temp_units.c_str());
+    int v_ica = def_dvar("intensity_cumulative_abs", "cumulative absolute intensity", cumulative_units.c_str());
+    int v_ro = def_dvar("rate_onset", "onset rate", rate_units.c_str());
+    int v_rd = def_dvar("rate_decline", "decline rate", rate_units.c_str());
     int v_cat = def_ivar("category", "event category", nullptr);
     int v_pm = def_dvar("p_moderate", "proportion moderate", nullptr);
     int v_ps = def_dvar("p_strong", "proportion strong", nullptr);
@@ -875,13 +893,41 @@ void write_event_netcdf(const std::string& file_out,
 
 GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
                                const std::string& var_name,
-                               const SubsetSpec& subset) {
+                               const SubsetSpec& subset,
+                               bool skip_bad_files) {
     if (files.empty()) {
         throw std::runtime_error("No files provided to read_sst_multi_netcdf");
     }
 
-    // Read first file to get spatial grid and metadata
-    GridData first = read_sst_netcdf(files[0], var_name, subset);
+    // Read first usable file to get spatial grid and metadata.
+    std::string read_var_name = var_name;
+    size_t first_file_index = 0;
+    GridData first;
+    bool have_first = false;
+    for (; first_file_index < files.size(); ++first_file_index) {
+        try {
+            std::string file_var_name = read_var_name;
+            if (file_var_name.empty()) {
+                file_var_name = detect_sst_variable(files[first_file_index]);
+            }
+            first = read_sst_netcdf(files[first_file_index], file_var_name, subset);
+            if (read_var_name.empty()) {
+                read_var_name = file_var_name;
+            }
+            have_first = true;
+            break;
+        } catch (const std::exception& e) {
+            if (!skip_bad_files) {
+                throw;
+            }
+            Rcpp::Rcerr << "Warning: failed to read " << files[first_file_index]
+                        << ": " << e.what() << ", skipping" << std::endl;
+        }
+    }
+    if (!have_first) {
+        throw std::runtime_error("No readable files provided to read_sst_multi_netcdf");
+    }
+
     int nlon = first.nlon;
     int nlat = first.nlat;
     int npixels = nlon * nlat;
@@ -906,17 +952,20 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
     }
 
     // Read remaining files
-    for (size_t f = 1; f < files.size(); ++f) {
+    for (size_t f = first_file_index + 1; f < files.size(); ++f) {
         try {
-            GridData gd = read_sst_netcdf(files[f], var_name, subset);
+            GridData gd = read_sst_netcdf(files[f], read_var_name, subset);
 
             // Verify spatial grid matches
             if (gd.nlon != nlon || gd.nlat != nlat) {
-                Rcpp::Rcerr << "Warning: grid mismatch in " << files[f]
-                            << " (" << gd.nlon << "x" << gd.nlat
-                            << " vs " << nlon << "x" << nlat << "), skipping"
-                            << std::endl;
-                continue;
+                std::string msg = "Grid mismatch in " + files[f] +
+                    " (" + std::to_string(gd.nlon) + "x" + std::to_string(gd.nlat) +
+                    " vs " + std::to_string(nlon) + "x" + std::to_string(nlat) + ")";
+                if (skip_bad_files) {
+                    Rcpp::Rcerr << "Warning: " << msg << ", skipping" << std::endl;
+                    continue;
+                }
+                throw std::runtime_error(msg);
             }
 
             for (int t = 0; t < gd.ntime; ++t) {
@@ -929,8 +978,12 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
                 slices.push_back(std::move(ts));
             }
         } catch (const std::exception& e) {
-            Rcpp::Rcerr << "Warning: failed to read " << files[f]
-                        << ": " << e.what() << ", skipping" << std::endl;
+            if (skip_bad_files) {
+                Rcpp::Rcerr << "Warning: failed to read " << files[f]
+                            << ": " << e.what() << ", skipping" << std::endl;
+                continue;
+            }
+            throw;
         }
     }
 
@@ -956,6 +1009,7 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
     result.ntime = static_cast<int>(slices.size());
     result.time_units = first.time_units;
     result.time_calendar = first.time_calendar;
+    result.temp_units = first.temp_units;
 
     result.time_days.resize(result.ntime);
     for (int t = 0; t < result.ntime; ++t) {

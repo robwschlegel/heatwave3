@@ -11,7 +11,32 @@
   extension of `save_file`. Supported extensions are `.csv`, `.rds`, and
   `.parquet`. If `save_file = NULL`, no companion file is written.
 
+* **`detect_event3()` now implements gridded `threshClim2`.** Users may supply a
+  secondary logical criterion as a NetCDF file, vector of files, or directory
+  of daily files. Non-zero, non-missing values are treated as `TRUE`, and the
+  secondary pass uses `minDuration2` and `maxGap2` with the same event logic as
+  `heatwaveR::detect_event()`.
+
+* **CSV and Parquet companion exports are chunked.** `hw3_export()` now streams
+  CSV rows and writes Parquet row groups using a configurable `chunk_size`,
+  reducing peak memory pressure for large gridded outputs.
+
 ## Bug fixes
+
+* **OpenMP now works on macOS.** Multithreading had been silently disabled (the
+  package ran single-threaded regardless of `n_threads`) by three faults in the
+  `configure` OpenMP probe: the run-test checked the input vector instead of the
+  `.C()` return value and so always "failed"; an undefined `SHLIB_CXX17FLAGS`
+  spliced an `ERROR:` string into the compile flags; and the probe did not match
+  the package's own scheduling. The parallel loops now use `schedule(static, 1)`
+  rather than `schedule(dynamic)` (same round-robin load balance, but needing
+  only symbols present in every libomp; `schedule(dynamic)` requires
+  `__kmpc_dispatch_deinit`, which R's bundled libomp lacks, and that caused
+  `dlopen` failures such as `symbol not found ... ___kmpc_dispatch_deinit`). On
+  macOS the build now links R's own libomp, so the whole R process shares a
+  single OpenMP runtime instead of dragging in a second, conflicting copy. A new
+  vignette, *Parallel performance*, documents OpenMP versus R-side (`parallel`)
+  scaling and per-platform setup.
 
 * **`detect_event3(return_df = TRUE)` now matches saved event CSV output.**
   The returned data frame now includes the full event-variable set written to
@@ -19,6 +44,36 @@
   intensity metrics, and absolute intensity metrics. Category and season labels
   are returned as character values so that CSV reads and `return_df` output
   compare cleanly.
+
+* **`detect3()` now passes through the current base-function options.** Companion
+  output paths can be supplied separately for climatology and event outputs,
+  and `detrend` is passed through to `ts2clm3()`.
+
+* **`detect3()` now passes through secondary event-detection options.**
+  `threshClim2`, `threshClim2_var_name`, `minDuration2`, and `maxGap2` are
+  passed through to `detect_event3()`.
+
+* **NetCDF time calendars and temperature units are handled more defensibly.**
+  Non-Gregorian CF calendars now fail with an explicit error instead of being
+  silently interpreted as Gregorian, and climatology/event NetCDF outputs now
+  preserve the input temperature units instead of hard-coding `degC`.
+
+* **Multi-file input handling is fail-fast by default.** Unreadable files and
+  mismatched grids now stop multi-file reads unless `skip_bad_files = TRUE` is
+  supplied explicitly.
+
+* **Event categories now use the unrounded peak intensity internally.** Category
+  labels and progress values are still written with the requested rounding, but
+  category boundaries are no longer affected by rounded `intensity_max` values.
+
+* **`category3()` is now documented and validated as a convenience wrapper.**
+  Inline categories from `detect_event3(category = TRUE)` can be read without a
+  climatology file; uncategorised event files now require `clim_file` with a
+  clear error.
+
+* **`detect_blob3()` now validates fragile arguments.** Unsupported
+  connectivity, invalid return components, invalid ranking variables, singleton
+  grids, and grid mismatches now fail with explicit errors.
 
 # heatwave3 1.1.2 (2026-06-02)
 

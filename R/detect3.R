@@ -12,7 +12,7 @@
 #' @param save_file_event Optional companion output path for the event table.
 #'   The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.
 #' @param climatologyPeriod Character vector of length 2 with start and end
-#'   dates of the baseline period, e.g. \code{c("1991-01-01", "2020-12-31")}.
+#'   dates of the baseline period, for example \code{c("1991-01-01", "2020-12-31")}.
 #' @param var_name Name of the SST variable. If \code{NULL}, auto-detected.
 #' @param lon_range Optional \code{c(min, max)} longitude range.
 #' @param lat_range Optional \code{c(min, max)} latitude range.

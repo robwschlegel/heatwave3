@@ -11,7 +11,7 @@
 #' @param lat Latitude of the pixel to plot.
 #' @param var_name SST variable name. If \code{NULL}, auto-detected.
 #' @param start_date,end_date Optional date range for the plot window
-#'   (character, e.g. \code{"2010-01-01"}). If both are \code{NULL}, the
+#'   (character, for example \code{"2010-01-01"}). If both are \code{NULL}, the
 #'   plot is centred on the most intense event (see \code{spread}).
 #' @param spread Number of days before and after the peak event to show.
 #'   Default \code{150}. Only used when \code{start_date}/\code{end_date}

@@ -9,7 +9,7 @@
 #'   NetCDF files (matched by \code{.nc} or \code{.nc4} extension).
 #' @param file_out Path for the output NetCDF file containing the climatology.
 #' @param climatologyPeriod A character vector of length 2 specifying the start and
-#'   end dates of the baseline period, e.g. \code{c("1982-01-01", "2011-12-31")}.
+#'   end dates of the baseline period, for example \code{c("1982-01-01", "2011-12-31")}.
 #' @param lon_range Optional numeric vector of length 2: \code{c(min_lon, max_lon)}.
 #'   If \code{NULL}, all longitudes are used.
 #' @param lat_range Optional numeric vector of length 2: \code{c(min_lat, max_lat)}.

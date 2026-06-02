@@ -14,14 +14,14 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
 ## Overview
 
 This vignette benchmarks heatwave3 against heatwaveR on a realistic gridded
-SST dataset: the full OSTIA South-West Indian Ocean reanalysis (400 lon × 200
-lat, ~49,800 ocean pixels, 14,276 daily time steps, 1982–2021).
+SST dataset, the full OSTIA South-West Indian Ocean reanalysis (400 lon × 200
+lat, ca. 49,800 ocean pixels, 14,276 daily time steps, 1982–2021).
 
 We compare three configurations:
 
-1. **heatwaveR** — serial, per-pixel R + C++ (the standard approach)
-2. **heatwave3 (1 thread)** — pure C++ with single-threaded execution
-3. **heatwave3 (12 threads)** — pure C++ with OpenMP parallelism
+1. **heatwaveR**, serial per-pixel R + C++ (the standard approach)
+2. **heatwave3 (1 thread)**, pure C++ with single-threaded execution
+3. **heatwave3 (12 threads)**, pure C++ with OpenMP parallelism
 
 ## Test data
 
@@ -30,7 +30,7 @@ sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
 # 400 lon × 200 lat at 0.05° resolution
 # 15–35°E, 38–28°S (Agulhas Current system)
 # 14,276 daily time steps (1982-01-01 to 2021-12-31)
-# ~49,796 ocean pixels (remainder is land)
+# ca. 49,796 ocean pixels (remainder is land)
 ```
 
 ## heatwave3: single-threaded
@@ -120,24 +120,24 @@ Benchmarked on an Apple M3 Pro (12-core), macOS 15.5, R 4.5.3.
 
 | Method | Climatology | Detection | Total | Speedup |
 |--------|------------|-----------|-------|---------|
-| heatwaveR (serial) | — | — | ~4,116 sec (68.7 min) | 1× |
+| heatwaveR (serial) | n/a | n/a | ca. 4,116 sec (68.7 min) | 1× |
 | heatwave3 (1 thread) | 174 sec | 82 sec | **257 sec (4.3 min)** | **16×** |
 | heatwave3 (12 threads) | 60 sec | 55 sec | **115 sec (1.9 min)** | **36×** |
 
 The speedup comes from three sources:
 
-1. **C++ algorithms** — climatology (sliding-window percentile) and event
+1. **C++ algorithms**. Climatology (sliding-window percentile) and event
    detection (run-length encoding, gap joining, 19 metrics) are implemented
-   in pure C++ rather than R + data.table
-2. **OpenMP parallelism** — each pixel is independent; OpenMP distributes
-   pixels across cores with zero coordination overhead
-3. **Direct NetCDF I/O** — reads the full data slab in one C call via
-   libnetcdf, avoiding R's per-pixel ncdf4 random-access overhead
+   in pure C++ rather than R + data.table.
+2. **OpenMP parallelism**. Each pixel is independent, so OpenMP distributes
+   pixels across cores with zero coordination overhead.
+3. **Direct NetCDF I/O**. Reads the full data slab in one C call via
+   libnetcdf, avoiding R's per-pixel ncdf4 random-access overhead.
 
 ### Scaling notes
 
 - The 12-thread run is 2.2× faster than single-threaded, not 12×, because the
-  full 400×200 grid must first be read into memory (~900 MB for this dataset)
+  full 400×200 grid must first be read into memory (ca. 900 MB for this dataset)
   and the NetCDF I/O is single-threaded. The parallelism benefit is in the
   computation phase only.
 - For grids that fit in memory, I/O accounts for roughly 40–60% of wall time.
@@ -148,8 +148,8 @@ The speedup comes from three sources:
 
 ## Benguela region: daily files, full pipeline
 
-This benchmark demonstrates heatwave3 on a production-scale analysis: the
-Benguela upwelling system using **16,049 individual daily OSTIA files**
+This benchmark applies heatwave3 to a production-scale analysis, the
+Benguela upwelling system, using **16,049 individual daily OSTIA files**
 (1982–2025) with the WMO 1991–2020 climatological baseline.
 
 The subsetted OSTIA files cover 7–20°E, 35–17°S at 0.05° resolution (260 lon ×
@@ -165,7 +165,7 @@ event_file <- tempfile(fileext = ".nc")
 ```
 
 ```{r benguela-clim, eval = FALSE}
-# Climatology from ~16,000 daily files (WMO 1991-2020 baseline)
+# Climatology from ca. 16,000 daily files (WMO 1991-2020 baseline)
 t_clim <- system.time(
   ts2clm3(
     file_in  = ostia_dir,
@@ -199,6 +199,6 @@ t_event <- system.time(
 | Event detection (12 threads) | **108 sec** | threshold exceedance, RLE, gap joining, 19 metrics |
 | **Total** | **203 sec (3.4 min)** | 8.4 million events detected |
 
-For comparison, processing 93,600 pixels serially with heatwaveR at ~0.083
-sec/pixel would take approximately **2.2 hours**. heatwave3 completes the same
-analysis in 3.4 minutes — a **~38× speedup**.
+For comparison, processing 93,600 pixels serially with heatwaveR at ca. 0.083
+sec/pixel would take ca. **2.2 hours**. heatwave3 completes the same
+analysis in 3.4 minutes, a **ca. 38× speedup**.

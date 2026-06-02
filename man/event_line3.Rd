@@ -30,7 +30,7 @@ event_line3(
 \item{var_name}{SST variable name. If \code{NULL}, auto-detected.}
 
 \item{start_date, end_date}{Optional date range for the plot window
-(character, e.g. \code{"2010-01-01"}). If both are \code{NULL}, the
+(character, for example \code{"2010-01-01"}). If both are \code{NULL}, the
 plot is centred on the most intense event (see \code{spread}).}
 
 \item{spread}{Number of days before and after the peak event to show.

@@ -29,8 +29,8 @@ magnitude faster than per-pixel processing with heatwaveR.
 
 The typical workflow has three steps:
 
-1. `ts2clm3()` — compute seasonal and threshold climatologies
-2. `detect_event3()` — detect events based on the climatologies
+1. `ts2clm3()`, to compute seasonal and threshold climatologies
+2. `detect_event3()`, to detect events from the climatologies
 3. Analyse/visualise with `category3()`, `block_average3()`, `detect_blob3()`,
    or the plotting functions
 
@@ -38,7 +38,7 @@ The typical workflow has three steps:
 
 heatwave3 accepts three kinds of SST input:
 
-- **A single multi-timestep NetCDF file** (e.g. a merged time series)
+- **A single multi-timestep NetCDF file** (such as a merged time series)
 - **A vector of daily NetCDF file paths**
 - **A directory** containing daily `.nc` or `.nc4` files
 
@@ -76,7 +76,7 @@ ts2clm3(file_in = daily_files,
 
 ## Basic pipeline
 
-Here we demonstrate the full pipeline using the bundled OSTIA test dataset (3×2
+Here we show the full pipeline using the bundled OSTIA test dataset (3×2
 pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 
 ```{r basic-pipeline, eval = has_test_data}
@@ -131,8 +131,8 @@ head(ba)
 ## Detrended climatology
 
 By default, `ts2clm3()` follows Hobday et al. (2016) with a fixed baseline. To
-remove the long-term warming trend before computing the climatology — following
-Jacox et al. (2020) — set `detrend = TRUE`:
+remove the long-term warming trend before computing the climatology (following
+Jacox et al. 2020), set `detrend = TRUE`:
 ```{r detrend, eval = FALSE}
 ts2clm3(file_in = sst_file,
         file_out = tempfile(fileext = ".nc"),
@@ -181,7 +181,7 @@ detect_event3(file_in = sst_file,
 
 The examples below reproduce the spatial blob analysis from Schlegel et al.,
 using the OSTIA dataset covering the South African coast (15–35°E, 28–38°S).
-They demonstrate heatwave blob footprints, daily area evolution, centroid
+They show heatwave blob footprints, daily area evolution, centroid
 trajectories, persistence maps, and the cold-spell equivalents.
 
 All six figure types correspond to the example outputs in `heatwaveR/dev_doc/figs/`.
@@ -203,7 +203,7 @@ ts2clm3(file_in = sst_file,
         var_name = "analysed_sst",
         n_threads = 4)
 
-# Detect spatial blobs — include voxel data for footprint maps
+# Detect spatial blobs, including voxel data for footprint maps
 blobs <- detect_blob3(file_in = sst_file,
                       clim_file = clim_file,
                       var_name = "analysed_sst",
@@ -294,7 +294,7 @@ ggplot() +
   theme_minimal(base_size = 10)
 ```
 
-### Figure 4: Persistence — days under heatwave per pixel
+### Figure 4: Persistence, days under heatwave per pixel
 
 ```{r fig04-persistence, fig.width = 11, fig.height = 4.5, eval = FALSE}
 vox3 <- blobs$voxel[blobs$voxel$blob %in% top3$blob, ]
@@ -381,13 +381,13 @@ ggplot(mdaily6, aes(date, area_km2 / 1000, colour = blob_lbl)) +
 
 ## Performance
 
-heatwave3 achieves significant speedups over per-pixel processing with
-heatwaveR. On a 20×20 grid (400 pixels, 14,276 daily time steps each):
+heatwave3 runs much faster than per-pixel processing with heatwaveR. On a
+20×20 grid (400 pixels, 14,276 daily time steps each):
 
 | Method | Time | Speedup |
 |--------|------|---------|
-| heatwaveR (serial, 400 pixels) | ~38 sec | 1× |
-| heatwave3 (4 threads) | 0.53 sec | **~71×** |
+| heatwaveR (serial, 400 pixels) | ca. 38 sec | 1× |
+| heatwave3 (4 threads) | 0.53 sec | **ca. 71×** |
 
 The speedup comes from:
 

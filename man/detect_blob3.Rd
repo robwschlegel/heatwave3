@@ -29,7 +29,7 @@ the region analysed.}
 \item{var_name}{Name of the SST variable in \code{sst_file}. If \code{NULL},
 auto-detected from CF attributes.}
 
-\item{connectivity}{Integer. Voxel connectivity for labeling. Default
+\item{connectivity}{Integer. Voxel connectivity for labelling. Default
 \code{6} (face-adjacent in 3D: left/right, up/down, forward/backward in
 time).}
 
@@ -37,7 +37,7 @@ time).}
 connect across the antimeridian? Default \code{FALSE}.}
 
 \item{minVoxels}{Minimum number of space-time voxels for a blob to be
-retained. Default \code{1}. Set higher (e.g. \code{200}) to filter out
+retained. Default \code{1}. Set higher (for example \code{200}) to filter out
 small, short-lived events.}
 
 \item{topN}{Return only the top N blobs ranked by \code{rankBy}. Default
@@ -49,7 +49,7 @@ include \code{"peakArea_km2"}, \code{"duration"}, \code{"meanArea_km2"}.}
 
 \item{coldSpells}{Logical. If \code{TRUE}, detect cold-spell blobs
 (\code{temp < thresh}). Requires a climatology computed with a low
-percentile (e.g. \code{pctile = 10} in \code{\link{ts2clm3}}).
+percentile (for example \code{pctile = 10} in \code{\link{ts2clm3}}).
 Default \code{FALSE}.}
 
 \item{return}{Character vector specifying which components to include in the
@@ -59,7 +59,7 @@ output. One or more of:
 peak area, cumulative intensity, centroid, etc.)}
 \item{\code{"daily"}}{One row per (blob, date) with daily area, mean/max
 anomaly, centroid, and bounding box}
-\item{\code{"voxel"}}{One row per (blob, lon, lat, date) — the full 3D
+\item{\code{"voxel"}}{One row per (blob, lon, lat, date), the full 3D
 footprint. Required for spatial footprint maps and persistence
 analysis. Can be large.}
 }
@@ -75,7 +75,7 @@ A named list containing the requested components (\code{event},
 }
 \description{
 Identifies spatially contiguous marine heatwave (or cold-spell) events
-("blobs") by performing 3D connected-component labeling on the exceedance
+("blobs") by performing 3D connected-component labelling on the exceedance
 mask across longitude, latitude, and time.
 }
 \section{How it works}{
@@ -85,7 +85,7 @@ takes the raw SST data and the climatology, and internally constructs a 3D
 boolean exceedance mask by comparing each pixel's daily SST against its
 threshold climatology (\code{temp > thresh} for heatwaves, or
 \code{temp < thresh} for cold-spells). Connected voxels in this 3D mask are
-then labeled as coherent spatial events using a union-find algorithm.
+then labelled as coherent spatial events using a union-find algorithm.
 
 This is the same approach used by \code{heatwaveR::detect_blob3()}. The
 reason an event file from \code{\link{detect_event3}} cannot be used

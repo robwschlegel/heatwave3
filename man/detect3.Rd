@@ -47,7 +47,7 @@ detect3(
 \item{file_out_event}{Path for the output event NetCDF file.}
 
 \item{climatologyPeriod}{Character vector of length 2 with start and end
-dates of the baseline period, e.g. \code{c("1991-01-01", "2020-12-31")}.}
+dates of the baseline period, for example \code{c("1991-01-01", "2020-12-31")}.}
 
 \item{save_file_clim}{Optional companion output path for the climatology.
 The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.}

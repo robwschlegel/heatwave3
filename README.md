@@ -11,19 +11,19 @@
 
 ## Why heatwave3?
 
-Working with large gridded SST datasets (e.g. OSTIA, OISST, ERA5, CMIP6) using heatwaveR requires looping over each pixel individually in R. For a 400 &times; 200 grid with 40 years of daily data, this takes over an hour. **heatwave3** solves this by:
+Working with large gridded SST datasets (such as OSTIA, OISST, ERA5, CMIP6) using heatwaveR requires looping over each pixel individually in R. For a 400 &times; 200 grid with 40 years of daily data, this takes over an hour. **heatwave3** addresses this with:
 
 1. **C++17 implementation** of all core algorithms (climatology, event detection, categorisation, block averages)
-2. **OpenMP parallelism** across pixels &mdash; each pixel is independent
-3. **Direct NetCDF I/O** via libnetcdf &mdash; no R NetCDF packages needed at runtime
+2. **OpenMP parallelism** across pixels, since each pixel is independent
+3. **Direct NetCDF I/O** via libnetcdf, with no R NetCDF packages needed at runtime
 
 ### Performance
 
-Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 &times; 200 grid, ~50,000 ocean pixels, 14,276 daily time steps), Apple M3 Pro:
+Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 &times; 200 grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M3 Pro:
 
 | Method | Time | Speedup |
 |--------|------|---------|
-| heatwaveR (serial) | ~69 min | 1&times; |
+| heatwaveR (serial) | ca. 69 min | 1&times; |
 | heatwave3 (1 thread) | 4.3 min | **16&times;** |
 | heatwave3 (12 threads) | 1.9 min | **36&times;** |
 
@@ -31,18 +31,18 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 
 ## Features
 
-- **Climatology** (`ts2clm3`) &mdash; sliding-window percentile with Type-7 quantile, circular-padded rolling mean smoothing, optional linear detrending (Jacox et al. 2020)
-- **Event detection** (`detect_event3`) &mdash; threshold exceedance, run-length encoding, gap joining, 19 event metrics. Cold-spell support. Optional inline Hobday et al. (2018) severity categories.
-- **All-in-one pipeline** (`detect3`) &mdash; climatology + detection + optional categories in a single call, with `return_df = TRUE` for immediate interactive use
-- **Spatial blob detection** (`detect_blob3`) &mdash; 3D connected-component labelling with voxel-level footprint output
-- **Event categorisation** (`category3`) &mdash; Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories. Works for both heatwaves and cold-spells.
-- **Yearly aggregation** (`block_average3`) and **static threshold exceedance** (`exceedance3`)
-- **Plotting** &mdash; `event_line3`, `geom_flame3`, `geom_lolli3`, `plot_metric3` (C++-backed spatial aggregation)
-- **Flexible input** &mdash; single multi-timestep NetCDF, directory of daily files, or explicit file vector
-- **Robust dimension detection** &mdash; auto-detects lon/lat/time/SST from CF attributes, standard names, and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO)
-- **Progress reporting** &mdash; percentage-complete updates during long climatology and detection runs
-- **Multiple output formats** &mdash; NetCDF (always), plus optional CSV, RDA, or Parquet companion files
-- **Numerical equivalence** &mdash; climatology and event metrics match heatwaveR to rounding precision (validated pixel-by-pixel)
+- **Climatology** (`ts2clm3`). Sliding-window percentile with Type-7 quantile, circular-padded rolling mean smoothing, and optional linear detrending (Jacox et al. 2020).
+- **Event detection** (`detect_event3`). Threshold exceedance, run-length encoding, gap joining, and 19 event metrics. Cold-spell support. Optional inline Hobday et al. (2018) severity categories.
+- **All-in-one pipeline** (`detect3`). Climatology, detection, and optional categories in a single call, with `return_df = TRUE` for interactive use.
+- **Spatial blob detection** (`detect_blob3`). 3D connected-component labelling with voxel-level footprint output.
+- **Event categorisation** (`category3`). Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories, for both heatwaves and cold-spells.
+- **Yearly aggregation** (`block_average3`) and **static threshold exceedance** (`exceedance3`).
+- **Plotting**. `event_line3`, `geom_flame3`, `geom_lolli3`, and `plot_metric3` (C++-backed spatial aggregation).
+- **Flexible input**. Single multi-timestep NetCDF, directory of daily files, or explicit file vector.
+- **Automatic dimension detection**. Identifies lon/lat/time/SST from CF attributes, standard names, and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO).
+- **Progress reporting**. Percentage-complete updates during long climatology and detection runs.
+- **Multiple output formats**. NetCDF always, plus optional CSV, RDA, or Parquet companion files.
+- **Numerical equivalence**. Climatology and event metrics match heatwaveR to rounding precision, validated pixel-by-pixel.
 
 ## Installation
 
@@ -76,7 +76,7 @@ sudo dnf install netcdf-devel
 
 ### OpenMP parallelism
 
-On Linux, OpenMP works out of the box. On macOS, the `configure` script automatically probes for a working OpenMP runtime (Apple Clang + R's bundled libomp, Homebrew libomp, or user-supplied flags) using a compile-link-run test. If no working runtime is found, heatwave3 falls back to single-threaded mode gracefully.
+On Linux, OpenMP works without extra setup. On macOS, the `configure` script probes for a working OpenMP runtime (Apple Clang with R's own bundled libomp, Homebrew libomp, or user-supplied flags) using a compile-link-run test. If none is found, heatwave3 falls back to single-threaded mode.
 
 To install Homebrew's libomp (may help on some macOS configurations):
 
@@ -157,7 +157,7 @@ event_line3(sst_file, clim_file, lon = 25.0, lat = -34.0,
 ### Spatial map of peak intensity
 
 ```r
-# C++-backed per-pixel aggregation — efficient even for millions of events
+# C++-backed per-pixel aggregation, efficient even for millions of events
 plot_metric3(event_file, metric = "intensity_max", summary = "mean")
 ```
 
@@ -175,7 +175,7 @@ cats <- category3(event_file, clim_file, hemisphere = "south")
 ### Using daily files
 
 ```r
-# Pass a directory — all .nc/.nc4 files are read, sorted, and merged
+# Pass a directory. All .nc/.nc4 files are read, sorted, and merged
 ts2clm3(
   file_in = "/path/to/daily_ostia/",
   file_out = clim_file,
@@ -195,9 +195,9 @@ blobs <- detect_blob3(
   return    = c("event", "daily", "voxel")
 )
 
-# blobs$event  — summary per blob (duration, peak area, cumulative intensity)
-# blobs$daily  — daily progression (area, centroid, bounding box)
-# blobs$voxel  — full 3D footprint (for spatial maps)
+# blobs$event: summary per blob (duration, peak area, cumulative intensity)
+# blobs$daily: daily progression (area, centroid, bounding box)
+# blobs$voxel: full 3D footprint (for spatial maps)
 ```
 
 ### Detrended climatology
@@ -216,7 +216,7 @@ All functions are suffixed with `3` to avoid namespace conflicts with heatwaveR:
 
 | Function | Purpose |
 |----------|---------|
-| `detect3()` | **Primary entry point** &mdash; climatology + detection + optional categories |
+| `detect3()` | **Primary entry point**. Climatology, detection, and optional categories |
 | `ts2clm3()` | Compute climatology (NetCDF &rarr; NetCDF) |
 | `detect_event3()` | Detect per-pixel events (with optional inline categories) |
 | `detect_blob3()` | 3D spatial blob detection |
@@ -231,9 +231,10 @@ All functions are suffixed with `3` to avoid namespace conflicts with heatwaveR:
 
 ## Vignettes
 
-- **Getting started** &mdash; full pipeline walkthrough with spatial blob figures
-- **NetCDF output internals** &mdash; output file structure, CF compliance, reading in R/Python/CDO
-- **Performance benchmark** &mdash; heatwaveR vs heatwave3 timing comparison
+- **Getting started**. Full pipeline walkthrough with spatial blob figures.
+- **NetCDF output internals**. Output file structure, CF compliance, and reading in R/Python/CDO.
+- **Performance benchmark**. heatwaveR versus heatwave3 timing comparison.
+- **Parallel performance**. OpenMP threads versus R-side parallelism, with per-platform setup.
 
 ## Citation
 

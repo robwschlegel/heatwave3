@@ -24,7 +24,8 @@ static std::vector<ProtoEvent> proto_event(
     int n,
     int minDuration,
     bool joinAcrossGaps,
-    int maxGap) {
+    int maxGap,
+    signed char* duration_mask = nullptr) {
 
     // Phase 1: Run-length encoding — find consecutive TRUE runs
     std::vector<ProtoEvent> runs;
@@ -40,6 +41,10 @@ static std::vector<ProtoEvent> proto_event(
                 pe.end = i - 1;
                 pe.event_no = 0;
                 runs.push_back(pe);
+                // Mark the duration criterion (runs >= minDuration, pre-join)
+                if (duration_mask) {
+                    for (int k = start; k <= i - 1; ++k) duration_mask[k] = 1;
+                }
             }
         } else {
             ++i;
@@ -85,6 +90,28 @@ static double round_to(double val, int decimals) {
     return std::round(val * factor) / factor;
 }
 
+// ---- Per-day Hobday (2018) category ----
+// 0 = no exceedance (or undefined), 1 = I Moderate ... 4 = IV Extreme.
+// Mirrors the inline event-category thresholds: exceedance measured in
+// multiples of |thresh - seas| above (heatwave) or below (cold-spell) seas.
+static int daily_category(double temp, double seas, double thr, bool coldSpells) {
+    if (is_na(temp) || is_na(seas) || is_na(thr)) return 0;
+    double diff = std::abs(thr - seas);
+    if (diff <= 0.0) return 0;
+    double ix;
+    if (coldSpells) {
+        if (temp >= thr) return 0;   // not below threshold
+        ix = seas - temp;
+    } else {
+        if (temp <= thr) return 0;   // not above threshold
+        ix = temp - seas;
+    }
+    if (ix >= 4.0 * diff) return 4;
+    if (ix >= 3.0 * diff) return 3;
+    if (ix >= 2.0 * diff) return 2;
+    return 1;
+}
+
 PixelEvents detect_pixel_events(
     const double* temp,
     const double* thresh2,
@@ -101,7 +128,8 @@ PixelEvents detect_pixel_events(
     bool coldSpells,
     int roundRes,
     bool category,
-    bool southHemisphere) {
+    bool southHemisphere,
+    const DailyBuffers* daily) {
 
     PixelEvents result;
     result.valid = false;
@@ -185,9 +213,23 @@ PixelEvents detect_pixel_events(
     std::vector<bool> thresh_criterion(dntime);
     for (int t = 0; t < dntime; ++t) thresh_criterion[t] = (thresh_raw[t] != 0);
 
+    // Optional dense per-day masks for daily output (filled on the dense grid,
+    // then mapped back to the caller's input grid below).
+    const bool want_daily = (daily != nullptr);
+    std::vector<signed char> dense_dur, dense_evt;
+    std::vector<int> dense_eno;
+    if (want_daily) {
+        dense_dur.assign(dntime, 0);
+        dense_evt.assign(dntime, 0);
+        dense_eno.assign(dntime, 0);
+    }
+
     // Step 2: Detect proto-events — use manual loop since vector<bool> lacks .data()
+    // The duration_mask is captured from the FINAL proto_event pass (the
+    // secondary one when threshClim2 is supplied, otherwise the primary).
+    signed char* dur_mask = (want_daily && thresh2 == nullptr) ? dense_dur.data() : nullptr;
     auto events = proto_event(thresh_criterion, dntime,
-                              minDuration, joinAcrossGaps, maxGap);
+                              minDuration, joinAcrossGaps, maxGap, dur_mask);
 
     if (thresh2 != nullptr && !events.empty()) {
         std::vector<bool> primary_event(dntime, false);
@@ -203,7 +245,48 @@ PixelEvents detect_pixel_events(
         }
 
         events = proto_event(secondary_criterion, dntime,
-                             minDuration2, joinAcrossGaps, maxGap2);
+                             minDuration2, joinAcrossGaps, maxGap2,
+                             want_daily ? dense_dur.data() : nullptr);
+    }
+
+    // Fill the per-day output buffers (when requested) before any early return,
+    // so that valid pixels with zero events still receive a complete daily
+    // series (seas/thresh/threshCriterion present, event flags all 0).
+    if (want_daily) {
+        for (const auto& pe : events) {
+            for (int k = pe.start; k <= pe.end && k < dntime; ++k) {
+                dense_evt[k] = 1;
+                dense_eno[k] = pe.event_no;
+            }
+        }
+        for (int t = 0; t < ntime; ++t) {
+            int di = time_jd[t] - first_jd;
+            double s = NA_DOUBLE, th = NA_DOUBLE, intens = NA_DOUBLE;
+            signed char tc = 0, dc = 0, ev = 0, cat = 0;
+            int eno = 0;
+            if (di >= 0 && di < dntime) {
+                s = daily_seas[di];
+                th = daily_thresh[di];
+                tc = thresh_raw[di];
+                dc = dense_dur[di];
+                ev = dense_evt[di];
+                eno = dense_eno[di];
+                double tv = temp[t];
+                if (!is_na(tv) && !is_na(s)) {
+                    intens = tv - s;
+                    if (roundRes > 0) intens = round_to(intens, roundRes);
+                }
+                cat = static_cast<signed char>(daily_category(temp[t], s, th, coldSpells));
+            }
+            if (daily->seas) daily->seas[t] = s;
+            if (daily->thresh) daily->thresh[t] = th;
+            if (daily->threshCriterion) daily->threshCriterion[t] = tc;
+            if (daily->durationCriterion) daily->durationCriterion[t] = dc;
+            if (daily->event) daily->event[t] = ev;
+            if (daily->event_no) daily->event_no[t] = eno;
+            if (daily->intensity) daily->intensity[t] = intens;
+            if (daily->category) daily->category[t] = cat;
+        }
     }
 
     if (events.empty()) {
@@ -410,12 +493,29 @@ void detect_events_grid(
     std::vector<int>& date_end,
     const std::vector<double>& lon,
     const std::vector<double>& lat,
-    int nlon, int nlat) {
+    int nlon, int nlat,
+    DailyBuffers* daily_grid) {
 
     // Compute DOY for each time step
     std::vector<int> doy_arr(ntime);
     for (int t = 0; t < ntime; ++t) {
         doy_arr[t] = jd_to_doy_366(time_jd[t]);
+    }
+
+    // Initialise per-day output buffers: NA for the real-valued fields, 0 for
+    // the flag/integer fields. Skipped (land / no-climatology) pixels keep
+    // these defaults; valid pixels overwrite their slice in detect_pixel_events.
+    const bool want_daily = (daily_grid != nullptr);
+    if (want_daily) {
+        size_t gs = static_cast<size_t>(npixels) * ntime;
+        if (daily_grid->seas)      std::fill(daily_grid->seas, daily_grid->seas + gs, NA_DOUBLE);
+        if (daily_grid->thresh)    std::fill(daily_grid->thresh, daily_grid->thresh + gs, NA_DOUBLE);
+        if (daily_grid->intensity) std::fill(daily_grid->intensity, daily_grid->intensity + gs, NA_DOUBLE);
+        if (daily_grid->threshCriterion)   std::fill(daily_grid->threshCriterion, daily_grid->threshCriterion + gs, 0);
+        if (daily_grid->durationCriterion) std::fill(daily_grid->durationCriterion, daily_grid->durationCriterion + gs, 0);
+        if (daily_grid->event)     std::fill(daily_grid->event, daily_grid->event + gs, 0);
+        if (daily_grid->category)  std::fill(daily_grid->category, daily_grid->category + gs, 0);
+        if (daily_grid->event_no)  std::fill(daily_grid->event_no, daily_grid->event_no + gs, 0);
     }
 
     // Per-pixel results (collected thread-safely)
@@ -476,13 +576,30 @@ void detect_events_grid(
             continue;
         }
 
+        // Build this pixel's slice of the grid-wide daily buffers (if any).
+        DailyBuffers pdaily;
+        DailyBuffers* pdaily_ptr = nullptr;
+        if (want_daily) {
+            size_t off = static_cast<size_t>(px) * ntime;
+            if (daily_grid->seas)      pdaily.seas = daily_grid->seas + off;
+            if (daily_grid->thresh)    pdaily.thresh = daily_grid->thresh + off;
+            if (daily_grid->intensity) pdaily.intensity = daily_grid->intensity + off;
+            if (daily_grid->threshCriterion)   pdaily.threshCriterion = daily_grid->threshCriterion + off;
+            if (daily_grid->durationCriterion) pdaily.durationCriterion = daily_grid->durationCriterion + off;
+            if (daily_grid->event)     pdaily.event = daily_grid->event + off;
+            if (daily_grid->category)  pdaily.category = daily_grid->category + off;
+            if (daily_grid->event_no)  pdaily.event_no = daily_grid->event_no + off;
+            pdaily_ptr = &pdaily;
+        }
+
         PixelEvents pe = detect_pixel_events(
             pixel_temp, pixel_thresh2, pixel_seas, pixel_thresh,
             time_jd, doy_arr.data(), ntime,
             minDuration, minDuration2,
             joinAcrossGaps, maxGap, maxGap2,
             coldSpells, roundRes,
-            category, southHemisphere
+            category, southHemisphere,
+            pdaily_ptr
         );
 
         if (pe.valid && !pe.events.empty()) {

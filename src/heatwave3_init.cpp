@@ -387,16 +387,80 @@ Rcpp::List hw3_read_clim_nc(std::string clim_file) {
     );
 }
 
+// [[Rcpp::export]]
+Rcpp::List hw3_read_subset(std::string file,
+                           Rcpp::Nullable<Rcpp::NumericVector> lon_range = R_NilValue,
+                           Rcpp::Nullable<Rcpp::NumericVector> lat_range = R_NilValue,
+                           Rcpp::Nullable<Rcpp::IntegerVector> t_jd_range = R_NilValue,
+                           Rcpp::Nullable<Rcpp::CharacterVector> vars = R_NilValue,
+                           int max_rows = -1) {
+    std::vector<double> lr, ltr;
+    std::vector<int> tr;
+    std::vector<std::string> vv;
+    if (lon_range.isNotNull()) lr = Rcpp::as<std::vector<double>>(Rcpp::NumericVector(lon_range));
+    if (lat_range.isNotNull()) ltr = Rcpp::as<std::vector<double>>(Rcpp::NumericVector(lat_range));
+    if (t_jd_range.isNotNull()) tr = Rcpp::as<std::vector<int>>(Rcpp::IntegerVector(t_jd_range));
+    if (vars.isNotNull()) vv = Rcpp::as<std::vector<std::string>>(Rcpp::CharacterVector(vars));
+    return hw3::read_subset_netcdf(file, lr, ltr, tr, vv, max_rows);
+}
+
+// [[Rcpp::export]]
+Rcpp::List hw3_file_meta(std::string file) {
+    hw3::FileMeta m = hw3::read_file_meta(file);
+    return Rcpp::List::create(
+        Rcpp::Named("product") = m.product,
+        Rcpp::Named("nlon") = m.nlon,
+        Rcpp::Named("nlat") = m.nlat,
+        Rcpp::Named("n3") = m.n3,
+        Rcpp::Named("nrows") = static_cast<double>(m.nrows)
+    );
+}
+
+// [[Rcpp::export]]
+Rcpp::List hw3_read_daily_nc(std::string daily_file) {
+    hw3::DailyData dd = hw3::read_daily_netcdf(daily_file);
+    auto schar_to_int = [](const std::vector<signed char>& v) {
+        Rcpp::IntegerVector out(v.size());
+        for (size_t i = 0; i < v.size(); ++i) out[i] = v[i];
+        return out;
+    };
+    return Rcpp::List::create(
+        Rcpp::Named("lon") = dd.lon,
+        Rcpp::Named("lat") = dd.lat,
+        Rcpp::Named("time_jd") = dd.time_jd,
+        Rcpp::Named("nlon") = dd.nlon,
+        Rcpp::Named("nlat") = dd.nlat,
+        Rcpp::Named("ntime") = dd.ntime,
+        Rcpp::Named("temp") = dd.temp,
+        Rcpp::Named("seas") = dd.seas,
+        Rcpp::Named("thresh") = dd.thresh,
+        Rcpp::Named("intensity") = dd.intensity,
+        Rcpp::Named("threshCriterion") = schar_to_int(dd.threshCriterion),
+        Rcpp::Named("durationCriterion") = schar_to_int(dd.durationCriterion),
+        Rcpp::Named("event") = schar_to_int(dd.event),
+        Rcpp::Named("category") = schar_to_int(dd.category),
+        Rcpp::Named("event_no") = dd.event_no
+    );
+}
+
 // Shared helper: detect events from pre-loaded GridData + ClimData
+// Output is selected by which paths are non-empty:
+//   events_file : event-metrics table (ragged NetCDF)
+//   daily_file  : per-day series with intensity + daily category
+//   proto_file  : per-day proto series with threshCriterion + durationCriterion
+// Any combination is valid; an empty string skips that product. Detection
+// always runs (the daily/proto series need event membership).
 static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
                                     const hw3::GridData* thresh2_gd,
-                                    const std::string& file_out,
+                                    const std::string& events_file,
                                     const std::string& source_label,
                                     const std::string& clim_file,
                                     int minDuration, int minDuration2,
                                     bool joinAcrossGaps, int maxGap, int maxGap2,
                                     bool coldSpells, int roundRes, int n_threads,
-                                    bool category, bool southHemisphere) {
+                                    bool category, bool southHemisphere,
+                                    const std::string& daily_file = "",
+                                    const std::string& proto_file = "") {
     if (gd.nlon != cd.nlon || gd.nlat != cd.nlat) {
         Rcpp::stop("Grid mismatch: SST is %d x %d but climatology is %d x %d",
                    gd.nlon, gd.nlat, cd.nlon, cd.nlat);
@@ -424,6 +488,39 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
     std::vector<hw3::EventResult> all_events;
     std::vector<int> ds, dp, de;
 
+    // Optional per-day output buffers. The proto set carries the
+    // threshold/duration flags; the daily set carries intensity and the daily
+    // category. Both share temp/seas/thresh and the event flag/number. temp is
+    // written directly from gd.sst.
+    const bool want_proto = !proto_file.empty();
+    const bool want_daily_series = !daily_file.empty();
+    const bool want_daily = want_proto || want_daily_series;
+    size_t gs = static_cast<size_t>(npixels) * gd.ntime;
+    std::vector<double> b_seas, b_thresh, b_int;
+    std::vector<signed char> b_tc, b_dc, b_ev, b_cat;
+    std::vector<int> b_eno;
+    hw3::DailyBuffers daily_grid;
+    hw3::DailyBuffers* daily_grid_ptr = nullptr;
+    if (want_daily) {
+        b_seas.resize(gs); b_thresh.resize(gs);
+        b_ev.resize(gs); b_eno.resize(gs);
+        daily_grid.seas = b_seas.data();
+        daily_grid.thresh = b_thresh.data();
+        daily_grid.event = b_ev.data();
+        daily_grid.event_no = b_eno.data();
+        if (want_proto) {
+            b_tc.resize(gs); b_dc.resize(gs);
+            daily_grid.threshCriterion = b_tc.data();
+            daily_grid.durationCriterion = b_dc.data();
+        }
+        if (want_daily_series) {
+            b_int.resize(gs); b_cat.resize(gs);
+            daily_grid.intensity = b_int.data();
+            daily_grid.category = b_cat.data();
+        }
+        daily_grid_ptr = &daily_grid;
+    }
+
     Rcpp::Rcout << "Detecting events with " << n_threads << " thread(s)..." << std::endl;
 
     hw3::detect_events_grid(
@@ -437,43 +534,70 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
         category, southHemisphere,
         event_lon, event_lat, pixel_idx, all_events,
         ds, dp, de,
-        gd.lon, gd.lat, gd.nlon, gd.nlat
+        gd.lon, gd.lat, gd.nlon, gd.nlat,
+        daily_grid_ptr
     );
 
     Rcpp::Rcout << "Found " << all_events.size() << " events across "
                 << npixels << " pixels" << std::endl;
 
-    if (all_events.empty()) {
-        Rcpp::Rcout << "No events detected. Skipping output." << std::endl;
-        return;
+    // Per-day proto-event series (threshCriterion / durationCriterion set).
+    // Written even when no events were detected.
+    if (want_proto) {
+        Rcpp::Rcout << "Writing per-day proto-event series to " << proto_file << "..." << std::endl;
+        hw3::write_daily_netcdf(
+            proto_file, gd.lon, gd.lat, gd.nlon, gd.nlat, gd.ntime, gd.time_days,
+            gd.sst.data(), b_seas.data(), b_thresh.data(),
+            b_tc.data(), b_dc.data(), b_ev.data(), b_eno.data(),
+            nullptr, nullptr,
+            "protoevents", source_label, clim_file, minDuration, maxGap,
+            coldSpells, southHemisphere, gd.temp_units);
+        Rcpp::Rcout << "Done." << std::endl;
     }
 
-    int ref_jd = gd.time_days[0];
-    std::vector<int> ds_rel(ds.size()), dp_rel(dp.size()), de_rel(de.size());
-    for (size_t i = 0; i < ds.size(); ++i) {
-        ds_rel[i] = ds[i] - ref_jd;
-        dp_rel[i] = dp[i] - ref_jd;
-        de_rel[i] = de[i] - ref_jd;
+    // Per-day series with intensity + daily category.
+    if (want_daily_series) {
+        Rcpp::Rcout << "Writing per-day series to " << daily_file << "..." << std::endl;
+        hw3::write_daily_netcdf(
+            daily_file, gd.lon, gd.lat, gd.nlon, gd.nlat, gd.ntime, gd.time_days,
+            gd.sst.data(), b_seas.data(), b_thresh.data(),
+            nullptr, nullptr, b_ev.data(), b_eno.data(),
+            b_int.data(), b_cat.data(),
+            "daily", source_label, clim_file, minDuration, maxGap,
+            coldSpells, southHemisphere, gd.temp_units);
+        Rcpp::Rcout << "Done." << std::endl;
     }
 
-    Rcpp::Rcout << "Writing events to " << file_out << "..." << std::endl;
-
-    hw3::write_event_netcdf(
-        file_out, event_lon, event_lat, pixel_idx, all_events,
-        ds_rel, dp_rel, de_rel, ref_jd,
-        source_label, clim_file,
-        minDuration, maxGap, coldSpells,
-        southHemisphere, gd.temp_units
-    );
-
-    Rcpp::Rcout << "Done." << std::endl;
+    // Event-metrics table.
+    if (!events_file.empty()) {
+        if (all_events.empty()) {
+            Rcpp::Rcout << "No events detected. Skipping event output." << std::endl;
+        } else {
+            int ref_jd = gd.time_days[0];
+            std::vector<int> ds_rel(ds.size()), dp_rel(dp.size()), de_rel(de.size());
+            for (size_t i = 0; i < ds.size(); ++i) {
+                ds_rel[i] = ds[i] - ref_jd;
+                dp_rel[i] = dp[i] - ref_jd;
+                de_rel[i] = de[i] - ref_jd;
+            }
+            Rcpp::Rcout << "Writing events to " << events_file << "..." << std::endl;
+            hw3::write_event_netcdf(
+                events_file, event_lon, event_lat, pixel_idx, all_events,
+                ds_rel, dp_rel, de_rel, ref_jd,
+                source_label, clim_file,
+                minDuration, maxGap, coldSpells,
+                southHemisphere, gd.temp_units
+            );
+            Rcpp::Rcout << "Done." << std::endl;
+        }
+    }
 }
 
 // Single-file event detection
 // [[Rcpp::export]]
 void hw3_detect_events(std::string file_in,
                        std::string clim_file,
-                       std::string file_out,
+                       std::string events_file,
                        std::string var_name,
                        int minDuration = 5,
                        int minDuration2 = 5,
@@ -486,7 +610,9 @@ void hw3_detect_events(std::string file_in,
                        bool category = false,
                        bool southHemisphere = true,
                        std::string threshClim2_file = "",
-                       std::string threshClim2_var_name = "") {
+                       std::string threshClim2_var_name = "",
+                       std::string daily_file = "",
+                       std::string proto_file = "") {
 
     Rcpp::Rcout << "Reading climatology from " << clim_file << "..." << std::endl;
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
@@ -510,18 +636,19 @@ void hw3_detect_events(std::string file_in,
         thresh2_gd.reset(new hw3::GridData(hw3::read_sst_netcdf(threshClim2_file, t2_var, ss)));
     }
 
-    detect_and_write_events(gd, cd, thresh2_gd.get(), file_out, file_in, clim_file,
+    detect_and_write_events(gd, cd, thresh2_gd.get(), events_file, file_in, clim_file,
                             minDuration, minDuration2,
                             joinAcrossGaps, maxGap, maxGap2,
                             coldSpells, roundRes, n_threads,
-                            category, southHemisphere);
+                            category, southHemisphere,
+                            daily_file, proto_file);
 }
 
 // Multi-file event detection
 // [[Rcpp::export]]
 void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              std::string clim_file,
-                             std::string file_out,
+                             std::string events_file,
                              std::string var_name,
                              int minDuration = 5,
                              int minDuration2 = 5,
@@ -535,7 +662,9 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              bool southHemisphere = true,
                              Rcpp::Nullable<Rcpp::CharacterVector> threshClim2_files = R_NilValue,
                              std::string threshClim2_var_name = "",
-                             bool skip_bad_files = false) {
+                             bool skip_bad_files = false,
+                             std::string daily_file = "",
+                             std::string proto_file = "") {
 
     Rcpp::Rcout << "Reading climatology from " << clim_file << "..." << std::endl;
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
@@ -571,11 +700,12 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
     }
 
     std::string source_label = std::to_string(file_vec.size()) + " daily files";
-    detect_and_write_events(gd, cd, thresh2_gd.get(), file_out, source_label, clim_file,
+    detect_and_write_events(gd, cd, thresh2_gd.get(), events_file, source_label, clim_file,
                             minDuration, minDuration2,
                             joinAcrossGaps, maxGap, maxGap2,
                             coldSpells, roundRes, n_threads,
-                            category, southHemisphere);
+                            category, southHemisphere,
+                            daily_file, proto_file);
 }
 
 // [[Rcpp::export]]

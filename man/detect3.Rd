@@ -6,11 +6,8 @@
 \usage{
 detect3(
   file_in,
-  file_out_clim,
-  file_out_event,
+  name,
   climatologyPeriod,
-  save_file_clim = NULL,
-  save_file_event = NULL,
   var_name = NULL,
   lon_range = NULL,
   lat_range = NULL,
@@ -34,26 +31,23 @@ detect3(
   hemisphere = "south",
   roundClm = 4L,
   roundRes = 4L,
-  return_df = FALSE,
+  daily = c("none", "also", "only"),
+  protoEvent = FALSE,
   n_threads = 1L,
-  skip_bad_files = FALSE
+  skip_bad_files = FALSE,
+  quiet = FALSE
 )
 }
 \arguments{
 \item{file_in}{Path to input NetCDF file (or directory/vector of daily files).}
 
-\item{file_out_clim}{Path for the output climatology NetCDF file.}
-
-\item{file_out_event}{Path for the output event NetCDF file.}
+\item{name}{Output base name (a path stem) shared by both stages. Produces
+\code{paste0(name, "_clim.nc")} and \code{paste0(name, "_events.nc")} (plus
+the per-day products; see \code{daily} and \code{protoEvent}). The
+directory must exist.}
 
 \item{climatologyPeriod}{Character vector of length 2 with start and end
 dates of the baseline period, for example \code{c("1991-01-01", "2020-12-31")}.}
-
-\item{save_file_clim}{Optional companion output path for the climatology.
-The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.}
-
-\item{save_file_event}{Optional companion output path for the event table.
-The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.}
 
 \item{var_name}{Name of the SST variable. If \code{NULL}, auto-detected.}
 
@@ -108,18 +102,26 @@ inline? Default \code{FALSE}.}
 
 \item{roundRes}{Decimal places for event metric rounding. Default \code{4}.}
 
-\item{return_df}{Logical. Return the event table as a \code{data.frame}?
-Default \code{FALSE}.}
+\item{daily}{Per-day output control: \code{"none"} (default), \code{"also"},
+or \code{"only"}. See \code{\link{detect_event3}}.}
+
+\item{protoEvent}{Logical. Write the per-day proto-event series
+(\code{paste0(name, "_protoevents.nc")}) instead of the event table. See
+\code{\link{detect_event3}}. Default \code{FALSE}.}
 
 \item{n_threads}{Number of OpenMP threads. Default \code{1}.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}
+
+\item{quiet}{Logical. Suppress the post-computation console summaries?
+Default \code{FALSE}.}
 }
 \value{
-If \code{return_df = FALSE} (the default), invisibly returns a list
-with \code{clim_file} and \code{event_file} paths. If
-\code{return_df = TRUE}, returns a \code{data.frame} of event metrics.
+Invisibly returns a named character vector of the NetCDF files
+written (\code{clim} plus a subset of \code{events}, \code{daily},
+\code{protoevents}). Use \code{\link{hw3_export}} to read or export any of
+them.
 }
 \description{
 The primary entry point for \code{heatwave3}. Runs
@@ -129,10 +131,8 @@ single call, with optional inline category computation.
 \examples{
 \donttest{
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-clim_file <- tempfile(fileext = ".nc")
-event_file <- tempfile(fileext = ".nc")
 
-detect3(sst_file, clim_file, event_file,
+detect3(sst_file, name = file.path(tempdir(), "demo"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 }
 }

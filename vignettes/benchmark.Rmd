@@ -38,18 +38,17 @@ sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
 ```{r hw3-1t}
 library(heatwave3)
 
-clim_file <- tempfile(fileext = ".nc")
-event_file <- tempfile(fileext = ".nc")
+stem <- file.path(tempdir(), "bench")
 
 t_clim <- system.time(
-  ts2clm3(sst_file, clim_file,
+  ts2clm3(sst_file, name = stem,
           climatologyPeriod = c("1982-01-01", "2011-12-31"),
-          var_name = "analysed_sst", n_threads = 1L)
+          var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
 )
 
 t_event <- system.time(
-  detect_event3(sst_file, clim_file, event_file,
-                var_name = "analysed_sst", n_threads = 1L)
+  detect_event3(sst_file, name = stem,
+                var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
 )
 
 cat("Climatology:", round(t_clim[3], 1), "sec\n")
@@ -61,14 +60,14 @@ cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
 
 ```{r hw3-12t}
 t_clim_12 <- system.time(
-  ts2clm3(sst_file, clim_file,
+  ts2clm3(sst_file, name = stem,
           climatologyPeriod = c("1982-01-01", "2011-12-31"),
-          var_name = "analysed_sst", n_threads = 12L)
+          var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
 )
 
 t_event_12 <- system.time(
-  detect_event3(sst_file, clim_file, event_file,
-                var_name = "analysed_sst", n_threads = 12L)
+  detect_event3(sst_file, name = stem,
+                var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
 )
 
 cat("Climatology:", round(t_clim_12[3], 1), "sec\n")
@@ -160,8 +159,7 @@ a mix of ocean and land pixels.
 library(heatwave3)
 
 ostia_dir <- "/Volumes/OceanData/Tom/OSTIA"
-clim_file <- tempfile(fileext = ".nc")
-event_file <- tempfile(fileext = ".nc")
+stem <- file.path(tempdir(), "benguela")
 ```
 
 ```{r benguela-clim, eval = FALSE}
@@ -169,7 +167,7 @@ event_file <- tempfile(fileext = ".nc")
 t_clim <- system.time(
   ts2clm3(
     file_in  = ostia_dir,
-    file_out = clim_file,
+    name     = stem,
     climatologyPeriod = c("1991-01-01", "2020-12-31"),
     var_name = "analysed_sst",
     n_threads = 12L
@@ -182,8 +180,7 @@ t_clim <- system.time(
 t_event <- system.time(
   detect_event3(
     file_in   = ostia_dir,
-    clim_file = clim_file,
-    file_out  = event_file,
+    name      = stem,
     var_name  = "analysed_sst",
     n_threads = 12L
   )

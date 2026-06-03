@@ -67,15 +67,26 @@ exceedance3 <- function(file_in, file_out, threshold,
     depth = if (is.null(depth)) -1L else as.integer(depth)
   )
 
-  detect_event3(file_in = file_in, clim_file = clim_file,
-                file_out = file_out,
-                var_name = var_name,
-                minDuration = minDuration,
-                joinAcrossGaps = joinAcrossGaps,
-                maxGap = maxGap,
-                coldSpells = below,
-                roundRes = roundRes,
-                n_threads = n_threads)
+  # Call the C++ detector directly so exceedance3 keeps its exact-path file_out
+  # API (the detect_event3 wrapper derives paths from a name stem instead).
+  hw3_detect_events(
+    file_in = file_in, clim_file = clim_file, events_file = file_out,
+    var_name = vn,
+    minDuration = as.integer(minDuration),
+    minDuration2 = as.integer(minDuration),
+    joinAcrossGaps = joinAcrossGaps,
+    maxGap = as.integer(maxGap),
+    maxGap2 = as.integer(maxGap),
+    coldSpells = below,
+    roundRes = as.integer(roundRes),
+    n_threads = as.integer(n_threads),
+    category = FALSE,
+    southHemisphere = TRUE,
+    threshClim2_file = "",
+    threshClim2_var_name = "",
+    daily_file = "",
+    proto_file = ""
+  )
 
   invisible(file_out)
 }

@@ -44,7 +44,7 @@ All compute-intensive work is in C++ with Rcpp bindings:
 
 - **`blob_metrics.cpp`** — Per-(blob, day) spatial metric reduction. Ported from heatwaveR.
 
-- **`heatwave3_init.cpp`** — Rcpp exports bridging C++ to R. Key exports: `hw3_compute_clim`, `hw3_detect_events` (with category/hemisphere params), `hw3_read_sst`, `hw3_read_event_nc`, `hw3_read_clim_nc`, `hw3_category`, `hw3_block_average`, `hw3_read_metric_summary`.
+- **`heatwave3_init.cpp`** — Rcpp exports bridging C++ to R. Key exports: `hw3_compute_clim`, `hw3_detect_events` (with category/hemisphere and protoEvent/write_daily params), `hw3_read_sst`, `hw3_read_event_nc`, `hw3_read_clim_nc`, `hw3_read_daily_nc`, `hw3_category`, `hw3_block_average`, `hw3_read_metric_summary`.
 
 - **`heatwave3_types.h`** — Core structs: `EventResult` (19 metrics + category + season), `EventData` (for reading event NetCDF), `SubsetSpec`, `ClimData`, `GridData`.
 
@@ -52,9 +52,12 @@ All compute-intensive work is in C++ with Rcpp bindings:
 
 Function names are suffixed with `3` to avoid conflicts with heatwaveR:
 
-- **`detect3()`** — **Primary entry point.** All-in-one: climatology + detection + optional inline categories. Supports `return_df = TRUE` for interactive use.
-- **`ts2clm3()`** — NetCDF → climatology NetCDF (seas + thresh per DOY per pixel)
-- **`detect_event3()`** — SST + climatology → event NetCDF. Supports `category = TRUE` for inline categorisation and `hemisphere = "south"/"north"` for season naming. `return_df = TRUE` returns a data.frame directly.
+**Output naming.** `ts2clm3()`, `detect_event3()`, and `detect3()` take a single `name` (path stem) and derive output filenames: `<name>_clim.nc`, `<name>_events.nc`, `<name>_events_daily.nc`, `<name>_protoevents.nc`. They always write their native NetCDF and return the written path(s) invisibly; there is no `return_df`/`save_file`. To read a product into R or export it to CSV/RDS/Parquet, use `hw3_export()`.
+
+- **`detect3()`** — **Primary entry point.** All-in-one: climatology + detection + optional inline categories. Returns the written paths invisibly.
+- **`ts2clm3()`** — NetCDF → climatology NetCDF (seas + thresh per DOY per pixel) at `<name>_clim.nc`.
+- **`detect_event3()`** — SST + climatology → event NetCDF. `clim_file` defaults to `<name>_clim.nc`. Supports `category = TRUE` (inline categories) and `hemisphere = "south"/"north"`. Per-day output via `daily = c("none","also","only")` (writes `<name>_events_daily.nc` with temp/seas/thresh/intensity/event/event_no + daily category) and `protoEvent = TRUE` (writes `<name>_protoevents.nc` with the heatwaveR proto flags, instead of the event table). All per-day products are gridded `[lon, lat, time]`.
+- **`hw3_export()`** — Read/export hub: auto-detects the product (via `hw3_file_meta`), returns a long data.frame (whole or first `n` rows) or writes a flat `.csv`/`.rds`/`.parquet`. Reading is C++-backed.
 - **`category3()`** — Reads pre-computed categories from event file, or computes from climatology file for older events. `hemisphere` parameter replaces deprecated `S`.
 - **`block_average3()`** — Yearly event metric aggregation (pure C++)
 - **`exceedance3()`** — Static threshold exceedance
@@ -66,16 +69,17 @@ Function names are suffixed with `3` to avoid conflicts with heatwaveR:
 ### Data Flow
 
 ```
-NetCDF (SST) → ts2clm3() → NetCDF (climatology)
-                                ↓
-NetCDF (SST) + clim → detect_event3(category=TRUE) → NetCDF (events + categories)
-                                                           ↓
-                                        category3() / block_average3() / plotting
+NetCDF (SST) → ts2clm3(name="X") → X_clim.nc
+                                       ↓
+NetCDF (SST) + X_clim.nc → detect_event3(name="X", category=TRUE) → X_events.nc
+                                                                        ↓
+                            category3() / block_average3() / plotting / hw3_export()
 ```
 
 Or all-in-one:
 ```
-NetCDF (SST) → detect3(category=TRUE, return_df=TRUE) → data.frame
+NetCDF (SST) → detect3(name="X", category=TRUE) → X_clim.nc + X_events.nc
+hw3_export("X_events.nc") → data.frame  (or .csv/.rds/.parquet)
 ```
 
 ### Key Design Decisions

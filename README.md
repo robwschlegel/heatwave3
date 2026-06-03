@@ -33,7 +33,7 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 
 - **Climatology** (`ts2clm3`). Sliding-window percentile with Type-7 quantile, circular-padded rolling mean smoothing, and optional linear detrending (Jacox et al. 2020).
 - **Event detection** (`detect_event3`). Threshold exceedance, run-length encoding, gap joining, and 19 event metrics. Cold-spell support. Optional inline Hobday et al. (2018) severity categories.
-- **All-in-one pipeline** (`detect3`). Climatology, detection, and optional categories in a single call, with `return_df = TRUE` for interactive use.
+- **All-in-one pipeline** (`detect3`). Climatology, detection, and optional categories in a single call from one `name` stem; read results back with `hw3_export()`.
 - **Spatial blob detection** (`detect_blob3`). 3D connected-component labelling with voxel-level footprint output.
 - **Event categorisation** (`category3`). Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories, for both heatwaves and cold-spells.
 - **Yearly aggregation** (`block_average3`) and **static threshold exceedance** (`exceedance3`).
@@ -106,23 +106,22 @@ heatwave3 never calls `omp_set_num_threads()`, so it does not change thread coun
 library(heatwave3)
 
 sst_file <- "path/to/sst.nc"  # or a directory of daily files
-clim_file <- tempfile(fileext = ".nc")
-event_file <- tempfile(fileext = ".nc")
 
-# All-in-one: climatology + event detection + categories
-events <- detect3(
+# All-in-one: climatology + event detection + categories. A single 'name' stem
+# writes benguela_clim.nc and benguela_events.nc.
+detect3(
   file_in           = sst_file,
-  file_out_clim     = clim_file,
-  file_out_event    = event_file,
+  name              = "benguela",
   climatologyPeriod = c("1991-01-01", "2020-12-31"),
   lon_range         = c(15, 35),
   lat_range         = c(-38, -28),
   category          = TRUE,
   hemisphere        = "south",
-  return_df         = TRUE,
   n_threads         = 4
 )
 
+# Read the events back as a data.frame (or a quick preview with n =)
+events <- hw3_export("benguela_events.nc")
 head(events)
 table(events$category)
 ```
@@ -131,26 +130,24 @@ table(events$category)
 
 ```r
 # Use pctile = 10 for the cold tail
-events_cold <- detect3(
+detect3(
   file_in           = sst_file,
-  file_out_clim     = "clim_10pct.nc",
-  file_out_event    = "events_cold.nc",
+  name              = "benguela_cold",
   climatologyPeriod = c("1991-01-01", "2020-12-31"),
   pctile            = 10,
   coldSpells        = TRUE,
   category          = TRUE,
   hemisphere        = "south",
-  return_df         = TRUE,
   n_threads         = 12
 )
 
-table(events_cold$category)
+table(hw3_export("benguela_cold_events.nc")$category)
 ```
 
 ### Per-pixel time series plot
 
 ```r
-event_line3(sst_file, clim_file, lon = 25.0, lat = -34.0,
+event_line3(sst_file, "benguela_clim.nc", lon = 25.0, lat = -34.0,
             start_date = "2018-01-01", end_date = "2019-12-31")
 ```
 
@@ -158,18 +155,18 @@ event_line3(sst_file, clim_file, lon = 25.0, lat = -34.0,
 
 ```r
 # C++-backed per-pixel aggregation, efficient even for millions of events
-plot_metric3(event_file, metric = "intensity_max", summary = "mean")
+plot_metric3("benguela_events.nc", metric = "intensity_max", summary = "mean")
 ```
 
 ### Event categories (standalone)
 
 ```r
 # Reads pre-computed categories from event file (no clim_file needed)
-cats <- category3(event_file)
+cats <- category3("benguela_events.nc")
 table(cats$category)
 
 # Or compute from scratch for older event files
-cats <- category3(event_file, clim_file, hemisphere = "south")
+cats <- category3("benguela_events.nc", "benguela_clim.nc", hemisphere = "south")
 ```
 
 ### Using daily files
@@ -178,7 +175,7 @@ cats <- category3(event_file, clim_file, hemisphere = "south")
 # Pass a directory. All .nc/.nc4 files are read, sorted, and merged
 ts2clm3(
   file_in = "/path/to/daily_ostia/",
-  file_out = clim_file,
+  name = "ostia",
   climatologyPeriod = c("1991-01-01", "2020-12-31"),
   n_threads = 12
 )
@@ -189,7 +186,7 @@ ts2clm3(
 ```r
 blobs <- detect_blob3(
   sst_file  = sst_file,
-  clim_file = clim_file,
+  clim_file = "benguela_clim.nc",
   minVoxels = 200,
   topN      = 6,
   return    = c("event", "daily", "voxel")
@@ -205,7 +202,7 @@ blobs <- detect_blob3(
 ```r
 # Remove linear warming trend before computing climatology
 # (Jacox et al. 2020 approach)
-ts2clm3(sst_file, clim_file,
+ts2clm3(sst_file, name = "benguela_detrended",
         climatologyPeriod = c("1991-01-01", "2020-12-31"),
         detrend = TRUE)
 ```
@@ -227,7 +224,7 @@ All functions are suffixed with `3` to avoid namespace conflicts with heatwaveR:
 | `geom_flame3()` | ggplot2 flame polygon geom |
 | `geom_lolli3()` | ggplot2 lollipop geom |
 | `plot_metric3()` | Spatial map of event metrics (C++-backed aggregation) |
-| `hw3_export()` | Export NetCDF output to CSV/RDA/Parquet |
+| `hw3_export()` | Read any product into a data.frame, or export to CSV/RDS/Parquet |
 
 ## Vignettes
 

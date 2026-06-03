@@ -87,20 +87,19 @@ default.
 library(heatwave3)
 
 run_once <- function(nthreads, lon_range = NULL) {
-  cf <- tempfile(fileext = ".nc")
-  ef <- tempfile(fileext = ".nc")
-  on.exit(unlink(c(cf, ef)))
-  detect3(
+  stem <- tempfile()
+  on.exit(unlink(paste0(stem, c("_clim.nc", "_events.nc"))))
+  out <- detect3(
     sst_file,
-    cf,
-    ef,
+    name = stem,
     climatologyPeriod = clim_period,
     var_name = var_name,
     lon_range = lon_range,
     category = TRUE,
-    return_df = TRUE,
-    n_threads = nthreads
+    n_threads = nthreads,
+    quiet = TRUE
   )
+  hw3_export(out[["events"]])
 }
 
 system.time(ev1 <- run_once(1L))
@@ -167,20 +166,19 @@ run_psock <- function(n_workers) {
   clusterExport(cl, c("sst_file", "var_name", "clim_period"))
   tiles <- make_tiles(n_workers)
   parts <- parLapply(cl, tiles, function(lr) {
-    cf <- tempfile(fileext = ".nc")
-    ef <- tempfile(fileext = ".nc")
-    on.exit(unlink(c(cf, ef)))
-    detect3(
+    stem <- tempfile()
+    on.exit(unlink(paste0(stem, c("_clim.nc", "_events.nc"))))
+    out <- detect3(
       sst_file,
-      cf,
-      ef,
+      name = stem,
       climatologyPeriod = clim_period,
       var_name = var_name,
       lon_range = lr,
       category = TRUE,
-      return_df = TRUE,
-      n_threads = 1L
-    ) # 1 thread per worker!
+      n_threads = 1L,  # 1 thread per worker!
+      quiet = TRUE
+    )
+    hw3_export(out[["events"]])
   })
   do.call(rbind, parts)
 }
@@ -301,10 +299,11 @@ where OpenMP has flattened.
 
 Two caveats keep this from being a blanket "PSOCK wins":
 
-- **Endpoint.** This benchmark returns the events as an in-memory `data.frame`,
-  which makes the serial assembly a large part of OpenMP's tail. The usual
-  production endpoint (write one event NetCDF, `return_df = FALSE`) removes
-  that assembly, shrinking OpenMP's serial fraction and narrowing the gap.
+- **Endpoint.** This benchmark reads the events back into an in-memory
+  `data.frame` (via `hw3_export()`), which makes the serial assembly a large
+  part of OpenMP's tail. The usual production endpoint (just write the event
+  NetCDF and stop) removes that assembly, shrinking OpenMP's serial fraction and
+  narrowing the gap.
 - **Storage.** PSOCK's edge depends on those per-worker reads being cheap. On a
   cold cache or slow/network disk, sixteen processes reading at once can
   contend, eroding or reversing the advantage. OpenMP reads the slab exactly

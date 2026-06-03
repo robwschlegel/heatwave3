@@ -2,53 +2,93 @@
 % Please edit documentation in R/export.R
 \name{hw3_export}
 \alias{hw3_export}
-\title{Export heatwave3 output to additional formats}
+\title{Read or export a heatwave3 NetCDF product}
 \usage{
-hw3_export(nc_file, file_out, type = c("clim", "event"), chunk_size = 1000000L)
+hw3_export(
+  file,
+  file_out = NULL,
+  vars = NULL,
+  lon_range = NULL,
+  lat_range = NULL,
+  time_range = NULL,
+  n = NULL,
+  type = NULL,
+  chunk_size = 1000000L
+)
 }
 \arguments{
-\item{nc_file}{Path to the heatwave3 NetCDF output file.}
+\item{file}{Path to a heatwave3 NetCDF output file (any of the products
+written by \code{\link{ts2clm3}} or \code{\link{detect_event3}}).}
 
-\item{file_out}{Path for the exported companion file. The extension must be
-one of \code{.csv}, \code{.rds}, or \code{.parquet}.}
+\item{file_out}{Optional path for a flat companion file. When supplied, the
+product is written there and the path is returned invisibly; the extension
+must be one of \code{.csv}, \code{.rds}, or \code{.parquet}. When
+\code{NULL} (the default), the product is returned as a \code{data.frame}.}
 
-\item{type}{Character. One of \code{"clim"} or \code{"event"}, indicating the
-type of output file.}
+\item{vars}{Optional character vector of data variables to read. \code{NULL}
+(the default) reads all variables present. For example \code{c("seas",
+  "thresh")} for a climatology, or \code{c("temp", "category")} for a daily
+product. An unknown name raises an error listing the available variables.}
 
-\item{chunk_size}{Number of rows per CSV or Parquet write chunk. Default
-\code{1000000}.}
+\item{lon_range, lat_range}{Optional numeric \code{c(min, max)} windows. Only
+the overlapping grid cells are read from disk (a true hyperslab read, so
+the rest of the file is never loaded). For the events product these filter
+events by their per-event coordinate.}
+
+\item{time_range}{Optional \code{c("start", "end")} dates (e.g.
+\code{c("2015-01-01", "2015-12-31")}). Subsets the time dimension of daily
+and proto-event products; for events it keeps events overlapping the range.
+Ignored for a climatology (which has a day-of-year axis, not time).}
+
+\item{n}{Optional integer. Return only the first \code{n} rows. For gridded
+products this also caps how much is read from disk, so it is a cheap preview
+even for very large files. \code{NULL} (the default) returns the whole
+(possibly subset) table, with a warning if an unsubset whole read is large.}
+
+\item{type}{Optional override of the auto-detected product, one of
+\code{"clim"}, \code{"event"}, \code{"daily"}, or \code{"protoevents"}.
+Normally left \code{NULL}.}
+
+\item{chunk_size}{Number of rows per CSV or Parquet write chunk for a whole
+(unsubset) export. Default \code{1000000}.}
 }
 \value{
-Invisibly returns the path to the exported file.
+If \code{file_out} is supplied, invisibly returns its path. Otherwise
+returns a \code{data.frame} (the whole product, or the requested subset).
 }
 \description{
-Reads a heatwave3 NetCDF output file (climatology or events) and writes it
-to a companion file. The output format is inferred from the extension of
-\code{file_out}.
+Reads any heatwave3 NetCDF output (climatology, events, daily series, or
+proto-events) using the fast C++ reader, and either returns it as a long
+\code{data.frame} for examination or writes it to a flat companion file.
+The product type is detected automatically from the file.
 }
 \details{
-\itemize{
-\item \code{"csv"}: Writes a flat CSV file in row chunks.
-\item \code{"rds"}: Writes the data frame with \code{saveRDS()}.
-\item \code{"parquet"}: Writes a single Apache Parquet file in row groups.
-Requires the \pkg{arrow} package.
-}
+Any of \code{vars}, \code{lon_range}, \code{lat_range}, \code{time_range}, or
+\code{n} triggers a streaming hyperslab read: for the gridded products only
+the requested window and variables are read from the NetCDF, so memory and
+I/O scale with the subset, not the file. A whole (unsubset) export to
+\code{file_out} is written in row chunks.
+
+Writing formats (chosen by the \code{file_out} extension): \code{.csv},
+\code{.rds}, or \code{.parquet} (the last requires the \pkg{arrow} package).
 }
 \examples{
 \donttest{
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-event_file <- tempfile(fileext = ".nc")
-clim_file <- tempfile(fileext = ".nc")
+stem <- file.path(tempdir(), "demo")
+detect3(sst_file, name = stem,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"), daily = "also")
 
-detect3(sst_file, clim_file, event_file,
-        climatologyPeriod = c("1982-01-01", "2011-12-31"))
+# First rows of the events product (cheap preview)
+head(hw3_export(paste0(stem, "_events.nc"), n = 10))
 
-# Export events as CSV
-csv_path <- hw3_export(event_file, file_out = tempfile(fileext = ".csv"),
-                       type = "event")
-head(read.csv(csv_path))
+# Only seas/thresh for a lon-lat window of the climatology
+hw3_export(paste0(stem, "_clim.nc"), vars = c("seas", "thresh"),
+           lon_range = c(26.5, 26.6))
 
-# Export climatology as RDS
-hw3_export(clim_file, file_out = tempfile(fileext = ".rds"), type = "clim")
+# A date window and chosen variables of the daily product, to CSV
+hw3_export(paste0(stem, "_events_daily.nc"),
+           vars = c("temp", "category"), time_range = c("2010-01-01", "2010-12-31"),
+           file_out = tempfile(fileext = ".csv"))
 }
 }

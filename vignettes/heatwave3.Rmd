@@ -50,18 +50,18 @@ datasets without needing to specify dimension names.
 ```{r data-input, eval = FALSE}
 library(heatwave3)
 
-# Single multi-timestep file
+# Single multi-timestep file. 'name' is a path stem; ts2clm3() writes
+# <name>_clim.nc.
 sst_file <- "/path/to/sst_merged.nc"
-clim_file <- tempfile(fileext = ".nc")
 ts2clm3(file_in = sst_file,
-        file_out = clim_file,
+        name = "benguela",
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         lon_range = c(15, 35), lat_range = c(-38, -28),
         n_threads = 4)
 
 # Directory of daily files
 ts2clm3(file_in = "/path/to/daily_sst/",
-        file_out = clim_file,
+        name = "benguela",
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         n_threads = 4)
 
@@ -69,7 +69,7 @@ ts2clm3(file_in = "/path/to/daily_sst/",
 daily_files <- list.files("/path/to/daily/", pattern = "[.]nc4$",
                           full.names = TRUE)
 ts2clm3(file_in = daily_files,
-        file_out = clim_file,
+        name = "benguela",
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         n_threads = 4)
 ```
@@ -83,15 +83,18 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 library(heatwave3)
 
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-clim_file <- tempfile(fileext = ".nc")
-event_file <- tempfile(fileext = ".nc")
+stem <- file.path(tempdir(), "demo")
 
-# All-in-one: climatology + event detection
+# All-in-one: climatology + event detection. A single 'name' stem produces
+# demo_clim.nc and demo_events.nc.
 detect3(file_in = sst_file,
-        file_out_clim = clim_file,
-        file_out_event = event_file,
+        name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         n_threads = 2)
+
+# The two products follow the naming convention <name>_clim.nc / <name>_events.nc
+clim_file  <- paste0(stem, "_clim.nc")
+event_file <- paste0(stem, "_events.nc")
 ```
 
 ## Per-pixel time series plot
@@ -135,26 +138,25 @@ remove the long-term warming trend before computing the climatology (following
 Jacox et al. 2020), set `detrend = TRUE`:
 ```{r detrend, eval = FALSE}
 ts2clm3(file_in = sst_file,
-        file_out = tempfile(fileext = ".nc"),
+        name = "benguela_detrended",
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         detrend = TRUE)
 ```
 
 ## Output formats
 
-The primary output is always NetCDF. Additional companion files can be written
-alongside in CSV, RDA, or Parquet format:
+The compute functions always write their native NetCDF. To read a product into
+R, or export it to CSV/RDS/Parquet, use `hw3_export()`, which auto-detects the
+product type:
 
 ```{r output-formats, eval = FALSE}
-# Write events as Parquet alongside the NetCDF
-detect_event3(file_in = sst_file,
-              clim_file = clim_file,
-              file_out = event_file,
-              save_format = "parquet")
+# Read the events back as a data.frame (whole, or a quick preview with n =)
+events <- hw3_export("benguela_events.nc")
+head(hw3_export("benguela_events.nc", n = 20))
 
-# Or export after the fact
-hw3_export(event_file, format = "csv", type = "event")
-hw3_export(clim_file, format = "rda", type = "clim")
+# Export to flat files (format chosen by the extension)
+hw3_export("benguela_events.nc", file_out = "events.csv")
+hw3_export("benguela_clim.nc",   file_out = "clim.parquet")
 ```
 
 ## Cold spells
@@ -163,17 +165,13 @@ Detect marine cold-spells by setting `pctile = 10` for the climatology and
 `coldSpells = TRUE` for detection.
 
 ```{r cold-spells, eval = FALSE}
-clim_cold <- tempfile(fileext = ".nc")
-event_cold <- tempfile(fileext = ".nc")
-
 ts2clm3(file_in = sst_file,
-        file_out = clim_cold,
+        name = "benguela_cold",
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         pctile = 10, n_threads = 2)
 
 detect_event3(file_in = sst_file,
-              clim_file = clim_cold,
-              file_out = event_cold,
+              name = "benguela_cold",
               coldSpells = TRUE, n_threads = 2)
 ```
 
@@ -193,11 +191,10 @@ library(heatwave3)
 library(ggplot2)
 
 sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
-clim_file <- tempfile(fileext = ".nc")
 xlim <- c(15, 35); ylim <- c(-38, -28)
 
-ts2clm3(file_in = sst_file,
-        file_out = clim_file,
+clim_file <- ts2clm3(file_in = sst_file,
+        name = file.path(tempdir(), "swio"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         lon_range = xlim, lat_range = ylim,
         var_name = "analysed_sst",
@@ -320,9 +317,8 @@ ggplot() +
 ### Figure 5: Cold-spell blob footprints
 
 ```{r fig05-mcs-setup, eval = FALSE}
-clim_cold <- tempfile(fileext = ".nc")
-ts2clm3(file_in = sst_file,
-        file_out = clim_cold,
+clim_cold <- ts2clm3(file_in = sst_file,
+        name = file.path(tempdir(), "swio_cold"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         lon_range = xlim, lat_range = ylim,
         var_name = "analysed_sst",

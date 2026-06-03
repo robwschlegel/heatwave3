@@ -11,6 +11,21 @@ struct PixelEvents {
     bool valid;
 };
 
+// Optional per-pixel daily output. Each non-null pointer addresses a slice of
+// length == ntime (the caller's input time grid) into a grid-wide buffer; the
+// caller offsets the pointers per pixel before the call. detect_pixel_events
+// fills only the non-null arrays. Used for protoEvent and per-day output.
+struct DailyBuffers {
+    double* seas = nullptr;              // daily seasonal climatology
+    double* thresh = nullptr;            // daily threshold climatology
+    signed char* threshCriterion = nullptr;   // temp exceeds threshold (0/1)
+    signed char* durationCriterion = nullptr; // in a >= minDuration run (0/1)
+    signed char* event = nullptr;        // in a final, gap-joined event (0/1)
+    int* event_no = nullptr;             // event number (0 = none)
+    double* intensity = nullptr;         // temp - seas (rounded to roundRes)
+    signed char* category = nullptr;     // daily Hobday category (0 = none, 1-4)
+};
+
 // Detect events for a single pixel
 PixelEvents detect_pixel_events(
     const double* temp,        // daily temperature
@@ -28,7 +43,8 @@ PixelEvents detect_pixel_events(
     bool coldSpells,
     int roundRes,
     bool category,
-    bool southHemisphere
+    bool southHemisphere,
+    const DailyBuffers* daily = nullptr  // optional per-day output (this pixel's slice)
 );
 
 // Detect events for entire grid with OpenMP
@@ -60,7 +76,12 @@ void detect_events_grid(
     std::vector<int>& date_end,
     const std::vector<double>& lon,
     const std::vector<double>& lat,
-    int nlon, int nlat
+    int nlon, int nlat,
+    // Optional grid-wide per-day output buffers. When non-null, each member
+    // points to an [npixels * ntime] array (pixel-major) that is filled for
+    // every valid pixel. Members left null are skipped. Drives protoEvent and
+    // per-day output.
+    DailyBuffers* daily_grid = nullptr
 );
 
 } // namespace hw3

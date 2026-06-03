@@ -7,7 +7,9 @@
 #' @param file_in Path to a single multi-timestep NetCDF file, **or** a character
 #'   vector of daily NetCDF file paths, **or** a directory path containing daily
 #'   NetCDF files (matched by \code{.nc} or \code{.nc4} extension).
-#' @param file_out Path for the output NetCDF file containing the climatology.
+#' @param name Output base name (a path stem). The climatology is written to
+#'   \code{paste0(name, "_clim.nc")}, so \code{name = "results/cape_coast"}
+#'   produces \code{results/cape_coast_clim.nc}. The directory must exist.
 #' @param climatologyPeriod A character vector of length 2 specifying the start and
 #'   end dates of the baseline period, for example \code{c("1982-01-01", "2011-12-31")}.
 #' @param lon_range Optional numeric vector of length 2: \code{c(min_lon, max_lon)}.
@@ -36,31 +38,26 @@
 #'   approach (Jacox et al. 2020).
 #' @param roundClm Number of decimal places for rounding. Default \code{4}.
 #'   Set to \code{FALSE} to disable.
-#' @param save_file Optional path for an additional output file. The extension
-#'   determines the format and must be one of \code{.csv}, \code{.rds}, or
-#'   \code{.parquet}. If \code{NULL}, no companion file is written.
-#' @param return_df Logical. If \code{TRUE}, return the climatology as a long
-#'   \code{data.frame} in addition to writing the NetCDF file. Default
-#'   \code{FALSE} (returns the file path invisibly).
 #' @param n_threads Number of OpenMP threads for parallel computation. Default \code{1}.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
+#' @param quiet Logical. Suppress the post-computation console summary (head,
+#'   tail, and summary statistics of the climatology)? Default \code{FALSE}.
 #'
-#' @return If \code{return_df = FALSE} (the default), invisibly returns the
-#'   path to the output file. If \code{return_df = TRUE}, returns a
-#'   \code{data.frame} with columns \code{lon}, \code{lat}, \code{doy},
-#'   \code{seas}, and \code{thresh}. The NetCDF is still written.
+#' @return Invisibly returns the path to the climatology NetCDF
+#'   (\code{paste0(name, "_clim.nc")}). Use \code{\link{hw3_export}} to read it
+#'   into a \code{data.frame} or export it to CSV/RDS/Parquet.
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' ts2clm3(file_in = "path/to/sst.nc",
-#'         file_out = tempfile(fileext = ".nc"),
+#'         name = file.path(tempdir(), "cape_coast"),
 #'         climatologyPeriod = c("1982-01-01", "2011-12-31"),
 #'         lon_range = c(25, 26), lat_range = c(-34, -33))
 #' }
-ts2clm3 <- function(file_in, file_out,
+ts2clm3 <- function(file_in, name,
                     climatologyPeriod,
                     lon_range = NULL,
                     lat_range = NULL,
@@ -75,21 +72,19 @@ ts2clm3 <- function(file_in, file_out,
                     var = FALSE,
                     detrend = FALSE,
                     roundClm = 4L,
-                    save_file = NULL,
-                    return_df = FALSE,
                     n_threads = 1L,
-                    skip_bad_files = FALSE) {
+                    skip_bad_files = FALSE,
+                    quiet = FALSE) {
 
-  if (missing(file_in) || missing(file_out))
-    stop("Both file_in and file_out must be provided.", call. = FALSE)
+  if (missing(file_in) || missing(name))
+    stop("Both file_in and name must be provided.", call. = FALSE)
   if (missing(climatologyPeriod) || length(climatologyPeriod) != 2)
     stop("climatologyPeriod must be a character vector of length 2.", call. = FALSE)
 
+  file_out <- .hw3_clim_path(name)
   out_dir <- dirname(file_out)
   if (!dir.exists(out_dir))
     stop("Output directory does not exist: ", out_dir, call. = FALSE)
-  if (!is.null(save_file))
-    .validate_save_file(save_file)
 
   pad <- if (is.numeric(maxPadLength)) as.integer(maxPadLength) else 0L
   rnd <- if (is.numeric(roundClm)) as.integer(roundClm) else 0L
@@ -154,13 +149,6 @@ ts2clm3 <- function(file_in, file_out,
     )
   }
 
-  if (!is.null(save_file)) {
-    hw3_export(file_out, file_out = save_file, type = "clim")
-  }
-
-  if (return_df) {
-    return(.read_clim_df(file_out))
-  }
-
+  .hw3_console_summary(file_out, quiet = quiet)
   invisible(file_out)
 }

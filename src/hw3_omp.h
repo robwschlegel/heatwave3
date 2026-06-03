@@ -23,6 +23,13 @@
 #include <cstdlib>
 #include <cstring>
 
+// Must be included at global scope (NOT inside namespace hw3) so that
+// pthread's symbols land in the global namespace where libstdc++'s
+// threading shim (<gthr-default.h>, pulled in via Rcpp) expects them.
+#if defined(_OPENMP) && !defined(_WIN32)
+  #include <pthread.h>
+#endif
+
 namespace hw3 {
 
 // ---- Private thread manager ------------------------------------------------
@@ -85,8 +92,6 @@ inline void set_threads(int n) {
 // and restores afterward.
 
 #if defined(_OPENMP) && !defined(_WIN32)
-  #include <pthread.h>
-
   inline int& hw3_pre_fork_threads() {
       static int saved = 0;
       return saved;

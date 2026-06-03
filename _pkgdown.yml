@@ -1,30 +1,83 @@
 url: https://robwschlegel.github.io/heatwave3/index.html
 
+template:
+  bootstrap: 5
+  bootswatch: spacelab
+  light-switch: true
+  theme: breeze-light
+  theme-dark: breeze-dark
+
 navbar:
+  title: heatwave3
+  type: default
   structure:
-    left:
-    - intro
-    - reference
-    - articles
-    - tutorials
-    - news
-  right:
-  - icon: fa-github fa-lg
-    text: "github"
-    href: https://github.com/robwschlegel/heatwave3
+    left: [intro, reference, articles, resources, news]
+    right: [search, github, lightswitch]
   components:
+    intro:
+      text: Overview
+      href: index.html
     reference:
       text: Reference
       href: reference/index.html
+    articles:
+      text: Articles
+      menu:
+      - text: Getting started with heatwave3
+        href: articles/heatwave3.html
+      - text: NetCDF output internals
+        href: articles/netcdf-output.html
+      - text: Parallel performance
+        href: articles/parallelism.html
+      - text: Performance benchmark
+        href: articles/benchmark.html
+    resources:
+      text: Resources
+      menu:
+      - text: heatwaveR
+        href: https://robwschlegel.github.io/heatwaveR/index.html
+      - text: Marine Heatwave Tracker
+        href: https://www.marineheatwaves.org
+      - text: Hobday et al. 2016 definition
+        href: https://doi.org/10.1016/j.pocean.2015.12.014
+      - text: Hobday et al. 2018 categories
+        href: https://doi.org/10.5670/oceanog.2018.205
+    news:
+      text: Changelog
+      href: news/index.html
+    github:
+      icon: fa-github fa-lg
+      aria-label: GitHub
+      href: https://github.com/robwschlegel/heatwave3
 
 reference:
-- title: All functions
+- title: Core workflows
   contents:
   - '`detect3`'
-  - '`detect3clim`'
-  - '`detect3event`'
-  - '`rast_to_df`'
-  - '`sst_q`'
+  - '`ts2clm3`'
+  - '`detect_event3`'
+  - '`category3`'
+  - '`exceedance3`'
+  - '`block_average3`'
+  - '`detect_blob3`'
+- title: Visualisation
+  contents:
+  - '`event_line3`'
+  - '`plot_metric3`'
+  - '`geom_flame3`'
+  - '`geom_lolli3`'
+  - '`GeomFlame3`'
+  - '`GeomLolli3`'
+- title: Export and threading
+  contents:
+  - '`hw3_export`'
+  - '`getHW3threads`'
+  - '`setHW3threads`'
 
-articles: ~
-
+articles:
+- title: Workflows
+  contents:
+  - heatwave3
+  - netcdf-output
+  - parallelism
+  - benchmark

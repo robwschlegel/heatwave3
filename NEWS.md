@@ -1,5 +1,11 @@
 # heatwave3 1.1.4 (2026-06-03)
 
+## Documentation
+
+* **Rebuilt pkgdown site** The public facing documentation website for heatwave3
+  was re-compiled. The new vignettes have been added, as well as links to other
+  resources and a light/dark theme switch.
+
 ## Bug fixes
 
 * **The package now builds on Linux with libstdc++.** The `#include <pthread.h>`

@@ -1,0 +1,263 @@
+<div id="main" class="col-md-9" role="main">
+
+# Performance benchmark: heatwave3 vs heatwaveR
+
+<div class="section level2">
+
+## Overview
+
+This vignette benchmarks heatwave3 against heatwaveR on a realistic
+gridded SST dataset, the full OSTIA South-West Indian Ocean reanalysis
+(400 lon × 200 lat, ca. 49,800 ocean pixels, 14,276 daily time steps,
+1982–2021).
+
+We compare three configurations:
+
+1.  **heatwaveR**, serial per-pixel R + C++ (the standard approach)
+2.  **heatwave3 (1 thread)**, pure C++ with single-threaded execution
+3.  **heatwave3 (12 threads)**, pure C++ with OpenMP parallelism
+
+</div>
+
+<div class="section level2">
+
+## Test data
+
+<div id="cb1" class="sourceCode">
+
+``` r
+sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
+# 400 lon × 200 lat at 0.05° resolution
+# 15–35°E, 38–28°S (Agulhas Current system)
+# 14,276 daily time steps (1982-01-01 to 2021-12-31)
+# ca. 49,796 ocean pixels (remainder is land)
+```
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## heatwave3: single-threaded
+
+<div id="cb2" class="sourceCode">
+
+``` r
+library(heatwave3)
+
+clim_file <- tempfile(fileext = ".nc")
+event_file <- tempfile(fileext = ".nc")
+
+t_clim <- system.time(
+  ts2clm3(sst_file, clim_file,
+          climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          var_name = "analysed_sst", n_threads = 1L)
+)
+
+t_event <- system.time(
+  detect_event3(sst_file, clim_file, event_file,
+                var_name = "analysed_sst", n_threads = 1L)
+)
+
+cat("Climatology:", round(t_clim[3], 1), "sec\n")
+cat("Detection:  ", round(t_event[3], 1), "sec\n")
+cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
+```
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## heatwave3: 12 threads
+
+<div id="cb3" class="sourceCode">
+
+``` r
+t_clim_12 <- system.time(
+  ts2clm3(sst_file, clim_file,
+          climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          var_name = "analysed_sst", n_threads = 12L)
+)
+
+t_event_12 <- system.time(
+  detect_event3(sst_file, clim_file, event_file,
+                var_name = "analysed_sst", n_threads = 12L)
+)
+
+cat("Climatology:", round(t_clim_12[3], 1), "sec\n")
+cat("Detection:  ", round(t_event_12[3], 1), "sec\n")
+cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
+```
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## heatwaveR: serial baseline
+
+heatwaveR processes one pixel at a time. We time a 20-pixel sample (data
+pre-loaded to isolate computation from I/O) and extrapolate to the full
+grid.
+
+<div id="cb4" class="sourceCode">
+
+``` r
+library(heatwaveR)
+library(ncdf4)
+
+nc <- nc_open(sst_file)
+time_raw <- ncvar_get(nc, "time")
+dates <- as.Date("1981-01-01") + time_raw / 86400
+
+# Pre-load one longitude column (200 lat pixels)
+sst_col <- ncvar_get(nc, "analysed_sst",
+                     start = c(200, 1, 1), count = c(1, 200, -1))
+nc_close(nc)
+
+ocean_idx <- which(!is.na(sst_col[, 1]))
+n_test <- 20L
+
+t_hwr <- system.time({
+  for (j in ocean_idx[1:n_test]) {
+    clm <- ts2clm(data.frame(t = dates, temp = as.numeric(sst_col[j, ])),
+                  climatologyPeriod = c("1982-01-01", "2011-12-31"))
+    ev <- detect_event(clm)
+  }
+})
+
+per_pixel <- t_hwr[3] / n_test
+n_ocean <- 49796  # pre-counted
+estimated <- per_pixel * n_ocean
+
+cat("Per pixel:      ", round(per_pixel, 3), "sec\n")
+cat("Estimated total:", round(estimated), "sec (",
+    round(estimated / 60, 1), "min)\n")
+```
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## Results
+
+Benchmarked on an Apple M3 Pro (12-core), macOS 15.5, R 4.5.3.
+
+| Method                 | Climatology | Detection | Total                    | Speedup |
+|------------------------|-------------|-----------|--------------------------|---------|
+| heatwaveR (serial)     | n/a         | n/a       | ca. 4,116 sec (68.7 min) | 1×      |
+| heatwave3 (1 thread)   | 174 sec     | 82 sec    | **257 sec (4.3 min)**    | **16×** |
+| heatwave3 (12 threads) | 60 sec      | 55 sec    | **115 sec (1.9 min)**    | **36×** |
+
+The speedup comes from three sources:
+
+1.  **C++ algorithms**. Climatology (sliding-window percentile) and
+    event detection (run-length encoding, gap joining, 19 metrics) are
+    implemented in pure C++ rather than R + data.table.
+2.  **OpenMP parallelism**. Each pixel is independent, so OpenMP
+    distributes pixels across cores with zero coordination overhead.
+3.  **Direct NetCDF I/O**. Reads the full data slab in one C call via
+    libnetcdf, avoiding R’s per-pixel ncdf4 random-access overhead.
+
+<div class="section level3">
+
+### Scaling notes
+
+-   The 12-thread run is 2.2× faster than single-threaded, not 12×,
+    because the full 400×200 grid must first be read into memory (ca.
+    900 MB for this dataset) and the NetCDF I/O is single-threaded. The
+    parallelism benefit is in the computation phase only.
+-   For grids that fit in memory, I/O accounts for roughly 40–60% of
+    wall time. Larger grids with more ocean pixels show better parallel
+    scaling as the compute fraction grows.
+-   On Linux with gcc OpenMP (which has lower thread-creation overhead
+    than macOS libomp), parallel scaling is typically better.
+
+</div>
+
+</div>
+
+<div class="section level2">
+
+## Benguela region: daily files, full pipeline
+
+This benchmark applies heatwave3 to a production-scale analysis, the
+Benguela upwelling system, using **16,049 individual daily OSTIA files**
+(1982–2025) with the WMO 1991–2020 climatological baseline.
+
+The subsetted OSTIA files cover 7–20°E, 35–17°S at 0.05° resolution (260
+lon × 360 lat = 93,600 pixels). This is a region with strong upwelling
+variability and a mix of ocean and land pixels.
+
+<div id="cb5" class="sourceCode">
+
+``` r
+library(heatwave3)
+
+ostia_dir <- "/Volumes/OceanData/Tom/OSTIA"
+clim_file <- tempfile(fileext = ".nc")
+event_file <- tempfile(fileext = ".nc")
+```
+
+</div>
+
+<div id="cb6" class="sourceCode">
+
+``` r
+# Climatology from ca. 16,000 daily files (WMO 1991-2020 baseline)
+t_clim <- system.time(
+  ts2clm3(
+    file_in  = ostia_dir,
+    file_out = clim_file,
+    climatologyPeriod = c("1991-01-01", "2020-12-31"),
+    var_name = "analysed_sst",
+    n_threads = 12L
+  )
+)
+```
+
+</div>
+
+<div id="cb7" class="sourceCode">
+
+``` r
+# Event detection on the same daily files
+t_event <- system.time(
+  detect_event3(
+    file_in   = ostia_dir,
+    clim_file = clim_file,
+    file_out  = event_file,
+    var_name  = "analysed_sst",
+    n_threads = 12L
+  )
+)
+```
+
+</div>
+
+<div class="section level3">
+
+### Benguela results
+
+| Step                            | Time                  | Detail                                             |
+|---------------------------------|-----------------------|----------------------------------------------------|
+| Read + merge 16,049 daily files | included              | sorted, deduplicated, assembled into 3D cube       |
+| Climatology (12 threads)        | **95 sec**            | 30-year WMO baseline, 93,600 pixels × 366 DOYs     |
+| Event detection (12 threads)    | **108 sec**           | threshold exceedance, RLE, gap joining, 19 metrics |
+| **Total**                       | **203 sec (3.4 min)** | 8.4 million events detected                        |
+
+For comparison, processing 93,600 pixels serially with heatwaveR at ca.
+0.083 sec/pixel would take ca. **2.2 hours**. heatwave3 completes the
+same analysis in 3.4 minutes, a **ca. 38× speedup**.
+
+</div>
+
+</div>
+
+</div>

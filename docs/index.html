@@ -4,105 +4,404 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Detect Heatwaves and Cold-Spells within cubed data • heatwave3</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png">
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
-<script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
-<script src="pkgdown.js"></script><meta property="og:title" content="Detect Heatwaves and Cold-Spells within cubed data">
-<meta property="og:description" content="This package is an extension to heatwaveR that allows the user to detect extreme 
-    events a la Hobday definition directly on cubed data files (e.g. NetCDF format).">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Detect Heatwaves and Cold-Spells in Gridded Data • heatwave3</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
+<script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Detect Heatwaves and Cold-Spells in Gridded Data">
+<meta name="description" content="Detect marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++ with OpenMP parallelism for high performance on large datasets.">
+<meta property="og:description" content="Detect marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++ with OpenMP parallelism for high performance on large datasets.">
 <meta property="og:image" content="https://robwschlegel.github.io/heatwave3/index.html/logo.png">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
 </head>
-<body data-spy="scroll" data-target="#toc">
-    
+<body>
+    <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
-    <div class="container template-home">
-      <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">
-        <a class="navbar-link" href="index.html">heatwave3</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.0.3</span>
-      </span>
-    </div>
 
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-<li>
-  <a href="reference/index.html">Reference</a>
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
+
+    <a class="navbar-brand me-2" href="index.html">heatwave3</a>
+
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
+
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div id="navbar" class="collapse navbar-collapse ms-3">
+      <ul class="navbar-nav me-auto">
+<li class="active nav-item"><a class="nav-link" href="index.html">Overview</a></li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/heatwave3.html">Getting started with heatwave3</a></li>
+    <li><a class="dropdown-item" href="articles/netcdf-output.html">NetCDF output internals</a></li>
+    <li><a class="dropdown-item" href="articles/parallelism.html">Parallel performance</a></li>
+    <li><a class="dropdown-item" href="articles/benchmark.html">Performance benchmark</a></li>
+  </ul>
 </li>
-<li>
-  <a href="news/index.html">Changelog</a>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-resources">
+<li><a class="external-link dropdown-item" href="https://robwschlegel.github.io/heatwaveR/index.html">heatwaveR</a></li>
+    <li><a class="external-link dropdown-item" href="https://www.marineheatwaves.org">Marine Heatwave Tracker</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.1016/j.pocean.2015.12.014">Hobday et al. 2016 definition</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.5670/oceanog.2018.205">Hobday et al. 2018 categories</a></li>
+  </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
-<ul class="nav navbar-nav navbar-right">
-<li>
-  <a href="https://github.com/robwschlegel/heatwave3" class="external-link">
-    <span class="fa fa-github fa-lg"></span>
-     
-    github
-  </a>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
+</form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/robwschlegel/heatwave3" aria-label="GitHub"><span class="fa fa-github fa-lg"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
 </li>
       </ul>
 </div>
-<!--/.nav-collapse -->
+
+
   </div>
-<!--/.container -->
+</nav><div class="container template-home">
+<div class="row">
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="heatwave3-">heatwave3 <a class="anchor" aria-label="anchor" href="#heatwave3-"></a>
+</h1>
 </div>
-<!--/.navbar -->
-
-      
-
-      </header><div class="row">
-  <div class="contents col-md-9">
-<div class="section level1">
-<div class="page-header"><h1 id="heatwave3-">heatwave3 <img src="logo.png" width="200" align="right"><a class="anchor" aria-label="anchor" href="#heatwave3-"></a>
-</h1></div>
 <!-- badges: start -->
 
-<p>Welcome to <strong><code>heatwave3</code></strong>. The goal of this package is to make life easier when working with the Hobday et al. (2016, 2018) marine heatwave (MHW) definition on large datasets. Traditionally we have had to detect MHWs on one time series at a time. For large gridded datasets this can be technically difficult and very time consuming. Now, thanks to developments in the <strong><code>terra</code></strong> package, it is possible to apply any numbers of functions directly to gridded data (e.g. NetCDF files). <strong><code>heatwave3</code></strong> therefore serves as an extension to the <a href="https://robwschlegel.github.io/heatwaveR/index.html" class="external-link"><strong><code>heatwaveR</code></strong></a> package and helps the user to easily and quickly detect MHWs within their gridded datasets. The results can be returned as either a stacked raster or data.frame. This package can also save the results directly as a NetCDF or CSV file.</p>
-<p>The package is still in its infancy and is being actively developed. Any and all feedback is very welcome!</p>
+<p><strong>heatwave3</strong> detects marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. It is a ground-up C++ reimplementation of <a href="https://robwschlegel.github.io/heatwaveR/" class="external-link"><strong>heatwaveR</strong></a>, designed for gridded datasets rather than individual time series.</p>
+<div class="section level2">
+<h2 id="why-heatwave3">Why heatwave3?<a class="anchor" aria-label="anchor" href="#why-heatwave3"></a>
+</h2>
+<p>Working with large gridded SST datasets (such as OSTIA, OISST, ERA5, CMIP6) using heatwaveR requires looping over each pixel individually in R. For a 400 × 200 grid with 40 years of daily data, this takes over an hour. <strong>heatwave3</strong> addresses this with:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>C++17 implementation</strong> of all core algorithms (climatology, event detection, categorisation, block averages)</li>
+<li>
+<strong>OpenMP parallelism</strong> across pixels, since each pixel is independent</li>
+<li>
+<strong>Direct NetCDF I/O</strong> via libnetcdf, with no R NetCDF packages needed at runtime</li>
+</ol>
+<div class="section level3">
+<h3 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a>
+</h3>
+<p>Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 × 200 grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M3 Pro:</p>
+<table class="table">
+<thead><tr>
+<th>Method</th>
+<th>Time</th>
+<th>Speedup</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>heatwaveR (serial)</td>
+<td>ca. 69 min</td>
+<td>1×</td>
+</tr>
+<tr>
+<td>heatwave3 (1 thread)</td>
+<td>4.3 min</td>
+<td><strong>16×</strong></td>
+</tr>
+<tr>
+<td>heatwave3 (12 threads)</td>
+<td>1.9 min</td>
+<td><strong>36×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>For larger grids using daily files (Benguela region, 260 × 360 pixels, 16,049 daily OSTIA files, 12 threads): <strong>3.4 minutes</strong> end-to-end.</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
+</h2>
+<ul>
+<li>
+<strong>Climatology</strong> (<code>ts2clm3</code>). Sliding-window percentile with Type-7 quantile, circular-padded rolling mean smoothing, and optional linear detrending (Jacox et al. 2020).</li>
+<li>
+<strong>Event detection</strong> (<code>detect_event3</code>). Threshold exceedance, run-length encoding, gap joining, and 19 event metrics. Cold-spell support. Optional inline Hobday et al. (2018) severity categories.</li>
+<li>
+<strong>All-in-one pipeline</strong> (<code>detect3</code>). Climatology, detection, and optional categories in a single call, with <code>return_df = TRUE</code> for interactive use.</li>
+<li>
+<strong>Spatial blob detection</strong> (<code>detect_blob3</code>). 3D connected-component labelling with voxel-level footprint output.</li>
+<li>
+<strong>Event categorisation</strong> (<code>category3</code>). Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories, for both heatwaves and cold-spells.</li>
+<li>
+<strong>Yearly aggregation</strong> (<code>block_average3</code>) and <strong>static threshold exceedance</strong> (<code>exceedance3</code>).</li>
+<li>
+<strong>Plotting</strong>. <code>event_line3</code>, <code>geom_flame3</code>, <code>geom_lolli3</code>, and <code>plot_metric3</code> (C++-backed spatial aggregation).</li>
+<li>
+<strong>Flexible input</strong>. Single multi-timestep NetCDF, directory of daily files, or explicit file vector.</li>
+<li>
+<strong>Automatic dimension detection</strong>. Identifies lon/lat/time/SST from CF attributes, standard names, and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO).</li>
+<li>
+<strong>Progress reporting</strong>. Percentage-complete updates during long climatology and detection runs.</li>
+<li>
+<strong>Multiple output formats</strong>. NetCDF always, plus optional CSV, RDA, or Parquet companion files.</li>
+<li>
+<strong>Numerical equivalence</strong>. Climatology and event metrics match heatwaveR to rounding precision, validated pixel-by-pixel.</li>
+</ul>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of <strong><code>heatwave3</code></strong> from this <a href="https://github.com/robwschlegel/heatwave3" class="external-link">GitHub</a> repository with:</p>
+<div class="section level3">
+<h3 id="development-version-recommended">Development version (recommended)<a class="anchor" aria-label="anchor" href="#development-version-recommended"></a>
+</h3>
+<p>The <code>dev</code> branch contains the new C++ implementation:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
+</h3>
+<p>heatwave3 requires the <strong>netCDF C library</strong> (version 4.0+). The <code>configure</code> script finds it automatically via <code>nc-config</code> or <code>pkg-config</code>.</p>
+<p><strong>macOS:</strong></p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">brew</span> install netcdf</span></code></pre></div>
+<p><strong>Ubuntu / Debian:</strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">sudo</span> apt install libnetcdf-dev</span></code></pre></div>
+<p><strong>Fedora / RHEL:</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">sudo</span> dnf install netcdf-devel</span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="openmp-parallelism">OpenMP parallelism<a class="anchor" aria-label="anchor" href="#openmp-parallelism"></a>
+</h3>
+<p>On Linux, OpenMP works without extra setup. On macOS, the <code>configure</code> script probes for a working OpenMP runtime (Apple Clang with R’s own bundled libomp, Homebrew libomp, or user-supplied flags) using a compile-link-run test. If none is found, heatwave3 falls back to single-threaded mode.</p>
+<p>To install Homebrew’s libomp (may help on some macOS configurations):</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">brew</span> install libomp</span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="thread-management">Thread management<a class="anchor" aria-label="anchor" href="#thread-management"></a>
+</h3>
+<p>heatwave3 defaults to <strong>50% of available cores</strong> (overridable via <code>R_HEATWAVE3_NUM_THREADS</code>). Control threads at the session level or per function call:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/getHW3threads.html">getHW3threads</a></span><span class="op">(</span><span class="op">)</span>       <span class="co"># check current default</span></span>
+<span><span class="fu"><a href="reference/getHW3threads.html">setHW3threads</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span>      <span class="co"># use 8 threads for all subsequent calls</span></span>
+<span><span class="fu"><a href="reference/getHW3threads.html">setHW3threads</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>      <span class="co"># reset to default (50% of cores)</span></span>
+<span></span>
+<span><span class="co"># Or override per call:</span></span>
+<span><span class="fu"><a href="reference/detect_event3.html">detect_event3</a></span><span class="op">(</span><span class="va">...</span>, n_threads <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+<p>heatwave3 never calls <code>omp_set_num_threads()</code>, so it does not change thread counts for other OpenMP-using packages. It is also safe under <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code> (fork-safe via <code>pthread_atfork</code>).</p>
+</div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<p>The use of <strong><code>heatwave3</code></strong> has been designed to be as easy as possible. There is a lot happening behind the scenes that allows this package to determine the structure of the users data without needing to provide any additional arguments. Please see the following example:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Run directly on a file without needing to load it first</span></span>
-<span><span class="va">mhw_cube</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/detect3.html">detect3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/oisst_short.nc"</span>, package <span class="op">=</span> <span class="st">"heatwave3"</span><span class="op">)</span>,</span>
-<span>                     return_type <span class="op">=</span> <span class="st">"df"</span>, clim_period <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span>
-<span>               </span>
-<span><span class="co"># Show the first few rows</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mhw_cube</span><span class="op">)</span></span></code></pre></div>
-<p>Of course, there are possibly more ways to organise a data file than there are stars in the sky. If this function doesn’t work on your dataset, please contact us! We are actively looking for ways to improve the usability of <strong><code>heatwave3</code></strong></p>
+<span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="st">"path/to/sst.nc"</span>  <span class="co"># or a directory of daily files</span></span>
+<span><span class="va">clim_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".nc"</span><span class="op">)</span></span>
+<span><span class="va">event_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".nc"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># All-in-one: climatology + event detection + categories</span></span>
+<span><span class="va">events</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/detect3.html">detect3</a></span><span class="op">(</span></span>
+<span>  file_in           <span class="op">=</span> <span class="va">sst_file</span>,</span>
+<span>  file_out_clim     <span class="op">=</span> <span class="va">clim_file</span>,</span>
+<span>  file_out_event    <span class="op">=</span> <span class="va">event_file</span>,</span>
+<span>  climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1991-01-01"</span>, <span class="st">"2020-12-31"</span><span class="op">)</span>,</span>
+<span>  lon_range         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">35</span><span class="op">)</span>,</span>
+<span>  lat_range         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">38</span>, <span class="op">-</span><span class="fl">28</span><span class="op">)</span>,</span>
+<span>  category          <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  hemisphere        <span class="op">=</span> <span class="st">"south"</span>,</span>
+<span>  return_df         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  n_threads         <span class="op">=</span> <span class="fl">4</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">events</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">events</span><span class="op">$</span><span class="va">category</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="cold-spell-detection">Cold-spell detection<a class="anchor" aria-label="anchor" href="#cold-spell-detection"></a>
+</h3>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Use pctile = 10 for the cold tail</span></span>
+<span><span class="va">events_cold</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/detect3.html">detect3</a></span><span class="op">(</span></span>
+<span>  file_in           <span class="op">=</span> <span class="va">sst_file</span>,</span>
+<span>  file_out_clim     <span class="op">=</span> <span class="st">"clim_10pct.nc"</span>,</span>
+<span>  file_out_event    <span class="op">=</span> <span class="st">"events_cold.nc"</span>,</span>
+<span>  climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1991-01-01"</span>, <span class="st">"2020-12-31"</span><span class="op">)</span>,</span>
+<span>  pctile            <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  coldSpells        <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  category          <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  hemisphere        <span class="op">=</span> <span class="st">"south"</span>,</span>
+<span>  return_df         <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  n_threads         <span class="op">=</span> <span class="fl">12</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">events_cold</span><span class="op">$</span><span class="va">category</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="per-pixel-time-series-plot">Per-pixel time series plot<a class="anchor" aria-label="anchor" href="#per-pixel-time-series-plot"></a>
+</h3>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/event_line3.html">event_line3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>, lon <span class="op">=</span> <span class="fl">25.0</span>, lat <span class="op">=</span> <span class="op">-</span><span class="fl">34.0</span>,</span>
+<span>            start_date <span class="op">=</span> <span class="st">"2018-01-01"</span>, end_date <span class="op">=</span> <span class="st">"2019-12-31"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="spatial-map-of-peak-intensity">Spatial map of peak intensity<a class="anchor" aria-label="anchor" href="#spatial-map-of-peak-intensity"></a>
+</h3>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># C++-backed per-pixel aggregation, efficient even for millions of events</span></span>
+<span><span class="fu"><a href="reference/plot_metric3.html">plot_metric3</a></span><span class="op">(</span><span class="va">event_file</span>, metric <span class="op">=</span> <span class="st">"intensity_max"</span>, summary <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="event-categories-standalone">Event categories (standalone)<a class="anchor" aria-label="anchor" href="#event-categories-standalone"></a>
+</h3>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Reads pre-computed categories from event file (no clim_file needed)</span></span>
+<span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/category3.html">category3</a></span><span class="op">(</span><span class="va">event_file</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">cats</span><span class="op">$</span><span class="va">category</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Or compute from scratch for older event files</span></span>
+<span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/category3.html">category3</a></span><span class="op">(</span><span class="va">event_file</span>, <span class="va">clim_file</span>, hemisphere <span class="op">=</span> <span class="st">"south"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="using-daily-files">Using daily files<a class="anchor" aria-label="anchor" href="#using-daily-files"></a>
+</h3>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Pass a directory. All .nc/.nc4 files are read, sorted, and merged</span></span>
+<span><span class="fu"><a href="reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span></span>
+<span>  file_in <span class="op">=</span> <span class="st">"/path/to/daily_ostia/"</span>,</span>
+<span>  file_out <span class="op">=</span> <span class="va">clim_file</span>,</span>
+<span>  climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1991-01-01"</span>, <span class="st">"2020-12-31"</span><span class="op">)</span>,</span>
+<span>  n_threads <span class="op">=</span> <span class="fl">12</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="spatial-blob-detection">Spatial blob detection<a class="anchor" aria-label="anchor" href="#spatial-blob-detection"></a>
+</h3>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">blobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/detect_blob3.html">detect_blob3</a></span><span class="op">(</span></span>
+<span>  sst_file  <span class="op">=</span> <span class="va">sst_file</span>,</span>
+<span>  clim_file <span class="op">=</span> <span class="va">clim_file</span>,</span>
+<span>  minVoxels <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  topN      <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  return    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event"</span>, <span class="st">"daily"</span>, <span class="st">"voxel"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># blobs$event: summary per blob (duration, peak area, cumulative intensity)</span></span>
+<span><span class="co"># blobs$daily: daily progression (area, centroid, bounding box)</span></span>
+<span><span class="co"># blobs$voxel: full 3D footprint (for spatial maps)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="detrended-climatology">Detrended climatology<a class="anchor" aria-label="anchor" href="#detrended-climatology"></a>
+</h3>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Remove linear warming trend before computing climatology</span></span>
+<span><span class="co"># (Jacox et al. 2020 approach)</span></span>
+<span><span class="fu"><a href="reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>,</span>
+<span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1991-01-01"</span>, <span class="st">"2020-12-31"</span><span class="op">)</span>,</span>
+<span>        detrend <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="api-overview">API overview<a class="anchor" aria-label="anchor" href="#api-overview"></a>
+</h2>
+<p>All functions are suffixed with <code>3</code> to avoid namespace conflicts with heatwaveR:</p>
+<table class="table">
+<colgroup>
+<col width="52%">
+<col width="47%">
+</colgroup>
+<thead><tr>
+<th>Function</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code><a href="reference/detect3.html">detect3()</a></code></td>
+<td>
+<strong>Primary entry point</strong>. Climatology, detection, and optional categories</td>
+</tr>
+<tr>
+<td><code><a href="reference/ts2clm3.html">ts2clm3()</a></code></td>
+<td>Compute climatology (NetCDF → NetCDF)</td>
+</tr>
+<tr>
+<td><code><a href="reference/detect_event3.html">detect_event3()</a></code></td>
+<td>Detect per-pixel events (with optional inline categories)</td>
+</tr>
+<tr>
+<td><code><a href="reference/detect_blob3.html">detect_blob3()</a></code></td>
+<td>3D spatial blob detection</td>
+</tr>
+<tr>
+<td><code><a href="reference/category3.html">category3()</a></code></td>
+<td>Hobday et al. (2018) event categories (reads or computes)</td>
+</tr>
+<tr>
+<td><code><a href="reference/block_average3.html">block_average3()</a></code></td>
+<td>Yearly aggregation of event metrics</td>
+</tr>
+<tr>
+<td><code><a href="reference/exceedance3.html">exceedance3()</a></code></td>
+<td>Static threshold exceedance</td>
+</tr>
+<tr>
+<td><code><a href="reference/event_line3.html">event_line3()</a></code></td>
+<td>Per-pixel time series plot</td>
+</tr>
+<tr>
+<td><code><a href="reference/geom_flame3.html">geom_flame3()</a></code></td>
+<td>ggplot2 flame polygon geom</td>
+</tr>
+<tr>
+<td><code><a href="reference/geom_lolli3.html">geom_lolli3()</a></code></td>
+<td>ggplot2 lollipop geom</td>
+</tr>
+<tr>
+<td><code><a href="reference/plot_metric3.html">plot_metric3()</a></code></td>
+<td>Spatial map of event metrics (C++-backed aggregation)</td>
+</tr>
+<tr>
+<td><code><a href="reference/hw3_export.html">hw3_export()</a></code></td>
+<td>Export NetCDF output to CSV/RDA/Parquet</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section level2">
+<h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
+</h2>
+<ul>
+<li>
+<strong>Getting started</strong>. Full pipeline walkthrough with spatial blob figures.</li>
+<li>
+<strong>NetCDF output internals</strong>. Output file structure, CF compliance, and reading in R/Python/CDO.</li>
+<li>
+<strong>Performance benchmark</strong>. heatwaveR versus heatwave3 timing comparison.</li>
+<li>
+<strong>Parallel performance</strong>. OpenMP threads versus R-side parallelism, with per-platform setup.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
+<p>If you use heatwave3 in published research, please cite both:</p>
+<ul>
+<li>Hobday, A.J., et al. (2016). A hierarchical approach to defining marine heatwaves. <em>Progress in Oceanography</em>, 141, 227–238.</li>
+<li>Hobday, A.J., et al. (2018). Categorizing and naming marine heatwaves. <em>Oceanography</em>, 31(2), 162–173.</li>
+</ul>
 </div>
 <div class="section level2">
 <h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>
@@ -110,10 +409,7 @@
 <p>Please note that the heatwave3 project is released with a <a href="https://contributor-covenant.org/version/2/1/CODE_OF_CONDUCT.html" class="external-link">Contributor Code of Conduct</a>. By contributing to this project, you agree to abide by its terms.</p>
 </div>
 </div>
-  </div>
-
-  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-    <div class="links">
+  </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/robwschlegel/heatwave3/" class="external-link">Browse source code</a></li>
@@ -145,14 +441,8 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Robert W. Schlegel <br><small class="roles"> Author, maintainer, contributor </small> <a href="https://orcid.org/0000-0002-0705-1287" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Guilherme Pinto <br><small class="roles"> Author, contributor </small>  </li>
-<li>Lily Genevier <br><small class="roles"> Author, contributor </small>  </li>
-<li>Jacob Cohen <br><small class="roles"> Author, contributor </small>  </li>
-<li>Panini Dasgupta <br><small class="roles"> Author, contributor </small>  </li>
-<li>Evan Meeker <br><small class="roles"> Author, contributor </small>  </li>
-<li>Elise Beaudin <br><small class="roles"> Author, contributor </small>  </li>
-<li>Albertus J. Smit <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0000-0002-3799-6126" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Robert W. Schlegel <br><small class="roles"> Author, contributor </small> <a href="https://orcid.org/0000-0002-0705-1287" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Albertus J. Smit <br><small class="roles"> Author, maintainer, contributor </small> <a href="https://orcid.org/0000-0002-3799-6126" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
@@ -164,27 +454,24 @@
 </ul>
 </div>
 
-  </div>
+  </aside>
 </div>
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Robert W. Schlegel, Guilherme Pinto, Lily Genevier, Jacob Cohen, Panini Dasgupta, Evan Meeker, Elise Beaudin, Albertus J. Smit.</p>
+    <footer><div class="pkgdown-footer-left">
+  <p>Developed by Robert W. Schlegel, Albertus J. Smit.</p>
 </div>
 
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<div class="pkgdown-footer-right">
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
-      </footer>
+    </footer>
 </div>
 
-  
 
 
-  
+
 
   </body>
 </html>

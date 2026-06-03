@@ -1,45 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/404.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/CODE_OF_CONDUCT.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/index.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/reference/detect3clim.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/reference/detect3event.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/reference/heatwave3-package.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/reference/rast_to_df.html</loc>
-  </url>
-  <url>
-    <loc>https://robwschlegel.github.io/heatwave3/index.html/reference/sst_q.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/404.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/CLAUDE.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/CODE_OF_CONDUCT.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/LICENSE-text.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/LICENSE.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/articles/benchmark.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/articles/heatwave3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/articles/index.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/articles/netcdf-output.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/articles/parallelism.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/authors.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/index.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/news/index.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/category3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/heatwave3-package.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/index.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.html</loc></url>
+<url><loc>https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.html</loc></url>
 </urlset>
+

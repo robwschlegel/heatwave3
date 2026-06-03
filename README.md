@@ -52,7 +52,7 @@ The `dev` branch contains the new C++ implementation:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("robwschlegel/heatwave3@dev")
+remotes::install_github("robwschlegel/heatwave3")
 ```
 
 ### System requirements

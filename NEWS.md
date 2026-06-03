@@ -1,3 +1,30 @@
+# heatwave3 1.1.4 (2026-06-03)
+
+## Bug fixes
+
+* **The package now builds on Linux with libstdc++.** The `#include <pthread.h>`
+  in `src/hw3_omp.h` sat inside `namespace hw3`, so pthread's symbols
+  (`pthread_create`, `pthread_join`, and the rest) were declared as
+  `hw3::pthread_*` rather than at global scope. When `hw3_omp.h` was the first
+  translation unit to pull in `<pthread.h>` (for instance via `climatology.cpp`
+  ahead of Rcpp), libstdc++'s threading shim `<gthr-default.h>` could not
+  resolve `::pthread_create` and the build failed on Linux/g++. macOS/libc++
+  masked the fault by including `<pthread.h>` globally and early. The guarded
+  `#include` now sits at global scope; the fork-handler functions remain inside
+  the namespace.
+
+## Internal
+
+* **CI action versions updated.** `actions/upload-artifact@v3` is fully retired
+  and hard-failed the `test-coverage` job; `actions/checkout@v3` was on the same
+  deprecation path. Both are now pinned to `@v4` across the `R-CMD-check` and
+  `test-coverage` workflows. The `r-lib/actions@v2` pins are unchanged, since
+  `v2` is the current maintained major.
+
+* **Generated `src/Makevars` is now git-ignored.** The `configure` script writes
+  `src/Makevars` with machine-specific absolute paths at build time; only the
+  `src/Makevars.in` and `src/Makevars.win` templates are tracked.
+
 # heatwave3 1.1.3 (2026-06-02)
 
 ## New features

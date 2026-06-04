@@ -1,4 +1,4 @@
-# heatwave3 1.2.0 (2026-06-03)
+# heatwave3 1.2.0 (2026-06-04)
 
 ## Breaking changes
 

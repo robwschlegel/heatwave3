@@ -384,17 +384,15 @@ void compute_climatology_grid(
     }
 
     int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
-    (void)nt;  // used by OpenMP num_threads clause
 
-    std::atomic<int> done_pixels{0};
-    int report_interval = std::max(1, npixels / 20);
+    auto report = [&](int cur) {
+        Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+                    << (100 * cur / npixels) << "%)" << std::flush;
+    };
 
-    // schedule(static, 1): round-robin pixels across threads. This balances
-    // the land/ocean cost mix as well as schedule(dynamic) did, but emits only
-    // __kmpc_for_static_init (present in every libomp) rather than the
-    // dynamic-dispatch symbols that R's bundled libomp lacks. See configure.
-    #pragma omp parallel for schedule(static, 1) num_threads(nt)
-    for (int px = 0; px < npixels; ++px) {
+    // Pixels are independent, so each worker writes only its own slice of the
+    // output arrays (no locking). Progress is reported from the main thread.
+    hw3::parallel_for(npixels, nt, [&](int /*wid*/, int px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
 
         // Skip all-NA pixels
@@ -402,17 +400,7 @@ void compute_climatology_grid(
         for (int t = 0; t < ntime; ++t) {
             if (!is_na(pixel_temp[t])) { has_data = true; break; }
         }
-        if (!has_data) {
-            int cur = ++done_pixels;
-            if (cur % report_interval == 0 || cur == npixels) {
-                #pragma omp critical
-                {
-                    Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
-                                << (100 * cur / npixels) << "%)" << std::flush;
-                }
-            }
-            continue;
-        }
+        if (!has_data) return;
 
         PixelClimResult cr = compute_pixel_climatology(
             pixel_temp, time_jd, ntime,
@@ -430,16 +418,7 @@ void compute_climatology_grid(
                 std::memcpy(var_out + offset, cr.var, 366 * sizeof(double));
             }
         }
-
-        int cur = ++done_pixels;
-        if (cur % report_interval == 0 || cur == npixels) {
-            #pragma omp critical
-            {
-                Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
-                            << (100 * cur / npixels) << "%)" << std::flush;
-            }
-        }
-    }
+    }, report);
 
     Rcpp::Rcout << std::endl;
 }

@@ -35,6 +35,41 @@
   either returns a long `data.frame` (whole, or the first `n` rows for a quick
   look) or writes a flat companion file (`.csv`/`.rds`/`.parquet`). It replaces
   the old `return_df`/`save_file` pathways.
+* **`category_daily3()`** builds the per-pixel daily marine-heatwave (or
+  cold-spell) category series for a date window straight from an SST file, a
+  climatology, and an events file, entirely via the C++ readers. It reads only
+  the requested SST time-window (a hyperslab) and re-runs no detection: event
+  membership is read from the events file, so events that began before the
+  window are still recognised (re-detecting on a short window would silently drop
+  them). It returns the full daily grid with the same columns as the
+  `detect_event3(daily = "also")` product (`lon, lat, t, temp, seas, thresh,
+  intensity, event, event_no, category`), with `category` set on event-member
+  exceedance days and `NA` elsewhere. This is a NetCDF-native replacement for the
+  Marine Heatwave Tracker's tidync-based `load_sub_cat_clim()` (about 240x faster
+  per longitude in testing), with an `ice_thresh` argument for the cold-spell
+  sea-ice category; the Tracker's event-day subset is `subset(x,
+  !is.na(category))`. `sst_file` may be a single multi-time file or a directory /
+  vector of daily files (one time step each, e.g. daily-global OSTIA/GHRSST).
+
+## Bug fixes
+
+* **In-process multithreading no longer depends on OpenMP/`libomp`.** The
+  parallel loops (climatology and event detection) now use C++ `std::thread`.
+  On macOS, a `dlopen`-ed `libomp` could fail to allocate its per-worker
+  thread-local storage in a process carrying a large native footprint -- terra /
+  raster / sf with their GDAL stack, conda toolchains, or the Positron/`ark`
+  kernel that embeds R -- and segfault in `__kmp_suspend` the moment a
+  multithreaded run started. `std::thread` uses pthreads and has no such
+  dependency, so `n_threads > 1` is now reliable in any session and front-end.
+  Results are unchanged (verified pixel-by-pixel). The package no longer detects
+  or links an OpenMP runtime; `configure` reports `Parallelism: C++ std::thread`.
+* **Noon-stamped daily products are no longer dated a day forward.** CF time
+  parsing rounded each timestamp to the nearest day, so daily files stamped at
+  12:00:00 (OSTIA, GHRSST, MUR, and similar) were assigned to the *next*
+  calendar day. Times are now mapped to the calendar day that contains them
+  (floor), matching `heatwaveR`'s `as.Date()` truncation. Midnight-stamped data
+  (for example OISST) is unaffected. Climatologies, events, and daily categories
+  derived from noon-stamped inputs should be regenerated.
 * **Streaming subset extraction in `hw3_export()`.** `vars`, `lon_range`,
   `lat_range`, `time_range`, and `n` select a subset that is read straight from
   the NetCDF as a hyperslab: for the gridded products only the requested

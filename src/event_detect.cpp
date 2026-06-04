@@ -526,17 +526,16 @@ void detect_events_grid(
 
     int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
 
-    std::vector<std::vector<PixelResult>> thread_results;
-    thread_results.resize(nt);
+    // Each worker accumulates into its own results vector (indexed by worker id),
+    // merged after the parallel region; no locking in the hot loop.
+    std::vector<std::vector<PixelResult>> thread_results(nt);
 
-    std::atomic<int> done_pixels{0};
-    int report_interval = std::max(1, npixels / 20);
+    auto report = [&](int cur) {
+        Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+                    << (100 * cur / npixels) << "%)" << std::flush;
+    };
 
-    // schedule(static, 1): round-robin pixels across threads — same load
-    // balance as schedule(dynamic), but without the dynamic-dispatch symbols
-    // (e.g. __kmpc_dispatch_deinit) that R's bundled libomp lacks. See configure.
-    #pragma omp parallel for schedule(static, 1) num_threads(nt)
-    for (int px = 0; px < npixels; ++px) {
+    hw3::parallel_for(npixels, nt, [&](int wid, int px) {
         const double* pixel_temp = sst + static_cast<size_t>(px) * ntime;
         const double* pixel_thresh2 = thresh2 ? thresh2 + static_cast<size_t>(px) * ntime : nullptr;
         const double* pixel_seas = seas_clim + static_cast<size_t>(px) * 366;
@@ -547,34 +546,14 @@ void detect_events_grid(
         for (int t = 0; t < ntime; ++t) {
             if (!is_na(pixel_temp[t])) { has_data = true; break; }
         }
-        if (!has_data) {
-            int cur = ++done_pixels;
-            if (cur % report_interval == 0 || cur == npixels) {
-                #pragma omp critical
-                {
-                    Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
-                                << (100 * cur / npixels) << "%)" << std::flush;
-                }
-            }
-            continue;
-        }
+        if (!has_data) return;
 
         // Skip pixels with no valid climatology
         bool has_clim = false;
         for (int d = 0; d < 366; ++d) {
             if (!is_na(pixel_seas[d])) { has_clim = true; break; }
         }
-        if (!has_clim) {
-            int cur = ++done_pixels;
-            if (cur % report_interval == 0 || cur == npixels) {
-                #pragma omp critical
-                {
-                    Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
-                                << (100 * cur / npixels) << "%)" << std::flush;
-                }
-            }
-            continue;
-        }
+        if (!has_clim) return;
 
         // Build this pixel's slice of the grid-wide daily buffers (if any).
         DailyBuffers pdaily;
@@ -603,22 +582,12 @@ void detect_events_grid(
         );
 
         if (pe.valid && !pe.events.empty()) {
-            int tid = omp_get_thread_num();
             PixelResult pr;
             pr.px = px;
             pr.pe = std::move(pe);
-            thread_results[tid].push_back(std::move(pr));
+            thread_results[wid].push_back(std::move(pr));
         }
-
-        int cur = ++done_pixels;
-        if (cur % report_interval == 0 || cur == npixels) {
-            #pragma omp critical
-            {
-                Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
-                            << (100 * cur / npixels) << "%)" << std::flush;
-            }
-        }
-    }
+    }, report);
 
     Rcpp::Rcout << std::endl;
 

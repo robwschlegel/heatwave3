@@ -19,7 +19,7 @@ Working with large gridded SST datasets (such as OSTIA, OISST, ERA5, CMIP6) usin
 
 ### Performance
 
-Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 &times; 200 grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M3 Pro:
+Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 &times; 200 grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M5 Max:
 
 | Method | Time | Speedup |
 |--------|------|---------|
@@ -41,7 +41,7 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 - **Flexible input**. Single multi-timestep NetCDF, directory of daily files, or explicit file vector.
 - **Automatic dimension detection**. Identifies lon/lat/time/SST from CF attributes, standard names, and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO).
 - **Progress reporting**. Percentage-complete updates during long climatology and detection runs.
-- **Multiple output formats**. NetCDF always, plus optional CSV, RDA, or Parquet companion files.
+- **NetCDF-native output, exported on demand**. The compute functions always write gridded NetCDF; `hw3_export()` reads any product back into R or converts it to CSV, RDS, or Parquet, with optional variable and lon/lat/time subsetting.
 - **Numerical equivalence**. Climatology and event metrics match heatwaveR to rounding precision, validated pixel-by-pixel.
 
 ## Installation

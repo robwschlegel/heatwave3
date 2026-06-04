@@ -404,6 +404,176 @@ Rcpp::List hw3_read_subset(std::string file,
     return hw3::read_subset_netcdf(file, lr, ltr, tr, vv, max_rows);
 }
 
+// Core of the daily-category computation: given an already-read SST window
+// (GridData), climatology, and events, return the full per-pixel per-day grid
+// for the window. Event membership (event / event_no) is read from the events
+// file -- no detection is re-run, so events that began before the window are
+// still recognised. Mirrors the columns of the detect_event3 daily ("also")
+// product: temp, seas, thresh, intensity for every day; event/event_no from the
+// event ranges; and the Hobday (2018) category on event-member exceedance days
+// (NA otherwise). Cold-spells additionally get category 5 (ice) where the
+// threshold falls below ice_thresh.
+static Rcpp::List daily_cat_core(const hw3::GridData& gd, const hw3::ClimData& cd,
+                                 const hw3::EventData& ed,
+                                 bool coldSpells, double ice_thresh, int roundRes) {
+    if (gd.nlon != cd.nlon || gd.nlat != cd.nlat) {
+        Rcpp::stop("Grid mismatch: SST is %d x %d but climatology is %d x %d.",
+                   gd.nlon, gd.nlat, cd.nlon, cd.nlat);
+    }
+    int npixels = gd.nlon * gd.nlat;
+
+    // Per-pixel event ranges in absolute Julian Days.
+    struct Ev { int ds; int de; int no; };
+    std::vector<std::vector<Ev>> by_pixel(npixels);
+    for (int i = 0; i < ed.nevents; ++i) {
+        int px = ed.pixel_index[i];
+        if (px < 0 || px >= npixels) continue;
+        by_pixel[px].push_back({ ed.ref_date_jd + ed.date_start[i],
+                                 ed.ref_date_jd + ed.date_end[i],
+                                 ed.event_no[i] });
+    }
+
+    double mult = (roundRes > 0) ? std::pow(10.0, roundRes) : 0.0;
+    auto rnd = [&](double v) { return (roundRes > 0) ? std::round(v * mult) / mult : v; };
+
+    // Full daily grid: every pixel x every day in the window.
+    size_t nrow = static_cast<size_t>(npixels) * gd.ntime;
+    Rcpp::IntegerVector out_jd(nrow), out_eno(nrow), out_cat(nrow);
+    Rcpp::NumericVector out_lon(nrow), out_lat(nrow), out_temp(nrow),
+                        out_seas(nrow), out_thresh(nrow), out_int(nrow);
+    Rcpp::LogicalVector out_event(nrow);
+
+    size_t r = 0;
+    for (int px = 0; px < npixels; ++px) {
+        const auto& evs = by_pixel[px];
+        int ilon = px / gd.nlat, ilat = px % gd.nlat;
+        double plon = gd.lon[ilon], plat = gd.lat[ilat];
+        const double* temp = gd.sst.data() + static_cast<size_t>(px) * gd.ntime;
+        const double* seas = cd.seas.data() + static_cast<size_t>(px) * 366;
+        const double* thr  = cd.thresh.data() + static_cast<size_t>(px) * 366;
+
+        for (int t = 0; t < gd.ntime; ++t, ++r) {
+            int jd = gd.time_days[t];
+            out_jd[r]  = jd;
+            out_lon[r] = plon;
+            out_lat[r] = plat;
+
+            double tv = temp[t];
+            int doy = hw3::jd_to_doy_366(jd) - 1;
+            bool clim_ok = (doy >= 0 && doy < 366);
+            double s = clim_ok ? seas[doy] : hw3::NA_DOUBLE;
+            double th = clim_ok ? thr[doy] : hw3::NA_DOUBLE;
+            bool tv_ok = !hw3::is_na(tv);
+            bool s_ok  = clim_ok && !hw3::is_na(s);
+            bool th_ok = clim_ok && !hw3::is_na(th);
+
+            out_temp[r]   = tv_ok ? tv : NA_REAL;
+            out_seas[r]   = s_ok  ? s  : NA_REAL;
+            out_thresh[r] = th_ok ? th : NA_REAL;
+            out_int[r]    = (tv_ok && s_ok) ? rnd(tv - s) : NA_REAL;
+
+            // Event membership from the full-record events file.
+            int eno = 0;
+            for (const auto& e : evs) {
+                if (jd >= e.ds && jd <= e.de) { eno = e.no; break; }
+            }
+            out_event[r] = (eno != 0);
+            out_eno[r]   = (eno != 0) ? eno : NA_INTEGER;
+
+            // Category: only on event-member days that exceed the threshold.
+            int cat = NA_INTEGER;
+            if (eno != 0 && tv_ok && s_ok && th_ok) {
+                double diff = std::abs(th - s);
+                if (diff > 0.0) {
+                    bool exceeds; double ix;
+                    if (coldSpells) { exceeds = (tv < th); ix = s - tv; }
+                    else            { exceeds = (tv > th); ix = tv - s; }
+                    if (exceeds) {
+                        if (ix >= 4.0 * diff) cat = 4;
+                        else if (ix >= 3.0 * diff) cat = 3;
+                        else if (ix >= 2.0 * diff) cat = 2;
+                        else cat = 1;
+                        if (coldSpells && th < ice_thresh) cat = 5;  // sea-ice
+                    }
+                }
+            }
+            out_cat[r] = cat;
+        }
+    }
+
+    return Rcpp::List::create(
+        Rcpp::Named("jd") = out_jd,
+        Rcpp::Named("lon") = out_lon,
+        Rcpp::Named("lat") = out_lat,
+        Rcpp::Named("temp") = out_temp,
+        Rcpp::Named("seas") = out_seas,
+        Rcpp::Named("thresh") = out_thresh,
+        Rcpp::Named("intensity") = out_int,
+        Rcpp::Named("event") = out_event,
+        Rcpp::Named("event_no") = out_eno,
+        Rcpp::Named("category") = out_cat
+    );
+}
+
+// SubsetSpec spanning the climatology grid extent, plus an optional [jd0,jd1]
+// time window (Julian Days) for the SST read.
+static hw3::SubsetSpec clim_extent_subset(const hw3::ClimData& cd,
+                                          const std::vector<int>& t_jd_range) {
+    hw3::SubsetSpec ss;
+    ss.lon_min = *std::min_element(cd.lon.begin(), cd.lon.end());
+    ss.lon_max = *std::max_element(cd.lon.begin(), cd.lon.end());
+    ss.lat_min = *std::min_element(cd.lat.begin(), cd.lat.end());
+    ss.lat_max = *std::max_element(cd.lat.begin(), cd.lat.end());
+    if (t_jd_range.size() == 2) {
+        ss.time_min = std::min(t_jd_range[0], t_jd_range[1]);
+        ss.time_max = std::max(t_jd_range[0], t_jd_range[1]);
+    }
+    return ss;
+}
+
+// Daily marine-heatwave / cold-spell categories for a date window, built from a
+// single multi-time SST file + a heatwave3 climatology + a heatwave3 events
+// file. Only the SST time-window is read (hyperslab); no detection is re-run.
+// [[Rcpp::export]]
+Rcpp::List hw3_category_daily(std::string sst_file,
+                              std::string clim_file,
+                              std::string event_file,
+                              std::vector<int> t_jd_range,   // [jd0, jd1]
+                              std::string var_name = "",
+                              bool coldSpells = false,
+                              double ice_thresh = -1.7,
+                              int roundRes = 2) {
+    hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
+    hw3::SubsetSpec ss = clim_extent_subset(cd, t_jd_range);
+    if (var_name.empty()) var_name = hw3::detect_sst_variable(sst_file);
+    hw3::GridData gd = hw3::read_sst_netcdf(sst_file, var_name, ss);
+    hw3::EventData ed = hw3::read_event_netcdf(event_file);
+    return daily_cat_core(gd, cd, ed, coldSpells, ice_thresh, roundRes);
+}
+
+// As above, but reading the SST window from a vector of daily files (one time
+// step each), e.g. daily-global OSTIA/GHRSST files for the requested window.
+// [[Rcpp::export]]
+Rcpp::List hw3_category_daily_multi(Rcpp::CharacterVector files,
+                                    std::string clim_file,
+                                    std::string event_file,
+                                    std::vector<int> t_jd_range,
+                                    std::string var_name = "",
+                                    bool coldSpells = false,
+                                    double ice_thresh = -1.7,
+                                    int roundRes = 2,
+                                    bool skip_bad_files = false) {
+    hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
+    hw3::SubsetSpec ss = clim_extent_subset(cd, t_jd_range);
+    std::vector<std::string> fv;
+    for (int i = 0; i < files.size(); ++i) fv.push_back(Rcpp::as<std::string>(files[i]));
+    if (var_name.empty() && !skip_bad_files && !fv.empty())
+        var_name = hw3::detect_sst_variable(fv[0]);
+    hw3::GridData gd = hw3::read_sst_multi_netcdf(fv, var_name, ss, skip_bad_files);
+    hw3::EventData ed = hw3::read_event_netcdf(event_file);
+    return daily_cat_core(gd, cd, ed, coldSpells, ice_thresh, roundRes);
+}
+
 // [[Rcpp::export]]
 Rcpp::List hw3_file_meta(std::string file) {
     hw3::FileMeta m = hw3::read_file_meta(file);

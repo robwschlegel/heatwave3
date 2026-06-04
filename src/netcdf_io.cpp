@@ -95,7 +95,12 @@ void parse_cf_time(const std::string& units,
 
     julian_days.resize(time_raw.size());
     for (size_t i = 0; i < time_raw.size(); ++i) {
-        julian_days[i] = ref_jd + static_cast<int>(std::round(time_raw[i] * scale));
+        // Map each timestamp to the calendar day that contains it (days since
+        // the reference midnight), i.e. floor, matching heatwaveR's as.Date()
+        // truncation. This keeps noon-stamped daily products (OSTIA/GHRSST,
+        // stamped at 12:00:00) on the correct day rather than rounding them
+        // forward. The small epsilon absorbs floating-point error at midnight.
+        julian_days[i] = ref_jd + static_cast<int>(std::floor(time_raw[i] * scale + 1e-6));
     }
 }
 

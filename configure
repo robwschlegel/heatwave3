@@ -59,170 +59,18 @@ case "$(uname -s)" in
     ;;
 esac
 
-# ---- OpenMP detection (compile-link-run test) -------------------------------
-
+# ---- Parallelism -------------------------------------------------------------
+# heatwave3 parallelises with C++ std::thread (see src/hw3_omp.h), not OpenMP,
+# so no OpenMP runtime is detected or linked. -pthread (in src/Makevars.in)
+# covers std::thread where it is needed and is a no-op on macOS.
 OPENMP_CXXFLAGS=""
 OPENMP_LIBS=""
-
-# Write a small test program using schedule(static), exactly as heatwave3 does,
-# so the probe accepts a libomp iff it provides the symbols the package needs.
-TMPDIR="${TMPDIR:-/tmp}"
-TEST_SRC="${TMPDIR}/hw3_omp_test.cpp"
-TEST_OUT="${TMPDIR}/hw3_omp_test.so"
-
-cat > "${TEST_SRC}" << 'OMPTEST'
-#include <omp.h>
-extern "C" {
-  void hw3_omp_test(int* result) {
-    int sum = 0;
-    #pragma omp parallel for schedule(static, 1) reduction(+:sum)
-    for (int i = 0; i < 100; i++) sum += i;
-    *result = sum;
-  }
-}
-OMPTEST
-
-# R's compiler and flags
-: "${R_HOME=$(R RHOME 2>/dev/null)}"
-CXX=$("${R_HOME}/bin/R" CMD config CXX17 2>/dev/null || "${R_HOME}/bin/R" CMD config CXX 2>/dev/null)
-CXXFLAGS=$("${R_HOME}/bin/R" CMD config CXX17FLAGS 2>/dev/null || "${R_HOME}/bin/R" CMD config CXXFLAGS 2>/dev/null)
-LDFLAGS=$("${R_HOME}/bin/R" CMD config LDFLAGS 2>/dev/null)
-# NB: on some R builds SHLIB_CXX17FLAGS is undefined; R CMD config then prints
-# "ERROR: no information for variable ..." to stdout and exits non-zero. Guard
-# against that text being spliced into the compile flags (which would break
-# every OpenMP probe below).
-SHLIB_CXXFLAGS=$("${R_HOME}/bin/R" CMD config SHLIB_CXX17FLAGS 2>/dev/null || true)
-case "${SHLIB_CXXFLAGS}" in *ERROR*) SHLIB_CXXFLAGS="" ;; esac
-
-# Test one OpenMP variant: compile, link, and run
-test_openmp() {
-  OMP_CFLAGS="$1"
-  OMP_LIBS="$2"
-  EXTRA_DESC="$3"
-
-  ${CXX} ${CXXFLAGS} ${SHLIB_CXXFLAGS} -std=gnu++17 ${OMP_CFLAGS} \
-    -shared -fPIC -o "${TEST_OUT}" "${TEST_SRC}" ${OMP_LIBS} ${LDFLAGS} \
-    > /dev/null 2>&1 || return 1
-
-  # Try to load and run in R. NB: .C() returns the modified arguments in a
-  # list rather than updating them in place, so the result must be read from
-  # the return value (res[[1]]), not the input vector.
-  "${R_HOME}/bin/Rscript" --vanilla -e "
-    dyn.load('${TEST_OUT}')
-    res <- .C('hw3_omp_test', integer(1))
-    if (res[[1]] != 4950L) quit(status = 1)
-  " > /dev/null 2>&1 || return 1
-
-  return 0
-}
-
-# Clean up on exit
-cleanup_omp_test() {
-  rm -f "${TEST_SRC}" "${TEST_OUT}" 2>/dev/null
-}
-trap cleanup_omp_test EXIT
-
-echo "Detecting OpenMP..."
-
-# Try variants in order of preference
-FOUND_OMP=0
-
-# 1. User-specified flags (highest priority)
-if [ -n "${SHLIB_OPENMP_CXXFLAGS}" ]; then
-  echo "  Trying user SHLIB_OPENMP_CXXFLAGS: ${SHLIB_OPENMP_CXXFLAGS}"
-  if test_openmp "${SHLIB_OPENMP_CXXFLAGS}" "${SHLIB_OPENMP_CXXFLAGS}" "user flags"; then
-    OPENMP_CXXFLAGS="${SHLIB_OPENMP_CXXFLAGS}"
-    OPENMP_LIBS="${SHLIB_OPENMP_CXXFLAGS}"
-    FOUND_OMP=1
-    echo "  -> works"
-  else
-    echo "  -> failed"
-  fi
-fi
-
-# 2. Standard -fopenmp (Linux gcc, MinGW)
-if [ ${FOUND_OMP} -eq 0 ]; then
-  echo "  Trying -fopenmp"
-  if test_openmp "-fopenmp" "-fopenmp" "standard"; then
-    OPENMP_CXXFLAGS="-fopenmp"
-    OPENMP_LIBS="-fopenmp"
-    FOUND_OMP=1
-    echo "  -> works"
-  else
-    echo "  -> failed"
-  fi
-fi
-
-# 3. Apple Clang + R's OWN bundled libomp (preferred on macOS).
-# Linking the libomp that R itself loads keeps a single OpenMP runtime in the
-# process and sidesteps the version conflicts that arise when a second libomp
-# (e.g. Homebrew's) is dragged in and then shadowed at load time. We link it by
-# absolute path so -L ordering cannot redirect it. An omp.h header is still
-# needed at compile time; take it from Homebrew or /usr/local if present.
-if [ ${FOUND_OMP} -eq 0 ] && [ -e "${R_HOME}/lib/libomp.dylib" ]; then
-  OMP_INC=""
-  for d in /opt/homebrew/opt/libomp/include /usr/local/opt/libomp/include /usr/local/include; do
-    if [ -f "${d}/omp.h" ]; then OMP_INC="-I${d}"; break; fi
-  done
-  echo "  Trying Apple Clang + R's bundled libomp"
-  if test_openmp "-Xclang -fopenmp ${OMP_INC}" "${R_HOME}/lib/libomp.dylib" "R libomp"; then
-    OPENMP_CXXFLAGS="-Xclang -fopenmp ${OMP_INC}"
-    OPENMP_LIBS="${R_HOME}/lib/libomp.dylib"
-    FOUND_OMP=1
-    echo "  -> works"
-  else
-    echo "  -> failed"
-  fi
-fi
-
-# 4. Homebrew libomp (macOS ARM64)
-# NB: link the dylib by ABSOLUTE PATH, not -L...-lomp. R prepends its own
-# framework lib dir (which ships an older libomp lacking ___kmpc_dispatch_deinit,
-# the symbol emitted by schedule(dynamic)) to the link line, so -lomp would
-# resolve to R's libomp and fail to load. An absolute path bypasses -L ordering.
-if [ ${FOUND_OMP} -eq 0 ] && [ -d "/opt/homebrew/opt/libomp" ]; then
-  HB_INC="-I/opt/homebrew/opt/libomp/include"
-  HB_LIB="/opt/homebrew/opt/libomp/lib/libomp.dylib -Wl,-rpath,/opt/homebrew/opt/libomp/lib"
-  echo "  Trying Homebrew libomp (ARM64)"
-  if test_openmp "-Xclang -fopenmp ${HB_INC}" "${HB_LIB}" "Homebrew ARM64"; then
-    OPENMP_CXXFLAGS="-Xclang -fopenmp ${HB_INC}"
-    OPENMP_LIBS="${HB_LIB}"
-    FOUND_OMP=1
-    echo "  -> works"
-  else
-    echo "  -> failed"
-  fi
-fi
-
-# 5. Homebrew libomp (macOS Intel) — absolute path, see note on strategy 4
-if [ ${FOUND_OMP} -eq 0 ] && [ -d "/usr/local/opt/libomp" ]; then
-  HB_INC="-I/usr/local/opt/libomp/include"
-  HB_LIB="/usr/local/opt/libomp/lib/libomp.dylib -Wl,-rpath,/usr/local/opt/libomp/lib"
-  echo "  Trying Homebrew libomp (Intel)"
-  if test_openmp "-Xclang -fopenmp ${HB_INC}" "${HB_LIB}" "Homebrew Intel"; then
-    OPENMP_CXXFLAGS="-Xclang -fopenmp ${HB_INC}"
-    OPENMP_LIBS="${HB_LIB}"
-    FOUND_OMP=1
-    echo "  -> works"
-  else
-    echo "  -> failed"
-  fi
-fi
-
 # Report results
 echo ""
 echo "Using netcdf:"
 echo "  CPPFLAGS: ${NETCDF_CPPFLAGS}"
 echo "  LIBS:     ${NETCDF_LIBS}"
-echo "Using OpenMP:"
-if [ ${FOUND_OMP} -eq 1 ]; then
-  echo "  CXXFLAGS: ${OPENMP_CXXFLAGS}"
-  echo "  LIBS:     ${OPENMP_LIBS}"
-else
-  echo "  disabled (no working OpenMP found)"
-  echo "  heatwave3 will run single-threaded."
-  echo "  See https://mac.r-project.org/openmp/ for macOS instructions."
-fi
+echo "Parallelism: C++ std::thread (no OpenMP runtime required)"
 
 sed -e "s|@NETCDF_CPPFLAGS@|${NETCDF_CPPFLAGS}|" \
     -e "s|@NETCDF_LIBS@|${NETCDF_LIBS}|" \

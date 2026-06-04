@@ -61,6 +61,14 @@ hw3_read_subset <- function(file, lon_range = NULL, lat_range = NULL, t_jd_range
     .Call(`_heatwave3_hw3_read_subset`, file, lon_range, lat_range, t_jd_range, vars, max_rows)
 }
 
+hw3_category_daily <- function(sst_file, clim_file, event_file, t_jd_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L) {
+    .Call(`_heatwave3_hw3_category_daily`, sst_file, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes)
+}
+
+hw3_category_daily_multi <- function(files, clim_file, event_file, t_jd_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L, skip_bad_files = FALSE) {
+    .Call(`_heatwave3_hw3_category_daily_multi`, files, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes, skip_bad_files)
+}
+
 hw3_file_meta <- function(file) {
     .Call(`_heatwave3_hw3_file_meta`, file)
 }

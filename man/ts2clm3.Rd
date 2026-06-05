@@ -6,7 +6,7 @@
 \usage{
 ts2clm3(
   file_in,
-  file_out,
+  name,
   climatologyPeriod,
   lon_range = NULL,
   lat_range = NULL,
@@ -21,10 +21,9 @@ ts2clm3(
   var = FALSE,
   detrend = FALSE,
   roundClm = 4L,
-  save_file = NULL,
-  return_df = FALSE,
   n_threads = 1L,
-  skip_bad_files = FALSE
+  skip_bad_files = FALSE,
+  quiet = FALSE
 )
 }
 \arguments{
@@ -32,7 +31,9 @@ ts2clm3(
 vector of daily NetCDF file paths, \strong{or} a directory path containing daily
 NetCDF files (matched by \code{.nc} or \code{.nc4} extension).}
 
-\item{file_out}{Path for the output NetCDF file containing the climatology.}
+\item{name}{Output base name (a path stem). The climatology is written to
+\code{paste0(name, "_clim.nc")}, so \code{name = "results/cape_coast"}
+produces \code{results/cape_coast_clim.nc}. The directory must exist.}
 
 \item{climatologyPeriod}{A character vector of length 2 specifying the start and
 end dates of the baseline period, for example \code{c("1982-01-01", "2011-12-31")}.}
@@ -76,24 +77,18 @@ approach (Jacox et al. 2020).}
 \item{roundClm}{Number of decimal places for rounding. Default \code{4}.
 Set to \code{FALSE} to disable.}
 
-\item{save_file}{Optional path for an additional output file. The extension
-determines the format and must be one of \code{.csv}, \code{.rds}, or
-\code{.parquet}. If \code{NULL}, no companion file is written.}
-
-\item{return_df}{Logical. If \code{TRUE}, return the climatology as a long
-\code{data.frame} in addition to writing the NetCDF file. Default
-\code{FALSE} (returns the file path invisibly).}
-
 \item{n_threads}{Number of OpenMP threads for parallel computation. Default \code{1}.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}
+
+\item{quiet}{Logical. Suppress the post-computation console summary (head,
+tail, and summary statistics of the climatology)? Default \code{FALSE}.}
 }
 \value{
-If \code{return_df = FALSE} (the default), invisibly returns the
-path to the output file. If \code{return_df = TRUE}, returns a
-\code{data.frame} with columns \code{lon}, \code{lat}, \code{doy},
-\code{seas}, and \code{thresh}. The NetCDF is still written.
+Invisibly returns the path to the climatology NetCDF
+(\code{paste0(name, "_clim.nc")}). Use \code{\link{hw3_export}} to read it
+into a \code{data.frame} or export it to CSV/RDS/Parquet.
 }
 \description{
 Calculates seasonal and threshold climatologies for each pixel in a gridded
@@ -103,7 +98,7 @@ gridded equivalent of \code{heatwaveR::ts2clm()}.
 \examples{
 \dontrun{
 ts2clm3(file_in = "path/to/sst.nc",
-        file_out = tempfile(fileext = ".nc"),
+        name = file.path(tempdir(), "cape_coast"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         lon_range = c(25, 26), lat_range = c(-34, -33))
 }

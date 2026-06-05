@@ -95,7 +95,12 @@ void parse_cf_time(const std::string& units,
 
     julian_days.resize(time_raw.size());
     for (size_t i = 0; i < time_raw.size(); ++i) {
-        julian_days[i] = ref_jd + static_cast<int>(std::round(time_raw[i] * scale));
+        // Map each timestamp to the calendar day that contains it (days since
+        // the reference midnight), i.e. floor, matching heatwaveR's as.Date()
+        // truncation. This keeps noon-stamped daily products (OSTIA/GHRSST,
+        // stamped at 12:00:00) on the correct day rather than rounding them
+        // forward. The small epsilon absorbs floating-point error at midnight.
+        julian_days[i] = ref_jd + static_cast<int>(std::floor(time_raw[i] * scale + 1e-6));
     }
 }
 
@@ -551,6 +556,7 @@ void write_clim_netcdf(const std::string& file_out,
     nc_put_att_text(ncid, NC_GLOBAL, "Conventions", 6, conv);
     const char* created_by = "heatwave3";
     nc_put_att_text(ncid, NC_GLOBAL, "created_by", 9, created_by);
+    nc_put_att_text(ncid, NC_GLOBAL, "hw3_product", 11, "climatology");
 
     nc_check(nc_enddef(ncid), "enddef");
 
@@ -817,6 +823,7 @@ void write_event_netcdf(const std::string& file_out,
     nc_put_att_text(ncid, NC_GLOBAL, "created_by", 9, created_by);
     const char* hemi = southHemisphere ? "south" : "north";
     nc_put_att_text(ncid, NC_GLOBAL, "hemisphere", strlen(hemi), hemi);
+    nc_put_att_text(ncid, NC_GLOBAL, "hw3_product", 6, "events");
 
     nc_check(nc_enddef(ncid), "enddef");
 
@@ -887,6 +894,435 @@ void write_event_netcdf(const std::string& file_out,
     nc_check(nc_put_var_int(ncid, v_sea, sea.data()), "put season");
 
     nc_check(nc_close(ncid), "close " + file_out);
+}
+
+// ---- Write per-day NetCDF ([lon, lat, time]) ----
+
+void write_daily_netcdf(const std::string& file_out,
+                        const std::vector<double>& lon,
+                        const std::vector<double>& lat,
+                        int nlon, int nlat, int ntime,
+                        const std::vector<int>& time_days,
+                        const double* temp,
+                        const double* seas,
+                        const double* thresh,
+                        const signed char* threshCriterion,
+                        const signed char* durationCriterion,
+                        const signed char* event,
+                        const int* event_no,
+                        const double* intensity,
+                        const signed char* category,
+                        const std::string& product,
+                        const std::string& source_file,
+                        const std::string& clim_file,
+                        int minDuration,
+                        int maxGap,
+                        bool coldSpells,
+                        bool southHemisphere,
+                        const std::string& temp_units) {
+    int ncid;
+    nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
+             "create " + file_out);
+
+    int lon_dimid, lat_dimid, time_dimid;
+    nc_check(nc_def_dim(ncid, "lon", nlon, &lon_dimid), "def dim lon");
+    nc_check(nc_def_dim(ncid, "lat", nlat, &lat_dimid), "def dim lat");
+    nc_check(nc_def_dim(ncid, "time", ntime, &time_dimid), "def dim time");
+
+    int lon_varid, lat_varid, time_varid;
+    nc_check(nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_varid), "def var lon");
+    nc_check(nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_varid), "def var lat");
+    nc_check(nc_def_var(ncid, "time", NC_DOUBLE, 1, &time_dimid, &time_varid), "def var time");
+    nc_put_att_text(ncid, lon_varid, "units", 12, "degrees_east");
+    nc_put_att_text(ncid, lon_varid, "axis", 1, "X");
+    nc_put_att_text(ncid, lat_varid, "units", 13, "degrees_north");
+    nc_put_att_text(ncid, lat_varid, "axis", 1, "Y");
+    // Time axis as "days since 1970-01-01" (jd 2440588), derived from the
+    // Julian-day vector so it works identically for single- and multi-file
+    // inputs (whose raw time units may differ).
+    const char* time_units = "days since 1970-01-01";
+    const char* time_calendar = "standard";
+    nc_put_att_text(ncid, time_varid, "units", strlen(time_units), time_units);
+    nc_put_att_text(ncid, time_varid, "calendar", strlen(time_calendar), time_calendar);
+    nc_put_att_text(ncid, time_varid, "axis", 1, "T");
+
+    int dims3[3] = {lon_dimid, lat_dimid, time_dimid};
+
+    auto def_fvar = [&](const char* name, const char* long_name, const char* units) -> int {
+        int vid;
+        nc_check(nc_def_var(ncid, name, NC_FLOAT, 3, dims3, &vid), name);
+        nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
+        if (units) nc_put_att_text(ncid, vid, "units", strlen(units), units);
+        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        return vid;
+    };
+    auto def_bvar = [&](const char* name, const char* long_name) -> int {
+        int vid;
+        nc_check(nc_def_var(ncid, name, NC_BYTE, 3, dims3, &vid), name);
+        nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
+        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        return vid;
+    };
+    auto def_ivar = [&](const char* name, const char* long_name) -> int {
+        int vid;
+        nc_check(nc_def_var(ncid, name, NC_INT, 3, dims3, &vid), name);
+        nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
+        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        return vid;
+    };
+
+    int v_temp = -1, v_seas = -1, v_thresh = -1, v_tc = -1, v_dc = -1;
+    int v_ev = -1, v_eno = -1, v_int = -1, v_cat = -1;
+    if (temp)   v_temp   = def_fvar("temp", "sea water temperature", temp_units.c_str());
+    if (seas)   v_seas   = def_fvar("seas", "seasonal climatology", temp_units.c_str());
+    if (thresh) v_thresh = def_fvar("thresh", "threshold climatology", temp_units.c_str());
+    if (threshCriterion)
+        v_tc = def_bvar("threshCriterion", "temperature exceeds threshold (1=yes)");
+    if (durationCriterion)
+        v_dc = def_bvar("durationCriterion", "within a run of at least minDuration days (1=yes)");
+    if (event)  v_ev = def_bvar("event", "day within a detected event (1=yes)");
+    if (event_no) v_eno = def_ivar("event_no", "event number within pixel (0=none)");
+    if (intensity)
+        v_int = def_fvar("intensity", "temperature anomaly (temp - seas)", temp_units.c_str());
+    if (category)
+        v_cat = def_bvar("category", "daily Hobday category (0=none, 1=I ... 4=IV)");
+
+    nc_put_att_text(ncid, NC_GLOBAL, "source_file", source_file.size(), source_file.c_str());
+    nc_put_att_text(ncid, NC_GLOBAL, "climatology_file", clim_file.size(), clim_file.c_str());
+    nc_put_att_int(ncid, NC_GLOBAL, "minDuration", NC_INT, 1, &minDuration);
+    nc_put_att_int(ncid, NC_GLOBAL, "maxGap", NC_INT, 1, &maxGap);
+    int cs = coldSpells ? 1 : 0;
+    nc_put_att_int(ncid, NC_GLOBAL, "coldSpells", NC_INT, 1, &cs);
+    const char* conv = "CF-1.8";
+    nc_put_att_text(ncid, NC_GLOBAL, "Conventions", 6, conv);
+    const char* created_by = "heatwave3";
+    nc_put_att_text(ncid, NC_GLOBAL, "created_by", 9, created_by);
+    const char* hemi = southHemisphere ? "south" : "north";
+    nc_put_att_text(ncid, NC_GLOBAL, "hemisphere", strlen(hemi), hemi);
+    nc_put_att_text(ncid, NC_GLOBAL, "hw3_product", product.size(), product.c_str());
+
+    nc_check(nc_enddef(ncid), "enddef");
+
+    nc_check(nc_put_var_double(ncid, lon_varid, lon.data()), "put lon");
+    nc_check(nc_put_var_double(ncid, lat_varid, lat.data()), "put lat");
+    std::vector<double> time_vals(ntime);
+    for (int t = 0; t < ntime; ++t)
+        time_vals[t] = static_cast<double>(time_days[t] - 2440588);  // jd -> days since 1970
+    nc_check(nc_put_var_double(ncid, time_varid, time_vals.data()), "put time");
+
+    // Data buffers are pixel-major [pixel][time] = [lon][lat][time], which is
+    // exactly the declared dimension order, so write directly. Real-valued
+    // variables are NC_FLOAT; nc_put_var_double converts (NaN stays NaN -> NA).
+    if (temp)   nc_check(nc_put_var_double(ncid, v_temp, temp), "put temp");
+    if (seas)   nc_check(nc_put_var_double(ncid, v_seas, seas), "put seas");
+    if (thresh) nc_check(nc_put_var_double(ncid, v_thresh, thresh), "put thresh");
+    if (threshCriterion)
+        nc_check(nc_put_var_schar(ncid, v_tc, threshCriterion), "put threshCriterion");
+    if (durationCriterion)
+        nc_check(nc_put_var_schar(ncid, v_dc, durationCriterion), "put durationCriterion");
+    if (event)  nc_check(nc_put_var_schar(ncid, v_ev, event), "put event");
+    if (event_no) nc_check(nc_put_var_int(ncid, v_eno, event_no), "put event_no");
+    if (intensity) nc_check(nc_put_var_double(ncid, v_int, intensity), "put intensity");
+    if (category) nc_check(nc_put_var_schar(ncid, v_cat, category), "put category");
+
+    nc_check(nc_close(ncid), "close " + file_out);
+}
+
+// ---- Streaming hyperslab subset of a gridded product ----
+
+Rcpp::List read_subset_netcdf(const std::string& file,
+                              const std::vector<double>& lon_range,
+                              const std::vector<double>& lat_range,
+                              const std::vector<int>& t_jd_range,
+                              const std::vector<std::string>& vars,
+                              int max_rows) {
+    int ncid;
+    nc_check(nc_open(file.c_str(), NC_NOWRITE, &ncid), "open " + file);
+
+    std::string product;
+    nc_get_att_str(ncid, NC_GLOBAL, "hw3_product", product);
+
+    auto has_dim = [&](const char* name) {
+        int d; return nc_inq_dimid(ncid, name, &d) == NC_NOERR;
+    };
+    if (product.empty()) {
+        if (has_dim("event")) product = "events";
+        else if (has_dim("doy")) product = "climatology";
+        else if (has_dim("time")) product = "daily";
+    }
+    if (product == "events") {
+        nc_close(ncid);
+        Rcpp::stop("read_subset_netcdf: events are subset in R, not via hyperslab.");
+    }
+    bool is_clim = (product == "climatology");
+    const char* third_dim = is_clim ? "doy" : "time";
+
+    auto get_dimlen = [&](const char* name) -> size_t {
+        int d; nc_check(nc_inq_dimid(ncid, name, &d), std::string("dim ") + name);
+        size_t n; nc_check(nc_inq_dimlen(ncid, d, &n), std::string("dimlen ") + name);
+        return n;
+    };
+    size_t nlon = get_dimlen("lon");
+    size_t nlat = get_dimlen("lat");
+    size_t n3   = get_dimlen(third_dim);
+
+    std::vector<double> lon(nlon), lat(nlat);
+    int vid_lon, vid_lat;
+    nc_check(nc_inq_varid(ncid, "lon", &vid_lon), "inq lon");
+    nc_check(nc_inq_varid(ncid, "lat", &vid_lat), "inq lat");
+    nc_check(nc_get_var_double(ncid, vid_lon, lon.data()), "get lon");
+    nc_check(nc_get_var_double(ncid, vid_lat, lat.data()), "get lat");
+
+    // Third coordinate values: DOY 1..366 for climatology, else Julian Days.
+    std::vector<int> third_vals(n3);
+    if (is_clim) {
+        for (size_t k = 0; k < n3; ++k) third_vals[k] = static_cast<int>(k) + 1;
+    } else {
+        int vid_t; nc_check(nc_inq_varid(ncid, "time", &vid_t), "inq time");
+        std::vector<double> traw(n3);
+        nc_check(nc_get_var_double(ncid, vid_t, traw.data()), "get time");
+        std::string tunits, tcal;
+        nc_get_att_str(ncid, vid_t, "units", tunits);
+        nc_get_att_str(ncid, vid_t, "calendar", tcal);
+        if (tcal.empty()) tcal = "standard";
+        parse_cf_time(tunits, tcal, traw, third_vals);
+    }
+
+    // Contiguous index window from a monotonic coordinate and [min,max].
+    auto coord_window = [](const std::vector<double>& c,
+                           const std::vector<double>& rng,
+                           int& i0, int& i1) {
+        int n = static_cast<int>(c.size());
+        if (rng.size() != 2) { i0 = 0; i1 = n - 1; return; }
+        double lo = std::min(rng[0], rng[1]), hi = std::max(rng[0], rng[1]);
+        i0 = n; i1 = -1;
+        for (int i = 0; i < n; ++i) {
+            if (c[i] >= lo && c[i] <= hi) { if (i < i0) i0 = i; if (i > i1) i1 = i; }
+        }
+    };
+
+    int li0, li1, lj0, lj1;
+    coord_window(lon, lon_range, li0, li1);
+    coord_window(lat, lat_range, lj0, lj1);
+
+    int t0 = 0, t1 = static_cast<int>(n3) - 1;
+    if (!is_clim && t_jd_range.size() == 2) {
+        int lo = std::min(t_jd_range[0], t_jd_range[1]);
+        int hi = std::max(t_jd_range[0], t_jd_range[1]);
+        t0 = static_cast<int>(n3); t1 = -1;
+        for (int k = 0; k < static_cast<int>(n3); ++k) {
+            if (third_vals[k] >= lo && third_vals[k] <= hi) {
+                if (k < t0) t0 = k; if (k > t1) t1 = k;
+            }
+        }
+    }
+
+    // Candidate data variables per product (read those that are present).
+    std::vector<std::string> avail = is_clim
+        ? std::vector<std::string>{"seas", "thresh", "var"}
+        : std::vector<std::string>{"temp", "seas", "thresh", "intensity",
+                                    "threshCriterion", "durationCriterion",
+                                    "event", "event_no", "category"};
+    std::vector<std::string> present;
+    for (const auto& nm : avail) {
+        int v; if (nc_inq_varid(ncid, nm.c_str(), &v) == NC_NOERR) present.push_back(nm);
+    }
+    std::vector<std::string> wanted = vars.empty() ? present : vars;
+    for (const auto& w : wanted) {
+        if (std::find(present.begin(), present.end(), w) == present.end()) {
+            std::string avs;
+            for (size_t i = 0; i < present.size(); ++i)
+                avs += (i ? ", " : "") + present[i];
+            nc_close(ncid);
+            Rcpp::stop("Variable '%s' is not in this %s file. Available: %s",
+                       w, product, avs);
+        }
+    }
+
+    // Empty window (no overlap) -> return a zero-row result.
+    bool empty = (li1 < li0) || (lj1 < lj0) || (t1 < t0);
+    int nlon_sub = empty ? 0 : (li1 - li0 + 1);
+    int nlat_sub = empty ? 0 : (lj1 - lj0 + 1);
+    int n3_sub   = empty ? 0 : (t1 - t0 + 1);
+
+    // Row cap: limit how many longitude columns we read.
+    int nlon_read = nlon_sub;
+    if (!empty && max_rows >= 0) {
+        long long per = static_cast<long long>(nlat_sub) * n3_sub; // rows per lon column
+        if (per > 0) {
+            long long lon_need = (static_cast<long long>(max_rows) + per - 1) / per;
+            if (lon_need < nlon_read) nlon_read = std::max(1, static_cast<int>(lon_need));
+        }
+    }
+
+    Rcpp::List data;
+    if (!empty) {
+        size_t start[3] = {static_cast<size_t>(li0), static_cast<size_t>(lj0),
+                           static_cast<size_t>(t0)};
+        size_t count[3] = {static_cast<size_t>(nlon_read),
+                           static_cast<size_t>(nlat_sub),
+                           static_cast<size_t>(n3_sub)};
+        size_t slab = static_cast<size_t>(nlon_read) * nlat_sub * n3_sub;
+        for (const auto& w : wanted) {
+            int vid; nc_check(nc_inq_varid(ncid, w.c_str(), &vid), "inq " + w);
+            nc_type vt; nc_check(nc_inq_vartype(ncid, vid, &vt), "type " + w);
+            if (vt == NC_FLOAT || vt == NC_DOUBLE) {
+                std::vector<double> buf(slab);
+                nc_check(nc_get_vara_double(ncid, vid, start, count, buf.data()), "get " + w);
+                data[w] = buf;
+            } else if (vt == NC_INT) {
+                std::vector<int> buf(slab);
+                nc_check(nc_get_vara_int(ncid, vid, start, count, buf.data()), "get " + w);
+                data[w] = buf;
+            } else { // NC_BYTE flags
+                std::vector<signed char> b(slab);
+                nc_check(nc_get_vara_schar(ncid, vid, start, count, b.data()), "get " + w);
+                data[w] = std::vector<int>(b.begin(), b.end());
+            }
+        }
+    }
+    nc_close(ncid);
+
+    std::vector<double> lon_s, lat_s;
+    std::vector<int> third_s;
+    for (int i = 0; i < nlon_read; ++i) lon_s.push_back(lon[li0 + i]);
+    for (int j = 0; j < nlat_sub; ++j)  lat_s.push_back(lat[lj0 + j]);
+    for (int k = 0; k < n3_sub; ++k)    third_s.push_back(third_vals[t0 + k]);
+
+    return Rcpp::List::create(
+        Rcpp::Named("product") = product,
+        Rcpp::Named("lon") = lon_s,
+        Rcpp::Named("lat") = lat_s,
+        Rcpp::Named("third") = third_s,
+        Rcpp::Named("third_name") = std::string(is_clim ? "doy" : "t"),
+        Rcpp::Named("nlon") = nlon_read,
+        Rcpp::Named("nlat") = nlat_sub,
+        Rcpp::Named("n3") = n3_sub,
+        Rcpp::Named("data") = data
+    );
+}
+
+// ---- Lightweight product metadata (attrs + dim lengths only) ----
+
+FileMeta read_file_meta(const std::string& file) {
+    FileMeta m;
+    int ncid;
+    nc_check(nc_open(file.c_str(), NC_NOWRITE, &ncid), "open " + file);
+
+    nc_get_att_str(ncid, NC_GLOBAL, "hw3_product", m.product);
+
+    auto dimlen = [&](const char* name, size_t& out) -> bool {
+        int did;
+        if (nc_inq_dimid(ncid, name, &did) != NC_NOERR) return false;
+        return nc_inq_dimlen(ncid, did, &out) == NC_NOERR;
+    };
+
+    size_t nlon = 0, nlat = 0, ndoy = 0, ntime = 0, nevent = 0;
+    bool has_event = dimlen("event", nevent);
+    bool has_doy = dimlen("doy", ndoy);
+    bool has_time = dimlen("time", ntime);
+    dimlen("lon", nlon);
+    dimlen("lat", nlat);
+
+    // Infer product for files written before the hw3_product attribute existed.
+    if (m.product.empty()) {
+        if (has_event) m.product = "events";
+        else if (has_doy) m.product = "climatology";
+        else if (has_time) m.product = "daily";
+    }
+
+    if (m.product == "events") {
+        m.n3 = static_cast<int>(nevent);
+        m.nrows = static_cast<long long>(nevent);
+    } else if (m.product == "climatology") {
+        m.nlon = static_cast<int>(nlon);
+        m.nlat = static_cast<int>(nlat);
+        m.n3 = static_cast<int>(ndoy);
+        m.nrows = static_cast<long long>(nlon) * nlat * ndoy;
+    } else { // daily / protoevents
+        m.nlon = static_cast<int>(nlon);
+        m.nlat = static_cast<int>(nlat);
+        m.n3 = static_cast<int>(ntime);
+        m.nrows = static_cast<long long>(nlon) * nlat * ntime;
+    }
+
+    nc_close(ncid);
+    return m;
+}
+
+// ---- Read per-day NetCDF ----
+
+DailyData read_daily_netcdf(const std::string& daily_file) {
+    DailyData dd;
+    int ncid;
+    nc_check(nc_open(daily_file.c_str(), NC_NOWRITE, &ncid), "open " + daily_file);
+
+    int lon_dimid, lat_dimid, time_dimid;
+    nc_check(nc_inq_dimid(ncid, "lon", &lon_dimid), "inq dim lon");
+    nc_check(nc_inq_dimid(ncid, "lat", &lat_dimid), "inq dim lat");
+    nc_check(nc_inq_dimid(ncid, "time", &time_dimid), "inq dim time");
+
+    size_t nlon, nlat, ntime;
+    nc_check(nc_inq_dimlen(ncid, lon_dimid, &nlon), "inq nlon");
+    nc_check(nc_inq_dimlen(ncid, lat_dimid, &nlat), "inq nlat");
+    nc_check(nc_inq_dimlen(ncid, time_dimid, &ntime), "inq ntime");
+    dd.nlon = static_cast<int>(nlon);
+    dd.nlat = static_cast<int>(nlat);
+    dd.ntime = static_cast<int>(ntime);
+
+    int lon_varid, lat_varid, time_varid;
+    nc_check(nc_inq_varid(ncid, "lon", &lon_varid), "inq lon");
+    nc_check(nc_inq_varid(ncid, "lat", &lat_varid), "inq lat");
+    nc_check(nc_inq_varid(ncid, "time", &time_varid), "inq time");
+
+    dd.lon.resize(nlon);
+    dd.lat.resize(nlat);
+    nc_check(nc_get_var_double(ncid, lon_varid, dd.lon.data()), "get lon");
+    nc_check(nc_get_var_double(ncid, lat_varid, dd.lat.data()), "get lat");
+
+    std::vector<double> time_raw(ntime);
+    nc_check(nc_get_var_double(ncid, time_varid, time_raw.data()), "get time");
+    std::string tunits, tcal;
+    nc_get_att_str(ncid, time_varid, "units", tunits);
+    nc_get_att_str(ncid, time_varid, "calendar", tcal);
+    if (tcal.empty()) tcal = "standard";
+    parse_cf_time(tunits, tcal, time_raw, dd.time_jd);
+
+    size_t total = nlon * nlat * ntime;
+    auto rd_f = [&](const char* name, std::vector<double>& v) {
+        int vid;
+        if (nc_inq_varid(ncid, name, &vid) == NC_NOERR) {
+            v.resize(total);
+            nc_check(nc_get_var_double(ncid, vid, v.data()), std::string("get ") + name);
+        }
+    };
+    auto rd_b = [&](const char* name, std::vector<signed char>& v) {
+        int vid;
+        if (nc_inq_varid(ncid, name, &vid) == NC_NOERR) {
+            v.resize(total);
+            nc_check(nc_get_var_schar(ncid, vid, v.data()), std::string("get ") + name);
+        }
+    };
+    auto rd_i = [&](const char* name, std::vector<int>& v) {
+        int vid;
+        if (nc_inq_varid(ncid, name, &vid) == NC_NOERR) {
+            v.resize(total);
+            nc_check(nc_get_var_int(ncid, vid, v.data()), std::string("get ") + name);
+        }
+    };
+
+    rd_f("temp", dd.temp);
+    rd_f("seas", dd.seas);
+    rd_f("thresh", dd.thresh);
+    rd_f("intensity", dd.intensity);
+    rd_b("threshCriterion", dd.threshCriterion);
+    rd_b("durationCriterion", dd.durationCriterion);
+    rd_b("event", dd.event);
+    rd_b("category", dd.category);
+    rd_i("event_no", dd.event_no);
+
+    nc_close(ncid);
+    return dd;
 }
 
 // ---- Read and merge multiple daily NetCDF files ----

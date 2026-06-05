@@ -6,8 +6,8 @@
 \usage{
 detect_event3(
   file_in,
-  clim_file,
-  file_out,
+  name,
+  clim_file = NULL,
   var_name = NULL,
   minDuration = 5L,
   minDuration2 = minDuration,
@@ -20,10 +20,11 @@ detect_event3(
   category = FALSE,
   hemisphere = "south",
   roundRes = 4L,
-  return_df = FALSE,
-  save_file = NULL,
+  daily = c("none", "also", "only"),
+  protoEvent = FALSE,
   n_threads = 1L,
-  skip_bad_files = FALSE
+  skip_bad_files = FALSE,
+  quiet = FALSE
 )
 }
 \arguments{
@@ -31,10 +32,13 @@ detect_event3(
 May also be a character vector of file paths or a directory path
 containing daily \code{.nc}/\code{.nc4} files.}
 
-\item{clim_file}{Path to the climatology NetCDF file produced by
-\code{\link{ts2clm3}}.}
+\item{name}{Output base name (a path stem). Events are written to
+\code{paste0(name, "_events.nc")}; the per-day products use
+\code{"_events_daily.nc"} and \code{"_protoevents.nc"}. The directory must
+exist.}
 
-\item{file_out}{Path for the output NetCDF file containing detected events.}
+\item{clim_file}{Path to the climatology NetCDF from \code{\link{ts2clm3}}.
+When \code{NULL} (the default), \code{paste0(name, "_clim.nc")} is used.}
 
 \item{var_name}{Name of the SST variable. If \code{NULL}, auto-detected.}
 
@@ -74,23 +78,34 @@ DJF = Winter). Only used when \code{category = TRUE}.}
 \item{roundRes}{Number of decimal places for rounding event metrics.
 Default \code{4}.}
 
-\item{return_df}{Logical. If \code{TRUE}, return the event table as a
-\code{data.frame} in addition to writing the NetCDF file. Default
-\code{FALSE} (returns the file path invisibly).}
+\item{daily}{Per-day output control, one of \code{"none"} (default; only the
+event table), \code{"also"} (event table plus a per-day NetCDF), or
+\code{"only"} (per-day NetCDF, no event table). The per-day product is
+written to \code{paste0(name, "_events_daily.nc")} and contains \code{temp},
+\code{seas}, \code{thresh}, \code{intensity} (\code{temp - seas}),
+\code{event}, \code{event_no}, and the daily Hobday (2018) \code{category}
+(0 = none, 1 = I Moderate ... 4 = IV Extreme).}
 
-\item{save_file}{Optional path for an additional output file. The extension
-determines the format and must be one of \code{.csv}, \code{.rds}, or
-\code{.parquet}. If \code{NULL}, no companion file is written.}
+\item{protoEvent}{Logical. Write the per-day proto-event series to
+\code{paste0(name, "_protoevents.nc")} instead of the event table,
+mirroring \code{heatwaveR::detect_event(protoEvents = TRUE)}. Variables:
+\code{temp}, \code{seas}, \code{thresh}, \code{threshCriterion},
+\code{durationCriterion}, \code{event}, \code{event_no}. Mutually exclusive
+with \code{daily}. Default \code{FALSE}.}
 
 \item{n_threads}{Number of OpenMP threads. Default \code{1}.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}
+
+\item{quiet}{Logical. Suppress the post-computation console summary (head,
+tail, and summary statistics of each product written)? Default \code{FALSE}.}
 }
 \value{
-If \code{return_df = FALSE} (the default), invisibly returns the
-path to the output file. If \code{return_df = TRUE}, returns a
-\code{data.frame} of event metrics (the NetCDF is still written).
+Invisibly returns a named character vector of the NetCDF files
+written (a subset of \code{events}, \code{daily}, \code{protoevents}). Use
+\code{\link{hw3_export}} to read any of them into a \code{data.frame} or to
+export to CSV/RDS/Parquet.
 }
 \description{
 Detects marine heatwave (or cold-spell) events for each pixel in a gridded
@@ -100,12 +115,12 @@ gridded equivalent of \code{heatwaveR::detect_event()}.
 \examples{
 \donttest{
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-clim_file <- tempfile(fileext = ".nc")
-event_file <- tempfile(fileext = ".nc")
+stem <- file.path(tempdir(), "demo")
 
-ts2clm3(sst_file, clim_file,
+ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 
-detect_event3(sst_file, clim_file, event_file)
+detect_event3(sst_file, name = stem)                 # demo_events.nc
+detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
 }
 }

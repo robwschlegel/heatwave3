@@ -5,12 +5,10 @@
 #' single call, with optional inline category computation.
 #'
 #' @param file_in Path to input NetCDF file (or directory/vector of daily files).
-#' @param file_out_clim Path for the output climatology NetCDF file.
-#' @param file_out_event Path for the output event NetCDF file.
-#' @param save_file_clim Optional companion output path for the climatology.
-#'   The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.
-#' @param save_file_event Optional companion output path for the event table.
-#'   The extension must be one of \code{.csv}, \code{.rds}, or \code{.parquet}.
+#' @param name Output base name (a path stem) shared by both stages. Produces
+#'   \code{paste0(name, "_clim.nc")} and \code{paste0(name, "_events.nc")} (plus
+#'   the per-day products; see \code{daily} and \code{protoEvent}). The
+#'   directory must exist.
 #' @param climatologyPeriod Character vector of length 2 with start and end
 #'   dates of the baseline period, for example \code{c("1991-01-01", "2020-12-31")}.
 #' @param var_name Name of the SST variable. If \code{NULL}, auto-detected.
@@ -43,30 +41,33 @@
 #' @param hemisphere Character. \code{"south"} (default) or \code{"north"}.
 #' @param roundClm Decimal places for climatology rounding. Default \code{4}.
 #' @param roundRes Decimal places for event metric rounding. Default \code{4}.
-#' @param return_df Logical. Return the event table as a \code{data.frame}?
-#'   Default \code{FALSE}.
+#' @param daily Per-day output control: \code{"none"} (default), \code{"also"},
+#'   or \code{"only"}. See \code{\link{detect_event3}}.
+#' @param protoEvent Logical. Write the per-day proto-event series
+#'   (\code{paste0(name, "_protoevents.nc")}) instead of the event table. See
+#'   \code{\link{detect_event3}}. Default \code{FALSE}.
 #' @param n_threads Number of OpenMP threads. Default \code{1}.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
+#' @param quiet Logical. Suppress the post-computation console summaries?
+#'   Default \code{FALSE}.
 #'
-#' @return If \code{return_df = FALSE} (the default), invisibly returns a list
-#'   with \code{clim_file} and \code{event_file} paths. If
-#'   \code{return_df = TRUE}, returns a \code{data.frame} of event metrics.
+#' @return Invisibly returns a named character vector of the NetCDF files
+#'   written (\code{clim} plus a subset of \code{events}, \code{daily},
+#'   \code{protoevents}). Use \code{\link{hw3_export}} to read or export any of
+#'   them.
 #'
 #' @export
 #'
 #' @examples
 #' \donttest{
 #' sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-#' clim_file <- tempfile(fileext = ".nc")
-#' event_file <- tempfile(fileext = ".nc")
 #'
-#' detect3(sst_file, clim_file, event_file,
+#' detect3(sst_file, name = file.path(tempdir(), "demo"),
 #'         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 #' }
-detect3 <- function(file_in, file_out_clim, file_out_event,
+detect3 <- function(file_in, name,
                     climatologyPeriod,
-                    save_file_clim = NULL, save_file_event = NULL,
                     var_name = NULL,
                     lon_range = NULL, lat_range = NULL,
                     time_range = NULL, depth = NULL,
@@ -88,11 +89,15 @@ detect3 <- function(file_in, file_out_clim, file_out_event,
                     hemisphere = "south",
                     roundClm = 4L,
                     roundRes = 4L,
-                    return_df = FALSE,
+                    daily = c("none", "also", "only"),
+                    protoEvent = FALSE,
                     n_threads = 1L,
-                    skip_bad_files = FALSE) {
+                    skip_bad_files = FALSE,
+                    quiet = FALSE) {
 
-  ts2clm3(file_in = file_in, file_out = file_out_clim,
+  daily <- match.arg(daily)
+
+  clim_file <- ts2clm3(file_in = file_in, name = name,
           climatologyPeriod = climatologyPeriod,
           lon_range = lon_range, lat_range = lat_range,
           time_range = time_range, depth = depth,
@@ -104,13 +109,12 @@ detect3 <- function(file_in, file_out_clim, file_out_event,
           smoothPercentileWidth = smoothPercentileWidth,
           detrend = detrend,
           roundClm = roundClm,
-          save_file = save_file_clim,
           n_threads = n_threads,
-          skip_bad_files = skip_bad_files)
+          skip_bad_files = skip_bad_files,
+          quiet = quiet)
 
-  result <- detect_event3(
-    file_in = file_in, clim_file = file_out_clim,
-    file_out = file_out_event,
+  written <- detect_event3(
+    file_in = file_in, name = name, clim_file = clim_file,
     var_name = var_name,
     minDuration = minDuration,
     minDuration2 = minDuration2,
@@ -123,13 +127,12 @@ detect3 <- function(file_in, file_out_clim, file_out_event,
     category = category,
     hemisphere = hemisphere,
     roundRes = roundRes,
-    return_df = return_df,
-    save_file = save_file_event,
+    daily = daily,
+    protoEvent = protoEvent,
     n_threads = n_threads,
-    skip_bad_files = skip_bad_files
+    skip_bad_files = skip_bad_files,
+    quiet = quiet
   )
 
-  if (return_df) return(result)
-
-  invisible(list(clim_file = file_out_clim, event_file = file_out_event))
+  invisible(c(clim = clim_file, written))
 }

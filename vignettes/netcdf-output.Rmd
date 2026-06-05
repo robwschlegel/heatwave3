@@ -200,16 +200,18 @@ heatwave3 output files aim for CF-1.8 compliance:
 
 ## Alternative output formats
 
-In addition to NetCDF, heatwave3 can export output as CSV, RDA, or Parquet
-using `hw3_export()` or the `save_format` argument:
+The compute functions always write NetCDF. To read a product into R, or convert
+it to CSV, RDS, or Parquet, use `hw3_export()`, which auto-detects the product
+type and is backed by the C++ reader:
 
 ```{r export-formats}
-# During detection
-detect_event3(file_in, clim_file, event_file, save_format = "parquet")
+# Read into R (whole, or a quick preview with n =)
+events <- hw3_export("benguela_events.nc")
+head(hw3_export("benguela_events.nc", n = 20))
 
-# After the fact
-hw3_export("event_output.nc", format = "csv", type = "event")
-hw3_export("clim_output.nc", format = "rda", type = "clim")
+# Convert to a flat file (format chosen by the extension)
+hw3_export("benguela_events.nc", file_out = "events.parquet")
+hw3_export("benguela_clim.nc",   file_out = "clim.csv")
 ```
 
 **Format comparison:**

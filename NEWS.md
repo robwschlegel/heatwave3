@@ -1,3 +1,93 @@
+# heatwave3 1.2.0 (2026-06-04)
+
+## Breaking changes
+
+* **`name`-stem output replaces explicit output paths.** `ts2clm3()`,
+  `detect_event3()`, and `detect3()` now take a single `name` argument (a path
+  stem) and derive their output filenames from it:
+    * `ts2clm3()` writes `paste0(name, "_clim.nc")`.
+    * `detect_event3()` writes `paste0(name, "_events.nc")`.
+    * the per-day products use `"_events_daily.nc"` and `"_protoevents.nc"`.
+  The old `file_out` / `file_out_clim` / `file_out_event` arguments are removed.
+  `detect_event3()`'s `clim_file` now defaults to `paste0(name, "_clim.nc")`.
+* **`return_df` and `save_file` are removed.** The compute functions always
+  write their native NetCDF and (invisibly) return the path(s) written. To read
+  a product into R or export it to CSV/RDS/Parquet, use `hw3_export()` (below).
+
+## New features
+
+* **Per-day output, controlled by paths/flags rather than extra return modes.**
+    * `detect_event3(daily = "also")` writes a per-day companion NetCDF beside
+      the event table; `daily = "only"` writes just the per-day file (no event
+      table); `daily = "none"` (default) writes only the event table. The
+      per-day product holds `temp`, `seas`, `thresh`, `intensity` (`temp - seas`),
+      `event`, `event_no`, and the daily Hobday (2018) `category` (0 = none,
+      1 = I Moderate ... 4 = IV Extreme).
+    * `protoEvent = TRUE` writes the per-day proto-event series
+      (`paste0(name, "_protoevents.nc")`) instead of the event table, mirroring
+      `heatwaveR::detect_event(protoEvents = TRUE)`: `temp`, `seas`, `thresh`,
+      `threshCriterion`, `durationCriterion`, `event`, `event_no`.
+  Both are gridded `[lon, lat, time]` files with a `days since 1970-01-01` time
+  axis. Verified against `heatwaveR::detect_event(protoEvents = TRUE)`: identical
+  event counts and proto flags pixel-by-pixel.
+* **`hw3_export()` is now a read/export hub for every product.** It auto-detects
+  the product (climatology, events, daily, proto-events) via the C++ reader and
+  either returns a long `data.frame` (whole, or the first `n` rows for a quick
+  look) or writes a flat companion file (`.csv`/`.rds`/`.parquet`). It replaces
+  the old `return_df`/`save_file` pathways.
+* **`category_daily3()`** builds the per-pixel daily marine-heatwave (or
+  cold-spell) category series for a date window straight from an SST file, a
+  climatology, and an events file, entirely via the C++ readers. It reads only
+  the requested SST time-window (a hyperslab) and re-runs no detection: event
+  membership is read from the events file, so events that began before the
+  window are still recognised (re-detecting on a short window would silently drop
+  them). It returns the full daily grid with the same columns as the
+  `detect_event3(daily = "also")` product (`lon, lat, t, temp, seas, thresh,
+  intensity, event, event_no, category`), with `category` set on event-member
+  exceedance days and `NA` elsewhere. This is a NetCDF-native replacement for the
+  Marine Heatwave Tracker's tidync-based `load_sub_cat_clim()` (about 240x faster
+  per longitude in testing), with an `ice_thresh` argument for the cold-spell
+  sea-ice category; the Tracker's event-day subset is `subset(x,
+  !is.na(category))`. `sst_file` may be a single multi-time file or a directory /
+  vector of daily files (one time step each, e.g. daily-global OSTIA/GHRSST).
+
+## Bug fixes
+
+* **In-process multithreading no longer depends on OpenMP/`libomp`.** The
+  parallel loops (climatology and event detection) now use C++ `std::thread`.
+  On macOS, a `dlopen`-ed `libomp` could fail to allocate its per-worker
+  thread-local storage in a process carrying a large native footprint -- terra /
+  raster / sf with their GDAL stack, conda toolchains, or the Positron/`ark`
+  kernel that embeds R -- and segfault in `__kmp_suspend` the moment a
+  multithreaded run started. `std::thread` uses pthreads and has no such
+  dependency, so `n_threads > 1` is now reliable in any session and front-end.
+  Results are unchanged (verified pixel-by-pixel). The package no longer detects
+  or links an OpenMP runtime; `configure` reports `Parallelism: C++ std::thread`.
+* **Noon-stamped daily products are no longer dated a day forward.** CF time
+  parsing rounded each timestamp to the nearest day, so daily files stamped at
+  12:00:00 (OSTIA, GHRSST, MUR, and similar) were assigned to the *next*
+  calendar day. Times are now mapped to the calendar day that contains them
+  (floor), matching `heatwaveR`'s `as.Date()` truncation. Midnight-stamped data
+  (for example OISST) is unaffected. Climatologies, events, and daily categories
+  derived from noon-stamped inputs should be regenerated.
+* **Streaming subset extraction in `hw3_export()`.** `vars`, `lon_range`,
+  `lat_range`, `time_range`, and `n` select a subset that is read straight from
+  the NetCDF as a hyperslab: for the gridded products only the requested
+  lon/lat/time window and the chosen variables are pulled from disk, so memory
+  and I/O scale with the subset rather than the file. `time_range` takes dates
+  for daily/proto-event products (and overlap-filters the events table);
+  `lon_range`/`lat_range` filter the events table by per-event coordinate.
+
+## Internal
+
+* **`hw3_read_subset()`** (C++) performs the hyperslab read behind
+  `hw3_export()`'s subset path.
+* **Post-computation console summary.** `ts2clm3()` and `detect_event3()` print
+  the head, tail, and summary statistics of each product written, with a pointer
+  to `hw3_export()`. Suppress with `quiet = TRUE`.
+* **`hw3_read_daily_nc()`** and **`hw3_file_meta()`** read a per-day NetCDF and a
+  product's lightweight metadata (type, dimensions, row count) respectively.
+
 # heatwave3 1.1.4 (2026-06-03)
 
 ## Documentation

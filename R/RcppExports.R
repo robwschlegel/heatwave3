@@ -57,12 +57,32 @@ hw3_read_clim_nc <- function(clim_file) {
     .Call(`_heatwave3_hw3_read_clim_nc`, clim_file)
 }
 
-hw3_detect_events <- function(file_in, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE, threshClim2_file = "", threshClim2_var_name = "") {
-    invisible(.Call(`_heatwave3_hw3_detect_events`, file_in, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_file, threshClim2_var_name))
+hw3_read_subset <- function(file, lon_range = NULL, lat_range = NULL, t_jd_range = NULL, vars = NULL, max_rows = -1L) {
+    .Call(`_heatwave3_hw3_read_subset`, file, lon_range, lat_range, t_jd_range, vars, max_rows)
 }
 
-hw3_detect_events_multi <- function(files, clim_file, file_out, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE, threshClim2_files = NULL, threshClim2_var_name = "", skip_bad_files = FALSE) {
-    invisible(.Call(`_heatwave3_hw3_detect_events_multi`, files, clim_file, file_out, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_files, threshClim2_var_name, skip_bad_files))
+hw3_category_daily <- function(sst_file, clim_file, event_file, t_jd_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L) {
+    .Call(`_heatwave3_hw3_category_daily`, sst_file, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes)
+}
+
+hw3_category_daily_multi <- function(files, clim_file, event_file, t_jd_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L, skip_bad_files = FALSE) {
+    .Call(`_heatwave3_hw3_category_daily_multi`, files, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes, skip_bad_files)
+}
+
+hw3_file_meta <- function(file) {
+    .Call(`_heatwave3_hw3_file_meta`, file)
+}
+
+hw3_read_daily_nc <- function(daily_file) {
+    .Call(`_heatwave3_hw3_read_daily_nc`, daily_file)
+}
+
+hw3_detect_events <- function(file_in, clim_file, events_file, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE, threshClim2_file = "", threshClim2_var_name = "", daily_file = "", proto_file = "") {
+    invisible(.Call(`_heatwave3_hw3_detect_events`, file_in, clim_file, events_file, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_file, threshClim2_var_name, daily_file, proto_file))
+}
+
+hw3_detect_events_multi <- function(files, clim_file, events_file, var_name, minDuration = 5L, minDuration2 = 5L, joinAcrossGaps = TRUE, maxGap = 2L, maxGap2 = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 1L, category = FALSE, southHemisphere = TRUE, threshClim2_files = NULL, threshClim2_var_name = "", skip_bad_files = FALSE, daily_file = "", proto_file = "") {
+    invisible(.Call(`_heatwave3_hw3_detect_events_multi`, files, clim_file, events_file, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_files, threshClim2_var_name, skip_bad_files, daily_file, proto_file))
 }
 
 hw3_read_event_nc <- function(event_file) {

@@ -69,4 +69,44 @@ test_that("category_daily3 validates inputs", {
     category_daily3("nope.nc", paste0(stem, "_clim.nc"), paste0(stem, "_events.nc"),
                     time_range = c("2005-01-01", "2005-02-01")),
     "does not exist")
+  expect_error(
+    category_daily3(sst_file, paste0(stem, "_clim.nc"), paste0(stem, "_events.nc"),
+                    time_range = c("2005-01-01", "2005-02-01"), lon_range = 26),
+    "lon_range must be")
+  expect_error(
+    category_daily3(sst_file, paste0(stem, "_clim.nc"), paste0(stem, "_events.nc"),
+                    time_range = c("2005-01-01", "2005-02-01"), lat_range = c(1, 2, 3)),
+    "lat_range must be")
+})
+
+test_that("category_daily3 lon_range/lat_range subset equals the filtered full result", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          quiet = TRUE)
+  detect_event3(sst_file, name = stem, quiet = TRUE)
+  clim <- paste0(stem, "_clim.nc"); evt <- paste0(stem, "_events.nc")
+  win <- c("2015-01-01", "2015-12-31")
+  cd <- hw3_read_clim_nc(clim)
+
+  full <- category_daily3(sst_file, clim, evt, time_range = win)
+  lon_r <- c(cd$lon[1] - 1e-4, cd$lon[1] + 1e-4)              # first longitude
+  lat_r <- c(min(cd$lat[1:2]) - 1e-4, max(cd$lat[1:2]) + 1e-4) # first two latitudes
+  sub <- category_daily3(sst_file, clim, evt, time_range = win,
+                         lon_range = lon_r, lat_range = lat_r)
+
+  # subset stays within the requested window
+  expect_true(all(sub$lon >= lon_r[1] & sub$lon <= lon_r[2]))
+  expect_true(all(sub$lat >= lat_r[1] & sub$lat <= lat_r[2]))
+
+  # and is identical to the full result filtered to the same window
+  ref <- full[full$lon >= lon_r[1] & full$lon <= lon_r[2] &
+              full$lat >= lat_r[1] & full$lat <= lat_r[2], ]
+  expect_equal(nrow(sub), nrow(ref))
+  m <- merge(sub, ref, by = c("lon", "lat", "t"), suffixes = c(".s", ".r"))
+  expect_equal(nrow(m), nrow(sub))                  # exact row-set match
+  for (col in c("temp", "seas", "thresh", "intensity", "event_no", "category")) {
+    expect_equal(m[[paste0(col, ".s")]], m[[paste0(col, ".r")]], info = col)
+  }
 })

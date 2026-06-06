@@ -2,139 +2,120 @@
 % Please edit documentation in R/detect_blob3.R
 \name{detect_blob3}
 \alias{detect_blob3}
-\title{Detect spatially connected marine heatwave blobs}
+\title{Detect spatially connected marine heatwave / cold-spell blobs}
 \usage{
 detect_blob3(
-  sst_file,
-  clim_file,
-  var_name = NULL,
+  daily_file,
   connectivity = 6L,
   wrapDateline = FALSE,
+  cellAreaMethod = c("coslat", "exact"),
   minVoxels = 1L,
+  minArea = 0,
+  minDuration = 0L,
   topN = NULL,
   rankBy = "cumI_km2_day",
-  coldSpells = FALSE,
-  return = c("event", "daily"),
-  skip_bad_files = FALSE
+  return = c("event", "daily")
 )
 }
 \arguments{
-\item{sst_file}{Path to the SST NetCDF file (the same file passed to
-\code{\link{ts2clm3}}).}
+\item{daily_file}{Path to the per-day NetCDF product from
+\code{detect_event3(name = ..., daily = "also")} (the
+\code{<name>_events_daily.nc} file). It must contain the \code{event},
+\code{temp}, \code{seas}, and \code{thresh} variables.}
 
-\item{clim_file}{Path to the climatology NetCDF produced by
-\code{\link{ts2clm3}}. The spatial grid of the climatology determines
-the region analysed.}
+\item{connectivity}{Integer. Voxel connectivity for labelling. Only \code{6}
+(face-adjacency in 3-D) is supported in v1; 10, 18, and 26 are reserved for
+v2.}
 
-\item{var_name}{Name of the SST variable in \code{sst_file}. If \code{NULL},
-auto-detected from CF attributes.}
+\item{wrapDateline}{Logical. Join the first and last longitude columns so
+blobs can connect across the antimeridian. Default \code{FALSE}. Polar wrap
+is not handled.}
 
-\item{connectivity}{Integer. Voxel connectivity for labelling. Default
-\code{6} (face-adjacent in 3D: left/right, up/down, forward/backward in
-time).}
+\item{cellAreaMethod}{Character. Cell-area model. \code{"coslat"} (default)
+uses the cosine-of-latitude approximation
+\eqn{A = R^2 \Delta\lambda \Delta\phi \cos\phi}; \code{"exact"} uses the
+spherical-cap area
+\eqn{A = R^2 \Delta\lambda [\sin(\phi + \Delta\phi/2) - \sin(\phi -
+  \Delta\phi/2)]}. \eqn{R = 6371} km.}
 
-\item{wrapDateline}{Logical. Wrap the longitude axis so that blobs can
-connect across the antimeridian? Default \code{FALSE}.}
+\item{minVoxels}{Integer. Discard blobs with fewer than this many space-time
+voxels. Default \code{1} (no filter).}
 
-\item{minVoxels}{Minimum number of space-time voxels for a blob to be
-retained. Default \code{1}. Set higher (for example \code{200}) to filter out
-small, short-lived events.}
+\item{minArea}{Numeric. Discard blobs whose peak daily area (km\eqn{^2}) is
+below this. Default \code{0} (no filter). Published reference values for
+orientation: a 75th-percentile-of-pooled-areas cut (Scannell et al. 2024),
+\eqn{5^\circ \times 5^\circ} (Sun et al. 2023). Single-product spatial-event
+counts inherit the product's coastal biases; a non-default filter triggers a
+reminder.}
+
+\item{minDuration}{Integer. Discard blobs shorter than this many days
+(inclusive span). Default \code{0} (no filter).}
 
 \item{topN}{Return only the top N blobs ranked by \code{rankBy}. Default
 \code{NULL} (return all).}
 
-\item{rankBy}{Character. Metric to rank blobs by. Default
-\code{"cumI_km2_day"} (cumulative intensity-weighted area). Other options
-include \code{"peakArea_km2"}, \code{"duration"}, \code{"meanArea_km2"}.}
+\item{rankBy}{Character. Metric to rank blobs by, applied to its
+\strong{magnitude} so MHWs and MCSs rank consistently. One of
+\code{"cumI_km2_day"} (default; cumulative intensity-weighted area, column
+\code{cumI_km2_d}), \code{"peakArea_km2"} (\code{peak_area_km2}),
+\code{"volume_km2_day"} (\code{volume_km2_d}), or \code{"duration"}
+(\code{duration_days}).}
 
-\item{coldSpells}{Logical. If \code{TRUE}, detect cold-spell blobs
-(\code{temp < thresh}). Requires a climatology computed with a low
-percentile (for example \code{pctile = 10} in \code{\link{ts2clm3}}).
-Default \code{FALSE}.}
-
-\item{return}{Character vector specifying which components to include in the
-output. One or more of:
-\describe{
-\item{\code{"event"}}{One row per blob with summary metrics (duration,
-peak area, cumulative intensity, centroid, etc.)}
-\item{\code{"daily"}}{One row per (blob, date) with daily area, mean/max
-anomaly, centroid, and bounding box}
-\item{\code{"voxel"}}{One row per (blob, lon, lat, date), the full 3D
-footprint. Required for spatial footprint maps and persistence
-analysis. Can be large.}
-}
-Default \code{c("event", "daily")}.}
-
-\item{skip_bad_files}{Logical. For multi-file SST inputs, skip unreadable
-files or files with mismatched grids instead of failing. Default
-\code{FALSE}.}
+\item{return}{Character vector of components to include: \code{"event"} (one
+row per blob), \code{"daily"} (one row per blob-day), and/or \code{"voxel"}
+(one row per blob-cell-day; can be large). Default \code{c("event",
+  "daily")}.}
 }
 \value{
-A named list containing the requested components (\code{event},
-\code{daily}, and/or \code{voxel} data.frames).
+A named list with the requested components. The \code{event}
+data.frame carries the v1 vocabulary: \code{event_no}, \code{date_start},
+\code{date_end}, \code{date_peak}, \code{duration_days}, \code{n_voxels},
+\code{peak_area_km2}, \code{mean_area_km2}, \code{total_area_km2}
+(union of unique cells), \code{volume_km2_d} (sum of daily areas),
+\code{cumI_km2_d} (area-weighted cumulative anomaly), \code{mean_intensity},
+\code{max_intensity} (signed extreme), \code{peak_severity} (max Hobday
+multiplier), \code{frac_moderate}/\code{frac_strong}/\code{frac_severe}/
+\code{frac_extreme} (peak-day area fractions by Hobday category),
+\code{centroid_lon}/\code{centroid_lat} (peak-day great-circle
+area-weighted centroid), \code{bbox_lon_min}/\code{bbox_lon_max}/
+\code{bbox_lat_min}/\code{bbox_lat_max}, and \code{rank}.
 }
 \description{
 Identifies spatially contiguous marine heatwave (or cold-spell) events
-("blobs") by performing 3D connected-component labelling on the exceedance
-mask across longitude, latitude, and time.
+("blobs") by 3-D connected-component labelling of the per-pixel Hobday event
+mask across longitude, latitude, and time, and reduces each blob to the v1
+event-table metric vocabulary. This is the heatwave3 implementation of the
+v1 spatial-events labeller (Smit design note; spatially-connected MHW review,
+Section 15.2.1).
 }
 \section{How it works}{
 
-This function does \strong{not} read a pre-computed event file. Instead, it
-takes the raw SST data and the climatology, and internally constructs a 3D
-boolean exceedance mask by comparing each pixel's daily SST against its
-threshold climatology (\code{temp > thresh} for heatwaves, or
-\code{temp < thresh} for cold-spells). Connected voxels in this 3D mask are
-then labelled as coherent spatial events using a union-find algorithm.
+The function reads the per-day product written by
+\code{detect_event3(daily = "also")}, which already carries the
+\strong{Hobday duration-filtered per-pixel \code{event} flag} together with
+\code{temp}, \code{seas}, and \code{thresh}. Per-pixel detection is therefore
+the user's responsibility (it happened in \code{\link{detect_event3}}); the
+mask is the \code{event} flag, not a raw daily exceedance. Connected voxels
+in the 3-D mask are labelled with a union-find algorithm (6-connectivity:
+face-adjacency in \eqn{(x, y, t)}), and the labelled voxels are reduced to
+per-event and per-day metrics in a single C++ pass. All speed-critical work
+is in C++.
 
-This is the same approach used by \code{heatwaveR::detect_blob3()}. The
-reason an event file from \code{\link{detect_event3}} cannot be used
-directly is that the event file stores per-pixel event \emph{summaries}
-(start/end dates, intensity metrics), not the daily per-pixel boolean mask
-needed for spatial connectivity analysis.
+Polarity (heatwave vs cold-spell) is inferred from the sign of the anomaly
+\eqn{\Delta = temp - seas}; no \code{coldSpells} switch is needed. Signed
+metrics retain their sign (cold spells are negative) and ranking uses
+magnitude, so the same defaults behave correctly for both.
 }
 
 \examples{
 \dontrun{
-sst_file <- "/path/to/sst.nc"
-clim_file <- tempfile(fileext = ".nc")
-
-# Step 1: compute climatology
-ts2clm3(sst_file, clim_file,
-        climatologyPeriod = c("1982-01-01", "2011-12-31"),
-        n_threads = 4)
-
-# Step 2: detect spatial blobs (heatwaves)
-blobs <- detect_blob3(
-  sst_file  = sst_file,
-  clim_file = clim_file,
-  minVoxels = 200,
-  topN      = 10,
-  return    = c("event", "daily", "voxel")
-)
-
-head(blobs$event)   # summary per blob
-head(blobs$daily)   # daily progression
-head(blobs$voxel)   # full spatial footprint
-
-# Step 2b: detect cold-spell blobs (use pctile = 10 climatology)
-clim_cold <- tempfile(fileext = ".nc")
-ts2clm3(sst_file, clim_cold,
-        climatologyPeriod = c("1982-01-01", "2011-12-31"),
-        pctile = 10, n_threads = 4)
-
-mcs <- detect_blob3(
-  sst_file   = sst_file,
-  clim_file  = clim_cold,
-  coldSpells = TRUE,
-  minVoxels  = 200,
-  topN       = 6
-)
+detect_event3(sst_file, name = "X", daily = "also")
+blobs <- detect_blob3("X_events_daily.nc", topN = 10, cellAreaMethod = "exact",
+                      return = c("event", "daily", "voxel"))
+head(blobs$event)
 }
-
 }
 \seealso{
-\code{\link{ts2clm3}} for computing the climatology,
-\code{\link{detect_event3}} for per-pixel event detection (different from
-spatial blob detection).
+\code{\link{detect_event3}} (run with \code{daily = "also"}) to
+produce the input, \code{\link{ts2clm3}} for the climatology.
 }

@@ -29,6 +29,12 @@
 #' @param event_file Path to the events NetCDF from \code{\link{detect_event3}}.
 #' @param time_range Character vector of length 2, \code{c(start, end)} dates,
 #'   for example \code{c("2026-05-10", "2026-05-20")}.
+#' @param lon_range,lat_range Optional numeric vectors of length 2,
+#'   \code{c(min, max)}, restricting the output to a spatial sub-region. Like
+#'   \code{time_range}, these subset the SST \strong{read} (a hyperslab),
+#'   intersected with the climatology extent, so only the requested window is
+#'   pulled from disk and the climatology and events are aligned to it. Default
+#'   \code{NULL} (the full climatology extent).
 #' @param var_name Name of the SST variable. If \code{NULL}, auto-detected.
 #' @param coldSpells Logical. Categorise marine cold-spells instead of heatwaves?
 #'   Default \code{FALSE}.
@@ -72,6 +78,7 @@
 #' )
 #' }
 category_daily3 <- function(sst_file, clim_file, event_file, time_range,
+                            lon_range = NULL, lat_range = NULL,
                             var_name = NULL, coldSpells = FALSE,
                             ice_thresh = -1.7, roundRes = 2L,
                             skip_bad_files = FALSE) {
@@ -90,6 +97,15 @@ category_daily3 <- function(sst_file, clim_file, event_file, time_range,
          call. = FALSE)
   }
   t_jd <- as.integer(d) + 2440588L
+
+  if (!is.null(lon_range) && length(lon_range) != 2) {
+    stop("lon_range must be NULL or a vector of two longitudes.", call. = FALSE)
+  }
+  if (!is.null(lat_range) && length(lat_range) != 2) {
+    stop("lat_range must be NULL or a vector of two latitudes.", call. = FALSE)
+  }
+  lon_r <- if (is.null(lon_range)) numeric(0) else as.double(lon_range)
+  lat_r <- if (is.null(lat_range)) numeric(0) else as.double(lat_range)
   vn <- if (is.null(var_name)) "" else var_name
 
   # SST source: single multi-time file, directory, or vector of daily files
@@ -109,13 +125,15 @@ category_daily3 <- function(sst_file, clim_file, event_file, time_range,
 
   res <- if (multi) {
     hw3_category_daily_multi(
-      sst_file, clim_file, event_file, t_jd_range = t_jd, var_name = vn,
+      sst_file, clim_file, event_file, t_jd_range = t_jd,
+      lon_range = lon_r, lat_range = lat_r, var_name = vn,
       coldSpells = coldSpells, ice_thresh = as.double(ice_thresh),
       roundRes = as.integer(roundRes), skip_bad_files = skip_bad_files
     )
   } else {
     hw3_category_daily(
-      sst_file, clim_file, event_file, t_jd_range = t_jd, var_name = vn,
+      sst_file, clim_file, event_file, t_jd_range = t_jd,
+      lon_range = lon_r, lat_range = lat_r, var_name = vn,
       coldSpells = coldSpells, ice_thresh = as.double(ice_thresh),
       roundRes = as.integer(roundRes)
     )

@@ -5,8 +5,12 @@ label_components_3d_cpp <- function(mask, nx, ny, nt, wrap_dateline = FALSE) {
     .Call(`_heatwave3_label_components_3d_cpp`, mask, nx, ny, nt, wrap_dateline)
 }
 
-blob_daily_summary_cpp <- function(labels, ix, iy, it, delta, cell_area_lat, lons, lats, nt) {
-    .Call(`_heatwave3_blob_daily_summary_cpp`, labels, ix, iy, it, delta, cell_area_lat, lons, lats, nt)
+hw3_blob_mask_from_event <- function(event, nlon, nlat, ntime) {
+    .Call(`_heatwave3_hw3_blob_mask_from_event`, event, nlon, nlat, ntime)
+}
+
+hw3_blob_reduce <- function(labels, n_blobs, temp, seas, thresh, lon, lat, cell_area_lat, nlon, nlat, ntime, want_voxel) {
+    .Call(`_heatwave3_hw3_blob_reduce`, labels, n_blobs, temp, seas, thresh, lon, lat, cell_area_lat, nlon, nlat, ntime, want_voxel)
 }
 
 hw3_get_threads <- function() {
@@ -61,12 +65,12 @@ hw3_read_subset <- function(file, lon_range = NULL, lat_range = NULL, t_jd_range
     .Call(`_heatwave3_hw3_read_subset`, file, lon_range, lat_range, t_jd_range, vars, max_rows)
 }
 
-hw3_category_daily <- function(sst_file, clim_file, event_file, t_jd_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L) {
-    .Call(`_heatwave3_hw3_category_daily`, sst_file, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes)
+hw3_category_daily <- function(sst_file, clim_file, event_file, t_jd_range, lon_range, lat_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L) {
+    .Call(`_heatwave3_hw3_category_daily`, sst_file, clim_file, event_file, t_jd_range, lon_range, lat_range, var_name, coldSpells, ice_thresh, roundRes)
 }
 
-hw3_category_daily_multi <- function(files, clim_file, event_file, t_jd_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L, skip_bad_files = FALSE) {
-    .Call(`_heatwave3_hw3_category_daily_multi`, files, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes, skip_bad_files)
+hw3_category_daily_multi <- function(files, clim_file, event_file, t_jd_range, lon_range, lat_range, var_name = "", coldSpells = FALSE, ice_thresh = -1.7, roundRes = 2L, skip_bad_files = FALSE) {
+    .Call(`_heatwave3_hw3_category_daily_multi`, files, clim_file, event_file, t_jd_range, lon_range, lat_range, var_name, coldSpells, ice_thresh, roundRes, skip_bad_files)
 }
 
 hw3_file_meta <- function(file) {

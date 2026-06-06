@@ -380,23 +380,52 @@ PixelEvents detect_pixel_events(
                 (sum_sq_abs - sum_abs * sum_abs / n_valid) / (n_valid - 1) : 0.0;
             er.intensity_var_abs = std::sqrt(std::max(0.0, var_abs));
 
-            // Rate of onset and decline (half-day interpolation)
-            double start_rel = temp_filled[pe.start] - daily_seas[pe.start];
-            double end_rel = temp_filled[pe.end] - daily_seas[pe.end];
-            if (coldSpells) {
-                start_rel = -start_rel;
-                end_rel = -end_rel;
-            }
-
+            // Rate of onset and decline (Hobday et al. 2016 / heatwaveR). The
+            // onset reference is the half-day crossing, namely the mean anomaly
+            // of the first event day and the preceding non-event day; the
+            // decline reference is the mean of the last event day and the
+            // following day. Anomalies are taken in the same (sign-flipped for
+            // cold spells) space as max_rel_seas; the sign is restored below.
+            // NA when the event abuts the start/end of the series.
+            auto rel_anom = [&](int idx) {
+                double a = temp_filled[idx] - daily_seas[idx];
+                return coldSpells ? -a : a;
+            };
             int days_to_peak = peak_idx - pe.start;
             int days_from_peak = pe.end - peak_idx;
-            er.rate_onset = (days_to_peak > 0) ?
-                (max_rel_seas - start_rel) / (days_to_peak + 0.5) : 0.0;
-            er.rate_decline = (days_from_peak > 0) ?
-                (max_rel_seas - end_rel) / (days_from_peak + 0.5) : 0.0;
+            if (pe.start > 0) {
+                double ref_start = 0.5 * (rel_anom(pe.start) + rel_anom(pe.start - 1));
+                er.rate_onset = (max_rel_seas - ref_start) / (days_to_peak + 0.5);
+            } else {
+                er.rate_onset = NA_DOUBLE;
+            }
+            if (pe.end < dntime - 1) {
+                double ref_end = 0.5 * (rel_anom(pe.end) + rel_anom(pe.end + 1));
+                er.rate_decline = (max_rel_seas - ref_end) / (days_from_peak + 0.5);
+            } else {
+                er.rate_decline = NA_DOUBLE;
+            }
         }
 
         double category_intensity_max = er.intensity_max;
+
+        // Cold spells: heatwaveR reports the seas- and thresh-relative intensity
+        // metrics (and the onset/decline rates) with the sign of the anomaly
+        // retained, i.e. negative. The accumulation above used the negated
+        // anomaly to find the correct magnitude and peak day; flip the sign back
+        // here so the event table is like-for-like with heatwaveR. The
+        // category magnitude (captured just above), the variance metrics, and the
+        // absolute-temperature metrics keep their natural (positive) sign.
+        if (coldSpells) {
+            er.intensity_mean = -er.intensity_mean;
+            er.intensity_max = -er.intensity_max;
+            er.intensity_cumulative = -er.intensity_cumulative;
+            er.intensity_mean_relThresh = -er.intensity_mean_relThresh;
+            er.intensity_max_relThresh = -er.intensity_max_relThresh;
+            er.intensity_cumulative_relThresh = -er.intensity_cumulative_relThresh;
+            er.rate_onset = -er.rate_onset;
+            er.rate_decline = -er.rate_decline;
+        }
 
         // Round
         if (roundRes > 0) {

@@ -27,22 +27,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// blob_daily_summary_cpp
-List blob_daily_summary_cpp(IntegerVector labels, IntegerVector ix, IntegerVector iy, IntegerVector it, NumericVector delta, NumericVector cell_area_lat, NumericVector lons, NumericVector lats, int nt);
-RcppExport SEXP _heatwave3_blob_daily_summary_cpp(SEXP labelsSEXP, SEXP ixSEXP, SEXP iySEXP, SEXP itSEXP, SEXP deltaSEXP, SEXP cell_area_latSEXP, SEXP lonsSEXP, SEXP latsSEXP, SEXP ntSEXP) {
+// hw3_blob_mask_from_event
+IntegerVector hw3_blob_mask_from_event(IntegerVector event, int nlon, int nlat, int ntime);
+RcppExport SEXP _heatwave3_hw3_blob_mask_from_event(SEXP eventSEXP, SEXP nlonSEXP, SEXP nlatSEXP, SEXP ntimeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type event(eventSEXP);
+    Rcpp::traits::input_parameter< int >::type nlon(nlonSEXP);
+    Rcpp::traits::input_parameter< int >::type nlat(nlatSEXP);
+    Rcpp::traits::input_parameter< int >::type ntime(ntimeSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_blob_mask_from_event(event, nlon, nlat, ntime));
+    return rcpp_result_gen;
+END_RCPP
+}
+// hw3_blob_reduce
+List hw3_blob_reduce(IntegerVector labels, int n_blobs, NumericVector temp, NumericVector seas, NumericVector thresh, NumericVector lon, NumericVector lat, NumericVector cell_area_lat, int nlon, int nlat, int ntime, bool want_voxel);
+RcppExport SEXP _heatwave3_hw3_blob_reduce(SEXP labelsSEXP, SEXP n_blobsSEXP, SEXP tempSEXP, SEXP seasSEXP, SEXP threshSEXP, SEXP lonSEXP, SEXP latSEXP, SEXP cell_area_latSEXP, SEXP nlonSEXP, SEXP nlatSEXP, SEXP ntimeSEXP, SEXP want_voxelSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type labels(labelsSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type ix(ixSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type iy(iySEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type it(itSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< int >::type n_blobs(n_blobsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type temp(tempSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type seas(seasSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type thresh(threshSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lon(lonSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lat(latSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type cell_area_lat(cell_area_latSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type lons(lonsSEXP);
-    Rcpp::traits::input_parameter< NumericVector >::type lats(latsSEXP);
-    Rcpp::traits::input_parameter< int >::type nt(ntSEXP);
-    rcpp_result_gen = Rcpp::wrap(blob_daily_summary_cpp(labels, ix, iy, it, delta, cell_area_lat, lons, lats, nt));
+    Rcpp::traits::input_parameter< int >::type nlon(nlonSEXP);
+    Rcpp::traits::input_parameter< int >::type nlat(nlatSEXP);
+    Rcpp::traits::input_parameter< int >::type ntime(ntimeSEXP);
+    Rcpp::traits::input_parameter< bool >::type want_voxel(want_voxelSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_blob_reduce(labels, n_blobs, temp, seas, thresh, lon, lat, cell_area_lat, nlon, nlat, ntime, want_voxel));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -246,8 +263,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_category_daily
-Rcpp::List hw3_category_daily(std::string sst_file, std::string clim_file, std::string event_file, std::vector<int> t_jd_range, std::string var_name, bool coldSpells, double ice_thresh, int roundRes);
-RcppExport SEXP _heatwave3_hw3_category_daily(SEXP sst_fileSEXP, SEXP clim_fileSEXP, SEXP event_fileSEXP, SEXP t_jd_rangeSEXP, SEXP var_nameSEXP, SEXP coldSpellsSEXP, SEXP ice_threshSEXP, SEXP roundResSEXP) {
+Rcpp::List hw3_category_daily(std::string sst_file, std::string clim_file, std::string event_file, std::vector<int> t_jd_range, std::vector<double> lon_range, std::vector<double> lat_range, std::string var_name, bool coldSpells, double ice_thresh, int roundRes);
+RcppExport SEXP _heatwave3_hw3_category_daily(SEXP sst_fileSEXP, SEXP clim_fileSEXP, SEXP event_fileSEXP, SEXP t_jd_rangeSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP var_nameSEXP, SEXP coldSpellsSEXP, SEXP ice_threshSEXP, SEXP roundResSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -255,17 +272,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type clim_file(clim_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type event_file(event_fileSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type t_jd_range(t_jd_rangeSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type lon_range(lon_rangeSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type lat_range(lat_rangeSEXP);
     Rcpp::traits::input_parameter< std::string >::type var_name(var_nameSEXP);
     Rcpp::traits::input_parameter< bool >::type coldSpells(coldSpellsSEXP);
     Rcpp::traits::input_parameter< double >::type ice_thresh(ice_threshSEXP);
     Rcpp::traits::input_parameter< int >::type roundRes(roundResSEXP);
-    rcpp_result_gen = Rcpp::wrap(hw3_category_daily(sst_file, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes));
+    rcpp_result_gen = Rcpp::wrap(hw3_category_daily(sst_file, clim_file, event_file, t_jd_range, lon_range, lat_range, var_name, coldSpells, ice_thresh, roundRes));
     return rcpp_result_gen;
 END_RCPP
 }
 // hw3_category_daily_multi
-Rcpp::List hw3_category_daily_multi(Rcpp::CharacterVector files, std::string clim_file, std::string event_file, std::vector<int> t_jd_range, std::string var_name, bool coldSpells, double ice_thresh, int roundRes, bool skip_bad_files);
-RcppExport SEXP _heatwave3_hw3_category_daily_multi(SEXP filesSEXP, SEXP clim_fileSEXP, SEXP event_fileSEXP, SEXP t_jd_rangeSEXP, SEXP var_nameSEXP, SEXP coldSpellsSEXP, SEXP ice_threshSEXP, SEXP roundResSEXP, SEXP skip_bad_filesSEXP) {
+Rcpp::List hw3_category_daily_multi(Rcpp::CharacterVector files, std::string clim_file, std::string event_file, std::vector<int> t_jd_range, std::vector<double> lon_range, std::vector<double> lat_range, std::string var_name, bool coldSpells, double ice_thresh, int roundRes, bool skip_bad_files);
+RcppExport SEXP _heatwave3_hw3_category_daily_multi(SEXP filesSEXP, SEXP clim_fileSEXP, SEXP event_fileSEXP, SEXP t_jd_rangeSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP var_nameSEXP, SEXP coldSpellsSEXP, SEXP ice_threshSEXP, SEXP roundResSEXP, SEXP skip_bad_filesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -273,12 +292,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type clim_file(clim_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type event_file(event_fileSEXP);
     Rcpp::traits::input_parameter< std::vector<int> >::type t_jd_range(t_jd_rangeSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type lon_range(lon_rangeSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type lat_range(lat_rangeSEXP);
     Rcpp::traits::input_parameter< std::string >::type var_name(var_nameSEXP);
     Rcpp::traits::input_parameter< bool >::type coldSpells(coldSpellsSEXP);
     Rcpp::traits::input_parameter< double >::type ice_thresh(ice_threshSEXP);
     Rcpp::traits::input_parameter< int >::type roundRes(roundResSEXP);
     Rcpp::traits::input_parameter< bool >::type skip_bad_files(skip_bad_filesSEXP);
-    rcpp_result_gen = Rcpp::wrap(hw3_category_daily_multi(files, clim_file, event_file, t_jd_range, var_name, coldSpells, ice_thresh, roundRes, skip_bad_files));
+    rcpp_result_gen = Rcpp::wrap(hw3_category_daily_multi(files, clim_file, event_file, t_jd_range, lon_range, lat_range, var_name, coldSpells, ice_thresh, roundRes, skip_bad_files));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -411,7 +432,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_label_components_3d_cpp", (DL_FUNC) &_heatwave3_label_components_3d_cpp, 5},
-    {"_heatwave3_blob_daily_summary_cpp", (DL_FUNC) &_heatwave3_blob_daily_summary_cpp, 9},
+    {"_heatwave3_hw3_blob_mask_from_event", (DL_FUNC) &_heatwave3_hw3_blob_mask_from_event, 4},
+    {"_heatwave3_hw3_blob_reduce", (DL_FUNC) &_heatwave3_hw3_blob_reduce, 12},
     {"_heatwave3_hw3_get_threads", (DL_FUNC) &_heatwave3_hw3_get_threads, 0},
     {"_heatwave3_hw3_set_threads", (DL_FUNC) &_heatwave3_hw3_set_threads, 1},
     {"_heatwave3_hw3_init_fork_safety", (DL_FUNC) &_heatwave3_hw3_init_fork_safety, 0},
@@ -425,8 +447,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_hw3_jd_to_doy", (DL_FUNC) &_heatwave3_hw3_jd_to_doy, 1},
     {"_heatwave3_hw3_read_clim_nc", (DL_FUNC) &_heatwave3_hw3_read_clim_nc, 1},
     {"_heatwave3_hw3_read_subset", (DL_FUNC) &_heatwave3_hw3_read_subset, 6},
-    {"_heatwave3_hw3_category_daily", (DL_FUNC) &_heatwave3_hw3_category_daily, 8},
-    {"_heatwave3_hw3_category_daily_multi", (DL_FUNC) &_heatwave3_hw3_category_daily_multi, 9},
+    {"_heatwave3_hw3_category_daily", (DL_FUNC) &_heatwave3_hw3_category_daily, 10},
+    {"_heatwave3_hw3_category_daily_multi", (DL_FUNC) &_heatwave3_hw3_category_daily_multi, 11},
     {"_heatwave3_hw3_file_meta", (DL_FUNC) &_heatwave3_hw3_file_meta, 1},
     {"_heatwave3_hw3_read_daily_nc", (DL_FUNC) &_heatwave3_hw3_read_daily_nc, 1},
     {"_heatwave3_hw3_detect_events", (DL_FUNC) &_heatwave3_hw3_detect_events, 18},

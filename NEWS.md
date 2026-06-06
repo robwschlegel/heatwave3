@@ -16,6 +16,29 @@
 
 ## New features
 
+* **`detect_blob3()` is now the v1 spatial-events labeller.** The 3-D
+  6-connectivity labeller and a single-pass C++ metric reducer implement the v1
+  specification (Smit design note; spatial-MHW review, Section 15.2.1). It now
+  takes the `detect_event3(daily = "also")` product and uses the **Hobday
+  duration-filtered per-pixel `event` flag** as the mask (per-pixel detection is
+  the user's responsibility), replacing the old `sst_file` + `clim_file` raw
+  daily-exceedance path; the `coldSpells` switch is gone (polarity is inferred
+  from the sign of the anomaly). The mask reshape and the metric reduction,
+  previously R loops, are now in C++ (`hw3_blob_mask_from_event()`,
+  `hw3_blob_reduce()`). The event table adopts the v1
+  vocabulary: `duration_days`, `n_voxels`, `peak_area_km2`, `mean_area_km2`,
+  `total_area_km2` (union of unique cells), `volume_km2_d` (sum of daily areas),
+  `cumI_km2_d` (area-weighted cumulative anomaly), `mean_intensity`,
+  `max_intensity` (signed extreme), `peak_severity` (max Hobday multiplier),
+  `frac_moderate`/`frac_strong`/`frac_severe`/`frac_extreme` (peak-day
+  category-area fractions), `centroid_lon`/`centroid_lat` (peak-day great-circle
+  area-weighted centroid), and `bbox_*`. New arguments: `cellAreaMethod` (exact
+  spherical-cap, verified to integrate to `4*pi*R^2`, or the `coslat` default),
+  `rankBy = "volume_km2_day"` alongside the existing options (ranking now uses
+  magnitude, so MHWs and MCSs rank consistently), and `minArea`/`minDuration`
+  filters (default off). Signed metrics retain sign (cold spells are negative);
+  the cold-spell anomaly is no longer negated. This is a **breaking change** to
+  `detect_blob3()`'s output columns and to the meaning of cold-spell metrics.
 * **Per-day output, controlled by paths/flags rather than extra return modes.**
     * `detect_event3(daily = "also")` writes a per-day companion NetCDF beside
       the event table; `daily = "only"` writes just the per-day file (no event
@@ -38,10 +61,14 @@
 * **`category_daily3()`** builds the per-pixel daily marine-heatwave (or
   cold-spell) category series for a date window straight from an SST file, a
   climatology, and an events file, entirely via the C++ readers. It reads only
-  the requested SST time-window (a hyperslab) and re-runs no detection: event
-  membership is read from the events file, so events that began before the
-  window are still recognised (re-detecting on a short window would silently drop
-  them). It returns the full daily grid with the same columns as the
+  the requested window (a hyperslab) and re-runs no detection: event membership
+  is read from the events file, so events that began before the window are still
+  recognised (re-detecting on a short window would silently drop them). The
+  window is set by `time_range` and, optionally, `lon_range` / `lat_range`, which
+  subset the SST read spatially (intersected with the climatology extent, with
+  the climatology and events aligned to the subset) so a sub-region of a large or
+  global product is pulled from disk rather than read whole. It returns the full
+  daily grid with the same columns as the
   `detect_event3(daily = "also")` product (`lon, lat, t, temp, seas, thresh,
   intensity, event, event_no, category`), with `category` set on event-member
   exceedance days and `NA` elsewhere. This is a NetCDF-native replacement for the
@@ -53,6 +80,27 @@
 
 ## Bug fixes
 
+* **Cold-spell event intensities now carry the correct (negative) sign.**
+  `detect_event3(coldSpells = TRUE)` reported the seas- and thresh-relative
+  intensity metrics (`intensity_mean`, `intensity_max`, `intensity_cumulative`,
+  and their `_relThresh` variants) and the onset/decline rates with the wrong
+  sign: positive, when heatwaveR reports them negative (the sign of the anomaly
+  `temp - seas`). Magnitudes and the peak day were already correct. The sign is
+  now flipped back for cold spells, so the event table is like-for-like with
+  `heatwaveR::detect_event(coldSpells = TRUE)` (verified pixel-by-pixel; variance
+  and absolute-temperature metrics keep their natural positive sign, and
+  category/severity continue to use magnitude). The daily product,
+  `category_daily3()`, and `detect_blob3()` already retained the signed anomaly
+  and are unaffected.
+* **`rate_onset` / `rate_decline` now match heatwaveR.** The onset/decline rates
+  used the anomaly *at* the first/last event day as the reference and special-cased
+  a same-day peak to zero. heatwaveR (following Hobday et al. 2016) uses the
+  half-day crossing instead -- the mean anomaly of the first event day and the
+  preceding non-event day for onset, and of the last event day and the following
+  day for decline -- divided by `(days_to_peak + 0.5)` / `(days_from_peak + 0.5)`,
+  and returns `NA` when the event abuts the start/end of the series. This applied
+  to both heatwaves and cold spells; both now agree with heatwaveR pixel-by-pixel
+  (verified on `intensity_*` and the rates).
 * **In-process multithreading no longer depends on OpenMP/`libomp`.** The
   parallel loops (climatology and event detection) now use C++ `std::thread`.
   On macOS, a `dlopen`-ed `libomp` could fail to allocate its per-worker

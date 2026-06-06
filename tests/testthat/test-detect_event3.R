@@ -10,22 +10,78 @@ make_clim <- function() {
   list(sst = sst_file, stem = stem)
 }
 
-test_that("detect_event3 cold-spell intensities are positive (heatwaveR convention)", {
-  skip_if_not(file.exists("/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"),
-              "SWIO test data not available")
-
-  sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
+test_that("detect_event3 cold-spell intensities are negative (heatwaveR convention)", {
+  fx <- make_clim()
   stem <- tempfile()
-  on.exit(unlink(paste0(stem, c("_clim.nc", "_events.nc"))))
-
-  ts2clm3(file_in = sst_file, name = stem, climatologyPeriod = cp,
-          lon_range = c(25.025, 25.075), lat_range = c(-33.975, -33.925),
-          var_name = "analysed_sst", pctile = 10, quiet = TRUE)
-  detect_event3(file_in = sst_file, name = stem, var_name = "analysed_sst",
-                coldSpells = TRUE, quiet = TRUE)
-
+  ts2clm3(fx$sst, name = stem, climatologyPeriod = cp, pctile = 10, quiet = TRUE)
+  detect_event3(fx$sst, name = stem, coldSpells = TRUE, quiet = TRUE)
   ev <- hw3_export(paste0(stem, "_events.nc"))
-  expect_true(all(ev$intensity_mean > 0, na.rm = TRUE))
+  # heatwaveR reports cold-spell intensities with the sign of the anomaly
+  # retained, i.e. negative; ranking/severity use magnitude.
+  expect_true(all(ev$intensity_mean < 0, na.rm = TRUE))
+  expect_true(all(ev$intensity_max < 0, na.rm = TRUE))
+  expect_true(all(ev$intensity_cumulative < 0, na.rm = TRUE))
+  expect_true(all(ev$intensity_var >= 0, na.rm = TRUE))        # variance positive
+  expect_true(all(ev$intensity_mean_abs > 0, na.rm = TRUE))    # absolute temps positive
+})
+
+test_that("detect_event3 cold-spell intensities match heatwaveR like-for-like", {
+  skip_if_not_installed("heatwaveR")
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, climatologyPeriod = cp, pctile = 10, quiet = TRUE)
+  detect_event3(sst_file, name = stem, coldSpells = TRUE, quiet = TRUE)
+  ev <- hw3_export(paste0(stem, "_events.nc"))
+
+  # heatwaveR on the first pixel of the same grid
+  gd <- hw3_read_sst(sst_file, "")
+  nt <- gd$ntime
+  df <- data.frame(t = as.Date(gd$time_days - 2440588L, origin = "1970-01-01"),
+                   temp = gd$sst[1:nt])
+  tsR <- heatwaveR::ts2clm(df, climatologyPeriod = cp, pctile = 10)
+  R <- heatwaveR::detect_event(tsR, coldSpells = TRUE)$event
+
+  H <- ev[ev$lon == gd$lon[1] & ev$lat == gd$lat[1], ]
+  H <- H[order(H$date_start), ]
+  n <- min(nrow(R), nrow(H))
+  expect_gt(n, 0)
+  for (col in c("intensity_mean", "intensity_max", "intensity_cumulative",
+                "intensity_mean_relThresh", "intensity_max_relThresh",
+                "intensity_cumulative_relThresh", "intensity_var",
+                "rate_onset", "rate_decline")) {
+    expect_equal(H[[col]][seq_len(n)], R[[col]][seq_len(n)], tolerance = 1e-3,
+                 info = col)
+  }
+})
+
+test_that("detect_event3 heatwave intensities and rates match heatwaveR", {
+  skip_if_not_installed("heatwaveR")
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, climatologyPeriod = cp, quiet = TRUE)
+  detect_event3(sst_file, name = stem, quiet = TRUE)
+  ev <- hw3_export(paste0(stem, "_events.nc"))
+
+  gd <- hw3_read_sst(sst_file, "")
+  nt <- gd$ntime
+  df <- data.frame(t = as.Date(gd$time_days - 2440588L, origin = "1970-01-01"),
+                   temp = gd$sst[1:nt])
+  tsR <- heatwaveR::ts2clm(df, climatologyPeriod = cp)
+  R <- heatwaveR::detect_event(tsR)$event
+
+  H <- ev[ev$lon == gd$lon[1] & ev$lat == gd$lat[1], ]
+  H <- H[order(H$date_start), ]
+  n <- min(nrow(R), nrow(H))
+  expect_gt(n, 0)
+  for (col in c("intensity_mean", "intensity_max", "intensity_cumulative",
+                "intensity_var", "rate_onset", "rate_decline")) {
+    expect_equal(H[[col]][seq_len(n)], R[[col]][seq_len(n)], tolerance = 1e-3,
+                 info = col)
+  }
 })
 
 test_that("daily = 'none' (default) writes only the events file", {

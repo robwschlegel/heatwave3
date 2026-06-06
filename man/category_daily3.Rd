@@ -9,6 +9,8 @@ category_daily3(
   clim_file,
   event_file,
   time_range,
+  lon_range = NULL,
+  lat_range = NULL,
   var_name = NULL,
   coldSpells = FALSE,
   ice_thresh = -1.7,
@@ -29,6 +31,13 @@ The variable is auto-detected unless \code{var_name} is given.}
 
 \item{time_range}{Character vector of length 2, \code{c(start, end)} dates,
 for example \code{c("2026-05-10", "2026-05-20")}.}
+
+\item{lon_range, lat_range}{Optional numeric vectors of length 2,
+\code{c(min, max)}, restricting the output to a spatial sub-region. Like
+\code{time_range}, these subset the SST \strong{read} (a hyperslab),
+intersected with the climatology extent, so only the requested window is
+pulled from disk and the climatology and events are aligned to it. Default
+\code{NULL} (the full climatology extent).}
 
 \item{var_name}{Name of the SST variable. If \code{NULL}, auto-detected.}
 

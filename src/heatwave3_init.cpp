@@ -1,5 +1,8 @@
 #include <Rcpp.h>
 #include <cstdlib>
+#include <cmath>
+#include <algorithm>
+#include <vector>
 #include <map>
 #include <memory>
 #include "heatwave3_types.h"
@@ -515,20 +518,89 @@ static Rcpp::List daily_cat_core(const hw3::GridData& gd, const hw3::ClimData& c
     );
 }
 
-// SubsetSpec spanning the climatology grid extent, plus an optional [jd0,jd1]
-// time window (Julian Days) for the SST read.
+// SubsetSpec for the SST read: the climatology grid extent intersected with the
+// optional lon/lat windows, plus an optional [jd0,jd1] time window (Julian Days).
+// Empty lon_range/lat_range mean "use the full climatology extent".
 static hw3::SubsetSpec clim_extent_subset(const hw3::ClimData& cd,
-                                          const std::vector<int>& t_jd_range) {
+                                          const std::vector<int>& t_jd_range,
+                                          const std::vector<double>& lon_range,
+                                          const std::vector<double>& lat_range) {
     hw3::SubsetSpec ss;
-    ss.lon_min = *std::min_element(cd.lon.begin(), cd.lon.end());
-    ss.lon_max = *std::max_element(cd.lon.begin(), cd.lon.end());
-    ss.lat_min = *std::min_element(cd.lat.begin(), cd.lat.end());
-    ss.lat_max = *std::max_element(cd.lat.begin(), cd.lat.end());
+    double clon_min = *std::min_element(cd.lon.begin(), cd.lon.end());
+    double clon_max = *std::max_element(cd.lon.begin(), cd.lon.end());
+    double clat_min = *std::min_element(cd.lat.begin(), cd.lat.end());
+    double clat_max = *std::max_element(cd.lat.begin(), cd.lat.end());
+    if (lon_range.size() == 2) {
+        ss.lon_min = std::max(clon_min, std::min(lon_range[0], lon_range[1]));
+        ss.lon_max = std::min(clon_max, std::max(lon_range[0], lon_range[1]));
+    } else { ss.lon_min = clon_min; ss.lon_max = clon_max; }
+    if (lat_range.size() == 2) {
+        ss.lat_min = std::max(clat_min, std::min(lat_range[0], lat_range[1]));
+        ss.lat_max = std::min(clat_max, std::max(lat_range[0], lat_range[1]));
+    } else { ss.lat_min = clat_min; ss.lat_max = clat_max; }
     if (t_jd_range.size() == 2) {
         ss.time_min = std::min(t_jd_range[0], t_jd_range[1]);
         ss.time_max = std::max(t_jd_range[0], t_jd_range[1]);
     }
     return ss;
+}
+
+// Align a full ClimData to an already-subset SST grid (matched by coordinate
+// value) and remap/filter the events' pixel indices onto that subset grid. When
+// the grid dimensions already match (no spatial subset), this is a no-op and cd
+// is returned unchanged. daily_cat_core uses only pixel_index / date_start /
+// date_end / event_no / ref_date_jd / nevents, so only those event fields are
+// touched.
+static hw3::ClimData align_clim_and_events(const hw3::ClimData& cd,
+                                           const hw3::GridData& gd,
+                                           hw3::EventData& ed) {
+    if (gd.nlon == cd.nlon && gd.nlat == cd.nlat) return cd;  // full extent: no-op
+
+    const double tol = 1e-4;
+    std::vector<int> lon_full(gd.nlon, -1), lat_full(gd.nlat, -1);
+    for (int a = 0; a < gd.nlon; ++a)
+        for (int i = 0; i < cd.nlon; ++i)
+            if (std::fabs(cd.lon[i] - gd.lon[a]) < tol) { lon_full[a] = i; break; }
+    for (int b = 0; b < gd.nlat; ++b)
+        for (int j = 0; j < cd.nlat; ++j)
+            if (std::fabs(cd.lat[j] - gd.lat[b]) < tol) { lat_full[b] = j; break; }
+    std::vector<int> lon_inv(cd.nlon, -1), lat_inv(cd.nlat, -1);
+    for (int a = 0; a < gd.nlon; ++a) if (lon_full[a] >= 0) lon_inv[lon_full[a]] = a;
+    for (int b = 0; b < gd.nlat; ++b) if (lat_full[b] >= 0) lat_inv[lat_full[b]] = b;
+
+    hw3::ClimData out;
+    out.nlon = gd.nlon; out.nlat = gd.nlat; out.ndoy = cd.ndoy;
+    out.lon = gd.lon; out.lat = gd.lat;
+    const size_t npx = static_cast<size_t>(gd.nlon) * gd.nlat;
+    out.seas.assign(npx * 366, hw3::NA_DOUBLE);
+    out.thresh.assign(npx * 366, hw3::NA_DOUBLE);
+    for (int a = 0; a < gd.nlon; ++a) {
+        if (lon_full[a] < 0) continue;
+        for (int b = 0; b < gd.nlat; ++b) {
+            if (lat_full[b] < 0) continue;
+            size_t pf = (static_cast<size_t>(lon_full[a]) * cd.nlat + lat_full[b]) * 366;
+            size_t ps = (static_cast<size_t>(a) * gd.nlat + b) * 366;
+            std::copy(cd.seas.begin() + pf, cd.seas.begin() + pf + 366, out.seas.begin() + ps);
+            std::copy(cd.thresh.begin() + pf, cd.thresh.begin() + pf + 366, out.thresh.begin() + ps);
+        }
+    }
+
+    std::vector<int> n_px, n_eno, n_ds, n_de;
+    for (int i = 0; i < ed.nevents; ++i) {
+        int px = ed.pixel_index[i];
+        int il = px / cd.nlat, ila = px % cd.nlat;
+        if (il < 0 || il >= cd.nlon || ila < 0 || ila >= cd.nlat) continue;
+        int a = lon_inv[il], b = lat_inv[ila];
+        if (a < 0 || b < 0) continue;
+        n_px.push_back(a * gd.nlat + b);
+        n_eno.push_back(ed.event_no[i]);
+        n_ds.push_back(ed.date_start[i]);
+        n_de.push_back(ed.date_end[i]);
+    }
+    ed.pixel_index = n_px; ed.event_no = n_eno;
+    ed.date_start = n_ds; ed.date_end = n_de;
+    ed.nevents = static_cast<int>(n_px.size());
+    return out;
 }
 
 // Daily marine-heatwave / cold-spell categories for a date window, built from a
@@ -539,16 +611,19 @@ Rcpp::List hw3_category_daily(std::string sst_file,
                               std::string clim_file,
                               std::string event_file,
                               std::vector<int> t_jd_range,   // [jd0, jd1]
+                              std::vector<double> lon_range, // [] = full extent
+                              std::vector<double> lat_range, // [] = full extent
                               std::string var_name = "",
                               bool coldSpells = false,
                               double ice_thresh = -1.7,
                               int roundRes = 2) {
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
-    hw3::SubsetSpec ss = clim_extent_subset(cd, t_jd_range);
+    hw3::SubsetSpec ss = clim_extent_subset(cd, t_jd_range, lon_range, lat_range);
     if (var_name.empty()) var_name = hw3::detect_sst_variable(sst_file);
     hw3::GridData gd = hw3::read_sst_netcdf(sst_file, var_name, ss);
     hw3::EventData ed = hw3::read_event_netcdf(event_file);
-    return daily_cat_core(gd, cd, ed, coldSpells, ice_thresh, roundRes);
+    hw3::ClimData cda = align_clim_and_events(cd, gd, ed);
+    return daily_cat_core(gd, cda, ed, coldSpells, ice_thresh, roundRes);
 }
 
 // As above, but reading the SST window from a vector of daily files (one time
@@ -558,20 +633,23 @@ Rcpp::List hw3_category_daily_multi(Rcpp::CharacterVector files,
                                     std::string clim_file,
                                     std::string event_file,
                                     std::vector<int> t_jd_range,
+                                    std::vector<double> lon_range, // [] = full extent
+                                    std::vector<double> lat_range, // [] = full extent
                                     std::string var_name = "",
                                     bool coldSpells = false,
                                     double ice_thresh = -1.7,
                                     int roundRes = 2,
                                     bool skip_bad_files = false) {
     hw3::ClimData cd = hw3::read_clim_netcdf(clim_file);
-    hw3::SubsetSpec ss = clim_extent_subset(cd, t_jd_range);
+    hw3::SubsetSpec ss = clim_extent_subset(cd, t_jd_range, lon_range, lat_range);
     std::vector<std::string> fv;
     for (int i = 0; i < files.size(); ++i) fv.push_back(Rcpp::as<std::string>(files[i]));
     if (var_name.empty() && !skip_bad_files && !fv.empty())
         var_name = hw3::detect_sst_variable(fv[0]);
     hw3::GridData gd = hw3::read_sst_multi_netcdf(fv, var_name, ss, skip_bad_files);
     hw3::EventData ed = hw3::read_event_netcdf(event_file);
-    return daily_cat_core(gd, cd, ed, coldSpells, ice_thresh, roundRes);
+    hw3::ClimData cda = align_clim_and_events(cd, gd, ed);
+    return daily_cat_core(gd, cda, ed, coldSpells, ice_thresh, roundRes);
 }
 
 // [[Rcpp::export]]

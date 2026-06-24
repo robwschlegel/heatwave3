@@ -1,0 +1,249 @@
+---
+title: "Performance benchmark: heatwave3 vs xmhw"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Performance benchmark: heatwave3 vs xmhw}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+# Pretty output
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+
+# Environment for python
+# Sys.setenv(
+#   LD_LIBRARY_PATH = paste(
+#     "/home/calanus/anaconda3/envs/xmhw_env/lib",
+#     Sys.getenv("LD_LIBRARY_PATH"),
+#     sep = ":"
+#   )
+# )
+```
+
+## Overview
+
+This vignette benchmarks `heatwave3` against the python module `xmhw` on the OSTIA gridded
+SST dataset for the French coastline of the Mediterranean Sea 
+(104 lon × 60 lat, 6,240 ocean pixels, 15,706 daily time steps, 1982–2024).
+
+We compare three configurations:
+
+1. **heatwaveR**, serial per-pixel R + C++ (the standard approach)
+2. **heatwave3 (1 thread)**, pure C++ with single-threaded execution
+3. **xmhw (1 thread)**, pure python without dask
+4. **heatwave3 (12 threads)**, pure C++ with multi-threading
+5. **xmhw (12 threads)**, pure python with dask enabled
+
+```{r setup}
+# Necessary R packages
+library(reticulate)
+library(ncdf4)
+library(terra)
+library(heatwaveR)
+library(heatwave3)
+```
+
+```{r check-env, include=FALSE}
+# cat(Sys.getenv("LD_LIBRARY_PATH"))
+# reticulate::py_config()
+```
+
+## Test data
+
+```{r data}
+# Choose bounding box
+bbox <- c(
+  2.5,   # °E  (just west of Cerbère)
+  41.0,  # °N  (south of Corsica, open sea)
+  7.7,   # °E  (Menton / Ligurian coast)
+  44.0   # °N  (northern fringe, pre-Alps shelf)
+)
+
+# Select daterange
+time_range <- c(
+  "1982-01-01",
+  "2024-12-31"
+)
+
+# Download the desired OSTIA cube
+# OSTIA_data <- CopernicusMarine::cms_download_subset(
+#   product = "SST_GLO_SST_L4_REP_OBSERVATIONS_010_011",
+#   layer = "METOFFICE-GLO-SST-L4-REP-OBS-SST",
+#   variable = "analysed_sst",
+#   region = bbox,
+#   time = time_range,
+#   username = "...", # Replace with your CMEMS username
+#   password = "...", # Replace with your CMEMS password
+#   progress = TRUE
+# )
+
+# Or simply download them via the UI
+# https://data.marine.copernicus.eu/product/SST_GLO_SST_L4_REP_OBSERVATIONS_010_011/download?dataset=METOFFICE-GLO-SST-L4-REP-OBS-SST_202003
+
+# The NetCDF file for further use
+sst_file <- "/home/calanus/data/OSTIA/METOFFICE-GLO-SST-L4-REP-OBS-SST_French_Med.nc"
+# 104 lon × 60 lat at 0.05° resolution
+# 2.5–7.7°E, 41–44°N (French Mediterranean coastline)
+# 15,706 daily time steps (1982-01-01 to 2024-12-31)
+# 6,240 ocean pixels (remainder is land)
+```
+
+## Python environment
+
+We will control the comparison across R and python by using an existing python v3.11 environemnt 
+created for this tutorial with the following modules installed: `netCDF4`, `xarray`, `dask`, and `xmhw`.
+
+```{r reticulate}
+# Activate the conda environment and load functionality into R environment
+use_condaenv("RiOMar", required = TRUE)
+nc4 <- import("netCDF4")
+xmhw <- import("xmhw.xmhw")
+xr <- import("xarray")
+dask <- import("dask")
+builtins <- import_builtins()
+
+# Pull out the two key functions
+x_threshold <- xmhw$threshold
+x_detect <- xmhw$detect
+py_slice <- builtins$slice
+```
+
+## heatwaveR: serial baseline
+
+`heatwaveR` processes one pixel at a time. We time a 20-pixel sample (data
+pre-loaded to isolate computation from I/O) and extrapolate to the full grid.
+
+```{r heatwaveR}
+nc <- nc_open(sst_file)
+time_raw <- ncvar_get(nc, "time")
+dates <- as.Date("1970-01-01") + time_raw / 86400
+
+# Pre-load one longitude column (20 lat pixels)
+sst_col <- ncvar_get(nc, "analysed_sst",
+                     start = c(1, 1, 1), 
+                     count = c(1, 20, -1))
+nc_close(nc)
+
+ocean_idx <- which(!is.na(sst_col[, 1]))
+n_test <- 20L
+
+t_hwr <- system.time({
+  for (j in ocean_idx[1:n_test]) {
+    clm <- ts2clm(data.frame(t = dates, temp = as.numeric(sst_col[j, ])),
+                  climatologyPeriod = c("1982-01-01", "2011-12-31"))
+    ev <- detect_event(clm)
+  }
+})
+
+per_pixel <- t_hwr[3] / n_test
+n_ocean <- 6240  # pre-counted
+estimated <- per_pixel * n_ocean
+
+cat("Per pixel:      ", round(per_pixel, 3), "sec\n")
+cat("Estimated total:", round(estimated), "sec (",
+    round(estimated / 60, 1), "min)\n")
+```
+
+## heatwave3: single-threaded
+
+```{r hw3-1t}
+stem <- file.path(tempdir(), "bench")
+
+t_clim <- system.time(
+  ts2clm3(sst_file, name = stem,
+          climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
+)
+
+t_event <- system.time(
+  detect_event3(sst_file, name = stem,
+                var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
+)
+
+cat("Climatology:", round(t_clim[3], 1), "sec\n")
+cat("Detection:  ", round(t_event[3], 1), "sec\n")
+cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
+```
+
+## xmhw: single-thread
+
+```{r }
+# Open sst file with xarray and extract the same subset of data as the heatwaveR example above
+x_ds <- xr$open_dataset(sst_file)
+x_sst <- x_ds[["analysed_sst"]]$isel(
+  longitude = 0L, # first longitude only (1 pixel)
+  latitude  = py_slice(0L, 20L) # first 20 latitudes
+)
+
+# Check output
+# print(x_sst)
+# print(x_sst$shape) 
+
+# Determine climatology data
+x_clim_time <- system.time(
+  x_clim <- x_threshold(x_sst)
+)
+
+# Detect events
+x_event_time <- system.time(
+  x_event <- x_detect(x_sst, x_clim['thresh'], x_clim['seas'])
+)
+
+cat("Climatology (estimated):", round((x_clim_time[3]/20*6240)/60, 1), "min\n")
+cat("Detection (estimated):  ", round((x_event_time[3]/20*6240)/60, 1), "min\n")
+cat("Total (estimated):      ", round(((x_clim_time[3]/20*6240 + x_event_time[3]/20*6240)/60), 1), "min\n")
+```
+
+## heatwave3: 12 threads
+
+```{r hw3-12t}
+t_clim_12 <- system.time(
+  ts2clm3(sst_file, name = stem,
+          climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
+)
+
+t_event_12 <- system.time(
+  detect_event3(sst_file, name = stem,
+                var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
+)
+
+cat("Climatology:", round(t_clim_12[3], 1), "sec\n")
+cat("Detection:  ", round(t_event_12[3], 1), "sec\n")
+cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
+```
+
+## xmhw: 12 threads
+
+## Results
+
+Benchmarked on an Apple M3 Pro (12-core), macOS 15.5, R 4.6.0.
+
+| Method | Climatology | Detection | Total | Speedup |
+|--------|------------|-----------|-------|---------|
+| heatwaveR (serial) | n/a | n/a | ca. 4,116 sec (68.7 min) | 1× |
+| heatwave3 (1 thread) | 174 sec | 82 sec | **257 sec (4.3 min)** | **16×** |
+| heatwave3 (12 threads) | 60 sec | 55 sec | **115 sec (1.9 min)** | **36×** |
+
+The speedup comes from three sources:
+
+1. **C++ algorithms**. Climatology (sliding-window percentile) and event
+   detection (run-length encoding, gap joining, 19 metrics) are implemented
+   in pure C++ rather than R + data.table.
+2. **OpenMP parallelism**. Each pixel is independent, so OpenMP distributes
+   pixels across cores with zero coordination overhead.
+3. **Direct NetCDF I/O**. Reads the full data slab in one C call via
+   libnetcdf, avoiding R's per-pixel ncdf4 random-access overhead.
+
+### Scaling notes
+
+- The 12-thread run is 2.2× faster than single-threaded, not 12×, because the
+  full 400×200 grid must first be read into memory (ca. 900 MB for this dataset)
+  and the NetCDF I/O is single-threaded. The parallelism benefit is in the
+  computation phase only.
+- For grids that fit in memory, I/O accounts for roughly 40–60% of wall time.
+  Larger grids with more ocean pixels show better parallel scaling as the
+  compute fraction grows.
+- On Linux with gcc OpenMP (which has lower thread-creation overhead than macOS
+  libomp), parallel scaling is typically better.

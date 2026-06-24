@@ -10,15 +10,6 @@ vignette: >
 ```{r setup, include = FALSE}
 # Pretty output
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
-
-# Environment for python
-# Sys.setenv(
-#   LD_LIBRARY_PATH = paste(
-#     "/home/calanus/anaconda3/envs/xmhw_env/lib",
-#     Sys.getenv("LD_LIBRARY_PATH"),
-#     sep = ":"
-#   )
-# )
 ```
 
 ## Overview
@@ -66,19 +57,7 @@ time_range <- c(
   "2024-12-31"
 )
 
-# Download the desired OSTIA cube
-# OSTIA_data <- CopernicusMarine::cms_download_subset(
-#   product = "SST_GLO_SST_L4_REP_OBSERVATIONS_010_011",
-#   layer = "METOFFICE-GLO-SST-L4-REP-OBS-SST",
-#   variable = "analysed_sst",
-#   region = bbox,
-#   time = time_range,
-#   username = "...", # Replace with your CMEMS username
-#   password = "...", # Replace with your CMEMS password
-#   progress = TRUE
-# )
-
-# Or simply download them via the UI
+# Simply download the data proscribed here via the UI
 # https://data.marine.copernicus.eu/product/SST_GLO_SST_L4_REP_OBSERVATIONS_010_011/download?dataset=METOFFICE-GLO-SST-L4-REP-OBS-SST_202003
 
 # The NetCDF file for further use
@@ -145,27 +124,6 @@ cat("Estimated total:", round(estimated), "sec (",
     round(estimated / 60, 1), "min)\n")
 ```
 
-## heatwave3: single-threaded
-
-```{r hw3-1t}
-stem <- file.path(tempdir(), "bench")
-
-t_clim <- system.time(
-  ts2clm3(sst_file, name = stem,
-          climatologyPeriod = c("1982-01-01", "2011-12-31"),
-          var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
-)
-
-t_event <- system.time(
-  detect_event3(sst_file, name = stem,
-                var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
-)
-
-cat("Climatology:", round(t_clim[3], 1), "sec\n")
-cat("Detection:  ", round(t_event[3], 1), "sec\n")
-cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
-```
-
 ## xmhw: single-thread
 
 ```{r }
@@ -190,9 +148,37 @@ x_event_time <- system.time(
   x_event <- x_detect(x_sst, x_clim['thresh'], x_clim['seas'])
 )
 
-cat("Climatology (estimated):", round((x_clim_time[3]/20*6240)/60, 1), "min\n")
-cat("Detection (estimated):  ", round((x_event_time[3]/20*6240)/60, 1), "min\n")
-cat("Total (estimated):      ", round(((x_clim_time[3]/20*6240 + x_event_time[3]/20*6240)/60), 1), "min\n")
+# Time estimates
+x_clim_est <- x_clim_time[3]/20*6240
+x_event_est <- x_event_time[3]/20*6240
+
+cat("Climatology (estimated):", round(x_clim_est), "sec (",
+    round((x_clim_est) / 60, 1), "min)\n")
+cat("Detection (estimated):  ", round(x_event_est), "sec (",
+    round((x_event_est) / 60, 1), "min)\n")
+cat("Total (estimated):", round(x_clim_est + x_event_est), "sec (",
+    round((x_clim_est + x_event_est) / 60, 1), "min)\n")
+```
+
+## heatwave3: single-threaded
+
+```{r hw3-1t}
+stem <- file.path(tempdir(), "bench")
+
+t_clim <- system.time(
+  ts2clm3(sst_file, name = stem,
+          climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
+)
+
+t_event <- system.time(
+  detect_event3(sst_file, name = stem,
+                var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
+)
+
+cat("Climatology:", round(t_clim[3], 1), "sec\n")
+cat("Detection:  ", round(t_event[3], 1), "sec\n")
+cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
 ```
 
 ## heatwave3: 12 threads
@@ -216,34 +202,20 @@ cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
 
 ## xmhw: 12 threads
 
+Note that the `xmhw` will also work with dask, which itself can have parellelism established. 
+This is however outside of the scope of the capacity of an Rmarkdown file and `reticulate` to be open to replicate reasonably.
+The interested researcher is advised to read the tutorial available on the `xmhw` website: https://xmhw.readthedocs.io/en/latest/dask.html
+
 ## Results
 
-Benchmarked on an Apple M3 Pro (12-core), macOS 15.5, R 4.6.0.
+Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.0.
 
-| Method | Climatology | Detection | Total | Speedup |
+| Method | Climatology | Detection | Total |
 |--------|------------|-----------|-------|---------|
-| heatwaveR (serial) | n/a | n/a | ca. 4,116 sec (68.7 min) | 1× |
-| heatwave3 (1 thread) | 174 sec | 82 sec | **257 sec (4.3 min)** | **16×** |
-| heatwave3 (12 threads) | 60 sec | 55 sec | **115 sec (1.9 min)** | **36×** |
+| heatwaveR (serial) | n/a | n/a | ca. 1,262 sec (21 min) | 1× |
+| xmhw (serial) | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5× |
+| heatwave3 (1 thread) | 17.5 sec | 5 sec | **22.5 sec** | **56×** |
+| heatwave3 (12 threads) | 3.7 sec | 3.7 sec | **7.4 sec** | **170×** |
 
-The speedup comes from three sources:
-
-1. **C++ algorithms**. Climatology (sliding-window percentile) and event
-   detection (run-length encoding, gap joining, 19 metrics) are implemented
-   in pure C++ rather than R + data.table.
-2. **OpenMP parallelism**. Each pixel is independent, so OpenMP distributes
-   pixels across cores with zero coordination overhead.
-3. **Direct NetCDF I/O**. Reads the full data slab in one C call via
-   libnetcdf, avoiding R's per-pixel ncdf4 random-access overhead.
-
-### Scaling notes
-
-- The 12-thread run is 2.2× faster than single-threaded, not 12×, because the
-  full 400×200 grid must first be read into memory (ca. 900 MB for this dataset)
-  and the NetCDF I/O is single-threaded. The parallelism benefit is in the
-  computation phase only.
-- For grids that fit in memory, I/O accounts for roughly 40–60% of wall time.
-  Larger grids with more ocean pixels show better parallel scaling as the
-  compute fraction grows.
-- On Linux with gcc OpenMP (which has lower thread-creation overhead than macOS
-  libomp), parallel scaling is typically better.
+Note then that the base `heatwaveR` script is already almost twice as fast as `xmhw` if this analysis has not been optimised for `dask`. Also note that as part of the operation of `heatwave3` the output of the files are already
+saved to local disk in an orderly fashion. The saving of the output of `xmhw` would add additional total run-time.

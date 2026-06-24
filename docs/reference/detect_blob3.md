@@ -1,20 +1,10 @@
-<div id="main" class="col-md-9" role="main">
-
 # Detect spatially connected marine heatwave blobs
-
-<div class="ref-description section level2">
 
 Identifies spatially contiguous marine heatwave (or cold-spell) events
 ("blobs") by performing 3D connected-component labelling on the
 exceedance mask across longitude, latitude, and time.
 
-</div>
-
-<div class="section level2">
-
 ## Usage
-
-<div class="sourceCode">
 
 ``` r
 detect_blob3(
@@ -32,102 +22,91 @@ detect_blob3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Arguments
 
--   sst\_file:
+- sst_file:
 
-    Path to the SST NetCDF file (the same file passed to `ts2clm3`).
+  Path to the SST NetCDF file (the same file passed to
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)).
 
--   clim\_file:
+- clim_file:
 
-    Path to the climatology NetCDF produced by `ts2clm3`. The spatial
-    grid of the climatology determines the region analysed.
+  Path to the climatology NetCDF produced by
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+  The spatial grid of the climatology determines the region analysed.
 
--   var\_name:
+- var_name:
 
-    Name of the SST variable in `sst_file`. If `NULL`, auto-detected
-    from CF attributes.
+  Name of the SST variable in `sst_file`. If `NULL`, auto-detected from
+  CF attributes.
 
--   connectivity:
+- connectivity:
 
-    Integer. Voxel connectivity for labelling. Default `6`
-    (face-adjacent in 3D: left/right, up/down, forward/backward in
-    time).
+  Integer. Voxel connectivity for labelling. Default `6` (face-adjacent
+  in 3D: left/right, up/down, forward/backward in time).
 
--   wrapDateline:
+- wrapDateline:
 
-    Logical. Wrap the longitude axis so that blobs can connect across
-    the antimeridian? Default `FALSE`.
+  Logical. Wrap the longitude axis so that blobs can connect across the
+  antimeridian? Default `FALSE`.
 
--   minVoxels:
+- minVoxels:
 
-    Minimum number of space-time voxels for a blob to be retained.
-    Default `1`. Set higher (for example `200`) to filter out small,
-    short-lived events.
+  Minimum number of space-time voxels for a blob to be retained. Default
+  `1`. Set higher (for example `200`) to filter out small, short-lived
+  events.
 
--   topN:
+- topN:
 
-    Return only the top N blobs ranked by `rankBy`. Default `NULL`
-    (return all).
+  Return only the top N blobs ranked by `rankBy`. Default `NULL` (return
+  all).
 
--   rankBy:
+- rankBy:
 
-    Character. Metric to rank blobs by. Default `"cumI_km2_day"`
-    (cumulative intensity-weighted area). Other options include
-    `"peakArea_km2"`, `"duration"`, `"meanArea_km2"`.
+  Character. Metric to rank blobs by. Default `"cumI_km2_day"`
+  (cumulative intensity-weighted area). Other options include
+  `"peakArea_km2"`, `"duration"`, `"meanArea_km2"`.
 
--   coldSpells:
+- coldSpells:
 
-    Logical. If `TRUE`, detect cold-spell blobs (`temp < thresh`).
-    Requires a climatology computed with a low percentile (for example
-    `pctile = 10` in `ts2clm3`). Default `FALSE`.
+  Logical. If `TRUE`, detect cold-spell blobs (`temp < thresh`).
+  Requires a climatology computed with a low percentile (for example
+  `pctile = 10` in
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)).
+  Default `FALSE`.
 
--   return:
+- return:
 
-    Character vector specifying which components to include in the
-    output. One or more of:
+  Character vector specifying which components to include in the output.
+  One or more of:
 
-    `"event"`
+  `"event"`
 
-    :   One row per blob with summary metrics (duration, peak area,
-        cumulative intensity, centroid, etc.)
+  :   One row per blob with summary metrics (duration, peak area,
+      cumulative intensity, centroid, etc.)
 
-    `"daily"`
+  `"daily"`
 
-    :   One row per (blob, date) with daily area, mean/max anomaly,
-        centroid, and bounding box
+  :   One row per (blob, date) with daily area, mean/max anomaly,
+      centroid, and bounding box
 
-    `"voxel"`
+  `"voxel"`
 
-    :   One row per (blob, lon, lat, date), the full 3D footprint.
-        Required for spatial footprint maps and persistence analysis.
-        Can be large.
+  :   One row per (blob, lon, lat, date), the full 3D footprint.
+      Required for spatial footprint maps and persistence analysis. Can
+      be large.
 
-    Default `c("event", "daily")`.
+  Default `c("event", "daily")`.
 
--   skip\_bad\_files:
+- skip_bad_files:
 
-    Logical. For multi-file SST inputs, skip unreadable files or files
-    with mismatched grids instead of failing. Default `FALSE`.
-
-</div>
-
-<div class="section level2">
+  Logical. For multi-file SST inputs, skip unreadable files or files
+  with mismatched grids instead of failing. Default `FALSE`.
 
 ## Value
 
 A named list containing the requested components (`event`, `daily`,
 and/or `voxel` data.frames).
-
-</div>
-
-<div class="section level2">
 
 ## How it works
 
@@ -139,31 +118,20 @@ its threshold climatology (`temp > thresh` for heatwaves, or
 then labelled as coherent spatial events using a union-find algorithm.
 
 This is the same approach used by `heatwaveR::detect_blob3()`. The
-reason an event file from `detect_event3` cannot be used directly is
-that the event file stores per-pixel event *summaries* (start/end dates,
-intensity metrics), not the daily per-pixel boolean mask needed for
-spatial connectivity analysis.
-
-</div>
-
-<div class="section level2">
+reason an event file from
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+cannot be used directly is that the event file stores per-pixel event
+*summaries* (start/end dates, intensity metrics), not the daily
+per-pixel boolean mask needed for spatial connectivity analysis.
 
 ## See also
 
-<div class="dont-index">
-
-`ts2clm3` for computing the climatology, `detect_event3` for per-pixel
-event detection (different from spatial blob detection).
-
-</div>
-
-</div>
-
-<div class="section level2">
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+for computing the climatology,
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+for per-pixel event detection (different from spatial blob detection).
 
 ## Examples
-
-<div class="sourceCode">
 
 ``` r
 if (FALSE) { # \dontrun{
@@ -203,9 +171,3 @@ mcs <- detect_blob3(
 )
 } # }
 ```
-
-</div>
-
-</div>
-
-</div>

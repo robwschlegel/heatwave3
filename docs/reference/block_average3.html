@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,7 +22,8 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/heatwave3.html">Getting started with heatwave3</a></li>
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -85,56 +86,13 @@ including count, mean/max duration, mean/max intensity, and total days.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="detect3.html">detect3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>, <span class="va">event_file</span>,</span></span>
 <span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpEGZ5mo/temp_libpath719a3f2010e4/heatwave3/extdata/sst_test.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpEGZ5mo/file719a70833657.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpEGZ5mo/file719a70833657.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpEGZ5mo/temp_libpath719a3f2010e4/heatwave3/extdata/sst_test.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Detecting events with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Found 610 events across 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpEGZ5mo/file719a3664c376.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> NetCDF error in inq varid /tmp/RtmpbqjzHu/file162603a45a76e.nc: NetCDF: Variable not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">ba</span> <span class="op">&lt;-</span> <span class="fu">block_average3</span><span class="op">(</span><span class="va">event_file</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> NetCDF error in open /tmp/RtmpbqjzHu/file162603a45a76e.nc: No such file or directory</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ba</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      lon     lat year count duration_mean duration_max intensity_mean</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26.525 -34.125 1982     1      19.00000           19       2.209900</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 26.525 -34.125 1983     5       6.20000            7       2.130060</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 26.525 -34.125 1984     2       7.00000            9       2.016500</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 26.525 -34.125 1985     2       5.00000            5       1.632900</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 26.525 -34.125 1986     5       8.40000           14       2.530060</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6 26.525 -34.125 1987     3      11.66667           15       2.399233</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_max_mean intensity_max_max intensity_cumulative_mean total_days</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1           3.153100            3.1531                  41.98740         19</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2           2.384700            3.6150                  12.80478         31</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3           2.448550            2.7094                  13.67920         14</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4           1.723400            1.9355                   8.16455         10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5           3.153800            3.8774                  21.01420         42</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6           2.840733            3.1123                  28.25203         35</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   total_icum</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1    41.9874</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2    64.0239</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    27.3584</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4    16.3291</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5   105.0710</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6    84.7561</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'ba' not found</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

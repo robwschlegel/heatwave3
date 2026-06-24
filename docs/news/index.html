@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,7 +22,8 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/heatwave3.html">Getting started with heatwave3</a></li>
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -53,6 +54,54 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.2.0" id="heatwave3-120-2026-06-04">heatwave3 1.2.0 (2026-06-04)<a class="anchor" aria-label="anchor" href="#heatwave3-120-2026-06-04"></a></h2>
+<div class="section level3">
+<h3 id="breaking-changes-1-2-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-2-0"></a></h3>
+<ul><li>
+<strong><code>name</code>-stem output replaces explicit output paths.</strong> <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code>, <code><a href="../reference/detect_event3.html">detect_event3()</a></code>, and <code><a href="../reference/detect3.html">detect3()</a></code> now take a single <code>name</code> argument (a path stem) and derive their output filenames from it:
+<ul><li>
+<code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> writes <code>paste0(name, "_clim.nc")</code>.</li>
+<li>
+<code><a href="../reference/detect_event3.html">detect_event3()</a></code> writes <code>paste0(name, "_events.nc")</code>.</li>
+<li>the per-day products use <code>"_events_daily.nc"</code> and <code>"_protoevents.nc"</code>. The old <code>file_out</code> / <code>file_out_clim</code> / <code>file_out_event</code> arguments are removed. <code><a href="../reference/detect_event3.html">detect_event3()</a></code>’s <code>clim_file</code> now defaults to <code>paste0(name, "_clim.nc")</code>.</li>
+</ul></li>
+<li>
+<strong><code>return_df</code> and <code>save_file</code> are removed.</strong> The compute functions always write their native NetCDF and (invisibly) return the path(s) written. To read a product into R or export it to CSV/RDS/Parquet, use <code><a href="../reference/hw3_export.html">hw3_export()</a></code> (below).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-1-2-0">New features<a class="anchor" aria-label="anchor" href="#new-features-1-2-0"></a></h3>
+<ul><li>
+<strong>Per-day output, controlled by paths/flags rather than extra return modes.</strong>
+<ul><li>
+<code>detect_event3(daily = "also")</code> writes a per-day companion NetCDF beside the event table; <code>daily = "only"</code> writes just the per-day file (no event table); <code>daily = "none"</code> (default) writes only the event table. The per-day product holds <code>temp</code>, <code>seas</code>, <code>thresh</code>, <code>intensity</code> (<code>temp - seas</code>), <code>event</code>, <code>event_no</code>, and the daily Hobday (2018) <code>category</code> (0 = none, 1 = I Moderate … 4 = IV Extreme).</li>
+<li>
+<code>protoEvent = TRUE</code> writes the per-day proto-event series (<code>paste0(name, "_protoevents.nc")</code>) instead of the event table, mirroring <code>heatwaveR::detect_event(protoEvents = TRUE)</code>: <code>temp</code>, <code>seas</code>, <code>thresh</code>, <code>threshCriterion</code>, <code>durationCriterion</code>, <code>event</code>, <code>event_no</code>. Both are gridded <code>[lon, lat, time]</code> files with a <code>days since 1970-01-01</code> time axis. Verified against <code>heatwaveR::detect_event(protoEvents = TRUE)</code>: identical event counts and proto flags pixel-by-pixel.</li>
+</ul></li>
+<li>
+<strong><code><a href="../reference/hw3_export.html">hw3_export()</a></code> is now a read/export hub for every product.</strong> It auto-detects the product (climatology, events, daily, proto-events) via the C++ reader and either returns a long <code>data.frame</code> (whole, or the first <code>n</code> rows for a quick look) or writes a flat companion file (<code>.csv</code>/<code>.rds</code>/<code>.parquet</code>). It replaces the old <code>return_df</code>/<code>save_file</code> pathways.</li>
+<li>
+<strong><code><a href="../reference/category_daily3.html">category_daily3()</a></code></strong> builds the per-pixel daily marine-heatwave (or cold-spell) category series for a date window straight from an SST file, a climatology, and an events file, entirely via the C++ readers. It reads only the requested SST time-window (a hyperslab) and re-runs no detection: event membership is read from the events file, so events that began before the window are still recognised (re-detecting on a short window would silently drop them). It returns the full daily grid with the same columns as the <code>detect_event3(daily = "also")</code> product (<code>lon, lat, t, temp, seas, thresh, intensity, event, event_no, category</code>), with <code>category</code> set on event-member exceedance days and <code>NA</code> elsewhere. This is a NetCDF-native replacement for the Marine Heatwave Tracker’s tidync-based <code>load_sub_cat_clim()</code> (about 240x faster per longitude in testing), with an <code>ice_thresh</code> argument for the cold-spell sea-ice category; the Tracker’s event-day subset is <code>subset(x, !is.na(category))</code>. <code>sst_file</code> may be a single multi-time file or a directory / vector of daily files (one time step each, e.g. daily-global OSTIA/GHRSST).</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-1-2-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-2-0"></a></h3>
+<ul><li>
+<strong>In-process multithreading no longer depends on OpenMP/<code>libomp</code>.</strong> The parallel loops (climatology and event detection) now use C++ <code>std::thread</code>. On macOS, a <code>dlopen</code>-ed <code>libomp</code> could fail to allocate its per-worker thread-local storage in a process carrying a large native footprint – terra / raster / sf with their GDAL stack, conda toolchains, or the Positron/<code>ark</code> kernel that embeds R – and segfault in <code>__kmp_suspend</code> the moment a multithreaded run started. <code>std::thread</code> uses pthreads and has no such dependency, so <code>n_threads &gt; 1</code> is now reliable in any session and front-end. Results are unchanged (verified pixel-by-pixel). The package no longer detects or links an OpenMP runtime; <code>configure</code> reports <code>Parallelism: C++ std::thread</code>.</li>
+<li>
+<strong>Noon-stamped daily products are no longer dated a day forward.</strong> CF time parsing rounded each timestamp to the nearest day, so daily files stamped at 12:00:00 (OSTIA, GHRSST, MUR, and similar) were assigned to the <em>next</em> calendar day. Times are now mapped to the calendar day that contains them (floor), matching <code>heatwaveR</code>’s <code><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date()</a></code> truncation. Midnight-stamped data (for example OISST) is unaffected. Climatologies, events, and daily categories derived from noon-stamped inputs should be regenerated.</li>
+<li>
+<strong>Streaming subset extraction in <code><a href="../reference/hw3_export.html">hw3_export()</a></code>.</strong> <code>vars</code>, <code>lon_range</code>, <code>lat_range</code>, <code>time_range</code>, and <code>n</code> select a subset that is read straight from the NetCDF as a hyperslab: for the gridded products only the requested lon/lat/time window and the chosen variables are pulled from disk, so memory and I/O scale with the subset rather than the file. <code>time_range</code> takes dates for daily/proto-event products (and overlap-filters the events table); <code>lon_range</code>/<code>lat_range</code> filter the events table by per-event coordinate.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="internal-1-2-0">Internal<a class="anchor" aria-label="anchor" href="#internal-1-2-0"></a></h3>
+<ul><li>
+<strong><code>hw3_read_subset()</code></strong> (C++) performs the hyperslab read behind <code><a href="../reference/hw3_export.html">hw3_export()</a></code>’s subset path.</li>
+<li>
+<strong>Post-computation console summary.</strong> <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> and <code><a href="../reference/detect_event3.html">detect_event3()</a></code> print the head, tail, and summary statistics of each product written, with a pointer to <code><a href="../reference/hw3_export.html">hw3_export()</a></code>. Suppress with <code>quiet = TRUE</code>.</li>
+<li>
+<strong><code>hw3_read_daily_nc()</code></strong> and <strong><code>hw3_file_meta()</code></strong> read a per-day NetCDF and a product’s lightweight metadata (type, dimensions, row count) respectively.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.1.4" id="heatwave3-114-2026-06-03">heatwave3 1.1.4 (2026-06-03)<a class="anchor" aria-label="anchor" href="#heatwave3-114-2026-06-03"></a></h2>
 <div class="section level3">
 <h3 id="documentation-1-1-4">Documentation<a class="anchor" aria-label="anchor" href="#documentation-1-1-4"></a></h3>
@@ -76,7 +125,7 @@
 <h3 id="new-features-1-1-3">New features<a class="anchor" aria-label="anchor" href="#new-features-1-1-3"></a></h3>
 <ul><li><p><strong><code>ts2clm3(return_df = TRUE)</code></strong> now returns the computed climatology as a long data frame with <code>lon</code>, <code>lat</code>, <code>doy</code>, <code>seas</code>, and <code>thresh</code>, while still writing the primary NetCDF output.</p></li>
 <li><p><strong>Companion exports now use <code>save_file</code> only.</strong> <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> and <code><a href="../reference/detect_event3.html">detect_event3()</a></code> now infer the requested companion export format from the extension of <code>save_file</code>. Supported extensions are <code>.csv</code>, <code>.rds</code>, and <code>.parquet</code>. If <code>save_file = NULL</code>, no companion file is written.</p></li>
-<li><p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> now implements gridded <code>threshClim2</code>.</strong> Users may supply a secondary logical criterion as a NetCDF file, vector of files, or directory of daily files. Non-zero, non-missing values are treated as <code>TRUE</code>, and the secondary pass uses <code>minDuration2</code> and <code>maxGap2</code> with the same event logic as <code>heatwaveR::detect_event()</code>.</p></li>
+<li><p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> now implements gridded <code>threshClim2</code>.</strong> Users may supply a secondary logical criterion as a NetCDF file, vector of files, or directory of daily files. Non-zero, non-missing values are treated as <code>TRUE</code>, and the secondary pass uses <code>minDuration2</code> and <code>maxGap2</code> with the same event logic as <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>.</p></li>
 <li><p><strong>CSV and Parquet companion exports are chunked.</strong> <code><a href="../reference/hw3_export.html">hw3_export()</a></code> now streams CSV rows and writes Parquet row groups using a configurable <code>chunk_size</code>, reducing peak memory pressure for large gridded outputs.</p></li>
 </ul></div>
 <div class="section level3">
@@ -97,7 +146,7 @@
 <div class="section level3">
 <h3 id="bug-fixes-1-1-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-1-2"></a></h3>
 <ul><li>
-<p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> no longer glues events across calendar gaps in the input SST stack.</strong> When the input had missing days (e.g. unavailable OSTIA files), the run-length-encoding in <code>detect_pixel_events()</code> walked array indices rather than calendar dates. An event that had above-threshold days on both sides of a missing-data window was joined into one event whose reported <code>date_end − date_start + 1</code> was larger than <code>duration</code> (calendar-span &gt; index-count). The fix expands the per-pixel series to a dense daily array up front (mirroring what <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> has always done in <code>compute_pixel_clim</code>), filling missing dates with <code>NA</code>. <code>proto_event()</code> then breaks runs at the gap exactly as <code>heatwaveR::detect_event()</code> does via <code>make_whole()</code>. Verified by pixel-by-pixel agreement with heatwaveR (1705 / 1705 events on a Cape Town OSTIA region match exactly: same count, same date_start / peak / end, same duration, intensities to rounding precision) and by a synthetic 30-day-gap reproducer.</p>
+<p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> no longer glues events across calendar gaps in the input SST stack.</strong> When the input had missing days (e.g. unavailable OSTIA files), the run-length-encoding in <code>detect_pixel_events()</code> walked array indices rather than calendar dates. An event that had above-threshold days on both sides of a missing-data window was joined into one event whose reported <code>date_end − date_start + 1</code> was larger than <code>duration</code> (calendar-span &gt; index-count). The fix expands the per-pixel series to a dense daily array up front (mirroring what <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> has always done in <code>compute_pixel_clim</code>), filling missing dates with <code>NA</code>. <code>proto_event()</code> then breaks runs at the gap exactly as <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code> does via <code>make_whole()</code>. Verified by pixel-by-pixel agreement with heatwaveR (1705 / 1705 events on a Cape Town OSTIA region match exactly: same count, same date_start / peak / end, same duration, intensities to rounding precision) and by a synthetic 30-day-gap reproducer.</p>
 <p>Internal API change: <code>EventResult</code> gains three integer fields (<code>jd_start</code>, <code>jd_peak</code>, <code>jd_end</code>) holding the absolute Julian Day of the start, peak, and end of each event. <code>index_*</code> fields are now indices into the dense (gap-filled) array rather than the sparse input. Downstream code that uses <code>hw3_read_event_nc()</code> / <code><a href="../reference/category3.html">category3()</a></code> / <code><a href="../reference/block_average3.html">block_average3()</a></code> is unaffected: the NetCDF event-file layout and the R-facing return values are unchanged.</p>
 </li>
 </ul></div>

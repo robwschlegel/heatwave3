@@ -1,32 +1,22 @@
----
-title: "Performance benchmark: heatwave3 vs xmhw"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Performance benchmark: heatwave3 vs xmhw}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-```{r setup, include = FALSE}
-# Pretty output
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
-```
+# Performance benchmark: heatwave3 vs xmhw
 
 ## Overview
 
-This vignette benchmarks `heatwave3` against the python module `xmhw` on the OSTIA gridded
-SST dataset for the French coastline of the Mediterranean Sea 
-(104 lon × 60 lat, 6,240 ocean pixels, 15,706 daily time steps, 1982–2024).
+This vignette benchmarks `heatwave3` against the python module `xmhw` on
+the OSTIA gridded SST dataset for the French coastline of the
+Mediterranean Sea (104 lon × 60 lat, 6,240 ocean pixels, 15,706 daily
+time steps, 1982–2024).
 
 We compare three configurations:
 
-1. **heatwaveR**, serial per-pixel R + C++ (the standard approach)
-2. **xmhw**, pure python without `dask` 
-3. **heatwave3 (1 thread)**, pure C++ with single-threaded execution
-4. **heatwave3 (12 threads)**, pure C++ with multi-threading
-5. **xmhw (dask)**, pure python with `dask` enabled
+1.  **heatwaveR**, serial per-pixel R + C++ (the standard approach)
+2.  **heatwave3 (1 thread)**, pure C++ with single-threaded execution
+3.  **xmhw (1 thread)**, pure python without dask
+4.  **heatwave3 (12 threads)**, pure C++ with multi-threading
+5.  **xmhw (12 threads)**, pure python with dask enabled
 
-```{r libraries}
+``` r
+
 # Necessary R packages
 library(reticulate)
 library(ncdf4)
@@ -36,7 +26,8 @@ library(heatwave3)
 
 ## Test data
 
-```{r data}
+``` r
+
 # Choose bounding box
 bbox <- c(
   2.5,   # °E  (just west of Cerbère)
@@ -64,10 +55,12 @@ sst_file <- "/home/calanus/data/OSTIA/METOFFICE-GLO-SST-L4-REP-OBS-SST_French_Me
 
 ## Python environment
 
-We will control the comparison across R and python by using an existing python v3.12 environemnt 
-created for this tutorial with the following modules installed: `netCDF4`, `xarray`, `dask`, and `xmhw`.
+We will control the comparison across R and python by using an existing
+python v3.12 environemnt created for this tutorial with the following
+modules installed: `netCDF4`, `xarray`, `dask`, and `xmhw`.
 
-```{r reticulate}
+``` r
+
 # Activate the conda environment and load functionality into R environment
 use_condaenv("RiOMar", required = TRUE)
 nc4 <- import("netCDF4")
@@ -84,10 +77,12 @@ py_slice <- builtins$slice
 
 ## heatwaveR: serial baseline
 
-`heatwaveR` processes one pixel at a time. We time a 20-pixel sample (data
-pre-loaded to isolate computation from I/O) and extrapolate to the full grid.
+`heatwaveR` processes one pixel at a time. We time a 20-pixel sample
+(data pre-loaded to isolate computation from I/O) and extrapolate to the
+full grid.
 
-```{r heatwaveR}
+``` r
+
 nc <- nc_open(sst_file)
 time_raw <- ncvar_get(nc, "time")
 dates <- as.Date("1970-01-01") + time_raw / 86400
@@ -118,9 +113,10 @@ cat("Estimated total:", round(estimated), "sec (",
     round(estimated / 60, 1), "min)\n")
 ```
 
-## xmhw: out-of-the-box
+## xmhw: single-thread
 
-```{r }
+``` r
+
 # Open sst file with xarray and extract the same subset of data as the heatwaveR example above
 x_ds <- xr$open_dataset(sst_file)
 x_sst <- x_ds[["analysed_sst"]]$isel(
@@ -156,7 +152,8 @@ cat("Total (estimated):", round(x_clim_est + x_event_est), "sec (",
 
 ## heatwave3: single-threaded
 
-```{r hw3-1t}
+``` r
+
 stem <- file.path(tempdir(), "bench")
 
 t_clim <- system.time(
@@ -177,7 +174,8 @@ cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
 
 ## heatwave3: 12 threads
 
-```{r hw3-12t}
+``` r
+
 t_clim_12 <- system.time(
   ts2clm3(sst_file, name = stem,
           climatologyPeriod = c("1982-01-01", "2011-12-31"),
@@ -194,21 +192,28 @@ cat("Detection:  ", round(t_event_12[3], 1), "sec\n")
 cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
 ```
 
-## xmhw: dask
+## xmhw: 12 threads
 
-Note that the `xmhw` will also work with `dask`, which itself can have parellelism established. 
-This is however outside of the scope of the capacity of an Rmarkdown file and `reticulate` to be able to replicate reasonably.
-The interested researcher is advised to read the tutorial available on the `xmhw` website: https://xmhw.readthedocs.io/en/latest/dask.html
+Note that the `xmhw` will also work with `dask`, which itself can have
+parellelism established. This is however outside of the scope of the
+capacity of an Rmarkdown file and `reticulate` to be able to replicate
+reasonably. The interested researcher is advised to read the tutorial
+available on the `xmhw` website:
+<https://xmhw.readthedocs.io/en/latest/dask.html>
 
 ## Results
 
 Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.0.
 
-| Method | Climatology | Detection | Total |
-|--------|------------|-----------|-------|---------|
+| Method | Climatology | Detection | Total |  |
+|----|----|----|----|----|
 | heatwaveR (serial) | n/a | n/a | ca. 1,262 sec (21 min) | 1× |
 | xmhw (serial) | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5× |
 | heatwave3 (1 thread) | 17.5 sec | 5 sec | **22.5 sec** | **56×** |
 | heatwave3 (12 threads) | 3.7 sec | 3.7 sec | **7.4 sec** | **170×** |
 
-Note then that the base `heatwaveR` script is already almost twice as fast as `xmhw` if this analysis has not been optimised for `dask`. Also note that as part of the operation of `heatwave3` the output of the files are saved to local disk in an orderly fashion. The saving of the output of `xmhw` would add additional total run-time.
+Note then that the base `heatwaveR` script is already almost twice as
+fast as `xmhw` if this analysis has not been optimised for `dask`. Also
+note that as part of the operation of `heatwave3` the output of the
+files are already saved to local disk in an orderly fashion. The saving
+of the output of `xmhw` would add additional total run-time.

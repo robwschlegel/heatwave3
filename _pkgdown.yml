@@ -29,8 +29,10 @@ navbar:
         href: articles/netcdf-output.html
       - text: Parallel performance
         href: articles/parallelism.html
-      - text: Performance benchmark
+      - text: Performance benchmark - heatwaveR
         href: articles/benchmark.html
+      - text: Performance benchmark - xmhw
+        href: articles/benchmark_xmhw.html
     resources:
       text: Resources
       menu:
@@ -57,6 +59,7 @@ reference:
   - '`ts2clm3`'
   - '`detect_event3`'
   - '`category3`'
+  - '`category_daily3`'
   - '`exceedance3`'
   - '`block_average3`'
   - '`detect_blob3`'
@@ -81,3 +84,4 @@ articles:
   - netcdf-output
   - parallelism
   - benchmark
+  - benchmark_xmhw

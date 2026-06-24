@@ -17,7 +17,7 @@ detection and avoids a second pass over the files."><meta property="og:image" co
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,7 +32,8 @@ detection and avoids a second pass over the files."><meta property="og:image" co
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/heatwave3.html">Getting started with heatwave3</a></li>
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -134,36 +135,13 @@ threshold is above (heatwave) or below (cold-spell) the seasonal mean.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="detect3.html">detect3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>, <span class="va">event_file</span>,</span></span>
 <span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpEGZ5mo/temp_libpath719a3f2010e4/heatwave3/extdata/sst_test.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpEGZ5mo/file719a614d755c.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpEGZ5mo/file719a614d755c.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpEGZ5mo/temp_libpath719a3f2010e4/heatwave3/extdata/sst_test.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Detecting events with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Found 610 events across 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpEGZ5mo/file719a24541cec.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> NetCDF error in inq varid /tmp/RtmpbqjzHu/file16260738183a7.nc: NetCDF: Variable not found</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="fu">category3</span><span class="op">(</span><span class="va">event_file</span>, <span class="va">clim_file</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> Event file does not exist: /tmp/RtmpbqjzHu/file16260738183a7.nc</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">cats</span><span class="op">$</span><span class="va">category</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> &lt; table of extent 0 &gt;</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'cats' not found</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

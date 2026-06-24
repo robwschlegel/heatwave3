@@ -1,19 +1,9 @@
-<div id="main" class="col-md-9" role="main">
-
 # Lollipop geom for event metric visualisation
-
-<div class="ref-description section level2">
 
 A ggplot2 geom that draws lollipop (stem + point) plots for event
 metrics.
 
-</div>
-
-<div class="section level2">
-
 ## Usage
-
-<div class="sourceCode">
 
 ``` r
 geom_lolli3(
@@ -28,61 +18,45 @@ geom_lolli3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Arguments
 
--   mapping:
+- mapping:
 
-    Aesthetic mappings. Requires `x` and `y`.
+  Aesthetic mappings. Requires `x` and `y`.
 
--   data:
+- data:
 
-    The data to display.
+  The data to display.
 
--   stat:
+- stat:
 
-    Statistical transformation. Default `"identity"`.
+  Statistical transformation. Default `"identity"`.
 
--   position:
+- position:
 
-    Position adjustment. Default `"identity"`.
+  Position adjustment. Default `"identity"`.
 
--   ...:
+- ...:
 
-    Additional arguments.
+  Additional arguments.
 
--   na.rm:
+- na.rm:
 
-    Remove NAs? Default `FALSE`.
+  Remove NAs? Default `FALSE`.
 
--   show.legend:
+- show.legend:
 
-    Show legend? Default `NA`.
+  Show legend? Default `NA`.
 
--   inherit.aes:
+- inherit.aes:
 
-    Inherit aesthetics? Default `TRUE`.
-
-</div>
-
-<div class="section level2">
+  Inherit aesthetics? Default `TRUE`.
 
 ## Value
 
 A ggplot2 layer.
 
-</div>
-
-<div class="section level2">
-
 ## Examples
-
-<div class="sourceCode">
 
 ``` r
 library(ggplot2)
@@ -91,9 +65,3 @@ df <- data.frame(x = as.Date("2020-01-01") + seq(0, 300, by = 30),
 ggplot(df, aes(x = x, y = y)) + geom_lolli3()
 
 ```
-
-</div>
-
-</div>
-
-</div>

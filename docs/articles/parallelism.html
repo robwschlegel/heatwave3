@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Parallel performance: OpenMP threads vs R-side parallelism • heatwave3</title>
+<title>Parallel performance: in-process threads vs R-side parallelism • heatwave3</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -15,7 +15,7 @@
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Parallel performance: OpenMP threads vs R-side parallelism">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Parallel performance: in-process threads vs R-side parallelism">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,8 @@
 <li><a class="dropdown-item" href="../articles/heatwave3.html">Getting started with heatwave3</a></li>
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
@@ -81,7 +82,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Parallel performance: OpenMP threads vs R-side parallelism</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Parallel performance: in-process threads vs R-side parallelism</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/robwschlegel/heatwave3/blob/HEAD/vignettes/parallelism.Rmd" class="external-link"><code>vignettes/parallelism.Rmd</code></a></small>
@@ -93,70 +94,98 @@
 <div class="section level2">
 <h2 id="two-kinds-of-parallelism">Two kinds of parallelism<a class="anchor" aria-label="anchor" href="#two-kinds-of-parallelism"></a>
 </h2>
-<p><code>heatwave3</code> detects marine heatwaves one pixel at a time, and pixels are completely independent of one another: a pixel’s climatology and events depend only on its own temperature time series. That independence is what makes the problem <em>embarrassingly parallel</em>, and it can be exploited in two distinct ways.</p>
+<p><code>heatwave3</code> detects marine heatwaves one pixel at a time,
+and pixels are completely independent of one another: a pixel’s
+climatology and events depend only on its own temperature time series.
+That independence is what makes the problem <em>embarrassingly
+parallel</em>, and it can be exploited in two distinct ways.</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>OpenMP threads (in-process).</strong> The C++ core spreads pixels across CPU cores using OpenMP. Everything happens inside a single R process: the data slab is read once into shared memory, the threads compute, and one set of output files is written. Controlled by the <code>n_threads</code> argument (or <code><a href="../reference/getHW3threads.html">setHW3threads()</a></code>). This is the fast path, when it is available.</p></li>
-<li><p><strong>R-side parallelism (across processes).</strong> Several R processes each run <code>heatwave3</code> single-threaded on a <em>spatial tile</em> of the grid, and the results are combined. Controlled with the <code>parallel</code> package. This works even when OpenMP is not compiled in, and it is the only way to scale across more than one machine.</p></li>
+<li><p><strong>In-process threads.</strong> The C++ core spreads pixels
+across CPU cores using <code>std::thread</code>. Everything happens
+inside a single R process: the data slab is read once into shared
+memory, the threads compute, and one set of output files is written.
+Controlled by the <code>n_threads</code> argument (or
+<code><a href="../reference/getHW3threads.html">setHW3threads()</a></code>). This is the fast path on a single
+machine, and it works out of the box on every platform with no OpenMP
+toolchain required.</p></li>
+<li><p><strong>R-side parallelism (across processes).</strong> Several R
+processes each run <code>heatwave3</code> single-threaded on a
+<em>spatial tile</em> of the grid, and the results are combined.
+Controlled with the <code>parallel</code> package. It is the only way to
+scale across more than one machine.</p></li>
 </ol>
-<p>This vignette measures both, on the same dataset, and explains when to reach for each. It closes with platform-by-platform setup advice (Linux, macOS, Windows).</p>
+<p>This vignette measures both, on the same dataset, and explains when
+to reach for each.</p>
 <blockquote>
-<p><strong>Why this is relevant on macOS.</strong> Apple’s compiler ships without OpenMP, so a default macOS build of <code>heatwave3</code> runs single-threaded regardless of what you pass to <code>n_threads</code>. The <a href="#enabling-openmp">Setup</a> section shows how to enable OpenMP, and the <a href="#method-3-r-side-parallelism-psock">R-side</a> section shows how to get parallelism without it.</p>
+<p><strong>Backend note.</strong> Earlier versions used OpenMP for the
+in-process threads. heatwave3 now uses <code>std::thread</code>, which
+needs no OpenMP runtime (no <code>libomp</code>, no <code>omp.h</code>,
+no special install step) and avoids the macOS <code>libomp</code>
+worker-thread crash that struck heavily-loaded sessions (terra/GDAL,
+conda toolchains, or the Positron/<code>ark</code> kernel). The <a href="#results">Results</a> below compare the two backends.</p>
 </blockquote>
 </div>
 <div class="section level2">
-<h2 id="is-openmp-active">Is OpenMP active?<a class="anchor" aria-label="anchor" href="#is-openmp-active"></a>
+<h2 id="is-multithreading-active">Is multithreading active?<a class="anchor" aria-label="anchor" href="#is-multithreading-active"></a>
 </h2>
-<p><code><a href="../reference/getHW3threads.html">getHW3threads()</a></code> reports the default thread count. With OpenMP enabled it returns roughly half your cores. If it returns <code>1</code>, the package was built without OpenMP and <code>n_threads</code> will have no effect.</p>
+<p><code><a href="../reference/getHW3threads.html">getHW3threads()</a></code> reports the default thread count
+(roughly half your cores). <code>n_threads</code> is honoured on every
+platform; there is no build-time switch to miss.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/getHW3threads.html">getHW3threads</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 9        # OpenMP active (here: 50% of 18 cores)</span></span>
-<span><span class="co">#&gt; [1] 1        # OpenMP NOT compiled in -&gt; single-threaded</span></span></code></pre></div>
-<p>You can also confirm at the binary level (macOS/Linux):</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Should list an OpenMP runtime (libomp.dylib / libgomp.so / libomp.so)</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">otool</span> <span class="at">-L</span> <span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("libs/heatwave3.so", package="heatwave3"))'</span><span class="va">)</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> omp   <span class="co"># macOS</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ldd</span>       <span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("libs/heatwave3.so", package="heatwave3"))'</span><span class="va">)</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-i</span> omp   <span class="co"># Linux</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 9        # default: 50% of 18 cores</span></span></code></pre></div>
+<p>The shared library links no OpenMP runtime; it uses
+<code>std::thread</code> (pthreads):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">otool</span> <span class="at">-L</span> <span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("libs/heatwave3.so", package="heatwave3"))'</span><span class="va">)</span>   <span class="co"># macOS</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">ldd</span>       <span class="va">$(</span><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'cat(system.file("libs/heatwave3.so", package="heatwave3"))'</span><span class="va">)</span>   <span class="co"># Linux</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="the-dataset">The dataset<a class="anchor" aria-label="anchor" href="#the-dataset"></a>
 </h2>
-<p>The OSTIA reanalysis over the South-West Indian Ocean / South African east coast: a 400 × 200 grid at 0.05° resolution (15–35°E, 38–28°S), 14,276 daily time steps (1982–2021), of which roughly 50,000 pixels are ocean. The climatological baseline is 1982–2011.</p>
+<p>The OSTIA reanalysis over the South-West Indian Ocean / South African
+east coast: a 400 × 200 grid at 0.05° resolution (15–35°E, 38–28°S),
+14,276 daily time steps (1982–2021), of which roughly 50,000 pixels are
+ocean. The climatological baseline is 1982–2011.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="st">"/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"</span></span>
 <span><span class="va">var_name</span> <span class="op">&lt;-</span> <span class="st">"analysed_sst"</span></span>
 <span><span class="va">clim_period</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span></span></code></pre></div>
-<p>All three methods produce the <strong>same deliverable</strong>, the full event table as an in-memory <code>data.frame</code>, so their wall-clock times are directly comparable.</p>
+<p>All three methods produce the <strong>same deliverable</strong>, the
+full event table as an in-memory <code>data.frame</code>, so their
+wall-clock times are directly comparable.</p>
 </div>
 <div class="section level2">
 <h2 id="method-1-single-threaded">Method 1: single-threaded<a class="anchor" aria-label="anchor" href="#method-1-single-threaded"></a>
 </h2>
-<p>The baseline. <code>n_threads = 1</code> forces one core regardless of the package default.</p>
+<p>The baseline. <code>n_threads = 1</code> forces one core regardless
+of the package default.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">run_once</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">nthreads</span>, <span class="va">lon_range</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">cf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".nc"</span><span class="op">)</span></span>
-<span>  <span class="va">ef</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".nc"</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cf</span>, <span class="va">ef</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="../reference/detect3.html">detect3</a></span><span class="op">(</span></span>
+<span>  <span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"_clim.nc"</span>, <span class="st">"_events.nc"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect3.html">detect3</a></span><span class="op">(</span></span>
 <span>    <span class="va">sst_file</span>,</span>
-<span>    <span class="va">cf</span>,</span>
-<span>    <span class="va">ef</span>,</span>
+<span>    name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>    climatologyPeriod <span class="op">=</span> <span class="va">clim_period</span>,</span>
 <span>    var_name <span class="op">=</span> <span class="va">var_name</span>,</span>
 <span>    lon_range <span class="op">=</span> <span class="va">lon_range</span>,</span>
 <span>    category <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    return_df <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>    n_threads <span class="op">=</span> <span class="va">nthreads</span></span>
+<span>    n_threads <span class="op">=</span> <span class="va">nthreads</span>,</span>
+<span>    quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/hw3_export.html">hw3_export</a></span><span class="op">(</span><span class="va">out</span><span class="op">[[</span><span class="st">"events"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">ev1</span> <span class="op">&lt;-</span> <span class="fu">run_once</span><span class="op">(</span><span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="method-2-openmp-multithreading">Method 2: OpenMP multithreading<a class="anchor" aria-label="anchor" href="#method-2-openmp-multithreading"></a>
+<h2 id="method-2-in-process-multithreading">Method 2: in-process multithreading<a class="anchor" aria-label="anchor" href="#method-2-in-process-multithreading"></a>
 </h2>
-<p>Identical call, more threads. Because pixels are independent, OpenMP gives each thread a share of them, with no locking and no coordination.</p>
+<p>Identical call, more threads. Because pixels are independent, each
+thread takes a share of them, with no locking and no coordination.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">ev12</span> <span class="op">&lt;-</span> <span class="fu">run_once</span><span class="op">(</span><span class="fl">12L</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -173,8 +202,19 @@
 <div class="section level2">
 <h2 id="method-3-r-side-parallelism-psock">Method 3: R-side parallelism (PSOCK)<a class="anchor" aria-label="anchor" href="#method-3-r-side-parallelism-psock"></a>
 </h2>
-<p>When OpenMP is unavailable, or to scale across machines, split the grid into longitude tiles and run one single-threaded <code>heatwave3</code> per worker process. Since pixels are independent, the union of the tiles is <strong>identical</strong> to a whole-domain run.</p>
-<p>We use a <strong>PSOCK cluster</strong> (independent R processes) rather than fork-based <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code>. On macOS, forking after the NetCDF/HDF5 and Apple Objective-C runtimes have initialised is unsafe (sporadic worker crashes, and the <code>+[NSCharacterSet initialize] ... fork()</code> abort). PSOCK launches clean processes that each open their own files, like running several <code>Rscript</code> jobs side by side. It is also the only option on Windows, where <code>fork()</code> does not exist.</p>
+<p>To scale across machines, or to parallelise the read and the assembly
+as well as the compute, split the grid into longitude tiles and run one
+single-threaded <code>heatwave3</code> per worker process. Since pixels
+are independent, the union of the tiles is <strong>identical</strong> to
+a whole-domain run.</p>
+<p>We use a <strong>PSOCK cluster</strong> (independent R processes)
+rather than fork-based <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code>. On macOS, forking after
+the NetCDF/HDF5 and Apple Objective-C runtimes have initialised is
+unsafe (sporadic worker crashes, and the
+<code>+[NSCharacterSet initialize] ... fork()</code> abort). PSOCK
+launches clean processes that each open their own files, like running
+several <code>Rscript</code> jobs side by side. It is also the only
+option on Windows, where <code>fork()</code> does not exist.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">parallel</span><span class="op">)</span></span>
 <span></span>
@@ -199,32 +239,36 @@
 <span>  <span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">clusterExport</a></span><span class="op">(</span><span class="va">cl</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sst_file"</span>, <span class="st">"var_name"</span>, <span class="st">"clim_period"</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">tiles</span> <span class="op">&lt;-</span> <span class="fu">make_tiles</span><span class="op">(</span><span class="va">n_workers</span><span class="op">)</span></span>
 <span>  <span class="va">parts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">parLapply</a></span><span class="op">(</span><span class="va">cl</span>, <span class="va">tiles</span>, <span class="kw">function</span><span class="op">(</span><span class="va">lr</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">cf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".nc"</span><span class="op">)</span></span>
-<span>    <span class="va">ef</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".nc"</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cf</span>, <span class="va">ef</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="../reference/detect3.html">detect3</a></span><span class="op">(</span></span>
+<span>    <span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/on.exit.html" class="external-link">on.exit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unlink.html" class="external-link">unlink</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"_clim.nc"</span>, <span class="st">"_events.nc"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect3.html">detect3</a></span><span class="op">(</span></span>
 <span>      <span class="va">sst_file</span>,</span>
-<span>      <span class="va">cf</span>,</span>
-<span>      <span class="va">ef</span>,</span>
+<span>      name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>      climatologyPeriod <span class="op">=</span> <span class="va">clim_period</span>,</span>
 <span>      var_name <span class="op">=</span> <span class="va">var_name</span>,</span>
 <span>      lon_range <span class="op">=</span> <span class="va">lr</span>,</span>
 <span>      category <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>      return_df <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>      n_threads <span class="op">=</span> <span class="fl">1L</span></span>
-<span>    <span class="op">)</span> <span class="co"># 1 thread per worker!</span></span>
+<span>      n_threads <span class="op">=</span> <span class="fl">1L</span>,  <span class="co"># 1 thread per worker!</span></span>
+<span>      quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span>    <span class="fu"><a href="../reference/hw3_export.html">hw3_export</a></span><span class="op">(</span><span class="va">out</span><span class="op">[[</span><span class="st">"events"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">parts</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">evp</span> <span class="op">&lt;-</span> <span class="fu">run_psock</span><span class="op">(</span><span class="fl">16L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>The <code>n_threads = 1L</code> inside each worker is essential: with OpenMP active, each freshly-loaded <code>heatwave3</code> would otherwise default to <em>all</em> its threads, so 16 workers × 9 threads would oversubscribe the machine badly. See <a href="#dont-oversubscribe">Don’t oversubscribe</a>.</p>
+<p>The <code>n_threads = 1L</code> inside each worker is essential: each
+freshly-loaded <code>heatwave3</code> otherwise defaults to <em>half the
+cores</em>, so 16 workers each spawning 9 threads would oversubscribe
+the machine badly. See <a href="#dont-oversubscribe">Don’t
+oversubscribe</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
 </h2>
 <table class="table">
-<caption>Wall-clock time to produce the full event table.</caption>
+<caption>Wall-clock time to produce the full event table. Speed-up is
+relative to the single-threaded baseline.</caption>
 <thead><tr class="header">
 <th align="left">Method</th>
 <th align="right">Workers/threads</th>
@@ -233,37 +277,73 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">OpenMP (threads)</td>
+<td align="left">Threads (std::thread, now)</td>
+<td align="right">1</td>
+<td align="right">112.0</td>
+<td align="right">1.0</td>
+</tr>
+<tr class="even">
+<td align="left">Threads (std::thread, now)</td>
+<td align="right">2</td>
+<td align="right">73.5</td>
+<td align="right">1.5</td>
+</tr>
+<tr class="odd">
+<td align="left">Threads (std::thread, now)</td>
+<td align="right">4</td>
+<td align="right">52.7</td>
+<td align="right">2.1</td>
+</tr>
+<tr class="even">
+<td align="left">Threads (std::thread, now)</td>
+<td align="right">8</td>
+<td align="right">42.1</td>
+<td align="right">2.7</td>
+</tr>
+<tr class="odd">
+<td align="left">Threads (std::thread, now)</td>
+<td align="right">12</td>
+<td align="right">38.0</td>
+<td align="right">2.9</td>
+</tr>
+<tr class="even">
+<td align="left">Threads (std::thread, now)</td>
+<td align="right">16</td>
+<td align="right">37.3</td>
+<td align="right">3.0</td>
+</tr>
+<tr class="odd">
+<td align="left">Threads (OpenMP, previous)</td>
 <td align="right">1</td>
 <td align="right">109.3</td>
 <td align="right">1.0</td>
 </tr>
 <tr class="even">
-<td align="left">OpenMP (threads)</td>
+<td align="left">Threads (OpenMP, previous)</td>
 <td align="right">2</td>
 <td align="right">72.5</td>
 <td align="right">1.5</td>
 </tr>
 <tr class="odd">
-<td align="left">OpenMP (threads)</td>
+<td align="left">Threads (OpenMP, previous)</td>
 <td align="right">4</td>
 <td align="right">50.3</td>
 <td align="right">2.2</td>
 </tr>
 <tr class="even">
-<td align="left">OpenMP (threads)</td>
+<td align="left">Threads (OpenMP, previous)</td>
 <td align="right">8</td>
 <td align="right">40.2</td>
-<td align="right">2.7</td>
+<td align="right">2.8</td>
 </tr>
 <tr class="odd">
-<td align="left">OpenMP (threads)</td>
+<td align="left">Threads (OpenMP, previous)</td>
 <td align="right">12</td>
 <td align="right">37.0</td>
 <td align="right">3.0</td>
 </tr>
 <tr class="even">
-<td align="left">OpenMP (threads)</td>
+<td align="left">Threads (OpenMP, previous)</td>
 <td align="right">16</td>
 <td align="right">35.7</td>
 <td align="right">3.1</td>
@@ -271,39 +351,84 @@
 <tr class="odd">
 <td align="left">PSOCK (R workers)</td>
 <td align="right">4</td>
-<td align="right">42.5</td>
-<td align="right">2.6</td>
+<td align="right">44.4</td>
+<td align="right">2.5</td>
 </tr>
 <tr class="even">
 <td align="left">PSOCK (R workers)</td>
 <td align="right">8</td>
-<td align="right">24.9</td>
+<td align="right">25.5</td>
 <td align="right">4.4</td>
 </tr>
 <tr class="odd">
 <td align="left">PSOCK (R workers)</td>
 <td align="right">16</td>
-<td align="right">17.1</td>
-<td align="right">6.4</td>
+<td align="right">18.4</td>
+<td align="right">6.1</td>
 </tr>
 </tbody>
 </table>
-<p><img src="parallelism_files/figure-html/results-plot-1.png" class="r-plt" alt="Speed-up versus number of threads or workers for OpenMP and PSOCK, against the ideal linear line." width="672"></p>
-<p>On this run (whole domain, ca. 50,000 ocean pixels, warm file cache), the single-threaded baseline took <strong>109 s</strong>. OpenMP reached <strong>3.1×</strong> (36 s) at 16 threads, and R-side PSOCK reached <strong>6.4×</strong> (17 s) at 16 workers. Every method returned the same 4,863,985 events.</p>
+<p><img src="parallelism_files/figure-html/results-plot-1.png" class="r-plt" alt="Speed-up versus thread or worker count for std::thread, the previous OpenMP build, and PSOCK, against the ideal linear line. The std::thread and OpenMP thread curves nearly overlap; PSOCK rises higher." width="672"></p>
+<p>On this run (whole domain, ca. 50,000 ocean pixels, warm file cache),
+the single-threaded baseline took <strong>112 s</strong>. In-process
+<code>std::thread</code> reached <strong>3.0×</strong> (37 s) at 16
+threads, and R-side PSOCK reached <strong>6.1×</strong> (18 s) at 16
+workers. Every run returned the same 4,863,985 events.</p>
+<div class="section level3">
+<h3 id="stdthread-vs-openmp">std::thread vs OpenMP<a class="anchor" aria-label="anchor" href="#stdthread-vs-openmp"></a>
+</h3>
+<p>This release replaced the OpenMP backend with C++
+<code>std::thread</code>. The switch was performance-neutral: at matched
+thread counts <code>std::thread</code> ran within about 5% of the
+previous OpenMP build, tracking the same scaling curve. At 16 threads it
+took 37.3 s against OpenMP’s 35.7 s; at 4 threads, 52.7 s against 50.3
+s. That small, consistent overhead buys two things, namely freedom from
+the macOS <code>libomp</code> worker-thread crash that struck when
+heatwave3 ran alongside heavy dynamic libraries (terra, sf, GDAL) in the
+same process, and the removal of the OpenMP build dependency altogether.
+The dashed line in the figure is the old OpenMP build; the solid green
+line, the current <code>std::thread</code> build, sits just beneath
+it.</p>
+</div>
 <div class="section level3">
 <h3 id="reading-the-curves">Reading the curves<a class="anchor" aria-label="anchor" href="#reading-the-curves"></a>
 </h3>
-<p>Both methods speed the analysis up substantially, and both fall short of ideal linear scaling, but PSOCK scales further than OpenMP here, for a reason worth understanding.</p>
-<p>The work has three phases, namely <strong>read</strong> the NetCDF slab, <strong>compute</strong> per pixel, and <strong>assemble</strong> the 4.9-million-row event <code>data.frame</code>. OpenMP parallelises only the middle phase. The read and the assembly happen single-threaded in the one R process, so by Amdahl’s law that serial fraction caps the speed-up, and OpenMP plateaus near 3× regardless of thread count.</p>
-<p>PSOCK parallelises <strong>all three</strong> phases. Each worker process reads only its own longitude slice and builds only its own sub-frame, concurrently, so the I/O and the assembly scale with the worker count too. With the file already in the OS cache, those concurrent reads are cheap, and PSOCK keeps gaining past the point where OpenMP has flattened.</p>
+<p>Both threading and PSOCK speed the analysis up substantially, and
+both fall short of ideal linear scaling, but PSOCK scales further, for a
+reason worth understanding.</p>
+<p>The work has three phases, namely <strong>read</strong> the NetCDF
+slab, <strong>compute</strong> per pixel, and <strong>assemble</strong>
+the 4.9-million-row event <code>data.frame</code>. In-process threads
+parallelise only the middle phase. The read and the assembly happen
+single-threaded in the one R process, so by Amdahl’s law that serial
+fraction caps the speed-up, and the thread curve plateaus near 3×
+regardless of thread count.</p>
+<p>PSOCK parallelises <strong>all three</strong> phases. Each worker
+process reads only its own longitude slice and builds only its own
+sub-frame, concurrently, so the I/O and the assembly scale with the
+worker count too. With the file already in the OS cache, those
+concurrent reads are cheap, and PSOCK keeps gaining past the point where
+in-process threading has flattened.</p>
 <p>Two caveats keep this from being a blanket “PSOCK wins”:</p>
 <ul>
 <li>
-<strong>Endpoint.</strong> This benchmark returns the events as an in-memory <code>data.frame</code>, which makes the serial assembly a large part of OpenMP’s tail. The usual production endpoint (write one event NetCDF, <code>return_df = FALSE</code>) removes that assembly, shrinking OpenMP’s serial fraction and narrowing the gap.</li>
+<strong>Endpoint.</strong> This benchmark reads the events back into
+an in-memory <code>data.frame</code> (via <code><a href="../reference/hw3_export.html">hw3_export()</a></code>),
+which makes the serial assembly a large part of the thread build’s tail.
+The usual production endpoint (just write the event NetCDF and stop)
+removes that assembly, shrinking the serial fraction and narrowing the
+gap.</li>
 <li>
-<strong>Storage.</strong> PSOCK’s edge depends on those per-worker reads being cheap. On a cold cache or slow/network disk, sixteen processes reading at once can contend, eroding or reversing the advantage. OpenMP reads the slab exactly once.</li>
+<strong>Storage.</strong> PSOCK’s edge depends on those per-worker
+reads being cheap. On a cold cache or slow/network disk, sixteen
+processes reading at once can contend, eroding or reversing the
+advantage. The in-process threads read the slab exactly once.</li>
 </ul>
-<p>OpenMP also stays the <em>simpler</em> option, with one call, one output file, no tiling or merge, and no inter-process serialisation. PSOCK earns its overhead by working with no OpenMP at all, by isolating failures to a single tile, and by scaling across separate machines.</p>
+<p>In-process threading also stays the <em>simpler</em> option, with one
+call, one output file, no tiling or merge, and no inter-process
+serialisation. PSOCK earns its overhead by parallelising the read and
+the assembly as well as the compute, by isolating failures to a single
+tile, and by scaling across separate machines.</p>
 </div>
 </div>
 <div class="section level2">
@@ -314,61 +439,103 @@
 </h3>
 <ul>
 <li>
-<strong>OpenMP</strong> is the default choice on a single machine when the package is built with it. It has the lowest overhead, uses shared memory, and writes one NetCDF. Set <code>n_threads</code>, or leave it at the package default.</li>
+<strong>In-process threads (<code>std::thread</code>)</strong> are
+the default on a single machine. They have the lowest overhead, use
+shared memory, and write one NetCDF. Set <code>n_threads</code>, or
+leave it at the package default. Nothing to build or enable.</li>
 <li>
-<strong>R-side parallelism (PSOCK)</strong> is for when (a) you cannot enable OpenMP, such as on a managed Mac, (b) you want to spread work across <strong>multiple machines</strong> in a cluster, or (c) you want process isolation so one failing tile cannot bring down the whole run. Each worker writes its own tile, and you merge afterwards.</li>
-<li>The two combine across a cluster. One PSOCK (or MPI) worker per node, each using OpenMP across that node’s cores, is the standard HPC pattern. On a single workstation, pick one.</li>
+<strong>R-side parallelism (PSOCK)</strong> is for when (a) you want
+the read and the assembly parallelised too, not just the per-pixel
+compute, (b) you want to spread work across <strong>multiple
+machines</strong> in a cluster, or (c) you want process isolation so one
+failing tile cannot bring down the whole run. Each worker writes its own
+tile, and you merge afterwards.</li>
+<li>The two combine across a cluster. One PSOCK (or MPI) worker per
+node, each using <code>n_threads</code> across that node’s cores, is the
+standard HPC pattern. On a single workstation, pick one.</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="correctness">Correctness<a class="anchor" aria-label="anchor" href="#correctness"></a>
 </h3>
-<p>Because pixels are independent, every method returns the <strong>identical</strong> event table (we assert <code><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow()</a></code> equality above, and the per-pixel metrics match to the bit). Tiling changes only <em>which</em> process computes a pixel, never the result. The one exception is <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>, which finds spatially <strong>connected</strong> heatwave blobs across pixels. That computation must see the whole grid and <strong>cannot</strong> be tiled this way.</p>
+<p>Because pixels are independent, every method returns the
+<strong>identical</strong> event table (we assert <code><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow()</a></code>
+equality above, and the per-pixel metrics match to the bit). Tiling
+changes only <em>which</em> process computes a pixel, never the result.
+The one exception is <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>, which finds spatially
+<strong>connected</strong> heatwave blobs across pixels. That
+computation must see the whole grid and <strong>cannot</strong> be tiled
+this way.</p>
 </div>
 <div class="section level3">
 <h3 id="dont-oversubscribe">Do not oversubscribe<a class="anchor" aria-label="anchor" href="#dont-oversubscribe"></a>
 </h3>
-<p>Running <em>N</em> worker processes that each launch <em>M</em> OpenMP threads creates <em>N × M</em> threads. If that exceeds your physical cores, the threads contend for them and everything slows down. Practical limits:</p>
+<p>Running <em>N</em> worker processes that each launch <em>M</em>
+threads creates <em>N × M</em> threads. If that exceeds your physical
+cores, the threads contend for them and everything slows down. Practical
+limits:</p>
 <ul>
-<li>Pure OpenMP: <code>n_threads</code> ≤ physical cores.</li>
-<li>Pure PSOCK: <code>n_workers</code> ≤ physical cores, <strong><code>n_threads = 1</code> in every worker</strong>.</li>
-<li>Hybrid (cluster): <code>n_workers_per_node × n_threads ≈ cores_per_node</code>.</li>
+<li>Pure threads: <code>n_threads</code> ≤ physical cores.</li>
+<li>Pure PSOCK: <code>n_workers</code> ≤ physical cores,
+<strong><code>n_threads = 1</code> in every worker</strong>.</li>
+<li>Hybrid (cluster):
+<code>n_workers_per_node × n_threads ≈ cores_per_node</code>.</li>
 </ul>
-<p><code>heatwave3</code> defaults to ca. 50% of cores so that a careless nested call does not saturate the machine, but explicit is better than implicit.</p>
+<p><code>heatwave3</code> defaults to ca. 50% of cores so that a
+careless nested call does not saturate the machine, but explicit is
+better than implicit.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="enabling-openmp">Enabling OpenMP, by platform<a class="anchor" aria-label="anchor" href="#enabling-openmp"></a>
+<h2 id="platform-notes">Platform notes<a class="anchor" aria-label="anchor" href="#platform-notes"></a>
 </h2>
-<p><code>heatwave3</code>’s <code>configure</code> script probes for a working OpenMP toolchain at install time (compile → link → load → run a parallel reduction) and falls back to single-threaded if none is found. The install log prints which path it took:</p>
-<pre><code>Detecting OpenMP...
-  Trying Apple Clang + R's bundled libomp
-  -&gt; works
-Using OpenMP:
-  CXXFLAGS: -Xclang -fopenmp -I/opt/homebrew/opt/libomp/include
-  LIBS:     /Library/Frameworks/R.framework/Resources/lib/libomp.dylib</code></pre>
+<p>In-process multithreading is built in via <code>std::thread</code>,
+so there is <strong>no OpenMP toolchain to install or enable</strong> –
+no <code>libomp</code>, no <code>omp.h</code>, no build-time probe.
+<code>n_threads</code> works on every platform once the package builds.
+The only external dependency is the NetCDF C library;
+<code>configure</code> locates it and reports:</p>
+<pre><code>Using netcdf:
+  CPPFLAGS: -I/opt/homebrew/include
+  LIBS:     -L/opt/homebrew/lib -lnetcdf
+Parallelism: C++ std::thread (no OpenMP runtime required)</code></pre>
 <div class="section level3">
-<h3 id="linux-works-without-extra-setup">Linux: works without extra setup<a class="anchor" aria-label="anchor" href="#linux-works-without-extra-setup"></a>
+<h3 id="linux">Linux<a class="anchor" aria-label="anchor" href="#linux"></a>
 </h3>
-<p>GCC and Clang support OpenMP natively and R already advertises the flags. Install NetCDF and a compiler:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install libnetcdf-dev build-essential   <span class="co"># Debian/Ubuntu</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install netcdf-devel gcc-c++             <span class="co"># Fedora/RHEL</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL heatwave3</span></code></pre></div>
-<p>OpenMP scaling is typically the best of the three platforms (low thread creation overhead). Fork-based <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code> is also safe here, though PSOCK remains the portable choice.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">sudo</span> apt install libnetcdf-dev build-essential   <span class="co"># Debian/Ubuntu</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">sudo</span> dnf install netcdf-devel gcc-c++             <span class="co"># Fedora/RHEL</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL heatwave3</span></code></pre></div>
+<p>Fork-based <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code> is also safe here, though PSOCK
+remains the portable choice for R-side parallelism.</p>
 </div>
 <div class="section level3">
-<h3 id="macos-provide-an-omp-h-header">macOS: provide an omp.h header<a class="anchor" aria-label="anchor" href="#macos-provide-an-omp-h-header"></a>
+<h3 id="macos">macOS<a class="anchor" aria-label="anchor" href="#macos"></a>
 </h3>
-<p>The R 4.x framework already ships the OpenMP runtime (<code>libomp.dylib</code>), and <code>heatwave3</code> links <em>that</em> one so the whole R process shares a single OpenMP runtime. Apple Clang only lacks the <code>omp.h</code> <strong>header</strong>, which <code>configure</code> finds from Homebrew (or <code>/usr/local</code>). The one-time setup is then:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install libomp netcdf      <span class="co"># libomp here supplies omp.h; netcdf is required</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL heatwave3          <span class="co"># configure links R's own libomp, header from brew</span></span></code></pre></div>
-<p>R’s bundled <code>libomp.dylib</code> is older and lacks <code>__kmpc_dispatch_deinit</code>, the symbol Apple Clang emits for <code>schedule(dynamic)</code>. Linking a <em>second</em>, newer libomp (such as Homebrew’s) appears to work until another package, or your environment’s library search path, redirects <code>libomp.dylib</code> back to R’s copy at load time, and the package then fails with <code>symbol not found ... ___kmpc_dispatch_deinit</code>. <code>heatwave3</code> avoids this by using <code>schedule(static, 1)</code>, which needs only symbols R’s own libomp already provides, so the process holds one OpenMP runtime and no conflict arises.</p>
-<p>For <strong>R-side</strong> parallelism on macOS, prefer PSOCK. If you must use <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code>, export <code>OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES</code> before starting R, and treat concurrent forked NetCDF/HDF5 access as unsafe.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="ex">brew</span> install netcdf      <span class="co"># the only external requirement</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="ex">R</span> CMD INSTALL heatwave3</span></code></pre></div>
+<p><code>std::thread</code> needs no Homebrew <code>libomp</code> and no
+<code>omp.h</code>. It also removes a class of crash seen on earlier
+OpenMP builds: a <code>dlopen</code>-ed <code>libomp</code> could fail
+to allocate worker-thread storage in a process with a large native
+footprint (<code>terra</code>/<code>raster</code>/<code>sf</code> and
+their GDAL stack, conda toolchains, or the Positron/<code>ark</code>
+kernel that embeds R) and segfault in <code>__kmp_suspend</code>. With
+<code>std::thread</code> that cannot happen, regardless of load order or
+front-end.</p>
+<p>For <strong>R-side</strong> parallelism on macOS, prefer PSOCK. If
+you must use <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code>, export
+<code>OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES</code> before starting R,
+and treat concurrent forked NetCDF/HDF5 access as unsafe.</p>
 </div>
 <div class="section level3">
-<h3 id="windows-openmp-works-no-fork">Windows: OpenMP works, no fork<a class="anchor" aria-label="anchor" href="#windows-openmp-works-no-fork"></a>
+<h3 id="windows">Windows<a class="anchor" aria-label="anchor" href="#windows"></a>
 </h3>
-<p>Rtools (GCC/MinGW) supports OpenMP without extra setup and <code>configure.win</code> locates NetCDF, so multithreading via <code>n_threads</code> works with no extra steps. There is no <code>fork()</code> on Windows, so <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code> silently runs serially, and R-side parallelism <strong>must</strong> use a PSOCK cluster (<code><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">makeCluster()</a></code> / <code><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">parLapply()</a></code>), exactly as shown above.</p>
+<p><code>configure.win</code> locates NetCDF and multithreading via
+<code>n_threads</code> works with no extra steps. There is no
+<code>fork()</code> on Windows, so <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">mclapply()</a></code> silently runs
+serially, and R-side parallelism <strong>must</strong> use a PSOCK
+cluster (<code><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">makeCluster()</a></code> / <code><a href="https://rdrr.io/r/parallel/clusterApply.html" class="external-link">parLapply()</a></code>), exactly
+as shown above.</p>
 </div>
 </div>
 <div class="section level2">
@@ -395,20 +562,22 @@ Using OpenMP:
 <td>reference result</td>
 </tr>
 <tr class="even">
-<td>OpenMP</td>
+<td>Threads (<code>std::thread</code>)</td>
 <td><code>n_threads = N</code></td>
-<td>one machine, OpenMP built</td>
-<td>low overhead, shared memory, single output</td>
+<td>one machine</td>
+<td>low overhead, shared memory, single output, no OpenMP needed</td>
 </tr>
 <tr class="odd">
 <td>PSOCK</td>
 <td><code><a href="https://rdrr.io/r/parallel/makeCluster.html" class="external-link">parallel::makeCluster</a></code></td>
-<td>no OpenMP, or many machines</td>
+<td>many machines, or process isolation</td>
 <td>tile by longitude, <code>n_threads = 1</code> per worker</td>
 </tr>
 </tbody>
 </table>
-<p>All three give the same science. OpenMP is the efficient default on a single host, and R-side parallelism is the portable fallback and the route to multi-machine scaling.</p>
+<p>All three give the same science. In-process threads are the efficient
+default on a single host, and R-side parallelism is the route to
+multi-machine scaling and process isolation.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

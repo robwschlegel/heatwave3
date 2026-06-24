@@ -1,20 +1,10 @@
-<div id="main" class="col-md-9" role="main">
-
 # Flame geom for MHW visualisation
-
-<div class="ref-description section level2">
 
 A ggplot2 geom that fills the area between two lines (temperature and
 threshold) where the first exceeds the second, creating "flame"
 polygons. For cold-spells, set `reverse = TRUE` to fill where `y < y2`.
 
-</div>
-
-<div class="section level2">
-
 ## Usage
-
-<div class="sourceCode">
 
 ``` r
 geom_flame3(
@@ -32,74 +22,58 @@ geom_flame3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Arguments
 
--   mapping:
+- mapping:
 
-    Set of aesthetic mappings. Requires `x`, `y`, and `y2`.
+  Set of aesthetic mappings. Requires `x`, `y`, and `y2`.
 
--   data:
+- data:
 
-    The data to display.
+  The data to display.
 
--   stat:
+- stat:
 
-    The statistical transformation. Default `"identity"`.
+  The statistical transformation. Default `"identity"`.
 
--   position:
+- position:
 
-    Position adjustment. Default `"identity"`.
+  Position adjustment. Default `"identity"`.
 
--   ...:
+- ...:
 
-    Additional arguments passed to the layer.
+  Additional arguments passed to the layer.
 
--   n:
+- n:
 
-    Minimum number of consecutive exceeding points. Default `0`.
+  Minimum number of consecutive exceeding points. Default `0`.
 
--   n\_gap:
+- n_gap:
 
-    Maximum gap to bridge between exceeding segments. Default `0`.
+  Maximum gap to bridge between exceeding segments. Default `0`.
 
--   reverse:
+- reverse:
 
-    Logical. If `TRUE`, fill where `y < y2` (for cold-spells). Default
-    `FALSE` (fill where `y > y2`).
+  Logical. If `TRUE`, fill where `y < y2` (for cold-spells). Default
+  `FALSE` (fill where `y > y2`).
 
--   na.rm:
+- na.rm:
 
-    Remove NAs? Default `FALSE`.
+  Remove NAs? Default `FALSE`.
 
--   show.legend:
+- show.legend:
 
-    Show legend? Default `NA`.
+  Show legend? Default `NA`.
 
--   inherit.aes:
+- inherit.aes:
 
-    Inherit aesthetics from the plot? Default `TRUE`.
-
-</div>
-
-<div class="section level2">
+  Inherit aesthetics from the plot? Default `TRUE`.
 
 ## Value
 
 A ggplot2 layer.
 
-</div>
-
-<div class="section level2">
-
 ## Examples
-
-<div class="sourceCode">
 
 ``` r
 library(ggplot2)
@@ -114,9 +88,3 @@ ggplot(df, aes(x = x, y = y, y2 = y2)) +
   geom_line()
 
 ```
-
-</div>
-
-</div>
-
-</div>

@@ -13,7 +13,7 @@ packages are required."><meta property="og:image" content="https://robwschlegel.
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -28,7 +28,8 @@ packages are required."><meta property="og:image" content="https://robwschlegel.
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/heatwave3.html">Getting started with heatwave3</a></li>
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -148,23 +149,46 @@ standard <code>+</code> operator.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>,</span></span>
 <span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpEGZ5mo/temp_libpath719a3f2010e4/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpEGZ5mo/file719a6f51e8ac.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      lon     lat doy     seas   thresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26.525 -34.125   1 294.4208 295.9951</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 26.525 -34.125   2 294.4648 296.0311</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 26.525 -34.125   3 294.5088 296.0720</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 26.525 -34.125   4 294.5524 296.1133</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 26.525 -34.125   5 294.5955 296.1553</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         lon     lat doy     seas   thresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2192 26.575 -34.025 362 293.5308 295.1848</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2193 26.575 -34.025 363 293.5672 295.2141</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2194 26.575 -34.025 364 293.6065 295.2460</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2195 26.575 -34.025 365 293.6480 295.2776</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2196 26.575 -34.025 366 293.6907 295.3100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ocean pixels (valid climatology): 6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">event_line3</span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>,</span></span>
 <span class="r-in"><span>            lon <span class="op">=</span> <span class="fl">26.525</span>, lat <span class="op">=</span> <span class="op">-</span><span class="fl">34.125</span>,</span></span>
 <span class="r-in"><span>            start_date <span class="op">=</span> <span class="st">"2010-01-01"</span>, end_date <span class="op">=</span> <span class="st">"2012-12-31"</span><span class="op">)</span></span></span>
-<span class="r-plt img"><img src="event_line3-1.png" alt="" width="700" height="433"></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> NetCDF error in open /tmp/RtmpbqjzHu/file1626015037f1f.nc: No such file or directory</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

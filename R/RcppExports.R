@@ -25,24 +25,24 @@ hw3_version <- function() {
     .Call(`_heatwave3_hw3_version`)
 }
 
-hw3_read_sst <- function(file_in, var_name, lon_range = NULL, lat_range = NULL, time_range = NULL, depth = -1L) {
-    .Call(`_heatwave3_hw3_read_sst`, file_in, var_name, lon_range, lat_range, time_range, depth)
+hw3_read_sst <- function(file_in, var_name, lon_range = NULL, lat_range = NULL, time_range = NULL, depth = -1L, depth_range = NULL) {
+    .Call(`_heatwave3_hw3_read_sst`, file_in, var_name, lon_range, lat_range, time_range, depth, depth_range)
 }
 
-hw3_read_sst_multi <- function(files, var_name, lon_range = NULL, lat_range = NULL, depth = -1L, skip_bad_files = FALSE) {
-    .Call(`_heatwave3_hw3_read_sst_multi`, files, var_name, lon_range, lat_range, depth, skip_bad_files)
+hw3_read_sst_multi <- function(files, var_name, lon_range = NULL, lat_range = NULL, depth = -1L, skip_bad_files = FALSE, depth_range = NULL) {
+    .Call(`_heatwave3_hw3_read_sst_multi`, files, var_name, lon_range, lat_range, depth, skip_bad_files, depth_range)
 }
 
 hw3_pixel_clim <- function(temp, time_jd, clim_start, clim_end, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, maxPadLength = 0L, detrend = FALSE) {
     .Call(`_heatwave3_hw3_pixel_clim`, temp, time_jd, clim_start, clim_end, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, maxPadLength, detrend)
 }
 
-hw3_compute_clim <- function(file_in, file_out, var_name, climatologyPeriod, lon_range = NULL, lat_range = NULL, time_range = NULL, depth = -1L, maxPadLength = 0L, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, compute_var = FALSE, roundClm = 4L, n_threads = 1L, detrend = FALSE) {
-    invisible(.Call(`_heatwave3_hw3_compute_clim`, file_in, file_out, var_name, climatologyPeriod, lon_range, lat_range, time_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend))
+hw3_compute_clim <- function(file_in, file_out, var_name, climatologyPeriod, lon_range = NULL, lat_range = NULL, time_range = NULL, depth = -1L, maxPadLength = 0L, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, compute_var = FALSE, roundClm = 4L, n_threads = 1L, detrend = FALSE, depth_range = NULL) {
+    invisible(.Call(`_heatwave3_hw3_compute_clim`, file_in, file_out, var_name, climatologyPeriod, lon_range, lat_range, time_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, depth_range))
 }
 
-hw3_compute_clim_multi <- function(files, file_out, var_name, climatologyPeriod, lon_range = NULL, lat_range = NULL, depth = -1L, maxPadLength = 0L, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, compute_var = FALSE, roundClm = 4L, n_threads = 1L, detrend = FALSE, skip_bad_files = FALSE) {
-    invisible(.Call(`_heatwave3_hw3_compute_clim_multi`, files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, skip_bad_files))
+hw3_compute_clim_multi <- function(files, file_out, var_name, climatologyPeriod, lon_range = NULL, lat_range = NULL, depth = -1L, maxPadLength = 0L, windowHalfWidth = 5L, pctile = 90, smoothPercentile = TRUE, smoothPercentileWidth = 31L, compute_var = FALSE, roundClm = 4L, n_threads = 1L, detrend = FALSE, skip_bad_files = FALSE, depth_range = NULL) {
+    invisible(.Call(`_heatwave3_hw3_compute_clim_multi`, files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, skip_bad_files, depth_range))
 }
 
 hw3_write_const_clim <- function(file_in, clim_file, var_name, threshold, lon_range = NULL, lat_range = NULL, time_range = NULL, depth = -1L) {

@@ -494,7 +494,10 @@ void detect_events_grid(
     const std::vector<double>& lon,
     const std::vector<double>& lat,
     int nlon, int nlat,
-    DailyBuffers* daily_grid) {
+    DailyBuffers* daily_grid,
+    int ndepth,
+    const std::vector<double>& depth,
+    std::vector<double>* event_depth) {
 
     // Compute DOY for each time step
     std::vector<int> doy_arr(ntime);
@@ -592,11 +595,15 @@ void detect_events_grid(
     Rcpp::Rcout << std::endl;
 
     // Merge thread results
+    bool want_event_depth = (ndepth > 1) && (event_depth != nullptr) && !depth.empty();
     for (auto& tr : thread_results) {
         for (auto& pr : tr) {
             int px = pr.px;
-            int ilon = px / nlat;
-            int ilat = px % nlat;
+            int per_lonlat = nlat * ndepth;
+            int ilon = px / per_lonlat;
+            int rem = px % per_lonlat;
+            int ilat = rem / ndepth;
+            int idepth = rem % ndepth;
 
             for (auto& ev : pr.pe.events) {
                 event_lon.push_back(lon[ilon]);
@@ -606,6 +613,7 @@ void detect_events_grid(
                 date_peak.push_back(ev.jd_peak);
                 date_end.push_back(ev.jd_end);
                 all_events.push_back(ev);
+                if (want_event_depth) event_depth->push_back(depth[idepth]);
             }
         }
     }

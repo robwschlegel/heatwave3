@@ -25,7 +25,15 @@ struct GridData {
     int nlon;
     int nlat;
     int ntime;
-    std::vector<double> sst;  // [nlon * nlat * ntime], pixel-major order
+    // Depth axis. ndepth == 1 and depth empty for ordinary 3D data or a
+    // legacy single-level squeeze (SubsetSpec::depth_index); ndepth > 1 and
+    // depth populated (metres) when a depth_min/depth_max range was read.
+    int ndepth = 1;
+    std::vector<double> depth;
+    // [nlon * nlat * ndepth * ntime], pixel-major order: pixel =
+    // (ilon * nlat + ilat) * ndepth + idepth. Reduces to the plain
+    // ilon * nlat + ilat 3D layout when ndepth == 1.
+    std::vector<double> sst;
 };
 
 struct ClimData {
@@ -34,9 +42,12 @@ struct ClimData {
     int nlon;
     int nlat;
     int ndoy;
-    std::vector<double> seas;   // [nlon * nlat * 366]
-    std::vector<double> thresh; // [nlon * nlat * 366]
-    std::vector<double> var;    // [nlon * nlat * 366], may be empty
+    // See GridData::ndepth/depth.
+    int ndepth = 1;
+    std::vector<double> depth;
+    std::vector<double> seas;   // [nlon * nlat * ndepth * 366]
+    std::vector<double> thresh; // [nlon * nlat * ndepth * 366]
+    std::vector<double> var;    // [nlon * nlat * ndepth * 366], may be empty
 };
 
 // Per-day, per-pixel output (protoEvent / daily). Variable vectors are filled
@@ -85,6 +96,10 @@ void parse_cf_time(const std::string& units,
                    const std::vector<double>& time_raw,
                    std::vector<int>& julian_days);
 
+// ndepth/depth: pass ndepth <= 1 (depth may be empty) for an ordinary 3D
+// climatology file (unchanged schema). Pass ndepth > 1 with a matching
+// `depth` coordinate (metres) to write a depth-resolved 4D climatology
+// ([lon, lat, depth, doy] data variables plus a "depth" coordinate).
 void write_clim_netcdf(const std::string& file_out,
                        const std::vector<double>& lon,
                        const std::vector<double>& lat,
@@ -99,8 +114,13 @@ void write_clim_netcdf(const std::string& file_out,
                        double pctile,
                        int windowHalfWidth,
                        int smoothPercentileWidth,
-                       const std::string& temp_units);
+                       const std::string& temp_units,
+                       int ndepth = 1,
+                       const std::vector<double>& depth = {});
 
+// event_depth: either empty (ordinary 3D events file, unchanged schema) or
+// one value per event (metres), written as an optional "depth" variable on
+// the event dimension.
 void write_event_netcdf(const std::string& file_out,
                         const std::vector<double>& event_lon,
                         const std::vector<double>& event_lat,
@@ -116,7 +136,8 @@ void write_event_netcdf(const std::string& file_out,
                         int maxGap,
                         bool coldSpells,
                         bool southHemisphere,
-                        const std::string& temp_units);
+                        const std::string& temp_units,
+                        const std::vector<double>& event_depth = {});
 
 ClimData read_clim_netcdf(const std::string& clim_file);
 

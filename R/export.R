@@ -280,12 +280,18 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
 # Internal helper: read climatology NetCDF into a long data.frame
 .read_clim_df <- function(clim_file) {
   cd <- hw3_read_clim_nc(clim_file)
-  .clim_df_from_pixels(cd, seq_len(cd$nlon * cd$nlat))
+  ndepth <- max(1L, cd$ndepth)
+  .clim_df_from_pixels(cd, seq_len(cd$nlon * cd$nlat * ndepth))
 }
 
+# pixel = (ilon * nlat + ilat) * ndepth + idepth (0-based), matching the C++
+# pixel-major layout. Reduces to the plain ilon*nlat+ilat decode when
+# ndepth == 1 (ordinary 3D climatology).
 .clim_df_from_pixels <- function(cd, pixels) {
-  npixels <- cd$nlon * cd$nlat
+  ndepth <- max(1L, cd$ndepth)
+  npixels <- cd$nlon * cd$nlat * ndepth
   ndoy <- cd$ndoy
+  has_depth <- ndepth > 1L && length(cd$depth) > 0L
 
   rows <- vector("list", length(pixels))
   for (i in seq_along(pixels)) {
@@ -293,12 +299,15 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
     if (px < 1L || px > npixels) {
       stop("Pixel index out of range.", call. = FALSE)
     }
-    ilon <- ((px - 1L) %/% cd$nlat) + 1L
-    ilat <- ((px - 1L) %% cd$nlat) + 1L
-    offset <- (px - 1L) * ndoy
+    p0 <- px - 1L
+    idepth <- p0 %% ndepth
+    lonlat0 <- p0 %/% ndepth
+    ilon <- (lonlat0 %/% cd$nlat) + 1L
+    ilat <- (lonlat0 %% cd$nlat) + 1L
+    offset <- p0 * ndoy
     idx <- offset + seq_len(ndoy)
 
-    rows[[i]] <- data.frame(
+    df <- data.frame(
       lon = cd$lon[ilon],
       lat = cd$lat[ilat],
       doy = seq_len(ndoy),
@@ -306,6 +315,8 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
       thresh = cd$thresh[idx],
       stringsAsFactors = FALSE
     )
+    if (has_depth) df$depth <- cd$depth[idepth + 1L]
+    rows[[i]] <- df
   }
 
   do.call(rbind, rows)
@@ -368,7 +379,7 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
 .iterate_hw3_chunks <- function(nc_file, type, chunk_size, callback) {
   if (type == "clim") {
     cd <- hw3_read_clim_nc(nc_file)
-    npixels <- cd$nlon * cd$nlat
+    npixels <- cd$nlon * cd$nlat * max(1L, cd$ndepth)
     pixels_per_chunk <- max(1L, floor(chunk_size / cd$ndoy))
     for (start in seq.int(1L, npixels, by = pixels_per_chunk)) {
       end <- min(npixels, start + pixels_per_chunk - 1L)

@@ -277,6 +277,10 @@ detect_event3 <- function(
     stringsAsFactors = FALSE
   )
 
+  if (length(ev$depth) > 0) {
+    df$depth <- ev$depth[idx]
+  }
+
   if (length(ev$category) > 0 && any(ev$category > 0)) {
     df$category <- cat_labels[ev$category[idx]]
     df$p_moderate <- ev$p_moderate[idx]

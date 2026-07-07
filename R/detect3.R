@@ -16,6 +16,12 @@
 #' @param lat_range Optional \code{c(min, max)} latitude range.
 #' @param time_range Optional \code{c("start", "end")} date range.
 #' @param depth Optional depth/level index for 4D data.
+#' @param depth_range Optional numeric vector of length 2:
+#'   \code{c(min_depth, max_depth)}. Runs the climatology and event detection
+#'   natively across this contiguous band of depth levels instead of a
+#'   single squeezed level -- see \code{\link{ts2clm3}}'s \code{depth_range}
+#'   for details. Mutually exclusive with \code{depth}. Not currently
+#'   compatible with \code{daily} or \code{protoEvent}.
 #' @param maxPadLength Max consecutive NAs to interpolate. Default \code{FALSE}.
 #' @param windowHalfWidth Half-width of climatology window. Default \code{5}.
 #' @param pctile Percentile for threshold. Default \code{90} (heatwaves);
@@ -71,6 +77,7 @@ detect3 <- function(file_in, name,
                     var_name = NULL,
                     lon_range = NULL, lat_range = NULL,
                     time_range = NULL, depth = NULL,
+                    depth_range = NULL,
                     maxPadLength = FALSE,
                     windowHalfWidth = 5L,
                     pctile = 90,
@@ -96,11 +103,17 @@ detect3 <- function(file_in, name,
                     quiet = FALSE) {
 
   daily <- match.arg(daily)
+  if (!is.null(depth_range) && (protoEvent || daily != "none")) {
+    stop("depth_range is not currently compatible with daily/protoEvent output. ",
+         "Omit daily= and protoEvent=, or use 'depth' for a single level instead.",
+         call. = FALSE)
+  }
 
   clim_file <- ts2clm3(file_in = file_in, name = name,
           climatologyPeriod = climatologyPeriod,
           lon_range = lon_range, lat_range = lat_range,
           time_range = time_range, depth = depth,
+          depth_range = depth_range,
           var_name = var_name,
           maxPadLength = maxPadLength,
           windowHalfWidth = windowHalfWidth,

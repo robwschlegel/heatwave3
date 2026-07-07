@@ -214,7 +214,7 @@ GridData read_sst_netcdf(const std::string& file_in,
     //   Pass 1: match dimension/coordinate variable names against known patterns
     //   Pass 2: fallback via CF axis, standard_name, and units attributes
     int lon_dimid = -1, lat_dimid = -1, time_dimid = -1, depth_dimid = -1;
-    int lon_varid = -1, lat_varid = -1, time_varid = -1;
+    int lon_varid = -1, lat_varid = -1, time_varid = -1, depth_varid = -1;
 
     // Helper: classify a role from name, axis, standard_name, units
     auto classify_coord = [&](int did, int cvid, const std::string& dn) {
@@ -249,7 +249,7 @@ GridData read_sst_netcdf(const std::string& file_in,
         else if (ax == "Z" || sn == "depth" || sn == "altitude" ||
                  dn == "depth" || dn == "level" || dn == "lev" ||
                  dn == "z" || dn == "zlev") {
-            if (depth_dimid < 0) depth_dimid = did;
+            if (depth_dimid < 0) { depth_dimid = did; depth_varid = cvid; }
         }
     };
 
@@ -313,6 +313,24 @@ GridData read_sst_netcdf(const std::string& file_in,
     nc_check(nc_get_var_double(ncid, lon_varid, full_lon.data()), "get lon");
     nc_check(nc_get_var_double(ncid, lat_varid, full_lat.data()), "get lat");
     nc_check(nc_get_var_double(ncid, time_varid, full_time.data()), "get time");
+
+    // Depth coordinate (only present for 4D data). Read eagerly whenever the
+    // dimension exists so both the legacy single-index squeeze and the new
+    // depth_min/depth_max range mode below can use it.
+    std::vector<double> full_depth;
+    if (depth_dimid >= 0 && depth_varid >= 0) {
+        size_t depth_len;
+        nc_check(nc_inq_dimlen(ncid, depth_dimid, &depth_len), "inq depth len");
+        full_depth.resize(depth_len);
+        nc_check(nc_get_var_double(ncid, depth_varid, full_depth.data()), "get depth");
+    }
+    bool depth_range_requested = !std::isinf(subset.depth_min) || !std::isinf(subset.depth_max);
+    if (depth_range_requested && depth_dimid >= 0 && full_depth.empty()) {
+        nc_close(ncid);
+        throw std::runtime_error("depth_range was requested but " + file_in +
+                                 " has a depth dimension with no readable coordinate "
+                                 "variable to select a range from.");
+    }
 
     // Get time units
     if (!nc_get_att_str(ncid, time_varid, "units", gd.time_units)) {
@@ -385,6 +403,22 @@ GridData read_sst_netcdf(const std::string& file_in,
     nc_get_att_float(ncid, varid, "_FillValue", &fill_float);
     nc_get_att_double(ncid, varid, "_FillValue", &fill_double);
 
+    // Resolve the depth hyperslab window (only meaningful if depth_dimid >= 0):
+    //   - depth_range_requested: contiguous index range covering
+    //     [depth_min, depth_max] in the file's own depth coordinate values.
+    //   - else legacy squeeze: subset.depth_index (or 0 by default), count 1.
+    size_t depth_start = 0, depth_count = 1;
+    if (depth_dimid >= 0) {
+        if (depth_range_requested) {
+            find_subset_indices(full_depth, subset.depth_min, subset.depth_max,
+                                depth_start, depth_count);
+        } else {
+            depth_start = (subset.depth_index >= 0) ?
+                          static_cast<size_t>(subset.depth_index) : 0;
+            depth_count = 1;
+        }
+    }
+
     // Build hyperslab start/count arrays
     // Dimension ordering from the variable's dimids
     std::vector<size_t> start(ndims, 0), count(ndims, 1);
@@ -393,13 +427,12 @@ GridData read_sst_netcdf(const std::string& file_in,
         if (dimids[d] == lat_dimid)  { start[d] = lat_start;  count[d] = lat_count; }
         if (dimids[d] == time_dimid) { start[d] = time_start; count[d] = time_count; }
         if (dimids[d] == depth_dimid) {
-            start[d] = (subset.depth_index >= 0) ?
-                       static_cast<size_t>(subset.depth_index) : 0;
-            count[d] = 1;
+            start[d] = depth_start;
+            count[d] = depth_count;
         }
     }
 
-    size_t total = lon_count * lat_count * time_count;
+    size_t total = lon_count * lat_count * time_count * depth_count;
     gd.sst.resize(total);
 
     if (var_type == NC_SHORT || var_type == NC_BYTE) {
@@ -434,47 +467,60 @@ GridData read_sst_netcdf(const std::string& file_in,
         }
     }
 
-    // Reorder to pixel-major: sst[pixel][time] where pixel = lon_idx * nlat + lat_idx
-    // Input is in file dimension order (typically [lon, lat, time])
-    // We want contiguous time series per pixel for efficient per-pixel processing
+    // Set the depth axis on the output before reordering (needed for the
+    // pixel formula below).
+    gd.ndepth = (depth_dimid >= 0) ? static_cast<int>(depth_count) : 1;
+    if (depth_dimid >= 0 && !full_depth.empty()) {
+        gd.depth.assign(full_depth.begin() + depth_start,
+                        full_depth.begin() + depth_start + depth_count);
+    } else {
+        gd.depth.clear();
+    }
+
+    // Reorder to pixel-major: sst[pixel][time] where
+    // pixel = (ilon * nlat + ilat) * ndepth + idepth (idepth always 0 when
+    // ndepth == 1, reducing to the plain 3D layout).
+    // Input is in file dimension order (e.g. [time, depth, lat, lon]); walk
+    // it generically over up to 4 axes (lon/lat/time always present, depth
+    // only when depth_dimid >= 0) so this works whether the file is 3D or 4D
+    // and regardless of the file's own dimension ordering.
     std::vector<double> reordered(total);
-    // Determine dimension order
-    (void)depth_dimid; // may be unused if no depth dim
-    // If depth dim was squeezed, adjust
     int eff_idx = 0;
-    size_t eff_dims[3] = {1, 1, 1};
-    int dim_map[3] = {-1, -1, -1}; // map eff position to role: 0=lon,1=lat,2=time
+    size_t eff_dims[4] = {1, 1, 1, 1};
+    int dim_map[4] = {-1, -1, -1, -1}; // 0=lon, 1=lat, 2=time, 3=depth
     for (int d = 0; d < ndims; ++d) {
-        if (dimids[d] == depth_dimid && count[d] == 1) continue;
         eff_dims[eff_idx] = count[d];
-        if (dimids[d] == lon_dimid)  dim_map[eff_idx] = 0;
-        if (dimids[d] == lat_dimid)  dim_map[eff_idx] = 1;
-        if (dimids[d] == time_dimid) dim_map[eff_idx] = 2;
+        if (dimids[d] == lon_dimid)   dim_map[eff_idx] = 0;
+        if (dimids[d] == lat_dimid)   dim_map[eff_idx] = 1;
+        if (dimids[d] == time_dimid)  dim_map[eff_idx] = 2;
+        if (dimids[d] == depth_dimid) dim_map[eff_idx] = 3;
         eff_idx++;
     }
 
-    // Reorder: target layout is [pixel][time] where pixel = ilon * nlat + ilat
-    size_t stride2 = 1;
-    size_t stride1 = eff_dims[2];
-    size_t stride0 = eff_dims[1] * eff_dims[2];
+    size_t total_eff = 1;
+    for (int e = 0; e < eff_idx; ++e) total_eff *= eff_dims[e];
 
-    for (size_t i0 = 0; i0 < eff_dims[0]; ++i0) {
-        for (size_t i1 = 0; i1 < eff_dims[1]; ++i1) {
-            for (size_t i2 = 0; i2 < eff_dims[2]; ++i2) {
-                size_t src = i0 * stride0 + i1 * stride1 + i2 * stride2;
-                // Map to lon/lat/time indices
-                size_t idx[3] = {i0, i1, i2};
-                size_t ilon = 0, ilat = 0, itime = 0;
-                for (int e = 0; e < eff_idx; ++e) {
-                    if (dim_map[e] == 0) ilon  = idx[e];
-                    if (dim_map[e] == 1) ilat  = idx[e];
-                    if (dim_map[e] == 2) itime = idx[e];
-                }
-                size_t pixel = ilon * static_cast<size_t>(gd.nlat) + ilat;
-                size_t dst = pixel * static_cast<size_t>(gd.ntime) + itime;
-                reordered[dst] = gd.sst[src];
-            }
+    for (size_t lin = 0; lin < total_eff; ++lin) {
+        // Decompose the flat (row-major, last axis fastest) source index
+        // into per-axis indices.
+        size_t rem = lin;
+        size_t idx[4] = {0, 0, 0, 0};
+        for (int e = eff_idx - 1; e >= 0; --e) {
+            idx[e] = rem % eff_dims[e];
+            rem /= eff_dims[e];
         }
+
+        size_t ilon = 0, ilat = 0, itime = 0, idepth = 0;
+        for (int e = 0; e < eff_idx; ++e) {
+            if (dim_map[e] == 0) ilon   = idx[e];
+            if (dim_map[e] == 1) ilat   = idx[e];
+            if (dim_map[e] == 2) itime  = idx[e];
+            if (dim_map[e] == 3) idepth = idx[e];
+        }
+        size_t pixel = (ilon * static_cast<size_t>(gd.nlat) + ilat) *
+                       static_cast<size_t>(gd.ndepth) + idepth;
+        size_t dst = pixel * static_cast<size_t>(gd.ntime) + itime;
+        reordered[dst] = gd.sst[lin];
     }
     gd.sst = std::move(reordered);
 
@@ -498,22 +544,36 @@ void write_clim_netcdf(const std::string& file_out,
                        double pctile,
                        int windowHalfWidth,
                        int smoothPercentileWidth,
-                       const std::string& temp_units) {
+                       const std::string& temp_units,
+                       int ndepth,
+                       const std::vector<double>& depth) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
 
+    bool has_depth = (ndepth > 1) && !depth.empty();
+
     // Define dimensions
-    int lon_dimid, lat_dimid, doy_dimid;
+    int lon_dimid, lat_dimid, doy_dimid, depth_dimid = -1;
     nc_check(nc_def_dim(ncid, "lon", nlon, &lon_dimid), "def dim lon");
     nc_check(nc_def_dim(ncid, "lat", nlat, &lat_dimid), "def dim lat");
     nc_check(nc_def_dim(ncid, "doy", 366, &doy_dimid), "def dim doy");
+    if (has_depth) {
+        nc_check(nc_def_dim(ncid, "depth", ndepth, &depth_dimid), "def dim depth");
+    }
 
     // Define coordinate variables
-    int lon_varid, lat_varid, doy_varid;
+    int lon_varid, lat_varid, doy_varid, depth_varid = -1;
     nc_check(nc_def_var(ncid, "lon", NC_DOUBLE, 1, &lon_dimid, &lon_varid), "def var lon");
     nc_check(nc_def_var(ncid, "lat", NC_DOUBLE, 1, &lat_dimid, &lat_varid), "def var lat");
     nc_check(nc_def_var(ncid, "doy", NC_INT, 1, &doy_dimid, &doy_varid), "def var doy");
+    if (has_depth) {
+        nc_check(nc_def_var(ncid, "depth", NC_DOUBLE, 1, &depth_dimid, &depth_varid), "def var depth");
+        nc_put_att_text(ncid, depth_varid, "units", 1, "m");
+        nc_put_att_text(ncid, depth_varid, "positive", 4, "down");
+        nc_put_att_text(ncid, depth_varid, "axis", 1, "Z");
+        nc_put_att_text(ncid, depth_varid, "standard_name", 5, "depth");
+    }
 
     nc_put_att_text(ncid, lon_varid, "units", 12, "degrees_east");
     nc_put_att_text(ncid, lon_varid, "axis", 1, "X");
@@ -521,11 +581,14 @@ void write_clim_netcdf(const std::string& file_out,
     nc_put_att_text(ncid, lat_varid, "axis", 1, "Y");
     nc_put_att_text(ncid, doy_varid, "long_name", 11, "day_of_year");
 
-    // Define data variables: [lon, lat, doy]
+    // Define data variables: [lon, lat, doy] (3D) or [lon, lat, depth, doy] (4D)
     int dims3[3] = {lon_dimid, lat_dimid, doy_dimid};
+    int dims4[4] = {lon_dimid, lat_dimid, depth_dimid, doy_dimid};
+    int ndims_data = has_depth ? 4 : 3;
+    int* dims_data = has_depth ? dims4 : dims3;
     int seas_varid, thresh_varid, var_varid;
-    nc_check(nc_def_var(ncid, "seas", NC_DOUBLE, 3, dims3, &seas_varid), "def var seas");
-    nc_check(nc_def_var(ncid, "thresh", NC_DOUBLE, 3, dims3, &thresh_varid), "def var thresh");
+    nc_check(nc_def_var(ncid, "seas", NC_DOUBLE, ndims_data, dims_data, &seas_varid), "def var seas");
+    nc_check(nc_def_var(ncid, "thresh", NC_DOUBLE, ndims_data, dims_data, &thresh_varid), "def var thresh");
 
     nc_put_att_text(ncid, seas_varid, "long_name", 21, "seasonal climatology");
     nc_put_att_text(ncid, seas_varid, "units", temp_units.size(), temp_units.c_str());
@@ -537,7 +600,7 @@ void write_clim_netcdf(const std::string& file_out,
     nc_def_var_deflate(ncid, thresh_varid, 1, 1, 4);
 
     if (has_var) {
-        nc_check(nc_def_var(ncid, "var", NC_DOUBLE, 3, dims3, &var_varid), "def var var");
+        nc_check(nc_def_var(ncid, "var", NC_DOUBLE, ndims_data, dims_data, &var_varid), "def var var");
         nc_put_att_text(ncid, var_varid, "long_name", 21, "variance climatology");
         nc_def_var_deflate(ncid, var_varid, 1, 1, 4);
     }
@@ -563,13 +626,17 @@ void write_clim_netcdf(const std::string& file_out,
     // Write coordinates
     nc_check(nc_put_var_double(ncid, lon_varid, lon.data()), "put lon");
     nc_check(nc_put_var_double(ncid, lat_varid, lat.data()), "put lat");
+    if (has_depth) {
+        nc_check(nc_put_var_double(ncid, depth_varid, depth.data()), "put depth");
+    }
     std::vector<int> doy_vals(366);
     for (int i = 0; i < 366; ++i) doy_vals[i] = i + 1;
     nc_check(nc_put_var_int(ncid, doy_varid, doy_vals.data()), "put doy");
 
-    // Write data — input layout is [pixel][doy] where pixel = ilon*nlat + ilat
-    // NetCDF layout is [lon][lat][doy]
-    // These are the same order, so write directly
+    // Write data — input layout is [pixel][doy] where
+    // pixel = (ilon*nlat + ilat)*ndepth + idepth, matching NetCDF layout
+    // [lon][lat][doy] (3D) or [lon][lat][depth][doy] (4D). Same order in
+    // both cases, so write directly with no reordering.
     nc_check(nc_put_var_double(ncid, seas_varid, seas.data()), "put seas");
     nc_check(nc_put_var_double(ncid, thresh_varid, thresh.data()), "put thresh");
     if (has_var) {
@@ -611,7 +678,20 @@ ClimData read_clim_netcdf(const std::string& clim_file) {
     nc_check(nc_get_var_double(ncid, lon_varid, cd.lon.data()), "get lon");
     nc_check(nc_get_var_double(ncid, lat_varid, cd.lat.data()), "get lat");
 
-    size_t total = nlon * nlat * ndoy;
+    // Optional depth dimension (depth-resolved climatology written with
+    // ndepth > 1). Absent in ordinary 3D climatology files.
+    int depth_dimid;
+    if (nc_inq_dimid(ncid, "depth", &depth_dimid) == NC_NOERR) {
+        size_t ndepth;
+        nc_check(nc_inq_dimlen(ncid, depth_dimid, &ndepth), "inq ndepth");
+        cd.ndepth = static_cast<int>(ndepth);
+        int depth_varid;
+        nc_check(nc_inq_varid(ncid, "depth", &depth_varid), "inq depth");
+        cd.depth.resize(ndepth);
+        nc_check(nc_get_var_double(ncid, depth_varid, cd.depth.data()), "get depth");
+    }
+
+    size_t total = nlon * nlat * static_cast<size_t>(cd.ndepth) * ndoy;
     cd.seas.resize(total);
     cd.thresh.resize(total);
     nc_check(nc_get_var_double(ncid, seas_varid, cd.seas.data()), "get seas");
@@ -699,6 +779,7 @@ EventData read_event_netcdf(const std::string& event_file) {
     try_read_dvec("p_severe", ed.p_severe);
     try_read_dvec("p_extreme", ed.p_extreme);
     try_read_ivec("season", ed.season);
+    try_read_dvec("depth", ed.depth);
 
     // Parse reference date from date_start units attribute
     int ds_vid;
@@ -738,12 +819,14 @@ void write_event_netcdf(const std::string& file_out,
                         int maxGap,
                         bool coldSpells,
                         bool southHemisphere,
-                        const std::string& temp_units) {
+                        const std::string& temp_units,
+                        const std::vector<double>& event_depth) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
 
     size_t nevents = events.size();
+    bool has_depth = !event_depth.empty();
 
     // Define event dimension
     int event_dimid;
@@ -797,6 +880,7 @@ void write_event_netcdf(const std::string& file_out,
     int v_pv = def_dvar("p_severe", "proportion severe", nullptr);
     int v_pe = def_dvar("p_extreme", "proportion extreme", nullptr);
     int v_sea = def_ivar("season", "peak season", nullptr);
+    int v_depth = has_depth ? def_dvar("depth", "depth", "m") : -1;
 
     // Reference date attribute
     int ref_y, ref_m, ref_d;
@@ -892,6 +976,9 @@ void write_event_netcdf(const std::string& file_out,
     nc_check(nc_put_var_double(ncid, v_pv, pv2.data()), "put p_severe");
     nc_check(nc_put_var_double(ncid, v_pe, pex.data()), "put p_extreme");
     nc_check(nc_put_var_int(ncid, v_sea, sea.data()), "put season");
+    if (has_depth) {
+        nc_check(nc_put_var_double(ncid, v_depth, event_depth.data()), "put depth");
+    }
 
     nc_check(nc_close(ncid), "close " + file_out);
 }
@@ -1055,6 +1142,13 @@ Rcpp::List read_subset_netcdf(const std::string& file,
         Rcpp::stop("read_subset_netcdf: events are subset in R, not via hyperslab.");
     }
     bool is_clim = (product == "climatology");
+    if (is_clim && has_dim("depth")) {
+        nc_close(ncid);
+        Rcpp::stop("hw3_export()'s streaming subset (vars/lon_range/lat_range/"
+                   "time_range/n) is not yet supported for a depth-resolved "
+                   "(depth_range) climatology. Call hw3_export(file) with no "
+                   "subset arguments for a full read instead.");
+    }
     const char* third_dim = is_clim ? "doy" : "time";
 
     auto get_dimlen = [&](const char* name) -> size_t {
@@ -1217,12 +1311,15 @@ FileMeta read_file_meta(const std::string& file) {
         return nc_inq_dimlen(ncid, did, &out) == NC_NOERR;
     };
 
-    size_t nlon = 0, nlat = 0, ndoy = 0, ntime = 0, nevent = 0;
+    size_t nlon = 0, nlat = 0, ndoy = 0, ntime = 0, nevent = 0, ndepth = 1;
     bool has_event = dimlen("event", nevent);
     bool has_doy = dimlen("doy", ndoy);
     bool has_time = dimlen("time", ntime);
     dimlen("lon", nlon);
     dimlen("lat", nlat);
+    // Depth-resolved climatology (ts2clm3(depth_range=...)): fold into nrows.
+    size_t depth_dimlen;
+    if (dimlen("depth", depth_dimlen)) ndepth = depth_dimlen;
 
     // Infer product for files written before the hw3_product attribute existed.
     if (m.product.empty()) {
@@ -1238,7 +1335,7 @@ FileMeta read_file_meta(const std::string& file) {
         m.nlon = static_cast<int>(nlon);
         m.nlat = static_cast<int>(nlat);
         m.n3 = static_cast<int>(ndoy);
-        m.nrows = static_cast<long long>(nlon) * nlat * ndoy;
+        m.nrows = static_cast<long long>(nlon) * nlat * ndepth * ndoy;
     } else { // daily / protoevents
         m.nlon = static_cast<int>(nlon);
         m.nlat = static_cast<int>(nlat);
@@ -1366,7 +1463,8 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
 
     int nlon = first.nlon;
     int nlat = first.nlat;
-    int npixels = nlon * nlat;
+    int ndepth = first.ndepth;
+    int npixels = nlon * nlat * ndepth;
 
     // Collect all time steps and data
     struct TimeSlice {
@@ -1392,11 +1490,13 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
         try {
             GridData gd = read_sst_netcdf(files[f], read_var_name, subset);
 
-            // Verify spatial grid matches
-            if (gd.nlon != nlon || gd.nlat != nlat) {
+            // Verify spatial (and depth) grid matches
+            if (gd.nlon != nlon || gd.nlat != nlat || gd.ndepth != ndepth) {
                 std::string msg = "Grid mismatch in " + files[f] +
                     " (" + std::to_string(gd.nlon) + "x" + std::to_string(gd.nlat) +
-                    " vs " + std::to_string(nlon) + "x" + std::to_string(nlat) + ")";
+                    "x" + std::to_string(gd.ndepth) +
+                    " vs " + std::to_string(nlon) + "x" + std::to_string(nlat) +
+                    "x" + std::to_string(ndepth) + ")";
                 if (skip_bad_files) {
                     Rcpp::Rcerr << "Warning: " << msg << ", skipping" << std::endl;
                     continue;
@@ -1442,6 +1542,8 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
     result.lat = first.lat;
     result.nlon = nlon;
     result.nlat = nlat;
+    result.ndepth = ndepth;
+    result.depth = first.depth;
     result.ntime = static_cast<int>(slices.size());
     result.time_units = first.time_units;
     result.time_calendar = first.time_calendar;

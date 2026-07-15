@@ -10,10 +10,10 @@ time steps, 1982–2024).
 We compare three configurations:
 
 1.  **heatwaveR**, serial per-pixel R + C++ (the standard approach)
-2.  **heatwave3 (1 thread)**, pure C++ with single-threaded execution
-3.  **xmhw (1 thread)**, pure python without dask
+2.  **xmhw**, pure python without `dask`
+3.  **heatwave3 (1 thread)**, pure C++ with single-threaded execution
 4.  **heatwave3 (12 threads)**, pure C++ with multi-threading
-5.  **xmhw (12 threads)**, pure python with dask enabled
+5.  **xmhw (dask)**, pure python with `dask` enabled
 
 ``` r
 
@@ -113,7 +113,7 @@ cat("Estimated total:", round(estimated), "sec (",
     round(estimated / 60, 1), "min)\n")
 ```
 
-## xmhw: single-thread
+## xmhw: out-of-the-box
 
 ``` r
 
@@ -192,7 +192,7 @@ cat("Detection:  ", round(t_event_12[3], 1), "sec\n")
 cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
 ```
 
-## xmhw: 12 threads
+## xmhw: dask
 
 Note that the `xmhw` will also work with `dask`, which itself can have
 parellelism established. This is however outside of the scope of the
@@ -215,5 +215,5 @@ Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.0.
 Note then that the base `heatwaveR` script is already almost twice as
 fast as `xmhw` if this analysis has not been optimised for `dask`. Also
 note that as part of the operation of `heatwave3` the output of the
-files are already saved to local disk in an orderly fashion. The saving
-of the output of `xmhw` would add additional total run-time.
+files are saved to local disk in an orderly fashion. The saving of the
+output of `xmhw` would add additional total run-time.

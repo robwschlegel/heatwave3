@@ -80,15 +80,15 @@ detect3(file_in = sst_file,
         name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         n_threads = 2)
-#> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 2 thread(s)...
 #>   6/6 pixels (100%)
-#> Writing climatology to /tmp/RtmpiiHHmB/demo_clim.nc...
+#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/RtmpiiHHmB/demo_clim.nc
+#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -112,20 +112,20 @@ detect3(file_in = sst_file,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/tmp/RtmpiiHHmB/demo_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpiiHHmB/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /tmp/RtmpiiHHmB/demo_clim.nc...
-#> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_clim.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 2 thread(s)...
 #>   6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /tmp/RtmpiiHHmB/demo_events.nc...
+#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/RtmpiiHHmB/demo_events.nc
+#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -162,35 +162,35 @@ detect3(file_in = sst_file,
 #> 
 #> Tail:
 #>        lon     lat pixel_index event_no date_start  date_peak   date_end
-#> 606 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14
-#> 607 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05
-#> 608 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01
-#> 609 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09
-#> 610 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30
+#> 606 26.575 -34.075           4      100 2019-02-27 2019-03-02 2019-03-04
+#> 607 26.575 -34.075           4      101 2019-07-07 2019-07-11 2019-07-14
+#> 608 26.575 -34.075           4      102 2019-08-29 2019-08-31 2019-09-04
+#> 609 26.575 -34.075           4      103 2019-10-19 2019-10-26 2019-10-31
+#> 610 26.575 -34.075           4      104 2020-07-05 2020-07-06 2020-07-09
 #>     duration intensity_mean intensity_max intensity_var intensity_cumulative
-#> 606        8         1.9123        2.6167        0.3509              15.2983
-#> 607        7         2.6135        3.2218        0.6238              18.2944
-#> 608       12         2.7097        4.2806        0.9613              32.5162
-#> 609        5         1.9184        2.4610        0.4567               9.5918
-#> 610        7         1.7027        1.8887        0.1673              11.9191
+#> 606        6         2.3280        2.6520        0.2624              13.9679
+#> 607        8         1.9937        2.4175        0.2732              15.9493
+#> 608        7         2.4202        2.9167        0.5184              16.9417
+#> 609       13         2.5752        3.9481        0.7323              33.4774
+#> 610        5         1.9388        2.5567        0.4944               9.6940
 #>     intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh
-#> 606                   0.5331                  1.2395                  0.3545
-#> 607                   1.2196                  1.8291                  0.6356
-#> 608                   1.2481                  2.8252                  0.9574
-#> 609                   0.5193                  1.0566                  0.4505
-#> 610                   0.3486                  0.5476                  0.1719
+#> 606                   0.4701                  0.7911                  0.2549
+#> 607                   0.6743                  1.1037                  0.2807
+#> 608                   1.0094                  1.5135                  0.5207
+#> 609                   1.0904                  2.4535                  0.7207
+#> 610                   0.5972                  1.2075                  0.4848
 #>     intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs
-#> 606                         4.2646           293.7725            294.47
-#> 607                         8.5369           293.8743            294.48
-#> 608                        14.9767           294.3308            295.87
-#> 609                         2.5966           293.8140            294.37
-#> 610                         2.4402           292.9757            293.17
+#> 606                         2.8209           297.2000            297.52
+#> 607                         5.3942           294.2825            294.70
+#> 608                         7.0655           294.1014            294.60
+#> 609                        14.1748           294.5685            295.96
+#> 610                         2.9861           294.2600            294.89
 #>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline
-#> 606            0.3438                  2350.18     0.2090       0.1836
-#> 607            0.6214                  2057.12     0.2155       0.5020
-#> 608            0.9940                  3531.97     0.5195       0.4084
-#> 609            0.4723                  1469.07     0.3247       0.2915
-#> 610            0.1695                  2050.83     0.2322       0.0693
+#> 606            0.2535                  1783.20     0.1799       0.0644
+#> 607            0.2628                  2354.26     0.1482       0.0497
+#> 608            0.5172                  2058.71     0.5040       0.2357
+#> 609            0.7987                  3829.39     0.2713       0.2823
+#> 610            0.5098                  1471.30     0.3171       0.3182
 #> 
 #> Summary:
 #>   events: 610   pixels with events: 6
@@ -198,8 +198,8 @@ detect3(file_in = sst_file,
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/tmp/RtmpiiHHmB/demo_events.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpiiHHmB/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjBSJ9O/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 # The two products follow the naming convention <name>_clim.nc / <name>_events.nc

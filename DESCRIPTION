@@ -1,17 +1,17 @@
 Package: heatwave3
-Version: 1.2.0
-Date: 2026-06-03
+Version: 1.2.1
+Date: 2026-07-15
 Title: Detect Heatwaves and Cold-Spells in Gridded Data
-Description: Detect marine heatwaves (MHWs) and cold-spells directly on gridded
+Description: Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded
     NetCDF data using the Hobday et al. (2016, 2018) definition. Implements
     climatology calculation, event detection, exceedance analysis, event
     categorisation, blob detection, and visualisation. All core algorithms are
     written in C++ with OpenMP parallelism for high performance on large datasets.
 Type: Package
-Authors@R: c(person("Robert W.", "Schlegel", role = c("aut", "ctb"),
+Authors@R: c(person("Robert W.", "Schlegel", role = c("aut"),
                     email = "robwschlegel@gmail.com",
                     comment = c(ORCID = "0000-0002-0705-1287")),
-            person("Albertus J.", "Smit", role = c("aut", "cre", "ctb"),
+            person("Albertus J.", "Smit", role = c("aut", "cre"),
                     email = "albertus.smit@gmail.com",
                     comment = c(ORCID = "0000-0002-3799-6126")))
 Maintainer: Albertus J. Smit <albertus.smit@gmail.com>
@@ -36,7 +36,8 @@ Suggests:
     rnaturalearth,
     sf,
     arrow,
-    bench
+    bench,
+    purrr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends:

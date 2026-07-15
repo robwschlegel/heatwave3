@@ -9,6 +9,7 @@ event_line3(
   clim_file,
   lon,
   lat,
+  depth = NULL,
   var_name = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -26,6 +27,13 @@ event_line3(
 \item{lon}{Longitude of the pixel to plot.}
 
 \item{lat}{Latitude of the pixel to plot.}
+
+\item{depth}{Optional depth (metres) to plot, for a depth-resolved
+\code{clim_file} (from \code{ts2clm3(depth_range = ...)}). Matched to the
+nearest depth level actually present in \code{clim_file}; the matched
+value is used to read \code{sst_file} at the same level and appears in
+the plot title. Required when \code{clim_file} is depth-resolved;
+must be \code{NULL} (the default) for an ordinary 3D \code{clim_file}.}
 
 \item{var_name}{SST variable name. If \code{NULL}, auto-detected.}
 

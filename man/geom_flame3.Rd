@@ -21,7 +21,9 @@ geom_flame3(
 )
 }
 \arguments{
-\item{mapping}{Set of aesthetic mappings. Requires \code{x}, \code{y}, and \code{y2}.}
+\item{mapping}{Set of aesthetic mappings. Requires \code{x}, \code{y}, and \code{y2}.
+An optional \code{depth} aesthetic can be mapped for depth-resolved data
+(see Details).}
 
 \item{data}{The data to display.}
 
@@ -51,6 +53,18 @@ A ggplot2 layer.
 A ggplot2 geom that fills the area between two lines (temperature and
 threshold) where the first exceeds the second, creating "flame" polygons.
 For cold-spells, set \code{reverse = TRUE} to fill where \code{y < y2}.
+}
+\details{
+\code{geom_flame3()} finds exceedance runs by walking each group's rows in
+order, so a single group must be one continuous series through \code{x}.
+For depth-resolved data (e.g. \code{hw3_export()} on a
+\code{ts2clm3(depth_range = ...)} product), map \code{depth} as an
+aesthetic -- \code{aes(x = t, y = temp, y2 = thresh, depth = depth)} --
+and it is automatically folded into the row grouping, so each depth level
+gets its own exceedance runs instead of being treated as one series with
+depths interleaved. This happens even though \code{depth} is a plain
+numeric column, which ggplot2's own default grouping would otherwise merge
+into a single group (unlike a discrete aesthetic such as \code{colour}).
 }
 \examples{
 library(ggplot2)

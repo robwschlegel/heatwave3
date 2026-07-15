@@ -20,8 +20,9 @@
 #'   \code{c(min_depth, max_depth)}. Runs the climatology and event detection
 #'   natively across this contiguous band of depth levels instead of a
 #'   single squeezed level -- see \code{\link{ts2clm3}}'s \code{depth_range}
-#'   for details. Mutually exclusive with \code{depth}. Not currently
-#'   compatible with \code{daily} or \code{protoEvent}.
+#'   for details. Mutually exclusive with \code{depth}. Compatible with
+#'   \code{daily}/\code{protoEvent}: the per-day product gains a \code{depth}
+#'   dimension the same way the climatology and event files do.
 #' @param maxPadLength Max consecutive NAs to interpolate. Default \code{FALSE}.
 #' @param windowHalfWidth Half-width of climatology window. Default \code{5}.
 #' @param pctile Percentile for threshold. Default \code{90} (heatwaves);
@@ -103,11 +104,6 @@ detect3 <- function(file_in, name,
                     quiet = FALSE) {
 
   daily <- match.arg(daily)
-  if (!is.null(depth_range) && (protoEvent || daily != "none")) {
-    stop("depth_range is not currently compatible with daily/protoEvent output. ",
-         "Omit daily= and protoEvent=, or use 'depth' for a single level instead.",
-         call. = FALSE)
-  }
 
   clim_file <- ts2clm3(file_in = file_in, name = name,
           climatologyPeriod = climatologyPeriod,

@@ -64,8 +64,9 @@ dates of the baseline period, for example \code{c("1991-01-01", "2020-12-31")}.}
 \code{c(min_depth, max_depth)}. Runs the climatology and event detection
 natively across this contiguous band of depth levels instead of a
 single squeezed level -- see \code{\link{ts2clm3}}'s \code{depth_range}
-for details. Mutually exclusive with \code{depth}. Not currently
-compatible with \code{daily} or \code{protoEvent}.}
+for details. Mutually exclusive with \code{depth}. Compatible with
+\code{daily}/\code{protoEvent}: the per-day product gains a \code{depth}
+dimension the same way the climatology and event files do.}
 
 \item{maxPadLength}{Max consecutive NAs to interpolate. Default \code{FALSE}.}
 

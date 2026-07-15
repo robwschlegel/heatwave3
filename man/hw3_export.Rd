@@ -11,6 +11,7 @@ hw3_export(
   lon_range = NULL,
   lat_range = NULL,
   time_range = NULL,
+  depth_range = NULL,
   n = NULL,
   type = NULL,
   chunk_size = 1000000L
@@ -40,6 +41,12 @@ events by their per-event coordinate.}
 and proto-event products; for events it keeps events overlapping the range.
 Ignored for a climatology (which has a day-of-year axis, not time).}
 
+\item{depth_range}{Optional numeric \code{c(min_depth, max_depth)} window
+(metres). Only meaningful for a depth-resolved climatology or daily/
+proto-event product (written with \code{ts2clm3(depth_range = ...)}); for
+events it filters by each event's \code{depth}. Ignored (with a warning)
+if the file has no depth dimension/column.}
+
 \item{n}{Optional integer. Return only the first \code{n} rows. For gridded
 products this also caps how much is read from disk, so it is a cheap preview
 even for very large files. \code{NULL} (the default) returns the whole
@@ -63,11 +70,11 @@ proto-events) using the fast C++ reader, and either returns it as a long
 The product type is detected automatically from the file.
 }
 \details{
-Any of \code{vars}, \code{lon_range}, \code{lat_range}, \code{time_range}, or
-\code{n} triggers a streaming hyperslab read: for the gridded products only
-the requested window and variables are read from the NetCDF, so memory and
-I/O scale with the subset, not the file. A whole (unsubset) export to
-\code{file_out} is written in row chunks.
+Any of \code{vars}, \code{lon_range}, \code{lat_range}, \code{time_range},
+\code{depth_range}, or \code{n} triggers a streaming hyperslab read: for the
+gridded products only the requested window and variables are read from the
+NetCDF, so memory and I/O scale with the subset, not the file. A whole
+(unsubset) export to \code{file_out} is written in row chunks.
 
 Writing formats (chosen by the \code{file_out} extension): \code{.csv},
 \code{.rds}, or \code{.parquet} (the last requires the \pkg{arrow} package).

@@ -26,7 +26,8 @@ geom_flame3(
 
 - mapping:
 
-  Set of aesthetic mappings. Requires `x`, `y`, and `y2`.
+  Set of aesthetic mappings. Requires `x`, `y`, and `y2`. An optional
+  `depth` aesthetic can be mapped for depth-resolved data (see Details).
 
 - data:
 
@@ -72,6 +73,20 @@ geom_flame3(
 ## Value
 
 A ggplot2 layer.
+
+## Details
+
+`geom_flame3()` finds exceedance runs by walking each group's rows in
+order, so a single group must be one continuous series through `x`. For
+depth-resolved data (e.g.
+[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+on a `ts2clm3(depth_range = ...)` product), map `depth` as an aesthetic
+– `aes(x = t, y = temp, y2 = thresh, depth = depth)` – and it is
+automatically folded into the row grouping, so each depth level gets its
+own exceedance runs instead of being treated as one series with depths
+interleaved. This happens even though `depth` is a plain numeric column,
+which ggplot2's own default grouping would otherwise merge into a single
+group (unlike a discrete aesthetic such as `colour`).
 
 ## Examples
 

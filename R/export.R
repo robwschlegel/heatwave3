@@ -23,6 +23,11 @@
 #'   \code{c("2015-01-01", "2015-12-31")}). Subsets the time dimension of daily
 #'   and proto-event products; for events it keeps events overlapping the range.
 #'   Ignored for a climatology (which has a day-of-year axis, not time).
+#' @param depth_range Optional numeric \code{c(min_depth, max_depth)} window
+#'   (metres). Only meaningful for a depth-resolved climatology or daily/
+#'   proto-event product (written with \code{ts2clm3(depth_range = ...)}); for
+#'   events it filters by each event's \code{depth}. Ignored (with a warning)
+#'   if the file has no depth dimension/column.
 #' @param n Optional integer. Return only the first \code{n} rows. For gridded
 #'   products this also caps how much is read from disk, so it is a cheap preview
 #'   even for very large files. \code{NULL} (the default) returns the whole
@@ -37,11 +42,11 @@
 #'   returns a \code{data.frame} (the whole product, or the requested subset).
 #'
 #' @details
-#' Any of \code{vars}, \code{lon_range}, \code{lat_range}, \code{time_range}, or
-#' \code{n} triggers a streaming hyperslab read: for the gridded products only
-#' the requested window and variables are read from the NetCDF, so memory and
-#' I/O scale with the subset, not the file. A whole (unsubset) export to
-#' \code{file_out} is written in row chunks.
+#' Any of \code{vars}, \code{lon_range}, \code{lat_range}, \code{time_range},
+#' \code{depth_range}, or \code{n} triggers a streaming hyperslab read: for the
+#' gridded products only the requested window and variables are read from the
+#' NetCDF, so memory and I/O scale with the subset, not the file. A whole
+#' (unsubset) export to \code{file_out} is written in row chunks.
 #'
 #' Writing formats (chosen by the \code{file_out} extension): \code{.csv},
 #' \code{.rds}, or \code{.parquet} (the last requires the \pkg{arrow} package).
@@ -69,6 +74,7 @@
 #' }
 hw3_export <- function(file, file_out = NULL, vars = NULL,
                        lon_range = NULL, lat_range = NULL, time_range = NULL,
+                       depth_range = NULL,
                        n = NULL, type = NULL, chunk_size = 1000000L) {
 
   if (!file.exists(file)) {
@@ -78,18 +84,20 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
   product <- if (is.null(type)) hw3_file_meta(file)$product else .type_to_product(type)
   ctype <- .product_to_chunktype(product)
   subset_requested <- !is.null(vars) || !is.null(lon_range) ||
-    !is.null(lat_range) || !is.null(time_range) || !is.null(n)
+    !is.null(lat_range) || !is.null(time_range) || !is.null(depth_range) ||
+    !is.null(n)
 
   # Return a data.frame
   if (is.null(file_out)) {
     if (subset_requested) {
-      return(.read_subset_df(file, product, vars, lon_range, lat_range, time_range, n))
+      return(.read_subset_df(file, product, vars, lon_range, lat_range,
+                             time_range, depth_range, n))
     }
     nrows <- hw3_file_meta(file)$nrows
     if (nrows > .HW3_PREVIEW_LIMIT) {
       warning("Reading ", format(nrows, big.mark = ","), " rows into memory; ",
-              "pass vars/lon_range/lat_range/time_range/n to read a subset, ",
-              "or file_out to export instead.", call. = FALSE)
+              "pass vars/lon_range/lat_range/time_range/depth_range/n to read ",
+              "a subset, or file_out to export instead.", call. = FALSE)
     }
     return(.read_product_df(file, product))
   }
@@ -99,7 +107,8 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
 
   if (subset_requested) {
     # The subset is bounded by the user; read it and write in one pass.
-    .write_df(.read_subset_df(file, product, vars, lon_range, lat_range, time_range, n),
+    .write_df(.read_subset_df(file, product, vars, lon_range, lat_range,
+                              time_range, depth_range, n),
               file_out, format)
     return(invisible(file_out))
   }
@@ -137,9 +146,11 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
 # Streaming subset read -> long data.frame. Gridded products use the C++
 # hyperslab reader; events (sparse, small) are filtered after a whole read.
 .read_subset_df <- function(file, product, vars = NULL, lon_range = NULL,
-                            lat_range = NULL, time_range = NULL, n = NULL) {
+                            lat_range = NULL, time_range = NULL,
+                            depth_range = NULL, n = NULL) {
   if (product == "events") {
-    return(.read_event_subset_df(file, vars, lon_range, lat_range, time_range, n))
+    return(.read_event_subset_df(file, vars, lon_range, lat_range, time_range,
+                                 depth_range, n))
   }
   t_jd <- NULL
   if (!is.null(time_range)) {
@@ -154,7 +165,7 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
     }
   }
   sub <- hw3_read_subset(file, lon_range = lon_range, lat_range = lat_range,
-                         t_jd_range = t_jd, vars = vars,
+                         t_jd_range = t_jd, depth_range = depth_range, vars = vars,
                          max_rows = if (is.null(n)) -1L else as.integer(n))
   df <- .subset_to_df(sub)
   if (!is.null(n)) df <- utils::head(df, as.integer(n))
@@ -162,22 +173,35 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
 }
 
 # Build a long data.frame from the C++ hyperslab list (gridded products).
+# has_depth: an extra depth axis sits between lat and the third (doy/time)
+# axis in the flat [lon][lat][depth][third] hyperslab, matching the on-disk
+# layout (see read_subset_netcdf()); reduces to the plain [lon][lat][third]
+# decode below when has_depth is FALSE.
 .subset_to_df <- function(sub) {
   nlon <- sub$nlon; nlat <- sub$nlat; n3 <- sub$n3
+  has_depth <- isTRUE(sub$has_depth)
+  ndepth <- if (has_depth) sub$ndepth else 1L
   vnames <- names(sub$data)
   third_is_t <- identical(sub$third_name, "t")
 
-  if (nlon == 0L || nlat == 0L || n3 == 0L) {
+  if (nlon == 0L || nlat == 0L || (has_depth && ndepth == 0L) || n3 == 0L) {
     df <- data.frame(lon = numeric(0), lat = numeric(0))
+    if (has_depth) df$depth <- numeric(0)
     df[[if (third_is_t) "t" else "doy"]] <-
       if (third_is_t) as.Date(character(0)) else integer(0)
     for (v in vnames) df[[v]] <- numeric(0)
     return(.finalize_subset_cols(df, vnames))
   }
 
-  np <- nlon * nlat
-  lon_col <- rep(sub$lon, each = nlat * n3)
-  lat_col <- rep(rep(sub$lat, each = n3), times = nlon)
+  np <- nlon * nlat * ndepth
+  if (has_depth) {
+    lon_col <- rep(sub$lon, each = nlat * ndepth * n3)
+    lat_col <- rep(rep(sub$lat, each = ndepth * n3), times = nlon)
+    depth_col <- rep(rep(sub$depth, each = n3), times = nlon * nlat)
+  } else {
+    lon_col <- rep(sub$lon, each = nlat * n3)
+    lat_col <- rep(rep(sub$lat, each = n3), times = nlon)
+  }
   if (third_is_t) {
     third_col <- rep(as.Date("1970-01-01") + (sub$third - 2440588L), times = np)
     df <- data.frame(lon = lon_col, lat = lat_col, t = third_col, stringsAsFactors = FALSE)
@@ -186,6 +210,7 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
                      stringsAsFactors = FALSE)
   }
   for (v in vnames) df[[v]] <- sub$data[[v]]
+  if (has_depth) df$depth <- depth_col
   .finalize_subset_cols(df, vnames)
 }
 
@@ -199,9 +224,10 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
   df
 }
 
-# Events: filter a whole (small) read by coordinate/time and select columns.
+# Events: filter a whole (small) read by coordinate/time/depth and select columns.
 .read_event_subset_df <- function(file, vars = NULL, lon_range = NULL,
-                                  lat_range = NULL, time_range = NULL, n = NULL) {
+                                  lat_range = NULL, time_range = NULL,
+                                  depth_range = NULL, n = NULL) {
   df <- .read_event_df(file)
   keep <- rep(TRUE, nrow(df))
   if (!is.null(lon_range)) keep <- keep & df$lon >= min(lon_range) & df$lon <= max(lon_range)
@@ -210,6 +236,14 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
     d <- as.Date(time_range)
     if (anyNA(d)) stop("time_range must be dates.", call. = FALSE)
     keep <- keep & df$date_end >= min(d) & df$date_start <= max(d)
+  }
+  if (!is.null(depth_range)) {
+    if (is.null(df$depth)) {
+      warning("depth_range is ignored for events with no depth column ",
+              "(not from a depth-resolved run).", call. = FALSE)
+    } else {
+      keep <- keep & df$depth >= min(depth_range) & df$depth <= max(depth_range)
+    }
   }
   df <- df[keep, , drop = FALSE]
   if (!is.null(vars)) {
@@ -327,13 +361,18 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
 # file's variable set.
 .read_daily_df <- function(daily_file) {
   dd <- hw3_read_daily_nc(daily_file)
-  .daily_df_from_pixels(dd, seq_len(dd$nlon * dd$nlat))
+  ndepth <- max(1L, dd$ndepth)
+  .daily_df_from_pixels(dd, seq_len(dd$nlon * dd$nlat * ndepth))
 }
 
+# pixel = (ilon * nlat + ilat) * ndepth + idepth (0-based), matching the C++
+# pixel-major layout -- see .clim_df_from_pixels(). Reduces to the plain
+# ilon*nlat+ilat decode when ndepth == 1 (ordinary 3D daily/protoevents).
 .daily_df_from_pixels <- function(dd, pixels) {
-  nlat <- dd$nlat
+  ndepth <- max(1L, dd$ndepth)
+  npixels <- dd$nlon * dd$nlat * ndepth
   ntime <- dd$ntime
-  npixels <- dd$nlon * dd$nlat
+  has_depth <- ndepth > 1L && length(dd$depth) > 0L
   date <- as.Date("1970-01-01") + (dd$time_jd - 2440588L)
   has <- function(x) length(dd[[x]]) > 0L
 
@@ -343,9 +382,12 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
     if (px < 1L || px > npixels) {
       stop("Pixel index out of range.", call. = FALSE)
     }
-    ilon <- ((px - 1L) %/% nlat) + 1L
-    ilat <- ((px - 1L) %% nlat) + 1L
-    idx <- (px - 1L) * ntime + seq_len(ntime)
+    p0 <- px - 1L
+    idepth <- p0 %% ndepth
+    lonlat0 <- p0 %/% ndepth
+    ilon <- (lonlat0 %/% dd$nlat) + 1L
+    ilat <- (lonlat0 %% dd$nlat) + 1L
+    idx <- p0 * ntime + seq_len(ntime)
 
     df <- data.frame(
       lon = dd$lon[ilon],
@@ -370,6 +412,7 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
       ct[ct == 0L] <- NA_integer_
       df$category <- ct
     }
+    if (has_depth) df$depth <- dd$depth[idepth + 1L]
     rows[[i]] <- df
   }
 
@@ -387,7 +430,7 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
     }
   } else if (type == "daily") {
     dd <- hw3_read_daily_nc(nc_file)
-    npixels <- dd$nlon * dd$nlat
+    npixels <- dd$nlon * dd$nlat * max(1L, dd$ndepth)
     pixels_per_chunk <- max(1L, floor(chunk_size / max(1L, dd$ntime)))
     for (start in seq.int(1L, npixels, by = pixels_per_chunk)) {
       end <- min(npixels, start + pixels_per_chunk - 1L)

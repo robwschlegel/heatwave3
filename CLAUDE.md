@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What Is This Project?
 
-`heatwave3` is an R package that detects marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. All core algorithms (climatology, event detection, categorisation, block averages) are implemented in C++ with `std::thread` parallelism and direct libnetcdf I/O — no R NetCDF packages needed at runtime.
+`heatwave3` is an R package that detects marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. All core algorithms (climatology, event detection, categorisation, block averages) are implemented in C++ with `std::thread` parallelism and direct libnetcdf I/O — no R NetCDF packages needed at runtime.
 
 This is a ground-up C++ reimplementation of [heatwaveR](https://robwschlegel.github.io/heatwaveR/), designed for gridded data rather than per-pixel time series.
 
@@ -62,7 +62,7 @@ Function names are suffixed with `3` to avoid conflicts with heatwaveR:
 - **`category_daily3()`** — Per-pixel daily MHW/MCS series for a date window, built in C++ from SST + clim + events (windowed SST hyperslab, no re-detection; event membership read from the events file). Returns the full daily grid with the same columns as the `daily="also"` product (`lon, lat, t, temp, seas, thresh, intensity, event, event_no, category`); `category` is set on event-member exceedance days and `NA` elsewhere, with `ice_thresh` for the cold-spell ice category. The MHW Tracker's `load_sub_cat_clim()` event-day subset is `subset(x, !is.na(category))`.
 - **`block_average3()`** — Yearly event metric aggregation (pure C++)
 - **`exceedance3()`** — Static threshold exceedance
-- **`detect_blob3()`** — 3D spatially-connected blob detection
+- **`detect_blob3()`** — 4D spatially-connected blob detection
 - **`event_line3()`** — Per-pixel time series plot from NetCDF (C++ reader, no ncdf4)
 - **`geom_flame3()`** / **`geom_lolli3()`** — ggplot2 custom geoms
 - **`plot_metric3()`** — Spatial map of event metrics (C++-backed aggregation via `hw3_read_metric_summary`)

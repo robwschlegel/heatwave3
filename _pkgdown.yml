@@ -25,6 +25,10 @@ navbar:
       menu:
       - text: Getting started with heatwave3
         href: articles/heatwave3.html
+      - text: Depth-resolved (4D) marine heatwave analysis
+        href: articles/depth-range.html
+      - text: 4D blob connectivity through the water column
+        href: articles/blob-depth-connectivity.html
       - text: NetCDF output internals
         href: articles/netcdf-output.html
       - text: Parallel performance
@@ -38,12 +42,16 @@ navbar:
       menu:
       - text: heatwaveR
         href: https://robwschlegel.github.io/heatwaveR/index.html
+        target: "_blank"
       - text: Marine Heatwave Tracker
-        href: https://www.marineheatwaves.org
+        href: https://www.marineheatwaves.org/tracker.html
+        target: "_blank"
       - text: Hobday et al. 2016 definition
         href: https://doi.org/10.1016/j.pocean.2015.12.014
+        target: "_blank"
       - text: Hobday et al. 2018 categories
         href: https://doi.org/10.5670/oceanog.2018.205
+        target: "_blank"
     news:
       text: Changelog
       href: news/index.html
@@ -85,3 +93,7 @@ articles:
   - parallelism
   - benchmark
   - benchmark_xmhw
+- title: Depth-resolved (4D) analysis
+  contents:
+  - depth-range
+  - blob-depth-connectivity

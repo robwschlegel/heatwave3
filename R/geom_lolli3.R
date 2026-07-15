@@ -13,6 +13,14 @@
 #'
 #' @return A ggplot2 layer.
 #'
+#' @details
+#' Each lollipop is drawn independently from its own row -- unlike
+#' \code{\link{geom_flame3}}, nothing here depends on row order or grouping
+#' within a series. For depth-resolved data, map \code{depth} to \code{colour}
+#' (or \code{shape}) to distinguish levels, or use
+#' \code{ggplot2::facet_wrap(~ depth)}; both work with the standard ggplot2
+#' aesthetics and need no special handling from this geom.
+#'
 #' @export
 #'
 #' @examples

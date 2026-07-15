@@ -9,6 +9,12 @@
 #' @param clim_file Path to the climatology NetCDF from \code{\link{ts2clm3}}.
 #' @param lon Longitude of the pixel to plot.
 #' @param lat Latitude of the pixel to plot.
+#' @param depth Optional depth (metres) to plot, for a depth-resolved
+#'   \code{clim_file} (from \code{ts2clm3(depth_range = ...)}). Matched to the
+#'   nearest depth level actually present in \code{clim_file}; the matched
+#'   value is used to read \code{sst_file} at the same level and appears in
+#'   the plot title. Required when \code{clim_file} is depth-resolved;
+#'   must be \code{NULL} (the default) for an ordinary 3D \code{clim_file}.
 #' @param var_name SST variable name. If \code{NULL}, auto-detected.
 #' @param start_date,end_date Optional date range for the plot window
 #'   (character, for example \code{"2010-01-01"}). If both are \code{NULL}, the
@@ -41,6 +47,7 @@
 #'             start_date = "2010-01-01", end_date = "2012-12-31")
 #' }
 event_line3 <- function(sst_file, clim_file, lon, lat,
+                        depth = NULL,
                         var_name = NULL,
                         start_date = NULL, end_date = NULL,
                         spread = 150,
@@ -51,6 +58,32 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
   eps <- 0.01
   vn <- if (is.null(var_name)) "" else var_name
 
+  cd <- hw3_read_clim_nc(clim_file)
+  lon_idx <- which.min(abs(cd$lon - lon))
+  lat_idx <- which.min(abs(cd$lat - lat))
+  ndepth <- max(1L, cd$ndepth)
+
+  if (ndepth > 1L && is.null(depth)) {
+    stop("clim_file is depth-resolved (ndepth = ", ndepth, "); specify 'depth' ",
+         "(metres) to pick a level.", call. = FALSE)
+  }
+  if (ndepth <= 1L && !is.null(depth)) {
+    stop("clim_file has no depth dimension; omit 'depth'.", call. = FALSE)
+  }
+
+  # Resolve to the exact depth value stored in clim_file, so the SST read's
+  # depth_range = c(resolved, resolved) is guaranteed to match (avoids the
+  # user's rough target value, e.g. 50, missing the file's exact 47.37).
+  idepth <- 0L
+  resolved_depth <- NULL
+  depth_range <- NULL
+  if (!is.null(depth)) {
+    idepth <- which.min(abs(cd$depth - depth)) - 1L
+    resolved_depth <- cd$depth[idepth + 1L]
+    depth_range <- c(resolved_depth, resolved_depth)
+  }
+  px <- ((lon_idx - 1L) * cd$nlat + (lat_idx - 1L)) * ndepth + idepth
+
   # Handle directory or multi-file input
   if (length(sst_file) == 1 && dir.exists(sst_file)) {
     files <- sort(list.files(sst_file, pattern = "\\.(nc|nc4)$",
@@ -59,22 +92,19 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
       stop("No .nc/.nc4 files in ", sst_file, call. = FALSE)
     gd <- hw3_read_sst_multi(files, vn,
                               lon_range = c(lon - eps, lon + eps),
-                              lat_range = c(lat - eps, lat + eps))
+                              lat_range = c(lat - eps, lat + eps),
+                              depth_range = depth_range)
   } else {
     gd <- hw3_read_sst(sst_file, vn,
                        lon_range = c(lon - eps, lon + eps),
-                       lat_range = c(lat - eps, lat + eps))
+                       lat_range = c(lat - eps, lat + eps),
+                       depth_range = depth_range)
   }
   if (gd$nlon * gd$nlat == 0)
     stop("No data found at lon = ", lon, ", lat = ", lat, call. = FALSE)
 
   temp <- gd$sst[seq_len(gd$ntime)]
   dates <- as.Date("1970-01-01") + (gd$time_days - 2440588L)
-
-  cd <- hw3_read_clim_nc(clim_file)
-  lon_idx <- which.min(abs(cd$lon - lon))
-  lat_idx <- which.min(abs(cd$lat - lat))
-  px <- (lon_idx - 1L) * cd$nlat + (lat_idx - 1L)
 
   doy_vals <- vapply(gd$time_days, hw3_jd_to_doy, integer(1))
   seas <- cd$seas[px * 366 + doy_vals]
@@ -100,6 +130,9 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
     ev_metric <- ev[[metric]]
 
     px_mask <- abs(ev$lon - lon) < eps & abs(ev$lat - lat) < eps
+    if (!is.null(resolved_depth) && !is.null(ev$depth)) {
+      px_mask <- px_mask & abs(ev$depth - resolved_depth) < 1e-3
+    }
     if (any(px_mask)) {
       best <- which(px_mask)[which.max(ev_metric[px_mask])]
       center <- peak_dates[best]
@@ -123,7 +156,11 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
                        colour = "darkgreen", linewidth = 0.3) +
     ggplot2::labs(
       x = NULL, y = expression("Temperature (" * degree * "C)"),
-      title = sprintf("lon = %.3f, lat = %.3f", lon, lat)
+      title = if (is.null(resolved_depth)) {
+        sprintf("lon = %.3f, lat = %.3f", lon, lat)
+      } else {
+        sprintf("lon = %.3f, lat = %.3f, depth = %.1f m", lon, lat, resolved_depth)
+      }
     ) +
     ggplot2::theme_minimal()
 }

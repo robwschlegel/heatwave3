@@ -1,8 +1,8 @@
 # Detect spatially connected marine heatwave blobs
 
 Identifies spatially contiguous marine heatwave (or cold-spell) events
-("blobs") by performing 3D connected-component labelling on the
-exceedance mask across longitude, latitude, and time.
+("blobs") by performing connected-component labelling on the exceedance
+mask across longitude, latitude, (optionally) depth, and time.
 
 ## Usage
 
@@ -11,7 +11,6 @@ detect_blob3(
   sst_file,
   clim_file,
   var_name = NULL,
-  connectivity = 6L,
   wrapDateline = FALSE,
   minVoxels = 1L,
   topN = NULL,
@@ -33,28 +32,24 @@ detect_blob3(
 
   Path to the climatology NetCDF produced by
   [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
-  The spatial grid of the climatology determines the region analysed.
+  The spatial (and, if depth-resolved, vertical) grid of the climatology
+  determines the region analysed.
 
 - var_name:
 
   Name of the SST variable in `sst_file`. If `NULL`, auto-detected from
   CF attributes.
 
-- connectivity:
-
-  Integer. Voxel connectivity for labelling. Default `6` (face-adjacent
-  in 3D: left/right, up/down, forward/backward in time).
-
 - wrapDateline:
 
   Logical. Wrap the longitude axis so that blobs can connect across the
-  antimeridian? Default `FALSE`.
+  antimeridian? Default `FALSE`. Depth is never wrapped (not periodic).
 
 - minVoxels:
 
-  Minimum number of space-time voxels for a blob to be retained. Default
-  `1`. Set higher (for example `200`) to filter out small, short-lived
-  events.
+  Minimum number of voxels (space-time, or space-depth-time for
+  depth-resolved input) for a blob to be retained. Default `1`. Set
+  higher (for example `200`) to filter out small, short-lived events.
 
 - topN:
 
@@ -65,7 +60,9 @@ detect_blob3(
 
   Character. Metric to rank blobs by. Default `"cumI_km2_day"`
   (cumulative intensity-weighted area). Other options include
-  `"peakArea_km2"`, `"duration"`, `"meanArea_km2"`.
+  `"peakArea_km2"`, `"duration"`, `"meanArea_km2"`, and, for
+  depth-resolved input only, `"totalVolume_km3"`, `"peakVolume_km3"`,
+  `"meanVolume_km3"`.
 
 - coldSpells:
 
@@ -92,9 +89,9 @@ detect_blob3(
 
   `"voxel"`
 
-  :   One row per (blob, lon, lat, date), the full 3D footprint.
-      Required for spatial footprint maps and persistence analysis. Can
-      be large.
+  :   One row per (blob, lon, lat, date) (plus depth, if
+      depth-resolved), the full footprint. Required for spatial
+      footprint maps and persistence analysis. Can be large.
 
   Default `c("event", "daily")`.
 
@@ -112,10 +109,11 @@ and/or `voxel` data.frames).
 
 This function does **not** read a pre-computed event file. Instead, it
 takes the raw SST data and the climatology, and internally constructs a
-3D boolean exceedance mask by comparing each pixel's daily SST against
-its threshold climatology (`temp > thresh` for heatwaves, or
-`temp < thresh` for cold-spells). Connected voxels in this 3D mask are
-then labelled as coherent spatial events using a union-find algorithm.
+boolean exceedance mask by comparing each pixel's daily SST against its
+threshold climatology (`temp > thresh` for heatwaves, or `temp < thresh`
+for cold-spells). Connected voxels in this mask are then labelled as
+coherent spatial (or spatio-vertical) events using a union-find
+algorithm.
 
 This is the same approach used by `heatwaveR::detect_blob3()`. The
 reason an event file from
@@ -123,6 +121,26 @@ reason an event file from
 cannot be used directly is that the event file stores per-pixel event
 *summaries* (start/end dates, intensity metrics), not the daily
 per-pixel boolean mask needed for spatial connectivity analysis.
+
+## Depth connectivity
+
+When `clim_file` is depth-resolved (from `ts2clm3(depth_range = ...)`),
+`detect_blob3()` detects this automatically – no separate argument is
+needed, the same pattern used by
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+and
+[`category_daily3`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md).
+Voxels are then connected across 4 axes (lon, lat, depth, time) instead
+of 3, using face-adjacency by depth *index*: a voxel connects to the
+level immediately above/below it, whatever that level's actual depth in
+metres happens to be, with no minimum/maximum depth gap or distance
+threshold. `event`/`daily` gain `depth_min_m`, `depth_max_m`,
+`depthOfPeakIntensity_m`, and volumetric analogues of the area metrics
+(`totalVolume_km3`/`peakVolume_km3`/`meanVolume_km3` at the event level,
+`volume_km3` at the daily level, both computed as area x vertical layer
+thickness); `voxel` gains a `depth` column. For an ordinary 3D
+`clim_file`, none of this changes: connectivity stays 3-axis (lon, lat,
+time) and no depth columns are added.
 
 ## See also
 
@@ -169,5 +187,19 @@ mcs <- detect_blob3(
   minVoxels  = 200,
   topN       = 6
 )
+
+# Step 2c: depth-resolved blobs, connected through the water column too
+clim_4d <- tempfile(fileext = ".nc")
+ts2clm3(sst_file, clim_4d,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        depth_range = c(0, 100), n_threads = 4)
+
+blobs_4d <- detect_blob3(
+  sst_file  = sst_file,
+  clim_file = clim_4d,
+  minVoxels = 200,
+  topN      = 10
+)
+head(blobs_4d$event)  # gains depth_min_m/depth_max_m/totalVolume_km3/...
 } # }
 ```

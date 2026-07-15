@@ -1,10 +1,13 @@
-// 3D connected-component labelling for heatwave-event masks.
-// Two-pass scan with union-find. 6-connectivity (face-adjacent).
-// Optional dateline wrap on the x-axis.
+// 3D/4D connected-component labelling for heatwave-event masks.
+// Two-pass scan with union-find. Face-adjacent connectivity: 6 (lon/lat/time)
+// when nz == 1, or 8 (lon/lat/depth/time) when nz > 1. Optional dateline wrap
+// on the x-axis only (depth is never periodic).
 //
-// Mask layout matches R's column-major 3D array:
-//   m[i, j, k] -> mask[i + nx*j + nx*ny*k]
-// with i in [0, nx), j in [0, ny), k in [0, nt).
+// Mask layout matches R's column-major 4D array:
+//   m[i, j, kd, kt] -> mask[i + nx*j + nx*ny*kd + nx*ny*nz*kt]
+// with i in [0, nx), j in [0, ny), kd in [0, nz), kt in [0, nt).
+// Reduces exactly to the plain 3D layout (m[i,j,kt] -> i + nx*j + nx*ny*kt)
+// when nz == 1.
 //
 // Returned labels are dense, 1..K. Background voxels carry 0.
 
@@ -39,12 +42,12 @@ static inline void uf_union(std::vector<int>& parent,
 }
 
 // [[Rcpp::export]]
-IntegerVector label_components_3d_cpp(IntegerVector mask,
-                                      int nx, int ny, int nt,
-                                      bool wrap_dateline = false) {
-  const R_xlen_t n = static_cast<R_xlen_t>(nx) * ny * nt;
+IntegerVector label_components_cpp(IntegerVector mask,
+                                   int nx, int ny, int nz, int nt,
+                                   bool wrap_dateline = false) {
+  const R_xlen_t n = static_cast<R_xlen_t>(nx) * ny * nz * nt;
   if (mask.size() != n) {
-    stop("mask length does not match nx * ny * nt");
+    stop("mask length does not match nx * ny * nz * nt");
   }
 
   IntegerVector labels(n);  // initialised to 0
@@ -60,41 +63,46 @@ IntegerVector label_components_3d_cpp(IntegerVector mask,
 
   int next_label = 1;
 
-  // Pass 1: raster scan in (i, j, k) order, with column-major indexing.
+  // Pass 1: raster scan in (i, j, kd, kt) order, column-major indexing.
   const R_xlen_t stride_y = nx;
-  const R_xlen_t stride_t = static_cast<R_xlen_t>(nx) * ny;
+  const R_xlen_t stride_z = static_cast<R_xlen_t>(nx) * ny;
+  const R_xlen_t stride_t = static_cast<R_xlen_t>(nx) * ny * nz;
 
-  for (int k = 0; k < nt; ++k) {
-    const R_xlen_t base_t = static_cast<R_xlen_t>(k) * stride_t;
-    for (int j = 0; j < ny; ++j) {
-      const R_xlen_t base_yt = base_t + static_cast<R_xlen_t>(j) * stride_y;
-      for (int i = 0; i < nx; ++i) {
-        const R_xlen_t v = base_yt + i;
-        if (mask[v] == 0) continue;
+  for (int kt = 0; kt < nt; ++kt) {
+    const R_xlen_t base_t = static_cast<R_xlen_t>(kt) * stride_t;
+    for (int kd = 0; kd < nz; ++kd) {
+      const R_xlen_t base_zt = base_t + static_cast<R_xlen_t>(kd) * stride_z;
+      for (int j = 0; j < ny; ++j) {
+        const R_xlen_t base_yzt = base_zt + static_cast<R_xlen_t>(j) * stride_y;
+        for (int i = 0; i < nx; ++i) {
+          const R_xlen_t v = base_yzt + i;
+          if (mask[v] == 0) continue;
 
-        int lx = (i > 0) ? labels[v - 1] : 0;
-        int ly = (j > 0) ? labels[v - stride_y] : 0;
-        int lt = (k > 0) ? labels[v - stride_t] : 0;
+          int lx = (i > 0) ? labels[v - 1] : 0;
+          int ly = (j > 0) ? labels[v - stride_y] : 0;
+          int lz = (kd > 0) ? labels[v - stride_z] : 0;
+          int lt = (kt > 0) ? labels[v - stride_t] : 0;
 
-        int neigh[3] = {lx, ly, lt};
-        int chosen = 0;
-        for (int s = 0; s < 3; ++s) {
-          if (neigh[s] > 0) {
-            if (chosen == 0 || neigh[s] < chosen) chosen = neigh[s];
+          int neigh[4] = {lx, ly, lz, lt};
+          int chosen = 0;
+          for (int s = 0; s < 4; ++s) {
+            if (neigh[s] > 0) {
+              if (chosen == 0 || neigh[s] < chosen) chosen = neigh[s];
+            }
           }
-        }
 
-        if (chosen == 0) {
-          // start a new component
-          parent.push_back(next_label);
-          rank_.push_back(0);
-          labels[v] = next_label;
-          ++next_label;
-        } else {
-          labels[v] = chosen;
-          for (int s = 0; s < 3; ++s) {
-            if (neigh[s] > 0 && neigh[s] != chosen) {
-              uf_union(parent, rank_, chosen, neigh[s]);
+          if (chosen == 0) {
+            // start a new component
+            parent.push_back(next_label);
+            rank_.push_back(0);
+            labels[v] = next_label;
+            ++next_label;
+          } else {
+            labels[v] = chosen;
+            for (int s = 0; s < 4; ++s) {
+              if (neigh[s] > 0 && neigh[s] != chosen) {
+                uf_union(parent, rank_, chosen, neigh[s]);
+              }
             }
           }
         }
@@ -104,14 +112,17 @@ IntegerVector label_components_3d_cpp(IntegerVector mask,
 
   // Dateline wrap: union edges across the x boundary, then re-resolve.
   if (wrap_dateline && nx >= 2) {
-    for (int k = 0; k < nt; ++k) {
-      const R_xlen_t base_t = static_cast<R_xlen_t>(k) * stride_t;
-      for (int j = 0; j < ny; ++j) {
-        const R_xlen_t base_yt = base_t + static_cast<R_xlen_t>(j) * stride_y;
-        const R_xlen_t v0 = base_yt;
-        const R_xlen_t v1 = base_yt + (nx - 1);
-        if (labels[v0] > 0 && labels[v1] > 0) {
-          uf_union(parent, rank_, labels[v0], labels[v1]);
+    for (int kt = 0; kt < nt; ++kt) {
+      const R_xlen_t base_t = static_cast<R_xlen_t>(kt) * stride_t;
+      for (int kd = 0; kd < nz; ++kd) {
+        const R_xlen_t base_zt = base_t + static_cast<R_xlen_t>(kd) * stride_z;
+        for (int j = 0; j < ny; ++j) {
+          const R_xlen_t base_yzt = base_zt + static_cast<R_xlen_t>(j) * stride_y;
+          const R_xlen_t v0 = base_yzt;
+          const R_xlen_t v1 = base_yzt + (nx - 1);
+          if (labels[v0] > 0 && labels[v1] > 0) {
+            uf_union(parent, rank_, labels[v0], labels[v1]);
+          }
         }
       }
     }
@@ -133,7 +144,7 @@ IntegerVector label_components_3d_cpp(IntegerVector mask,
     labels[v] = dense;
   }
 
-  labels.attr("dim") = IntegerVector::create(nx, ny, nt);
+  labels.attr("dim") = IntegerVector::create(nx, ny, nz, nt);
   labels.attr("n_components") = next_dense - 1;
   return labels;
 }

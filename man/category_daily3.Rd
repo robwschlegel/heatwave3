@@ -58,7 +58,10 @@ is the day inside a detected event?), \code{event_no} (integer, \code{NA}
 off-event), and \code{category} (integer on event-member exceedance days;
 1 = I Moderate ... 4 = IV Extreme, 5 = ice for cold-spells; \code{NA}
 otherwise). Columns match the \code{detect_event3} \code{daily = "also"}
-product.
+product. A \code{depth} column (metres) is added automatically when
+\code{clim_file}/\code{event_file} are depth-resolved (from
+\code{ts2clm3(depth_range = ...)}) -- one row per pixel per depth level
+per day, no separate argument needed here.
 }
 \description{
 Builds the per-pixel, per-day series for a window of dates directly from an

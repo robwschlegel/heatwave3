@@ -1,0 +1,253 @@
+---
+title: "Depth-resolved (4D) marine heatwave analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Depth-resolved (4D) marine heatwave analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+has_test_data <- file.exists(
+  system.file("extdata/glorys_depth_test.nc", package = "heatwave3")
+)
+```
+
+## Overview
+
+Ocean reanalyses and models such as GLORYS12 provide temperature on a 4D grid
+(`lon`, `lat`, `depth`, `time`), not just at the sea surface. **heatwave3** can
+compute climatologies and detect events natively across a **contiguous band
+of depth levels**, producing one 4D climatology/event NetCDF instead of
+per-level 3D files.
+
+Every chunk in this vignette runs against the tiny 2x2 pixel, 5 depth-level
+GLORYS12 fixture bundled with the package
+(`system.file("extdata/glorys_depth_test.nc", package = "heatwave3")`) --
+the same one used by the test suite -- so that the vignette actually compiles
+when the documentation is built, rather than describing code no one has run.
+Everything shown works identically on a full-resolution file with many more
+pixels and depth levels; just substitute your own `sst_file`. The trade-off
+of the small fixture is scale, not behaviour: with only 4 horizontal pixels
+and 5 depth levels (0.49-5.08 m, all within the mixed layer), don't expect
+dramatic spatial or vertical structure in the figures below -- for that, see
+`vignette("blob-depth-connectivity")`, which is built around exactly that
+kind of vertical structure using the same fixture.
+
+```{r setup-file, eval = has_test_data}
+library(heatwave3)
+
+sst_file <- system.file("extdata/glorys_depth_test.nc", package = "heatwave3")
+clim_period <- c("1993-01-01", "2019-12-31")
+```
+
+## Two ways to work across depth
+
+### Option A: per-level looping (works today, zero new code)
+
+Before `depth_range` existed, the only way to get per-depth results was to
+run the ordinary 3D pipeline once per level, squeezing to a single depth
+index each time with the existing `depth` argument. This is still a
+legitimate, simple approach: it can be run in parallel across depth and
+reuses the same validated 3D code path as every other heatwave3 analysis.
+
+```{r per-level-loop, eval = has_test_data}
+n_depth <- 5L  # number of depth levels in this fixture
+
+depth_indices <- seq_len(n_depth) - 1L  # depth= is a 0-based index: 0, 1, 2, 3, 4
+purrr::walk(depth_indices, \(k) {
+  detect3(sst_file, name = file.path(tempdir(), paste0("mhw_z", k)),
+          climatologyPeriod = clim_period,
+          depth = k, category = TRUE, quiet = TRUE)
+})
+```
+
+The trade-off: this produces `n_depth` separate pairs of `_clim.nc`/
+`_events.nc` files, each with `n_depth`-fold repeated I/O over the same
+lon/lat/time grid, and there is no vertical linkage between levels (each is
+detected completely independently, as if it were its own 3D dataset). For
+users who just want "climatology and events at 20 m, 50 m, 100 m..." this may
+already be enough -- stack the files yourself downstream with `xarray` (python),
+`terra` (R), or CDO (bash).
+
+### Option B: native `depth_range` (recommended)
+
+`depth_range = c(min_depth, max_depth)` (metres, inclusive) tells `ts2clm3()`
+and `detect3()` to read every depth level whose coordinate falls in that
+range and compute an independent climatology/event table for every
+`(lon, lat, depth)` triple, in **one** call producing **one** 4D file. This
+avoids the repeated I/O and per-level file bookkeeping of Option A above. The
+fixture's 5 levels all fall within 0-10 m:
+
+```{r ts2clm-depth-range, eval = has_test_data}
+stem <- file.path(tempdir(), "mhw4d")
+clim_file <- ts2clm3(file_in = sst_file,
+                     name = stem,
+                     climatologyPeriod = clim_period,
+                     depth_range = c(0, 10),
+                     n_threads = 2)
+```
+
+`detect_event3()` needs no separate depth argument at all: it reads the depth
+range straight back out of the climatology file it is already loading, so
+climatology and event detection can never end up out of sync about which
+levels they are comparing.
+
+```{r detect-event-depth-range, eval = has_test_data}
+event_file <- detect_event3(file_in = sst_file,
+                            name = stem,
+                            category = TRUE,
+                            n_threads = 2)
+```
+
+Or as a single call via `detect3()`:
+
+```{r detect3-depth-range, eval = has_test_data}
+detect3(file_in = sst_file,
+        name = stem,
+        climatologyPeriod = clim_period,
+        depth_range = c(0, 10),
+        category = TRUE,
+        n_threads = 2)
+```
+
+## Reading the depth-resolved output
+
+`hw3_export()` surfaces a `depth` column automatically whenever the source
+file is depth-resolved:
+
+```{r export-depth, eval = has_test_data}
+clim_df  <- hw3_export(paste0(stem, "_clim.nc"))
+event_df <- hw3_export(paste0(stem, "_events.nc"))
+
+head(clim_df)
+table(round(event_df$depth, 2))
+```
+
+Because every `(lon, lat, depth)` triple gets its own climatology, the
+seasonal cycle and threshold both flatten out with depth -- the surface has
+the largest seasonal amplitude and the highest threshold, decaying as you
+move down through the mixed layer. This is already visible directly from the
+exported climatology data frame, with no new plotting functions required
+(the effect is subtle here since all 5 levels sit within the top 5 m; it's
+more pronounced across a deeper range on a real file):
+
+```{r plot-clim-by-depth, eval = has_test_data}
+library(ggplot2)
+
+one_pixel <- subset(clim_df, lon == clim_df$lon[1] & lat == clim_df$lat[1])
+
+ggplot(one_pixel, aes(doy, seas, colour = factor(round(depth, 1)))) +
+  geom_line(linewidth = 0.7) +
+  scale_colour_viridis_d(name = "depth (m)") +
+  labs(title = "Seasonal climatology by depth", x = "Day of year", y = "degC") +
+  theme_minimal(base_size = 11)
+```
+
+A depth-time Hovmoeller-style view of event intensity is also already
+possible by building the plot directly from `event_df`, without any new
+graphics functions:
+
+```{r plot-hovmoller, eval = has_test_data}
+one_pixel_events <- subset(event_df, lon == event_df$lon[1] & lat == event_df$lat[1])
+
+ggplot(one_pixel_events, aes(x = date_peak, y = depth, fill = intensity_max)) +
+  geom_tile(height = 1) +
+  scale_fill_viridis_c(name = expression(I[max] ~ "(degC)"), option = "inferno") +
+  scale_y_reverse(name = "depth (m)") +
+  labs(title = "Event intensity by depth and peak date", x = NULL) +
+  theme_minimal(base_size = 11)
+```
+
+## Depth-resolved event-line plots with `geom_flame3()` / `geom_lolli3()`
+
+The per-day product also carries a depth dimension now, so `daily = "also"`
+works together with `depth_range` -- no separate depth argument needed here
+either, for the same reason `detect_event3()` doesn't need one:
+
+```{r detect3-daily-depth, eval = has_test_data}
+detect3(file_in = sst_file,
+        name = stem,
+        climatologyPeriod = clim_period,
+        depth_range = c(0, 10),
+        category = TRUE,
+        daily = "also",
+        n_threads = 2)
+```
+
+`hw3_export()` surfaces the same `depth` column on this per-day product, and
+its streaming subset (`lon_range`/`lat_range`/`time_range`/`depth_range`/`n`)
+is depth-aware too, so a single pixel's full depth profile over a short date
+window reads cheaply without loading the whole file:
+
+```{r export-daily-depth, eval = has_test_data}
+daily_df <- hw3_export(paste0(stem, "_events_daily.nc"),
+                       lon_range = c(25.16, 25.17), lat_range = c(-34.92, -34.91),
+                       time_range = c("1999-01-01", "2000-12-31"))
+head(daily_df)
+```
+
+`geom_flame3()` automatically folds a mapped `depth` aesthetic into its row
+grouping -- each depth level gets its own exceedance runs instead of being
+treated as one continuous series with depths interleaved -- so one call plots
+every level:
+
+```{r geom-flame-depth, eval = has_test_data, fig.height = 9}
+ggplot(daily_df, aes(x = t, y = temp, y2 = thresh, depth = depth)) +
+  geom_flame3() +
+  geom_line(linewidth = 0.3) +
+  facet_wrap(~ depth, ncol = 1, labeller = label_both) +
+  labs(title = "Depth-resolved event-line plot", x = NULL,
+       y = expression("Temperature (" * degree * "C)")) +
+  theme_minimal(base_size = 11)
+```
+
+`event_line3()` also gained a `depth` argument, for the classic single-pixel
+flame plot at one chosen level (matched to the nearest depth actually present
+in the climatology, here 2.6 m):
+
+```{r event-line-depth, eval = has_test_data}
+event_line3(sst_file, paste0(stem, "_clim.nc"),
+            lon = 25.16667, lat = -34.91667, depth = 3,
+            event_file = paste0(stem, "_events.nc"))
+```
+
+`geom_lolli3()` needs no special handling for depth: each lollipop is drawn
+from its own row independently of any grouping, so map `depth` to colour (or
+facet) like any other column:
+
+```{r geom-lolli-depth, eval = has_test_data}
+event_df_1px <- hw3_export(paste0(stem, "_events.nc"),
+                           lon_range = c(25.16, 25.17), lat_range = c(-34.92, -34.91))
+
+ggplot(event_df_1px, aes(x = date_peak, y = intensity_max, colour = factor(round(depth, 1)))) +
+  geom_lolli3() +
+  scale_colour_viridis_d(name = "depth (m)") +
+  labs(title = expression(I[max] ~ "by depth and peak date (single pixel)"),
+       x = NULL, y = expression(I[max] ~ "(degC)")) +
+  theme_minimal(base_size = 11)
+```
+
+## Current scope and limitations
+
+- **Multi-file input** (a directory or vector of daily files) works with
+  `depth_range` and stitches files together by their time coordinate while
+  respecting lon/lat/depth, the same way it does for ordinary 3D data.
+- **`detect_blob3()`** now connects blobs through depth too (adjacent depth
+  *index*, not a metres threshold) when given a depth-resolved `clim_file` --
+  see `vignette("blob-depth-connectivity")`.
+- **`category3()`, `block_average3()`, `plot_metric3()`** are unchanged and
+  only understand ordinary 3D/single-level data -- depth-aware yearly
+  aggregation and spatial maps remain future work.
+- The legacy single-level `depth = k` squeeze (Option A above) and the native
+  `depth_range` path (Option B) now always agree on which SST level is being
+  compared against the climatology -- `detect_event3()` matches its SST read
+  to whichever depth `ts2clm3()` was run at, however it was specified. This
+  also holds for `category_daily3()`, which surfaces a `depth` column
+  automatically for depth-resolved inputs, with no argument of its own.

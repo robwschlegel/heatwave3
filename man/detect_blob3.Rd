@@ -8,7 +8,6 @@ detect_blob3(
   sst_file,
   clim_file,
   var_name = NULL,
-  connectivity = 6L,
   wrapDateline = FALSE,
   minVoxels = 1L,
   topN = NULL,
@@ -23,29 +22,29 @@ detect_blob3(
 \code{\link{ts2clm3}}).}
 
 \item{clim_file}{Path to the climatology NetCDF produced by
-\code{\link{ts2clm3}}. The spatial grid of the climatology determines
-the region analysed.}
+\code{\link{ts2clm3}}. The spatial (and, if depth-resolved, vertical)
+grid of the climatology determines the region analysed.}
 
 \item{var_name}{Name of the SST variable in \code{sst_file}. If \code{NULL},
 auto-detected from CF attributes.}
 
-\item{connectivity}{Integer. Voxel connectivity for labelling. Default
-\code{6} (face-adjacent in 3D: left/right, up/down, forward/backward in
-time).}
-
 \item{wrapDateline}{Logical. Wrap the longitude axis so that blobs can
-connect across the antimeridian? Default \code{FALSE}.}
+connect across the antimeridian? Default \code{FALSE}. Depth is never
+wrapped (not periodic).}
 
-\item{minVoxels}{Minimum number of space-time voxels for a blob to be
-retained. Default \code{1}. Set higher (for example \code{200}) to filter out
-small, short-lived events.}
+\item{minVoxels}{Minimum number of voxels (space-time, or space-depth-time
+for depth-resolved input) for a blob to be retained. Default \code{1}.
+Set higher (for example \code{200}) to filter out small, short-lived
+events.}
 
 \item{topN}{Return only the top N blobs ranked by \code{rankBy}. Default
 \code{NULL} (return all).}
 
 \item{rankBy}{Character. Metric to rank blobs by. Default
 \code{"cumI_km2_day"} (cumulative intensity-weighted area). Other options
-include \code{"peakArea_km2"}, \code{"duration"}, \code{"meanArea_km2"}.}
+include \code{"peakArea_km2"}, \code{"duration"}, \code{"meanArea_km2"},
+and, for depth-resolved input only, \code{"totalVolume_km3"},
+\code{"peakVolume_km3"}, \code{"meanVolume_km3"}.}
 
 \item{coldSpells}{Logical. If \code{TRUE}, detect cold-spell blobs
 (\code{temp < thresh}). Requires a climatology computed with a low
@@ -59,9 +58,9 @@ output. One or more of:
 peak area, cumulative intensity, centroid, etc.)}
 \item{\code{"daily"}}{One row per (blob, date) with daily area, mean/max
 anomaly, centroid, and bounding box}
-\item{\code{"voxel"}}{One row per (blob, lon, lat, date), the full 3D
-footprint. Required for spatial footprint maps and persistence
-analysis. Can be large.}
+\item{\code{"voxel"}}{One row per (blob, lon, lat, date) (plus depth,
+if depth-resolved), the full footprint. Required for spatial
+footprint maps and persistence analysis. Can be large.}
 }
 Default \code{c("event", "daily")}.}
 
@@ -75,23 +74,43 @@ A named list containing the requested components (\code{event},
 }
 \description{
 Identifies spatially contiguous marine heatwave (or cold-spell) events
-("blobs") by performing 3D connected-component labelling on the exceedance
-mask across longitude, latitude, and time.
+("blobs") by performing connected-component labelling on the exceedance
+mask across longitude, latitude, (optionally) depth, and time.
 }
 \section{How it works}{
 
 This function does \strong{not} read a pre-computed event file. Instead, it
-takes the raw SST data and the climatology, and internally constructs a 3D
+takes the raw SST data and the climatology, and internally constructs a
 boolean exceedance mask by comparing each pixel's daily SST against its
 threshold climatology (\code{temp > thresh} for heatwaves, or
-\code{temp < thresh} for cold-spells). Connected voxels in this 3D mask are
-then labelled as coherent spatial events using a union-find algorithm.
+\code{temp < thresh} for cold-spells). Connected voxels in this mask are
+then labelled as coherent spatial (or spatio-vertical) events using a
+union-find algorithm.
 
 This is the same approach used by \code{heatwaveR::detect_blob3()}. The
 reason an event file from \code{\link{detect_event3}} cannot be used
 directly is that the event file stores per-pixel event \emph{summaries}
 (start/end dates, intensity metrics), not the daily per-pixel boolean mask
 needed for spatial connectivity analysis.
+}
+
+\section{Depth connectivity}{
+
+When \code{clim_file} is depth-resolved (from
+\code{ts2clm3(depth_range = ...)}), \code{detect_blob3()} detects this
+automatically -- no separate argument is needed, the same pattern used by
+\code{\link{detect_event3}} and \code{\link{category_daily3}}. Voxels are
+then connected across 4 axes (lon, lat, depth, time) instead of 3, using
+face-adjacency by depth \emph{index}: a voxel connects to the level
+immediately above/below it, whatever that level's actual depth in metres
+happens to be, with no minimum/maximum depth gap or distance threshold.
+\code{event}/\code{daily} gain \code{depth_min_m}, \code{depth_max_m},
+\code{depthOfPeakIntensity_m}, and volumetric analogues of the area
+metrics (\code{totalVolume_km3}/\code{peakVolume_km3}/\code{meanVolume_km3}
+at the event level, \code{volume_km3} at the daily level, both computed as
+area x vertical layer thickness); \code{voxel} gains a \code{depth} column.
+For an ordinary 3D \code{clim_file}, none of this changes: connectivity
+stays 3-axis (lon, lat, time) and no depth columns are added.
 }
 
 \examples{
@@ -130,6 +149,20 @@ mcs <- detect_blob3(
   minVoxels  = 200,
   topN       = 6
 )
+
+# Step 2c: depth-resolved blobs, connected through the water column too
+clim_4d <- tempfile(fileext = ".nc")
+ts2clm3(sst_file, clim_4d,
+        climatologyPeriod = c("1982-01-01", "2011-12-31"),
+        depth_range = c(0, 100), n_threads = 4)
+
+blobs_4d <- detect_blob3(
+  sst_file  = sst_file,
+  clim_file = clim_4d,
+  minVoxels = 200,
+  topN      = 10
+)
+head(blobs_4d$event)  # gains depth_min_m/depth_max_m/totalVolume_km3/...
 }
 
 }

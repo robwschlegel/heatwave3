@@ -18,6 +18,7 @@ detect3(
   lat_range = NULL,
   time_range = NULL,
   depth = NULL,
+  depth_range = NULL,
   maxPadLength = FALSE,
   windowHalfWidth = 5L,
   pctile = 90,
@@ -81,6 +82,16 @@ detect3(
 - depth:
 
   Optional depth/level index for 4D data.
+
+- depth_range:
+
+  Optional numeric vector of length 2: `c(min_depth, max_depth)`. Runs
+  the climatology and event detection natively across this contiguous
+  band of depth levels instead of a single squeezed level – see
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)'s
+  `depth_range` for details. Mutually exclusive with `depth`. Compatible
+  with `daily`/`protoEvent`: the per-day product gains a `depth`
+  dimension the same way the climatology and event files do.
 
 - maxPadLength:
 
@@ -202,15 +213,21 @@ sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 
 detect3(sst_file, name = file.path(tempdir(), "demo"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
-#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
-#> Writing climatology to /tmp/RtmpbqjzHu/demo_clim.nc...
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
+#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/RtmpbqjzHu/demo_clim.nc
+#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -234,20 +251,26 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/tmp/RtmpbqjzHu/demo_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpbqjzHu/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /tmp/RtmpbqjzHu/demo_clim.nc...
-#> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_clim.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /tmp/RtmpbqjzHu/demo_events.nc...
+#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/RtmpbqjzHu/demo_events.nc
+#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -320,8 +343,8 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/tmp/RtmpbqjzHu/demo_events.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpbqjzHu/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 # }
 ```

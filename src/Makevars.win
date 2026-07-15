@@ -1,11 +1,15 @@
-VERSION = 4.4.1.1-dap
+VERSION = 4.9.0
 
 CXX_STD = CXX17
 
+# Modern Rtools (R >= 4.2) targets UCRT exclusively, so link against the
+# rwinlib/netcdf ucrt-x86_64 build specifically -- the plain lib/x64 build
+# is compiled against the legacy MSVCRT runtime (__iob_func / _sys_nerr),
+# which is absent from UCRT and fails to link.
 PKG_CPPFLAGS = -I../windows/netcdf-$(VERSION)/include
-PKG_LIBS = -L../windows/netcdf-$(VERSION)/lib$(R_ARCH) \
-	-lnetcdf -lcurl -lhdf5_hl -lhdf5 -lszip -lz \
-	-lws2_32 -lcrypt32 -lwldap32
+PKG_LIBS = -L../windows/netcdf-$(VERSION)/lib/x64-ucrt \
+	-lnetcdf -lhdf5_hl -lhdf5 -lcurl -lssh2 -lssl -lcrypto -lxml2 -lexpat -lintl -lz \
+	-lws2_32 -lcrypt32 -lwldap32 -ladvapi32 -luser32 -lnormaliz -liconv
 
 all: clean winlibs
 

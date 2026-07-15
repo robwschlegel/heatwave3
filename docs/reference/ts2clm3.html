@@ -11,7 +11,7 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,6 +24,8 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/heatwave3.html">Getting started with heatwave3</a></li>
+    <li><a class="dropdown-item" href="../articles/depth-range.html">Depth-resolved (4D) marine heatwave analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/blob-depth-connectivity.html">4D blob connectivity through the water column</a></li>
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
@@ -31,10 +33,10 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-resources"><li><a class="external-link dropdown-item" href="https://robwschlegel.github.io/heatwaveR/index.html">heatwaveR</a></li>
-    <li><a class="external-link dropdown-item" href="https://www.marineheatwaves.org">Marine Heatwave Tracker</a></li>
-    <li><a class="external-link dropdown-item" href="https://doi.org/10.1016/j.pocean.2015.12.014">Hobday et al. 2016 definition</a></li>
-    <li><a class="external-link dropdown-item" href="https://doi.org/10.5670/oceanog.2018.205">Hobday et al. 2018 categories</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-resources"><li><a class="external-link dropdown-item" href="https://robwschlegel.github.io/heatwaveR/index.html" target="_blank">heatwaveR</a></li>
+    <li><a class="external-link dropdown-item" href="https://www.marineheatwaves.org/tracker.html" target="_blank">Marine Heatwave Tracker</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.1016/j.pocean.2015.12.014" target="_blank">Hobday et al. 2016 definition</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.5670/oceanog.2018.205" target="_blank">Hobday et al. 2018 categories</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -61,7 +63,7 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
     <div class="ref-description section level2">
     <p>Calculates seasonal and threshold climatologies for each pixel in a gridded
 NetCDF file, following the Hobday et al. (2016) methodology. This is the
-gridded equivalent of <code><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code>.</p>
+gridded equivalent of <code>heatwaveR::ts2clm()</code>.</p>
     </div>
 
     <div class="section level2">
@@ -74,6 +76,7 @@ gridded equivalent of <code><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.ht
 <span>  lat_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  time_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  depth_range <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  var_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  maxPadLength <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  windowHalfWidth <span class="op">=</span> <span class="fl">5L</span>,</span>
@@ -127,7 +130,22 @@ If <code>NULL</code>, all time steps are read.</p></dd>
 
 <dt id="arg-depth">depth<a class="anchor" aria-label="anchor" href="#arg-depth"></a></dt>
 <dd><p>Optional integer depth/level index for 4D data. Default <code>NULL</code>
-(no depth subsetting).</p></dd>
+(no depth subsetting). Selects and squeezes a single level – the
+climatology is computed as if the data were 3D. Mutually exclusive with
+<code>depth_range</code>.</p></dd>
+
+
+<dt id="arg-depth-range">depth_range<a class="anchor" aria-label="anchor" href="#arg-depth-range"></a></dt>
+<dd><p>Optional numeric vector of length 2:
+<code>c(min_depth, max_depth)</code> in the depth coordinate's own units
+(typically metres, positive down). Unlike <code>depth</code>, this keeps the
+full contiguous band of depth levels falling in this range as a real
+dimension: the climatology is computed independently for every
+<code>(lon, lat, depth)</code> triple, and <code>paste0(name, "_clim.nc")</code>
+gains a <code>depth</code> dimension/coordinate. <code><a href="detect_event3.html">detect_event3</a></code>
+automatically detects and matches this depth range from the
+climatology file – no separate argument is needed there. Mutually
+exclusive with <code>depth</code>. Default <code>NULL</code> (no depth subsetting).</p></dd>
 
 
 <dt id="arg-var-name">var_name<a class="anchor" aria-label="anchor" href="#arg-var-name"></a></dt>

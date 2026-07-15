@@ -81,7 +81,14 @@ void detect_events_grid(
     // points to an [npixels * ntime] array (pixel-major) that is filled for
     // every valid pixel. Members left null are skipped. Drives protoEvent and
     // per-day output.
-    DailyBuffers* daily_grid = nullptr
+    DailyBuffers* daily_grid = nullptr,
+    // Depth axis: pixel = (ilon * nlat + ilat) * ndepth + idepth. ndepth == 1
+    // (depth empty) for ordinary 3D data, reducing pixel to ilon*nlat+ilat.
+    // When ndepth > 1, event_depth is populated (one value per event,
+    // metres) in parallel with event_lon/event_lat; left empty otherwise.
+    int ndepth = 1,
+    const std::vector<double>& depth = {},
+    std::vector<double>* event_depth = nullptr
 );
 
 } // namespace hw3

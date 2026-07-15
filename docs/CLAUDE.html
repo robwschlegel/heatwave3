@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,6 +20,8 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="articles/heatwave3.html">Getting started with heatwave3</a></li>
+    <li><a class="dropdown-item" href="articles/depth-range.html">Depth-resolved (4D) marine heatwave analysis</a></li>
+    <li><a class="dropdown-item" href="articles/blob-depth-connectivity.html">4D blob connectivity through the water column</a></li>
     <li><a class="dropdown-item" href="articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
@@ -27,10 +29,10 @@
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-resources"><li><a class="external-link dropdown-item" href="https://robwschlegel.github.io/heatwaveR/index.html">heatwaveR</a></li>
-    <li><a class="external-link dropdown-item" href="https://www.marineheatwaves.org">Marine Heatwave Tracker</a></li>
-    <li><a class="external-link dropdown-item" href="https://doi.org/10.1016/j.pocean.2015.12.014">Hobday et al. 2016 definition</a></li>
-    <li><a class="external-link dropdown-item" href="https://doi.org/10.5670/oceanog.2018.205">Hobday et al. 2018 categories</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-resources"><li><a class="external-link dropdown-item" href="https://robwschlegel.github.io/heatwaveR/index.html" target="_blank">heatwaveR</a></li>
+    <li><a class="external-link dropdown-item" href="https://www.marineheatwaves.org/tracker.html" target="_blank">Marine Heatwave Tracker</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.1016/j.pocean.2015.12.014" target="_blank">Hobday et al. 2016 definition</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.5670/oceanog.2018.205" target="_blank">Hobday et al. 2018 categories</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -58,7 +60,7 @@
 <p>This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.</p>
 <div class="section level2">
 <h2 id="what-is-this-project">What Is This Project?<a class="anchor" aria-label="anchor" href="#what-is-this-project"></a></h2>
-<p><code>heatwave3</code> is an R package that detects marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. All core algorithms (climatology, event detection, categorisation, block averages) are implemented in C++ with <code>std::thread</code> parallelism and direct libnetcdf I/O — no R NetCDF packages needed at runtime.</p>
+<p><code>heatwave3</code> is an R package that detects marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. All core algorithms (climatology, event detection, categorisation, block averages) are implemented in C++ with <code>std::thread</code> parallelism and direct libnetcdf I/O — no R NetCDF packages needed at runtime.</p>
 <p>This is a ground-up C++ reimplementation of <a href="https://robwschlegel.github.io/heatwaveR/" class="external-link">heatwaveR</a>, designed for gridded data rather than per-pixel time series.</p>
 </div>
 <div class="section level2">
@@ -113,7 +115,7 @@
 <li>
 <strong><code><a href="reference/exceedance3.html">exceedance3()</a></code></strong> — Static threshold exceedance</li>
 <li>
-<strong><code><a href="reference/detect_blob3.html">detect_blob3()</a></code></strong> — 3D spatially-connected blob detection</li>
+<strong><code><a href="reference/detect_blob3.html">detect_blob3()</a></code></strong> — 4D spatially-connected blob detection</li>
 <li>
 <strong><code><a href="reference/event_line3.html">event_line3()</a></code></strong> — Per-pixel time series plot from NetCDF (C++ reader, no ncdf4)</li>
 <li>

@@ -43,13 +43,30 @@ Rcpp::List hw3_version() {
     );
 }
 
+// Shared helper: apply depth args to a SubsetSpec, rejecting the
+// mutually-exclusive combination of a legacy single-level `depth` index and
+// a new `depth_range` (both non-default).
+static void apply_depth_args(hw3::SubsetSpec& ss, int depth,
+                             Rcpp::Nullable<Rcpp::NumericVector> depth_range) {
+    if (depth >= 0 && depth_range.isNotNull()) {
+        Rcpp::stop("Specify only one of 'depth' or 'depth_range', not both.");
+    }
+    if (depth_range.isNotNull()) {
+        Rcpp::NumericVector dr(depth_range);
+        ss.depth_min = dr[0]; ss.depth_max = dr[1];
+    } else {
+        ss.depth_index = depth;
+    }
+}
+
 // [[Rcpp::export]]
 Rcpp::List hw3_read_sst(std::string file_in,
                         std::string var_name,
                         Rcpp::Nullable<Rcpp::NumericVector> lon_range = R_NilValue,
                         Rcpp::Nullable<Rcpp::NumericVector> lat_range = R_NilValue,
                         Rcpp::Nullable<Rcpp::CharacterVector> time_range = R_NilValue,
-                        int depth = -1) {
+                        int depth = -1,
+                        Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue) {
     hw3::SubsetSpec ss;
     if (lon_range.isNotNull()) {
         Rcpp::NumericVector lr(lon_range);
@@ -64,7 +81,7 @@ Rcpp::List hw3_read_sst(std::string file_in,
         ss.time_min = parse_date_to_jd(Rcpp::as<std::string>(tr[0]));
         ss.time_max = parse_date_to_jd(Rcpp::as<std::string>(tr[1]));
     }
-    ss.depth_index = depth;
+    apply_depth_args(ss, depth, depth_range);
 
     if (var_name.empty()) {
         var_name = hw3::detect_sst_variable(file_in);
@@ -79,6 +96,8 @@ Rcpp::List hw3_read_sst(std::string file_in,
         Rcpp::Named("nlat") = gd.nlat,
         Rcpp::Named("ntime") = gd.ntime,
         Rcpp::Named("time_days") = gd.time_days,
+        Rcpp::Named("ndepth") = gd.ndepth,
+        Rcpp::Named("depth") = gd.depth,
         Rcpp::Named("sst") = gd.sst
     );
 }
@@ -90,7 +109,8 @@ Rcpp::List hw3_read_sst_multi(Rcpp::CharacterVector files,
                               Rcpp::Nullable<Rcpp::NumericVector> lon_range = R_NilValue,
                               Rcpp::Nullable<Rcpp::NumericVector> lat_range = R_NilValue,
                               int depth = -1,
-                              bool skip_bad_files = false) {
+                              bool skip_bad_files = false,
+                              Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue) {
     hw3::SubsetSpec ss;
     if (lon_range.isNotNull()) {
         Rcpp::NumericVector lr(lon_range);
@@ -100,7 +120,7 @@ Rcpp::List hw3_read_sst_multi(Rcpp::CharacterVector files,
         Rcpp::NumericVector lr(lat_range);
         ss.lat_min = lr[0]; ss.lat_max = lr[1];
     }
-    ss.depth_index = depth;
+    apply_depth_args(ss, depth, depth_range);
 
     std::vector<std::string> file_vec;
     for (int i = 0; i < files.size(); ++i) {
@@ -123,6 +143,8 @@ Rcpp::List hw3_read_sst_multi(Rcpp::CharacterVector files,
         Rcpp::Named("nlat") = gd.nlat,
         Rcpp::Named("ntime") = gd.ntime,
         Rcpp::Named("time_days") = gd.time_days,
+        Rcpp::Named("ndepth") = gd.ndepth,
+        Rcpp::Named("depth") = gd.depth,
         Rcpp::Named("sst") = gd.sst
     );
 }
@@ -181,9 +203,10 @@ static void compute_and_write_clim(hw3::GridData& gd,
                                    bool detrend = false) {
     int clim_start_jd = parse_date_to_jd(cp0);
     int clim_end_jd = parse_date_to_jd(cp1);
-    int npixels = gd.nlon * gd.nlat;
-    Rcpp::Rcout << "Grid: " << gd.nlon << " lon x " << gd.nlat << " lat x "
-                << gd.ntime << " time = " << npixels << " pixels" << std::endl;
+    int npixels = gd.nlon * gd.nlat * gd.ndepth;
+    Rcpp::Rcout << "Grid: " << gd.nlon << " lon x " << gd.nlat << " lat";
+    if (gd.ndepth > 1) Rcpp::Rcout << " x " << gd.ndepth << " depth";
+    Rcpp::Rcout << " x " << gd.ntime << " time = " << npixels << " pixels" << std::endl;
 
     // Allocate output
     size_t grid_size = static_cast<size_t>(npixels) * 366;
@@ -225,7 +248,7 @@ static void compute_and_write_clim(hw3::GridData& gd,
         seas, thresh, var_clim, compute_var,
         source_label, cp0, cp1,
         pctile, windowHalfWidth, smoothPercentileWidth,
-        gd.temp_units
+        gd.temp_units, gd.ndepth, gd.depth
     );
 
     Rcpp::Rcout << "Done." << std::endl;
@@ -249,7 +272,8 @@ void hw3_compute_clim(std::string file_in,
                       bool compute_var = false,
                       int roundClm = 4,
                       int n_threads = 1,
-                      bool detrend = false) {
+                      bool detrend = false,
+                      Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue) {
 
     hw3::SubsetSpec ss;
     if (lon_range.isNotNull()) {
@@ -265,7 +289,7 @@ void hw3_compute_clim(std::string file_in,
         ss.time_min = parse_date_to_jd(Rcpp::as<std::string>(tr[0]));
         ss.time_max = parse_date_to_jd(Rcpp::as<std::string>(tr[1]));
     }
-    ss.depth_index = depth;
+    apply_depth_args(ss, depth, depth_range);
     if (var_name.empty()) var_name = hw3::detect_sst_variable(file_in);
 
     Rcpp::Rcout << "Reading SST data from " << file_in << "..." << std::endl;
@@ -297,7 +321,8 @@ void hw3_compute_clim_multi(Rcpp::CharacterVector files,
                             int roundClm = 4,
                             int n_threads = 1,
                             bool detrend = false,
-                            bool skip_bad_files = false) {
+                            bool skip_bad_files = false,
+                            Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue) {
 
     hw3::SubsetSpec ss;
     if (lon_range.isNotNull()) {
@@ -308,7 +333,7 @@ void hw3_compute_clim_multi(Rcpp::CharacterVector files,
         Rcpp::NumericVector lr(lat_range);
         ss.lat_min = lr[0]; ss.lat_max = lr[1];
     }
-    ss.depth_index = depth;
+    apply_depth_args(ss, depth, depth_range);
 
     std::vector<std::string> file_vec;
     for (int i = 0; i < files.size(); ++i)
@@ -382,6 +407,8 @@ Rcpp::List hw3_read_clim_nc(std::string clim_file) {
         Rcpp::Named("nlon") = cd.nlon,
         Rcpp::Named("nlat") = cd.nlat,
         Rcpp::Named("ndoy") = cd.ndoy,
+        Rcpp::Named("ndepth") = cd.ndepth,
+        Rcpp::Named("depth") = cd.depth,
         Rcpp::Named("seas") = cd.seas,
         Rcpp::Named("thresh") = cd.thresh
     );
@@ -392,16 +419,18 @@ Rcpp::List hw3_read_subset(std::string file,
                            Rcpp::Nullable<Rcpp::NumericVector> lon_range = R_NilValue,
                            Rcpp::Nullable<Rcpp::NumericVector> lat_range = R_NilValue,
                            Rcpp::Nullable<Rcpp::IntegerVector> t_jd_range = R_NilValue,
+                           Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue,
                            Rcpp::Nullable<Rcpp::CharacterVector> vars = R_NilValue,
                            int max_rows = -1) {
-    std::vector<double> lr, ltr;
+    std::vector<double> lr, ltr, dr;
     std::vector<int> tr;
     std::vector<std::string> vv;
     if (lon_range.isNotNull()) lr = Rcpp::as<std::vector<double>>(Rcpp::NumericVector(lon_range));
     if (lat_range.isNotNull()) ltr = Rcpp::as<std::vector<double>>(Rcpp::NumericVector(lat_range));
     if (t_jd_range.isNotNull()) tr = Rcpp::as<std::vector<int>>(Rcpp::IntegerVector(t_jd_range));
+    if (depth_range.isNotNull()) dr = Rcpp::as<std::vector<double>>(Rcpp::NumericVector(depth_range));
     if (vars.isNotNull()) vv = Rcpp::as<std::vector<std::string>>(Rcpp::CharacterVector(vars));
-    return hw3::read_subset_netcdf(file, lr, ltr, tr, vv, max_rows);
+    return hw3::read_subset_netcdf(file, lr, ltr, tr, dr, vv, max_rows);
 }
 
 // Core of the daily-category computation: given an already-read SST window
@@ -416,11 +445,12 @@ Rcpp::List hw3_read_subset(std::string file,
 static Rcpp::List daily_cat_core(const hw3::GridData& gd, const hw3::ClimData& cd,
                                  const hw3::EventData& ed,
                                  bool coldSpells, double ice_thresh, int roundRes) {
-    if (gd.nlon != cd.nlon || gd.nlat != cd.nlat) {
-        Rcpp::stop("Grid mismatch: SST is %d x %d but climatology is %d x %d.",
-                   gd.nlon, gd.nlat, cd.nlon, cd.nlat);
+    if (gd.nlon != cd.nlon || gd.nlat != cd.nlat || gd.ndepth != cd.ndepth) {
+        Rcpp::stop("Grid mismatch: SST is %d x %d x %d depth but climatology is %d x %d x %d depth",
+                   gd.nlon, gd.nlat, gd.ndepth, cd.nlon, cd.nlat, cd.ndepth);
     }
-    int npixels = gd.nlon * gd.nlat;
+    bool has_depth = (gd.ndepth > 1) && !gd.depth.empty();
+    int npixels = gd.nlon * gd.nlat * gd.ndepth;
 
     // Per-pixel event ranges in absolute Julian Days.
     struct Ev { int ds; int de; int no; };
@@ -442,12 +472,16 @@ static Rcpp::List daily_cat_core(const hw3::GridData& gd, const hw3::ClimData& c
     Rcpp::NumericVector out_lon(nrow), out_lat(nrow), out_temp(nrow),
                         out_seas(nrow), out_thresh(nrow), out_int(nrow);
     Rcpp::LogicalVector out_event(nrow);
+    Rcpp::NumericVector out_depth(has_depth ? nrow : 0);
 
     size_t r = 0;
     for (int px = 0; px < npixels; ++px) {
         const auto& evs = by_pixel[px];
-        int ilon = px / gd.nlat, ilat = px % gd.nlat;
+        int idepth = px % gd.ndepth;
+        int lonlat0 = px / gd.ndepth;
+        int ilon = lonlat0 / gd.nlat, ilat = lonlat0 % gd.nlat;
         double plon = gd.lon[ilon], plat = gd.lat[ilat];
+        double pdepth = has_depth ? gd.depth[idepth] : hw3::NA_DOUBLE;
         const double* temp = gd.sst.data() + static_cast<size_t>(px) * gd.ntime;
         const double* seas = cd.seas.data() + static_cast<size_t>(px) * 366;
         const double* thr  = cd.thresh.data() + static_cast<size_t>(px) * 366;
@@ -457,6 +491,7 @@ static Rcpp::List daily_cat_core(const hw3::GridData& gd, const hw3::ClimData& c
             out_jd[r]  = jd;
             out_lon[r] = plon;
             out_lat[r] = plat;
+            if (has_depth) out_depth[r] = pdepth;
 
             double tv = temp[t];
             int doy = hw3::jd_to_doy_366(jd) - 1;
@@ -501,7 +536,7 @@ static Rcpp::List daily_cat_core(const hw3::GridData& gd, const hw3::ClimData& c
         }
     }
 
-    return Rcpp::List::create(
+    Rcpp::List out = Rcpp::List::create(
         Rcpp::Named("jd") = out_jd,
         Rcpp::Named("lon") = out_lon,
         Rcpp::Named("lat") = out_lat,
@@ -513,6 +548,8 @@ static Rcpp::List daily_cat_core(const hw3::GridData& gd, const hw3::ClimData& c
         Rcpp::Named("event_no") = out_eno,
         Rcpp::Named("category") = out_cat
     );
+    if (has_depth) out["depth"] = out_depth;
+    return out;
 }
 
 // SubsetSpec spanning the climatology grid extent, plus an optional [jd0,jd1]
@@ -524,6 +561,12 @@ static hw3::SubsetSpec clim_extent_subset(const hw3::ClimData& cd,
     ss.lon_max = *std::max_element(cd.lon.begin(), cd.lon.end());
     ss.lat_min = *std::min_element(cd.lat.begin(), cd.lat.end());
     ss.lat_max = *std::max_element(cd.lat.begin(), cd.lat.end());
+    // Depth-resolved climatology: match the SST read to the same depth(s),
+    // exactly as hw3_detect_events() does (see heatwave3_init.cpp above).
+    if (!cd.depth.empty()) {
+        ss.depth_min = *std::min_element(cd.depth.begin(), cd.depth.end());
+        ss.depth_max = *std::max_element(cd.depth.begin(), cd.depth.end());
+    }
     if (t_jd_range.size() == 2) {
         ss.time_min = std::min(t_jd_range[0], t_jd_range[1]);
         ss.time_max = std::max(t_jd_range[0], t_jd_range[1]);
@@ -601,6 +644,8 @@ Rcpp::List hw3_read_daily_nc(std::string daily_file) {
         Rcpp::Named("nlon") = dd.nlon,
         Rcpp::Named("nlat") = dd.nlat,
         Rcpp::Named("ntime") = dd.ntime,
+        Rcpp::Named("ndepth") = dd.ndepth,
+        Rcpp::Named("depth") = dd.depth,
         Rcpp::Named("temp") = dd.temp,
         Rcpp::Named("seas") = dd.seas,
         Rcpp::Named("thresh") = dd.thresh,
@@ -631,9 +676,9 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
                                     bool category, bool southHemisphere,
                                     const std::string& daily_file = "",
                                     const std::string& proto_file = "") {
-    if (gd.nlon != cd.nlon || gd.nlat != cd.nlat) {
-        Rcpp::stop("Grid mismatch: SST is %d x %d but climatology is %d x %d",
-                   gd.nlon, gd.nlat, cd.nlon, cd.nlat);
+    if (gd.nlon != cd.nlon || gd.nlat != cd.nlat || gd.ndepth != cd.ndepth) {
+        Rcpp::stop("Grid mismatch: SST is %d x %d x %d depth but climatology is %d x %d x %d depth",
+                   gd.nlon, gd.nlat, gd.ndepth, cd.nlon, cd.nlat, cd.ndepth);
     }
     if (thresh2_gd != nullptr) {
         if (gd.nlon != thresh2_gd->nlon || gd.nlat != thresh2_gd->nlat ||
@@ -649,11 +694,12 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
         }
     }
 
-    int npixels = gd.nlon * gd.nlat;
-    Rcpp::Rcout << "Grid: " << gd.nlon << " lon x " << gd.nlat << " lat x "
-                << gd.ntime << " time = " << npixels << " pixels" << std::endl;
+    int npixels = gd.nlon * gd.nlat * gd.ndepth;
+    Rcpp::Rcout << "Grid: " << gd.nlon << " lon x " << gd.nlat << " lat";
+    if (gd.ndepth > 1) Rcpp::Rcout << " x " << gd.ndepth << " depth";
+    Rcpp::Rcout << " x " << gd.ntime << " time = " << npixels << " pixels" << std::endl;
 
-    std::vector<double> event_lon, event_lat;
+    std::vector<double> event_lon, event_lat, event_depth;
     std::vector<int> pixel_idx;
     std::vector<hw3::EventResult> all_events;
     std::vector<int> ds, dp, de;
@@ -705,7 +751,8 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
         event_lon, event_lat, pixel_idx, all_events,
         ds, dp, de,
         gd.lon, gd.lat, gd.nlon, gd.nlat,
-        daily_grid_ptr
+        daily_grid_ptr,
+        gd.ndepth, gd.depth, &event_depth
     );
 
     Rcpp::Rcout << "Found " << all_events.size() << " events across "
@@ -721,7 +768,8 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
             b_tc.data(), b_dc.data(), b_ev.data(), b_eno.data(),
             nullptr, nullptr,
             "protoevents", source_label, clim_file, minDuration, maxGap,
-            coldSpells, southHemisphere, gd.temp_units);
+            coldSpells, southHemisphere, gd.temp_units,
+            gd.ndepth, gd.depth);
         Rcpp::Rcout << "Done." << std::endl;
     }
 
@@ -734,7 +782,8 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
             nullptr, nullptr, b_ev.data(), b_eno.data(),
             b_int.data(), b_cat.data(),
             "daily", source_label, clim_file, minDuration, maxGap,
-            coldSpells, southHemisphere, gd.temp_units);
+            coldSpells, southHemisphere, gd.temp_units,
+            gd.ndepth, gd.depth);
         Rcpp::Rcout << "Done." << std::endl;
     }
 
@@ -756,7 +805,7 @@ static void detect_and_write_events(hw3::GridData& gd, hw3::ClimData& cd,
                 ds_rel, dp_rel, de_rel, ref_jd,
                 source_label, clim_file,
                 minDuration, maxGap, coldSpells,
-                southHemisphere, gd.temp_units
+                southHemisphere, gd.temp_units, event_depth
             );
             Rcpp::Rcout << "Done." << std::endl;
         }
@@ -792,6 +841,15 @@ void hw3_detect_events(std::string file_in,
     ss.lon_max = *std::max_element(cd.lon.begin(), cd.lon.end());
     ss.lat_min = *std::min_element(cd.lat.begin(), cd.lat.end());
     ss.lat_max = *std::max_element(cd.lat.begin(), cd.lat.end());
+    // Depth-resolved climatology (ts2clm3(depth_range=...)) or a legacy
+    // single-level squeeze (ts2clm3(depth=k), recorded as a one-element
+    // cd.depth): match the SST read to the same depth(s) so event detection
+    // stays consistent with the climatology it's being compared against,
+    // with no separate depth argument needed here.
+    if (!cd.depth.empty()) {
+        ss.depth_min = *std::min_element(cd.depth.begin(), cd.depth.end());
+        ss.depth_max = *std::max_element(cd.depth.begin(), cd.depth.end());
+    }
 
     if (var_name.empty()) var_name = hw3::detect_sst_variable(file_in);
 
@@ -844,6 +902,12 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
     ss.lon_max = *std::max_element(cd.lon.begin(), cd.lon.end());
     ss.lat_min = *std::min_element(cd.lat.begin(), cd.lat.end());
     ss.lat_max = *std::max_element(cd.lat.begin(), cd.lat.end());
+    // See hw3_detect_events() above: matches both depth_range and legacy
+    // single-level squeeze climatologies.
+    if (!cd.depth.empty()) {
+        ss.depth_min = *std::min_element(cd.depth.begin(), cd.depth.end());
+        ss.depth_max = *std::max_element(cd.depth.begin(), cd.depth.end());
+    }
 
     std::vector<std::string> file_vec;
     for (int i = 0; i < files.size(); ++i)
@@ -884,6 +948,7 @@ Rcpp::List hw3_read_event_nc(std::string event_file) {
     return Rcpp::List::create(
         Rcpp::Named("lon") = ed.lon,
         Rcpp::Named("lat") = ed.lat,
+        Rcpp::Named("depth") = ed.depth,
         Rcpp::Named("pixel_index") = ed.pixel_index,
         Rcpp::Named("event_no") = ed.event_no,
         Rcpp::Named("date_start") = ed.date_start,

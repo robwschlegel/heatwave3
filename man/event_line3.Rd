@@ -9,6 +9,7 @@ event_line3(
   clim_file,
   lon,
   lat,
+  depth = NULL,
   var_name = NULL,
   start_date = NULL,
   end_date = NULL,
@@ -26,6 +27,13 @@ event_line3(
 \item{lon}{Longitude of the pixel to plot.}
 
 \item{lat}{Latitude of the pixel to plot.}
+
+\item{depth}{Optional depth (metres) to plot, for a depth-resolved
+\code{clim_file} (from \code{ts2clm3(depth_range = ...)}). Matched to the
+nearest depth level actually present in \code{clim_file}; the matched
+value is used to read \code{sst_file} at the same level and appears in
+the plot title. Required when \code{clim_file} is depth-resolved;
+must be \code{NULL} (the default) for an ordinary 3D \code{clim_file}.}
 
 \item{var_name}{SST variable name. If \code{NULL}, auto-detected.}
 
@@ -59,12 +67,12 @@ packages are required.
 \examples{
 \donttest{
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-clim_file <- tempfile(fileext = ".nc")
+stem <- file.path(tempdir(), "demo")
 
-ts2clm3(sst_file, clim_file,
+ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 
-event_line3(sst_file, clim_file,
+event_line3(sst_file, paste0(stem, "_clim.nc"),
             lon = 26.525, lat = -34.125,
             start_date = "2010-01-01", end_date = "2012-12-31")
 }

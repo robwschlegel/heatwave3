@@ -13,7 +13,7 @@ packages are required."><meta property="og:image" content="https://robwschlegel.
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,6 +26,8 @@ packages are required."><meta property="og:image" content="https://robwschlegel.
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/heatwave3.html">Getting started with heatwave3</a></li>
+    <li><a class="dropdown-item" href="../articles/depth-range.html">Depth-resolved (4D) marine heatwave analysis</a></li>
+    <li><a class="dropdown-item" href="../articles/blob-depth-connectivity.html">4D blob connectivity through the water column</a></li>
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
@@ -33,10 +35,10 @@ packages are required."><meta property="og:image" content="https://robwschlegel.
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-resources"><li><a class="external-link dropdown-item" href="https://robwschlegel.github.io/heatwaveR/index.html">heatwaveR</a></li>
-    <li><a class="external-link dropdown-item" href="https://www.marineheatwaves.org">Marine Heatwave Tracker</a></li>
-    <li><a class="external-link dropdown-item" href="https://doi.org/10.1016/j.pocean.2015.12.014">Hobday et al. 2016 definition</a></li>
-    <li><a class="external-link dropdown-item" href="https://doi.org/10.5670/oceanog.2018.205">Hobday et al. 2018 categories</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-resources"><li><a class="external-link dropdown-item" href="https://robwschlegel.github.io/heatwaveR/index.html" target="_blank">heatwaveR</a></li>
+    <li><a class="external-link dropdown-item" href="https://www.marineheatwaves.org/tracker.html" target="_blank">Marine Heatwave Tracker</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.1016/j.pocean.2015.12.014" target="_blank">Hobday et al. 2016 definition</a></li>
+    <li><a class="external-link dropdown-item" href="https://doi.org/10.5670/oceanog.2018.205" target="_blank">Hobday et al. 2018 categories</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -74,6 +76,7 @@ packages are required.</p>
 <span>  <span class="va">clim_file</span>,</span>
 <span>  <span class="va">lon</span>,</span>
 <span>  <span class="va">lat</span>,</span>
+<span>  depth <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  var_name <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  end_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -102,6 +105,15 @@ packages are required.</p>
 
 <dt id="arg-lat">lat<a class="anchor" aria-label="anchor" href="#arg-lat"></a></dt>
 <dd><p>Latitude of the pixel to plot.</p></dd>
+
+
+<dt id="arg-depth">depth<a class="anchor" aria-label="anchor" href="#arg-depth"></a></dt>
+<dd><p>Optional depth (metres) to plot, for a depth-resolved
+<code>clim_file</code> (from <code>ts2clm3(depth_range = ...)</code>). Matched to the
+nearest depth level actually present in <code>clim_file</code>; the matched
+value is used to read <code>sst_file</code> at the same level and appears in
+the plot title. Required when <code>clim_file</code> is depth-resolved;
+must be <code>NULL</code> (the default) for an ordinary 3D <code>clim_file</code>.</p></dd>
 
 
 <dt id="arg-var-name">var_name<a class="anchor" aria-label="anchor" href="#arg-var-name"></a></dt>
@@ -149,15 +161,21 @@ standard <code>+</code> operator.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>,</span></span>
 <span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /tmp/RtmptnP3kw/temp_libpath10f40785ac7f0/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -181,14 +199,14 @@ standard <code>+</code> operator.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/tmp/RtmpbqjzHu/file1626015037f1f.nc_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">event_line3</span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>,</span></span>
 <span class="r-in"><span>            lon <span class="op">=</span> <span class="fl">26.525</span>, lat <span class="op">=</span> <span class="op">-</span><span class="fl">34.125</span>,</span></span>
 <span class="r-in"><span>            start_date <span class="op">=</span> <span class="st">"2010-01-01"</span>, end_date <span class="op">=</span> <span class="st">"2012-12-31"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> NetCDF error in open /tmp/RtmpbqjzHu/file1626015037f1f.nc: No such file or directory</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> NetCDF error in open /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc: No such file or directory</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

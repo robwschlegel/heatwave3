@@ -87,7 +87,10 @@ A `data.frame` with one row per pixel per day in the window: `lon`,
 `event_no` (integer, `NA` off-event), and `category` (integer on
 event-member exceedance days; 1 = I Moderate ... 4 = IV Extreme, 5 = ice
 for cold-spells; `NA` otherwise). Columns match the `detect_event3`
-`daily = "also"` product.
+`daily = "also"` product. A `depth` column (metres) is added
+automatically when `clim_file`/`event_file` are depth-resolved (from
+`ts2clm3(depth_range = ...)`) – one row per pixel per depth level per
+day, no separate argument needed here.
 
 ## Details
 

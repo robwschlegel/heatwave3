@@ -179,8 +179,7 @@
   logical criterion as a NetCDF file, vector of files, or directory of
   daily files. Non-zero, non-missing values are treated as `TRUE`, and
   the secondary pass uses `minDuration2` and `maxGap2` with the same
-  event logic as
-  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html).
+  event logic as `heatwaveR::detect_event()`.
 
 - **CSV and Parquet companion exports are chunked.**
   [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
@@ -270,12 +269,11 @@
   [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
   has always done in `compute_pixel_clim`), filling missing dates with
   `NA`. `proto_event()` then breaks runs at the gap exactly as
-  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html)
-  does via `make_whole()`. Verified by pixel-by-pixel agreement with
-  heatwaveR (1705 / 1705 events on a Cape Town OSTIA region match
-  exactly: same count, same date_start / peak / end, same duration,
-  intensities to rounding precision) and by a synthetic 30-day-gap
-  reproducer.
+  `heatwaveR::detect_event()` does via `make_whole()`. Verified by
+  pixel-by-pixel agreement with heatwaveR (1705 / 1705 events on a Cape
+  Town OSTIA region match exactly: same count, same date_start / peak /
+  end, same duration, intensities to rounding precision) and by a
+  synthetic 30-day-gap reproducer.
 
   Internal API change: `EventResult` gains three integer fields
   (`jd_start`, `jd_peak`, `jd_end`) holding the absolute Julian Day of

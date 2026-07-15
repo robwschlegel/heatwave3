@@ -12,3 +12,10 @@
   heatwaveR](https://robwschlegel.github.io/heatwave3/index.html/articles/benchmark.md):
 - [Performance benchmark: heatwave3 vs
   xmhw](https://robwschlegel.github.io/heatwave3/index.html/articles/benchmark_xmhw.md):
+
+### Depth-resolved (4D) analysis
+
+- [Depth-resolved (4D) marine heatwave
+  analysis](https://robwschlegel.github.io/heatwave3/index.html/articles/depth-range.md):
+- [4D blob connectivity: heatwaves through the water
+  column](https://robwschlegel.github.io/heatwave3/index.html/articles/blob-depth-connectivity.md):

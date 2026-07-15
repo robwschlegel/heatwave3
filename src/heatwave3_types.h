@@ -21,7 +21,16 @@ struct SubsetSpec {
     double lat_max =  std::numeric_limits<double>::infinity();
     double time_min = -std::numeric_limits<double>::infinity();
     double time_max =  std::numeric_limits<double>::infinity();
+    // Legacy single-level squeeze: select one depth index and drop the depth
+    // dimension entirely (existing behaviour, unchanged).
     int depth_index = -1;
+    // New: keep a contiguous *range* of depth levels (inclusive, by depth
+    // value in the file's own units, typically metres) as a real dimension
+    // in the output. Mutually exclusive with depth_index; ignored unless
+    // finite. Default (both infinite) preserves the legacy squeeze-to-index
+    // behaviour above.
+    double depth_min = -std::numeric_limits<double>::infinity();
+    double depth_max =  std::numeric_limits<double>::infinity();
 };
 
 struct PixelClim {
@@ -64,6 +73,10 @@ struct EventResult {
 struct EventData {
     std::vector<double> lon;
     std::vector<double> lat;
+    // Per-event depth (metres). Empty when the source data had no depth
+    // range (ndepth == 1) -- matches how `category`/`season` are also only
+    // populated when present in the file.
+    std::vector<double> depth;
     std::vector<int> pixel_index;
     std::vector<int> event_no;
     std::vector<int> date_start;

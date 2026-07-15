@@ -12,24 +12,25 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// label_components_3d_cpp
-IntegerVector label_components_3d_cpp(IntegerVector mask, int nx, int ny, int nt, bool wrap_dateline);
-RcppExport SEXP _heatwave3_label_components_3d_cpp(SEXP maskSEXP, SEXP nxSEXP, SEXP nySEXP, SEXP ntSEXP, SEXP wrap_datelineSEXP) {
+// label_components_cpp
+IntegerVector label_components_cpp(IntegerVector mask, int nx, int ny, int nz, int nt, bool wrap_dateline);
+RcppExport SEXP _heatwave3_label_components_cpp(SEXP maskSEXP, SEXP nxSEXP, SEXP nySEXP, SEXP nzSEXP, SEXP ntSEXP, SEXP wrap_datelineSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< IntegerVector >::type mask(maskSEXP);
     Rcpp::traits::input_parameter< int >::type nx(nxSEXP);
     Rcpp::traits::input_parameter< int >::type ny(nySEXP);
+    Rcpp::traits::input_parameter< int >::type nz(nzSEXP);
     Rcpp::traits::input_parameter< int >::type nt(ntSEXP);
     Rcpp::traits::input_parameter< bool >::type wrap_dateline(wrap_datelineSEXP);
-    rcpp_result_gen = Rcpp::wrap(label_components_3d_cpp(mask, nx, ny, nt, wrap_dateline));
+    rcpp_result_gen = Rcpp::wrap(label_components_cpp(mask, nx, ny, nz, nt, wrap_dateline));
     return rcpp_result_gen;
 END_RCPP
 }
 // blob_daily_summary_cpp
-List blob_daily_summary_cpp(IntegerVector labels, IntegerVector ix, IntegerVector iy, IntegerVector it, NumericVector delta, NumericVector cell_area_lat, NumericVector lons, NumericVector lats, int nt);
-RcppExport SEXP _heatwave3_blob_daily_summary_cpp(SEXP labelsSEXP, SEXP ixSEXP, SEXP iySEXP, SEXP itSEXP, SEXP deltaSEXP, SEXP cell_area_latSEXP, SEXP lonsSEXP, SEXP latsSEXP, SEXP ntSEXP) {
+List blob_daily_summary_cpp(IntegerVector labels, IntegerVector ix, IntegerVector iy, IntegerVector it, NumericVector delta, NumericVector cell_area_lat, NumericVector lons, NumericVector lats, int nt, IntegerVector iz, NumericVector depths, NumericVector layer_thickness_km, bool has_depth);
+RcppExport SEXP _heatwave3_blob_daily_summary_cpp(SEXP labelsSEXP, SEXP ixSEXP, SEXP iySEXP, SEXP itSEXP, SEXP deltaSEXP, SEXP cell_area_latSEXP, SEXP lonsSEXP, SEXP latsSEXP, SEXP ntSEXP, SEXP izSEXP, SEXP depthsSEXP, SEXP layer_thickness_kmSEXP, SEXP has_depthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -42,7 +43,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type lons(lonsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type lats(latsSEXP);
     Rcpp::traits::input_parameter< int >::type nt(ntSEXP);
-    rcpp_result_gen = Rcpp::wrap(blob_daily_summary_cpp(labels, ix, iy, it, delta, cell_area_lat, lons, lats, nt));
+    Rcpp::traits::input_parameter< IntegerVector >::type iz(izSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type depths(depthsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type layer_thickness_km(layer_thickness_kmSEXP);
+    Rcpp::traits::input_parameter< bool >::type has_depth(has_depthSEXP);
+    rcpp_result_gen = Rcpp::wrap(blob_daily_summary_cpp(labels, ix, iy, it, delta, cell_area_lat, lons, lats, nt, iz, depths, layer_thickness_km, has_depth));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -87,8 +92,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_read_sst
-Rcpp::List hw3_read_sst(std::string file_in, std::string var_name, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::CharacterVector> time_range, int depth);
-RcppExport SEXP _heatwave3_hw3_read_sst(SEXP file_inSEXP, SEXP var_nameSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP time_rangeSEXP, SEXP depthSEXP) {
+Rcpp::List hw3_read_sst(std::string file_in, std::string var_name, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::CharacterVector> time_range, int depth, Rcpp::Nullable<Rcpp::NumericVector> depth_range);
+RcppExport SEXP _heatwave3_hw3_read_sst(SEXP file_inSEXP, SEXP var_nameSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP time_rangeSEXP, SEXP depthSEXP, SEXP depth_rangeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -98,13 +103,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type lat_range(lat_rangeSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type time_range(time_rangeSEXP);
     Rcpp::traits::input_parameter< int >::type depth(depthSEXP);
-    rcpp_result_gen = Rcpp::wrap(hw3_read_sst(file_in, var_name, lon_range, lat_range, time_range, depth));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type depth_range(depth_rangeSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_read_sst(file_in, var_name, lon_range, lat_range, time_range, depth, depth_range));
     return rcpp_result_gen;
 END_RCPP
 }
 // hw3_read_sst_multi
-Rcpp::List hw3_read_sst_multi(Rcpp::CharacterVector files, std::string var_name, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, int depth, bool skip_bad_files);
-RcppExport SEXP _heatwave3_hw3_read_sst_multi(SEXP filesSEXP, SEXP var_nameSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP depthSEXP, SEXP skip_bad_filesSEXP) {
+Rcpp::List hw3_read_sst_multi(Rcpp::CharacterVector files, std::string var_name, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, int depth, bool skip_bad_files, Rcpp::Nullable<Rcpp::NumericVector> depth_range);
+RcppExport SEXP _heatwave3_hw3_read_sst_multi(SEXP filesSEXP, SEXP var_nameSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP depthSEXP, SEXP skip_bad_filesSEXP, SEXP depth_rangeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,7 +120,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type lat_range(lat_rangeSEXP);
     Rcpp::traits::input_parameter< int >::type depth(depthSEXP);
     Rcpp::traits::input_parameter< bool >::type skip_bad_files(skip_bad_filesSEXP);
-    rcpp_result_gen = Rcpp::wrap(hw3_read_sst_multi(files, var_name, lon_range, lat_range, depth, skip_bad_files));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type depth_range(depth_rangeSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_read_sst_multi(files, var_name, lon_range, lat_range, depth, skip_bad_files, depth_range));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -139,8 +146,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_compute_clim
-void hw3_compute_clim(std::string file_in, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::CharacterVector> time_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend);
-RcppExport SEXP _heatwave3_hw3_compute_clim(SEXP file_inSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP time_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP) {
+void hw3_compute_clim(std::string file_in, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::CharacterVector> time_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend, Rcpp::Nullable<Rcpp::NumericVector> depth_range);
+RcppExport SEXP _heatwave3_hw3_compute_clim(SEXP file_inSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP time_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP, SEXP depth_rangeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type file_in(file_inSEXP);
@@ -160,13 +167,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type roundClm(roundClmSEXP);
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type detrend(detrendSEXP);
-    hw3_compute_clim(file_in, file_out, var_name, climatologyPeriod, lon_range, lat_range, time_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type depth_range(depth_rangeSEXP);
+    hw3_compute_clim(file_in, file_out, var_name, climatologyPeriod, lon_range, lat_range, time_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, depth_range);
     return R_NilValue;
 END_RCPP
 }
 // hw3_compute_clim_multi
-void hw3_compute_clim_multi(Rcpp::CharacterVector files, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend, bool skip_bad_files);
-RcppExport SEXP _heatwave3_hw3_compute_clim_multi(SEXP filesSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP, SEXP skip_bad_filesSEXP) {
+void hw3_compute_clim_multi(Rcpp::CharacterVector files, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend, bool skip_bad_files, Rcpp::Nullable<Rcpp::NumericVector> depth_range);
+RcppExport SEXP _heatwave3_hw3_compute_clim_multi(SEXP filesSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP, SEXP skip_bad_filesSEXP, SEXP depth_rangeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type files(filesSEXP);
@@ -186,7 +194,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type detrend(detrendSEXP);
     Rcpp::traits::input_parameter< bool >::type skip_bad_files(skip_bad_filesSEXP);
-    hw3_compute_clim_multi(files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, skip_bad_files);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type depth_range(depth_rangeSEXP);
+    hw3_compute_clim_multi(files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, skip_bad_files, depth_range);
     return R_NilValue;
 END_RCPP
 }
@@ -230,8 +239,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_read_subset
-Rcpp::List hw3_read_subset(std::string file, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::IntegerVector> t_jd_range, Rcpp::Nullable<Rcpp::CharacterVector> vars, int max_rows);
-RcppExport SEXP _heatwave3_hw3_read_subset(SEXP fileSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP t_jd_rangeSEXP, SEXP varsSEXP, SEXP max_rowsSEXP) {
+Rcpp::List hw3_read_subset(std::string file, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::IntegerVector> t_jd_range, Rcpp::Nullable<Rcpp::NumericVector> depth_range, Rcpp::Nullable<Rcpp::CharacterVector> vars, int max_rows);
+RcppExport SEXP _heatwave3_hw3_read_subset(SEXP fileSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP t_jd_rangeSEXP, SEXP depth_rangeSEXP, SEXP varsSEXP, SEXP max_rowsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -239,9 +248,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type lon_range(lon_rangeSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type lat_range(lat_rangeSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::IntegerVector> >::type t_jd_range(t_jd_rangeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type depth_range(depth_rangeSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type vars(varsSEXP);
     Rcpp::traits::input_parameter< int >::type max_rows(max_rowsSEXP);
-    rcpp_result_gen = Rcpp::wrap(hw3_read_subset(file, lon_range, lat_range, t_jd_range, vars, max_rows));
+    rcpp_result_gen = Rcpp::wrap(hw3_read_subset(file, lon_range, lat_range, t_jd_range, depth_range, vars, max_rows));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -410,21 +420,21 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_heatwave3_label_components_3d_cpp", (DL_FUNC) &_heatwave3_label_components_3d_cpp, 5},
-    {"_heatwave3_blob_daily_summary_cpp", (DL_FUNC) &_heatwave3_blob_daily_summary_cpp, 9},
+    {"_heatwave3_label_components_cpp", (DL_FUNC) &_heatwave3_label_components_cpp, 6},
+    {"_heatwave3_blob_daily_summary_cpp", (DL_FUNC) &_heatwave3_blob_daily_summary_cpp, 13},
     {"_heatwave3_hw3_get_threads", (DL_FUNC) &_heatwave3_hw3_get_threads, 0},
     {"_heatwave3_hw3_set_threads", (DL_FUNC) &_heatwave3_hw3_set_threads, 1},
     {"_heatwave3_hw3_init_fork_safety", (DL_FUNC) &_heatwave3_hw3_init_fork_safety, 0},
     {"_heatwave3_hw3_version", (DL_FUNC) &_heatwave3_hw3_version, 0},
-    {"_heatwave3_hw3_read_sst", (DL_FUNC) &_heatwave3_hw3_read_sst, 6},
-    {"_heatwave3_hw3_read_sst_multi", (DL_FUNC) &_heatwave3_hw3_read_sst_multi, 6},
+    {"_heatwave3_hw3_read_sst", (DL_FUNC) &_heatwave3_hw3_read_sst, 7},
+    {"_heatwave3_hw3_read_sst_multi", (DL_FUNC) &_heatwave3_hw3_read_sst_multi, 7},
     {"_heatwave3_hw3_pixel_clim", (DL_FUNC) &_heatwave3_hw3_pixel_clim, 10},
-    {"_heatwave3_hw3_compute_clim", (DL_FUNC) &_heatwave3_hw3_compute_clim, 17},
-    {"_heatwave3_hw3_compute_clim_multi", (DL_FUNC) &_heatwave3_hw3_compute_clim_multi, 17},
+    {"_heatwave3_hw3_compute_clim", (DL_FUNC) &_heatwave3_hw3_compute_clim, 18},
+    {"_heatwave3_hw3_compute_clim_multi", (DL_FUNC) &_heatwave3_hw3_compute_clim_multi, 18},
     {"_heatwave3_hw3_write_const_clim", (DL_FUNC) &_heatwave3_hw3_write_const_clim, 8},
     {"_heatwave3_hw3_jd_to_doy", (DL_FUNC) &_heatwave3_hw3_jd_to_doy, 1},
     {"_heatwave3_hw3_read_clim_nc", (DL_FUNC) &_heatwave3_hw3_read_clim_nc, 1},
-    {"_heatwave3_hw3_read_subset", (DL_FUNC) &_heatwave3_hw3_read_subset, 6},
+    {"_heatwave3_hw3_read_subset", (DL_FUNC) &_heatwave3_hw3_read_subset, 7},
     {"_heatwave3_hw3_category_daily", (DL_FUNC) &_heatwave3_hw3_category_daily, 8},
     {"_heatwave3_hw3_category_daily_multi", (DL_FUNC) &_heatwave3_hw3_category_daily_multi, 9},
     {"_heatwave3_hw3_file_meta", (DL_FUNC) &_heatwave3_hw3_file_meta, 1},

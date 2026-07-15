@@ -2,8 +2,7 @@
 
 Calculates seasonal and threshold climatologies for each pixel in a
 gridded NetCDF file, following the Hobday et al. (2016) methodology.
-This is the gridded equivalent of
-[`heatwaveR::ts2clm()`](https://rdrr.io/pkg/heatwaveR/man/ts2clm.html).
+This is the gridded equivalent of `heatwaveR::ts2clm()`.
 
 ## Usage
 
@@ -16,6 +15,7 @@ ts2clm3(
   lat_range = NULL,
   time_range = NULL,
   depth = NULL,
+  depth_range = NULL,
   var_name = NULL,
   maxPadLength = FALSE,
   windowHalfWidth = 5L,
@@ -68,7 +68,22 @@ ts2clm3(
 - depth:
 
   Optional integer depth/level index for 4D data. Default `NULL` (no
-  depth subsetting).
+  depth subsetting). Selects and squeezes a single level – the
+  climatology is computed as if the data were 3D. Mutually exclusive
+  with `depth_range`.
+
+- depth_range:
+
+  Optional numeric vector of length 2: `c(min_depth, max_depth)` in the
+  depth coordinate's own units (typically metres, positive down). Unlike
+  `depth`, this keeps the full contiguous band of depth levels falling
+  in this range as a real dimension: the climatology is computed
+  independently for every `(lon, lat, depth)` triple, and
+  `paste0(name, "_clim.nc")` gains a `depth` dimension/coordinate.
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  automatically detects and matches this depth range from the
+  climatology file – no separate argument is needed there. Mutually
+  exclusive with `depth`. Default `NULL` (no depth subsetting).
 
 - var_name:
 

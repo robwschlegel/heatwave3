@@ -7,11 +7,11 @@
 [![Codecov test coverage](https://codecov.io/gh/robwschlegel/heatwave3/branch/main/graph/badge.svg)](https://app.codecov.io/gh/robwschlegel/heatwave3?branch=main)
 <!-- badges: end -->
 
-**heatwave3** detects marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. It is a ground-up C++ reimplementation of [**heatwaveR**](https://robwschlegel.github.io/heatwaveR/), designed for gridded datasets rather than individual time series.
+**`heatwave3`** detects marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF files using the Hobday et al. (2016, 2018) definition. It is a ground-up C++ reimplementation of [**`heatwaveR`**](https://robwschlegel.github.io/heatwaveR/), designed for gridded datasets rather than individual time series.
 
 ## Why heatwave3?
 
-Working with large gridded SST datasets (such as OSTIA, OISST, ERA5, CMIP6) using heatwaveR requires looping over each pixel individually in R. For a 400 &times; 200 grid with 40 years of daily data, this takes over an hour. **heatwave3** addresses this with:
+Working with large gridded ocean temperature datasets (such as OISST, OSTIA, GLORYS, CMIP6) using **`heatwaveR`** requires looping over each pixel individually in R. For a 400 &times; 200 grid with 40 years of daily data, this takes over an hour. **`heatwave3`** addresses this with:
 
 1. **C++17 implementation** of all core algorithms (climatology, event detection, categorisation, block averages)
 2. **OpenMP parallelism** across pixels, since each pixel is independent
@@ -32,28 +32,36 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 ## Features
 
 - **Climatology** (`ts2clm3`). Sliding-window percentile with Type-7 quantile, circular-padded rolling mean smoothing, and optional linear detrending (Jacox et al. 2020).
-- **Event detection** (`detect_event3`). Threshold exceedance, run-length encoding, gap joining, and 19 event metrics. Cold-spell support. Optional inline Hobday et al. (2018) severity categories.
+- **Event detection** (`detect_event3`). Threshold exceedance, run-length encoding, gap joining, and 19 event metrics. MCS support. Optional inline Hobday et al. (2018) categories.
 - **All-in-one pipeline** (`detect3`). Climatology, detection, and optional categories in a single call from one `name` stem; read results back with `hw3_export()`.
-- **Spatial blob detection** (`detect_blob3`). 3D connected-component labelling with voxel-level footprint output.
-- **Event categorisation** (`category3`). Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories, for both heatwaves and cold-spells.
+- **Spatial blob detection** (`detect_blob3`). 4D connected-component labelling with voxel-level footprint output.
+- **Event categorisation** (`category3`). Hobday et al. (2018) Moderate/Strong/Severe/Extreme categories, for both MHW and MCS.
 - **Yearly aggregation** (`block_average3`) and **static threshold exceedance** (`exceedance3`).
 - **Plotting**. `event_line3`, `geom_flame3`, `geom_lolli3`, and `plot_metric3` (C++-backed spatial aggregation).
-- **Flexible input**. Single multi-timestep NetCDF, directory of daily files, or explicit file vector.
-- **Automatic dimension detection**. Identifies lon/lat/time/SST from CF attributes, standard names, and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO).
+- **Flexible input**. Single multi-timestep NetCDF file, directory of daily files, or explicit file vector.
+- **Automatic dimension detection**. Identifies lon/lat/time/depth/temperature from CF attributes, standard names, and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO, GLORYS).
 - **Progress reporting**. Percentage-complete updates during long climatology and detection runs.
-- **NetCDF-native output, exported on demand**. The compute functions always write gridded NetCDF; `hw3_export()` reads any product back into R or converts it to CSV, RDS, or Parquet, with optional variable and lon/lat/time subsetting.
-- **Numerical equivalence**. Climatology and event metrics match heatwaveR to rounding precision, validated pixel-by-pixel.
+- **NetCDF-native output, exported on demand**. The compute functions always write gridded NetCDF; `hw3_export()` reads any product back into R or converts it to CSV, RDS, or Parquet, with optional variable and lon/lat/time/depth subsetting.
+- **Numerical equivalence**. Climatology and event metrics match **`heatwaveR`** to rounding precision, validated pixel-by-pixel.
 
 ## Installation
 
 ### Development version (recommended)
 
-The `dev` branch contains the new C++ implementation:
+The `dev` branch contains all of the most cutting-edge things being developed:
+
+```r
+# install.packages("remotes")
+remotes::install_github("robwschlegel/heatwave3@dev")
+```
+
+If however you feel like playing it safe, the main branch is the way to go:
 
 ```r
 # install.packages("remotes")
 remotes::install_github("robwschlegel/heatwave3")
 ```
+
 
 ### System requirements
 
@@ -86,7 +94,7 @@ brew install libomp
 
 ### Thread management
 
-heatwave3 defaults to **50% of available cores** (overridable via `R_HEATWAVE3_NUM_THREADS`). Control threads at the session level or per function call:
+**`heatwave3`** defaults to **50% of available cores** (overridable via `R_HEATWAVE3_NUM_THREADS`). Control threads at the session level or per function call:
 
 ```r
 library(heatwave3)
@@ -98,7 +106,7 @@ setHW3threads(0)      # reset to default (50% of cores)
 detect_event3(..., n_threads = 12)
 ```
 
-heatwave3 never calls `omp_set_num_threads()`, so it does not change thread counts for other OpenMP-using packages. It is also safe under `parallel::mclapply()` (fork-safe via `pthread_atfork`).
+**`heatwave3`** never calls `omp_set_num_threads()`, so it does not change thread counts for other OpenMP-using packages. It is also safe under `parallel::mclapply()` (fork-safe via `pthread_atfork`).
 
 ## Quick start
 
@@ -209,7 +217,7 @@ ts2clm3(sst_file, name = "benguela_detrended",
 
 ## API overview
 
-All functions are suffixed with `3` to avoid namespace conflicts with heatwaveR:
+All functions are suffixed with `3` to avoid namespace conflicts with **`heatwaveR`**:
 
 | Function | Purpose |
 |----------|---------|
@@ -228,18 +236,20 @@ All functions are suffixed with `3` to avoid namespace conflicts with heatwaveR:
 
 ## Vignettes
 
-- **Getting started**. Full pipeline walkthrough with spatial blob figures.
-- **NetCDF output internals**. Output file structure, CF compliance, and reading in R/Python/CDO.
-- **Performance benchmark**. heatwaveR versus heatwave3 timing comparison.
-- **Parallel performance**. OpenMP threads versus R-side parallelism, with per-platform setup.
+- [**Getting started**](https://robwschlegel.github.io/heatwave3/articles/heatwave3.html). Full pipeline walkthrough with spatial blob figures.
+- [**NetCDF output internals**](https://robwschlegel.github.io/heatwave3/articles/netcdf-output.html). Output file structure, CF compliance, and reading in R/Python/CDO.
+- [**Performance benchmark**](https://robwschlegel.github.io/heatwave3/articles/benchmark.html). **`heatwaveR`** versus **`heatwave3`** timing comparison.
+- [**Parallel performance**](https://robwschlegel.github.io/heatwave3/articles/parallelism.html). OpenMP threads versus R-side parallelism, with per-platform setup.
 
 ## Citation
 
-If you use heatwave3 in published research, please cite both:
+If you use **`heatwave3`** in published research, please cite:
 
-- Hobday, A.J., et al. (2016). A hierarchical approach to defining marine heatwaves. *Progress in Oceanography*, 141, 227&ndash;238.
-- Hobday, A.J., et al. (2018). Categorizing and naming marine heatwaves. *Oceanography*, 31(2), 162&ndash;173.
+- Hobday, A.J., et al. (2016). A hierarchical approach to defining marine heatwaves. *Progress in Oceanography*, 141, 227&ndash;238. <a href="https://doi.org/10.1016/j.pocean.2015.12.014" target="_blank" rel="noopener noreferrer">https://doi.org/10.1016/j.pocean.2015.12.014</a>
+- Hobday, A.J., et al. (2018). Categorizing and naming marine heatwaves. *Oceanography*, 31(2), 162&ndash;173. <a href="https://doi.org/10.5670/oceanog.2018.205" target="_blank" rel="noopener noreferrer">https://doi.org/10.5670/oceanog.2018.205</a>
+- Schlegel, R. W., & Smit, A. J. (2018). heatwaveR: A central algorithm for the detection of heatwaves and cold-spells. *Journal of Open Source Software*, 3(27), 821. <a href="https://doi.org/10.21105/joss.00821" target="_blank" rel="noopener noreferrer">https://doi.org/10.21105/joss.00821</a>
+
 
 ## Code of Conduct
 
-Please note that the heatwave3 project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/1/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.
+Please note that the **`heatwave3`** project is released with a [Contributor Code of Conduct](https://contributor-covenant.org/version/2/1/CODE_OF_CONDUCT.html). By contributing to this project, you agree to abide by its terms.

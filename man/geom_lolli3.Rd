@@ -40,6 +40,14 @@ A ggplot2 layer.
 \description{
 A ggplot2 geom that draws lollipop (stem + point) plots for event metrics.
 }
+\details{
+Each lollipop is drawn independently from its own row -- unlike
+\code{\link{geom_flame3}}, nothing here depends on row order or grouping
+within a series. For depth-resolved data, map \code{depth} to \code{colour}
+(or \code{shape}) to distinguish levels, or use
+\code{ggplot2::facet_wrap(~ depth)}; both work with the standard ggplot2
+aesthetics and need no special handling from this geom.
+}
 \examples{
 library(ggplot2)
 df <- data.frame(x = as.Date("2020-01-01") + seq(0, 300, by = 30),

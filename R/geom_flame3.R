@@ -5,6 +5,8 @@
 #' For cold-spells, set \code{reverse = TRUE} to fill where \code{y < y2}.
 #'
 #' @param mapping Set of aesthetic mappings. Requires \code{x}, \code{y}, and \code{y2}.
+#'   An optional \code{depth} aesthetic can be mapped for depth-resolved data
+#'   (see Details).
 #' @param data The data to display.
 #' @param stat The statistical transformation. Default \code{"identity"}.
 #' @param position Position adjustment. Default \code{"identity"}.
@@ -18,6 +20,18 @@
 #' @param inherit.aes Inherit aesthetics from the plot? Default \code{TRUE}.
 #'
 #' @return A ggplot2 layer.
+#'
+#' @details
+#' \code{geom_flame3()} finds exceedance runs by walking each group's rows in
+#' order, so a single group must be one continuous series through \code{x}.
+#' For depth-resolved data (e.g. \code{hw3_export()} on a
+#' \code{ts2clm3(depth_range = ...)} product), map \code{depth} as an
+#' aesthetic -- \code{aes(x = t, y = temp, y2 = thresh, depth = depth)} --
+#' and it is automatically folded into the row grouping, so each depth level
+#' gets its own exceedance runs instead of being treated as one series with
+#' depths interleaved. This happens even though \code{depth} is a plain
+#' numeric column, which ggplot2's own default grouping would otherwise merge
+#' into a single group (unlike a discrete aesthetic such as \code{colour}).
 #'
 #' @export
 #'
@@ -60,6 +74,21 @@ GeomFlame3 <- ggplot2::ggproto("GeomFlame3", ggplot2::Geom,
   ),
 
   extra_params = c("na.rm", "n", "n_gap", "reverse"),
+
+  # A mapped `depth` column is numeric, so ggplot2's own default grouping
+  # (which only folds in discrete aesthetics) leaves it out -- rows from
+  # different depths would land in one group and get RLE'd together as if
+  # they were one continuous series. Re-derive group to include depth
+  # whenever it's present, preserving each existing group's row order.
+  setup_data = function(data, params) {
+    if (!is.null(data$depth)) {
+      data$group <- match(
+        interaction(data$group, data$depth, drop = TRUE, lex.order = TRUE),
+        unique(interaction(data$group, data$depth, drop = TRUE, lex.order = TRUE))
+      )
+    }
+    data
+  },
 
   draw_group = function(data, panel_params, coord,
                         n = 0, n_gap = 0, reverse = FALSE, na.rm = FALSE) {

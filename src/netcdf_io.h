@@ -25,7 +25,15 @@ struct GridData {
     int nlon;
     int nlat;
     int ntime;
-    std::vector<double> sst;  // [nlon * nlat * ntime], pixel-major order
+    // Depth axis. ndepth == 1 and depth empty for ordinary 3D data or a
+    // legacy single-level squeeze (SubsetSpec::depth_index); ndepth > 1 and
+    // depth populated (metres) when a depth_min/depth_max range was read.
+    int ndepth = 1;
+    std::vector<double> depth;
+    // [nlon * nlat * ndepth * ntime], pixel-major order: pixel =
+    // (ilon * nlat + ilat) * ndepth + idepth. Reduces to the plain
+    // ilon * nlat + ilat 3D layout when ndepth == 1.
+    std::vector<double> sst;
 };
 
 struct ClimData {
@@ -34,14 +42,20 @@ struct ClimData {
     int nlon;
     int nlat;
     int ndoy;
-    std::vector<double> seas;   // [nlon * nlat * 366]
-    std::vector<double> thresh; // [nlon * nlat * 366]
-    std::vector<double> var;    // [nlon * nlat * 366], may be empty
+    // See GridData::ndepth/depth.
+    int ndepth = 1;
+    std::vector<double> depth;
+    std::vector<double> seas;   // [nlon * nlat * ndepth * 366]
+    std::vector<double> thresh; // [nlon * nlat * ndepth * 366]
+    std::vector<double> var;    // [nlon * nlat * ndepth * 366], may be empty
 };
 
 // Per-day, per-pixel output (protoEvent / daily). Variable vectors are filled
 // only when present in the file; absent ones are left empty. All data vectors
-// are [nlon * nlat * ntime] in pixel-major ([lon][lat][time]) order.
+// are [nlon * nlat * ndepth * ntime] in pixel-major ([lon][lat][depth][time])
+// order, where pixel = (ilon * nlat + ilat) * ndepth + idepth -- see
+// GridData::ndepth/depth. Reduces to the plain [lon][lat][time] layout when
+// ndepth == 1 (ordinary 3D daily/protoevents, unchanged).
 struct DailyData {
     std::vector<double> lon;
     std::vector<double> lat;
@@ -49,6 +63,8 @@ struct DailyData {
     int nlon = 0;
     int nlat = 0;
     int ntime = 0;
+    int ndepth = 1;
+    std::vector<double> depth;
     std::vector<double> temp;
     std::vector<double> seas;
     std::vector<double> thresh;
@@ -85,6 +101,10 @@ void parse_cf_time(const std::string& units,
                    const std::vector<double>& time_raw,
                    std::vector<int>& julian_days);
 
+// ndepth/depth: pass ndepth <= 1 (depth may be empty) for an ordinary 3D
+// climatology file (unchanged schema). Pass ndepth > 1 with a matching
+// `depth` coordinate (metres) to write a depth-resolved 4D climatology
+// ([lon, lat, depth, doy] data variables plus a "depth" coordinate).
 void write_clim_netcdf(const std::string& file_out,
                        const std::vector<double>& lon,
                        const std::vector<double>& lat,
@@ -99,8 +119,13 @@ void write_clim_netcdf(const std::string& file_out,
                        double pctile,
                        int windowHalfWidth,
                        int smoothPercentileWidth,
-                       const std::string& temp_units);
+                       const std::string& temp_units,
+                       int ndepth = 1,
+                       const std::vector<double>& depth = {});
 
+// event_depth: either empty (ordinary 3D events file, unchanged schema) or
+// one value per event (metres), written as an optional "depth" variable on
+// the event dimension.
 void write_event_netcdf(const std::string& file_out,
                         const std::vector<double>& event_lon,
                         const std::vector<double>& event_lat,
@@ -116,15 +141,19 @@ void write_event_netcdf(const std::string& file_out,
                         int maxGap,
                         bool coldSpells,
                         bool southHemisphere,
-                        const std::string& temp_units);
+                        const std::string& temp_units,
+                        const std::vector<double>& event_depth = {});
 
 ClimData read_clim_netcdf(const std::string& clim_file);
 
 EventData read_event_netcdf(const std::string& event_file);
 
-// Write a per-day, per-pixel NetCDF ([lon, lat, time]). temp and the daily
-// buffers are [nlon*nlat*ntime] pixel-major; any null buffer pointer omits
-// that variable (this selects the protoEvent vs per-day variable sets).
+// Write a per-day, per-pixel NetCDF ([lon, lat, time], or [lon, lat, depth,
+// time] when ndepth > 1). temp and the daily buffers are
+// [nlon*nlat*ndepth*ntime] pixel-major; any null buffer pointer omits that
+// variable (this selects the protoEvent vs per-day variable sets). ndepth/
+// depth follow the same convention as write_clim_netcdf(): pass ndepth <= 1
+// (depth may be empty) for an ordinary 3D file (unchanged schema).
 void write_daily_netcdf(const std::string& file_out,
                         const std::vector<double>& lon,
                         const std::vector<double>& lat,
@@ -146,21 +175,26 @@ void write_daily_netcdf(const std::string& file_out,
                         int maxGap,
                         bool coldSpells,
                         bool southHemisphere,
-                        const std::string& temp_units);
+                        const std::string& temp_units,
+                        int ndepth = 1,
+                        const std::vector<double>& depth = {});
 
 DailyData read_daily_netcdf(const std::string& daily_file);
 
 // Streaming hyperslab read of a gridded product (climatology / daily /
-// protoevents). Reads only the requested lon/lat/time index window and only
-// the requested data variables. Empty range vectors mean "full extent"; an
-// empty `vars` means "all data variables present". `max_rows` (>= 0) caps the
-// number of long-table rows by limiting how many longitude columns are read
-// (<0 = no cap). Returns an Rcpp::List consumed by the R builder. Throws if the
-// file is an events product (those are filtered in R).
+// protoevents). Reads only the requested lon/lat/depth/time index window and
+// only the requested data variables. Empty range vectors mean "full extent";
+// an empty `vars` means "all data variables present". `depth_range` is
+// ignored (with a warning left to the R caller) for a file with no depth
+// dimension; empty means "every depth level" for one that has it. `max_rows`
+// (>= 0) caps the number of long-table rows by limiting how many longitude
+// columns are read (<0 = no cap). Returns an Rcpp::List consumed by the R
+// builder. Throws if the file is an events product (those are filtered in R).
 Rcpp::List read_subset_netcdf(const std::string& file,
                               const std::vector<double>& lon_range,
                               const std::vector<double>& lat_range,
                               const std::vector<int>& t_jd_range,
+                              const std::vector<double>& depth_range,
                               const std::vector<std::string>& vars,
                               int max_rows);
 

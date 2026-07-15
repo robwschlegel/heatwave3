@@ -19,7 +19,19 @@
 #' @param time_range Optional character vector of length 2: \code{c("start", "end")}.
 #'   If \code{NULL}, all time steps are read.
 #' @param depth Optional integer depth/level index for 4D data. Default \code{NULL}
-#'   (no depth subsetting).
+#'   (no depth subsetting). Selects and squeezes a single level -- the
+#'   climatology is computed as if the data were 3D. Mutually exclusive with
+#'   \code{depth_range}.
+#' @param depth_range Optional numeric vector of length 2:
+#'   \code{c(min_depth, max_depth)} in the depth coordinate's own units
+#'   (typically metres, positive down). Unlike \code{depth}, this keeps the
+#'   full contiguous band of depth levels falling in this range as a real
+#'   dimension: the climatology is computed independently for every
+#'   \code{(lon, lat, depth)} triple, and \code{paste0(name, "_clim.nc")}
+#'   gains a \code{depth} dimension/coordinate. \code{\link{detect_event3}}
+#'   automatically detects and matches this depth range from the
+#'   climatology file -- no separate argument is needed there. Mutually
+#'   exclusive with \code{depth}. Default \code{NULL} (no depth subsetting).
 #' @param var_name Name of the SST variable in the NetCDF file. If \code{NULL},
 #'   the variable is auto-detected.
 #' @param maxPadLength Maximum number of consecutive missing days to interpolate.
@@ -63,6 +75,7 @@ ts2clm3 <- function(file_in, name,
                     lat_range = NULL,
                     time_range = NULL,
                     depth = NULL,
+                    depth_range = NULL,
                     var_name = NULL,
                     maxPadLength = FALSE,
                     windowHalfWidth = 5L,
@@ -80,6 +93,11 @@ ts2clm3 <- function(file_in, name,
     stop("Both file_in and name must be provided.", call. = FALSE)
   if (missing(climatologyPeriod) || length(climatologyPeriod) != 2)
     stop("climatologyPeriod must be a character vector of length 2.", call. = FALSE)
+  if (!is.null(depth) && !is.null(depth_range))
+    stop("Specify only one of 'depth' or 'depth_range', not both.", call. = FALSE)
+  if (!is.null(depth_range) && length(depth_range) != 2)
+    stop("depth_range must be a numeric vector of length 2: c(min_depth, max_depth).",
+         call. = FALSE)
 
   file_out <- .hw3_clim_path(name)
   out_dir <- dirname(file_out)
@@ -116,6 +134,7 @@ ts2clm3 <- function(file_in, name,
       lon_range = lon_range,
       lat_range = lat_range,
       depth = dp,
+      depth_range = depth_range,
       maxPadLength = pad,
       windowHalfWidth = as.integer(windowHalfWidth),
       pctile = as.double(pctile),
@@ -137,6 +156,7 @@ ts2clm3 <- function(file_in, name,
       lat_range = lat_range,
       time_range = time_range,
       depth = dp,
+      depth_range = depth_range,
       maxPadLength = pad,
       windowHalfWidth = as.integer(windowHalfWidth),
       pctile = as.double(pctile),

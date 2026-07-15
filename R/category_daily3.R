@@ -52,7 +52,10 @@
 #'   off-event), and \code{category} (integer on event-member exceedance days;
 #'   1 = I Moderate ... 4 = IV Extreme, 5 = ice for cold-spells; \code{NA}
 #'   otherwise). Columns match the \code{detect_event3} \code{daily = "also"}
-#'   product.
+#'   product. A \code{depth} column (metres) is added automatically when
+#'   \code{clim_file}/\code{event_file} are depth-resolved (from
+#'   \code{ts2clm3(depth_range = ...)}) -- one row per pixel per depth level
+#'   per day, no separate argument needed here.
 #'
 #' @details
 #' The SST, climatology, and events files must share the same spatial grid (as
@@ -121,7 +124,7 @@ category_daily3 <- function(sst_file, clim_file, event_file, time_range,
     )
   }
 
-  data.frame(
+  df <- data.frame(
     lon = res$lon,
     lat = res$lat,
     t = as.Date(res$jd - 2440588L, origin = "1970-01-01"),
@@ -134,4 +137,6 @@ category_daily3 <- function(sst_file, clim_file, event_file, time_range,
     category = res$category,
     stringsAsFactors = FALSE
   )
+  if (!is.null(res$depth)) df$depth <- res$depth
+  df
 }

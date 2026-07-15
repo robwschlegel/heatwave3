@@ -12,6 +12,7 @@ ts2clm3(
   lat_range = NULL,
   time_range = NULL,
   depth = NULL,
+  depth_range = NULL,
   var_name = NULL,
   maxPadLength = FALSE,
   windowHalfWidth = 5L,
@@ -48,7 +49,20 @@ If \code{NULL}, all latitudes are used.}
 If \code{NULL}, all time steps are read.}
 
 \item{depth}{Optional integer depth/level index for 4D data. Default \code{NULL}
-(no depth subsetting).}
+(no depth subsetting). Selects and squeezes a single level -- the
+climatology is computed as if the data were 3D. Mutually exclusive with
+\code{depth_range}.}
+
+\item{depth_range}{Optional numeric vector of length 2:
+\code{c(min_depth, max_depth)} in the depth coordinate's own units
+(typically metres, positive down). Unlike \code{depth}, this keeps the
+full contiguous band of depth levels falling in this range as a real
+dimension: the climatology is computed independently for every
+\code{(lon, lat, depth)} triple, and \code{paste0(name, "_clim.nc")}
+gains a \code{depth} dimension/coordinate. \code{\link{detect_event3}}
+automatically detects and matches this depth range from the
+climatology file -- no separate argument is needed there. Mutually
+exclusive with \code{depth}. Default \code{NULL} (no depth subsetting).}
 
 \item{var_name}{Name of the SST variable in the NetCDF file. If \code{NULL},
 the variable is auto-detected.}

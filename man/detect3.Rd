@@ -13,6 +13,7 @@ detect3(
   lat_range = NULL,
   time_range = NULL,
   depth = NULL,
+  depth_range = NULL,
   maxPadLength = FALSE,
   windowHalfWidth = 5L,
   pctile = 90,
@@ -58,6 +59,14 @@ dates of the baseline period, for example \code{c("1991-01-01", "2020-12-31")}.}
 \item{time_range}{Optional \code{c("start", "end")} date range.}
 
 \item{depth}{Optional depth/level index for 4D data.}
+
+\item{depth_range}{Optional numeric vector of length 2:
+\code{c(min_depth, max_depth)}. Runs the climatology and event detection
+natively across this contiguous band of depth levels instead of a
+single squeezed level -- see \code{\link{ts2clm3}}'s \code{depth_range}
+for details. Mutually exclusive with \code{depth}. Compatible with
+\code{daily}/\code{protoEvent}: the per-day product gains a \code{depth}
+dimension the same way the climatology and event files do.}
 
 \item{maxPadLength}{Max consecutive NAs to interpolate. Default \code{FALSE}.}
 

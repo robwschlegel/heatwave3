@@ -119,15 +119,11 @@ existing lon/lat/time connectivity already works (adjacent index, not
 adjacent degrees or adjacent days-within-some-window).</p>
 <p>This vignette uses the small 2x2 pixel, 5 depth-level GLORYS fixture
 bundled with the package
-(<code>system.file("extdata/glorys_depth_test.nc", package = "heatwave3")</code>),
-the same one used by the test suite – so, unlike
-<code><a href="../articles/depth-range.html">vignette("depth-range")</a></code>, every chunk here actually runs.
+(<code>system.file("extdata/glorys_depth_test.nc", package = "heatwave3")</code>).
 The trade-off: with only 4 horizontal pixels, this fixture can’t show
-interesting <em>spatial</em> footprints (see the large-file examples in
-<code><a href="../articles/depth-range.html">vignette("depth-range")</a></code> for that). What it can show clearly
-is the <em>vertical</em> structure this section adds – a blob’s
-footprint growing and shrinking through the water column over its
-lifetime.</p>
+interesting <em>spatial</em> footprints. What it can show clearly is the
+<em>vertical</em> structure this section adds – a blob’s footprint
+growing and shrinking through the water column over its lifetime.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -143,45 +139,19 @@ fixture (0.49-5.08 m):</p>
 <code class="sourceCode R"><span><span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"mhw4d"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">f</span>, name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1993-01-01"</span>, <span class="st">"2019-12-31"</span><span class="op">)</span>,</span>
-<span>        depth_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span>        depth_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, </span>
+<span>        quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<details><summary>
+Show console output
+</summary><pre><code><span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/20 pixels (5%)  2/20 pixels (10%)  3/20 pixels (15%)  4/20 pixels (20%)  5/20 pixels (25%)  6/20 pixels (30%)  7/20 pixels (35%)  8/20 pixels (40%)  9/20 pixels (45%)  10/20 pixels (50%)  11/20 pixels (55%)  12/20 pixels (60%)  13/20 pixels (65%)  14/20 pixels (70%)  15/20 pixels (75%)  16/20 pixels (80%)  17/20 pixels (85%)  18/20 pixels (90%)  19/20 pixels (95%)  20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc...</span></span>
-<span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc</span></span>
-<span><span class="co">#&gt; Rows (long format): 7,320   grid: 2 lon x 2 lat</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Head:</span></span>
-<span><span class="co">#&gt;        lon       lat doy    seas  thresh    depth</span></span>
-<span><span class="co">#&gt; 1 25.16667 -34.91667   1 24.4421 25.7957 0.494025</span></span>
-<span><span class="co">#&gt; 2 25.16667 -34.91667   2 24.4798 25.8305 0.494025</span></span>
-<span><span class="co">#&gt; 3 25.16667 -34.91667   3 24.5167 25.8673 0.494025</span></span>
-<span><span class="co">#&gt; 4 25.16667 -34.91667   4 24.5528 25.9038 0.494025</span></span>
-<span><span class="co">#&gt; 5 25.16667 -34.91667   5 24.5878 25.9396 0.494025</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Tail:</span></span>
-<span><span class="co">#&gt;        lon       lat doy    seas  thresh    depth</span></span>
-<span><span class="co">#&gt; 7316 25.25 -34.83333 362 24.0087 25.4949 5.078224</span></span>
-<span><span class="co">#&gt; 7317 25.25 -34.83333 363 24.0447 25.5349 5.078224</span></span>
-<span><span class="co">#&gt; 7318 25.25 -34.83333 364 24.0814 25.5727 5.078224</span></span>
-<span><span class="co">#&gt; 7319 25.25 -34.83333 365 24.1189 25.6097 5.078224</span></span>
-<span><span class="co">#&gt; 7320 25.25 -34.83333 366 24.1567 25.6499 5.078224</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Summary:</span></span>
-<span><span class="co">#&gt;   ocean pixels (valid climatology): 4</span></span>
-<span><span class="co">#&gt;   seas:   20.98 to 25.55</span></span>
-<span><span class="co">#&gt;   thresh:    22 to 26.92</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
-<span><span class="co">#&gt; ------------------------------------------------------------------</span></span></code></pre></div>
-<p><code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> picks up the depth dimension from
+<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpcgeYwU/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Done.</span></span></code></pre>
+</details><p><code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> picks up the depth dimension from
 <code>stem_clim.nc</code> automatically:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">blobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_blob3.html">detect_blob3</a></span><span class="op">(</span><span class="va">f</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span>
 <span>                      minVoxels <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                      return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event"</span>, <span class="st">"daily"</span>, <span class="st">"voxel"</span><span class="op">)</span><span class="op">)</span></span>
@@ -189,7 +159,7 @@ fixture (0.49-5.08 m):</p>
 <span><span class="co">#&gt; [1] 412</span></span></code></pre></div>
 <p><code>event</code> and <code>daily</code> both gain depth/volume
 columns; <code>voxel</code> gains a <code>depth</code> column:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">blobs</span><span class="op">$</span><span class="va">event</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "blob"                   "duration"               "date_start"            </span></span>
 <span><span class="co">#&gt;  [4] "date_end"               "date_peak"              "cumI_km2_day"          </span></span>
@@ -214,7 +184,7 @@ thickness, summed over the depth levels a blob occupies that day);
 <code>depthOfPeakIntensity_m</code> is the depth at which the single
 most intense day of the blob’s life occurred. <code>rankBy</code>
 accepts the volume metrics too when the input is depth-resolved:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_blob3.html">detect_blob3</a></span><span class="op">(</span><span class="va">f</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span>
 <span>                    topN <span class="op">=</span> <span class="fl">5</span>, rankBy <span class="op">=</span> <span class="st">"totalVolume_km3"</span>, return <span class="op">=</span> <span class="st">"event"</span><span class="op">)</span></span>
 <span><span class="va">top</span><span class="op">$</span><span class="va">event</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"blob"</span>, <span class="st">"rank"</span>, <span class="st">"duration"</span>, <span class="st">"depth_min_m"</span>, <span class="st">"depth_max_m"</span>,</span>
@@ -234,7 +204,7 @@ vertical bounding box span more than a single level
 (<code>depth_min_m != depth_max_m</code>)? If depth connectivity did
 nothing, this would always be zero – every blob would be confined to the
 one level it was seeded on.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spans_multiple</span> <span class="op">&lt;-</span> <span class="va">blobs</span><span class="op">$</span><span class="va">event</span><span class="op">$</span><span class="va">depth_min_m</span> <span class="op">!=</span> <span class="va">blobs</span><span class="op">$</span><span class="va">event</span><span class="op">$</span><span class="va">depth_max_m</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">spans_multiple</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.9660194</span></span>
@@ -249,12 +219,12 @@ shared blobs, not kept artificially separate per level.</p>
 </h2>
 <p>Pick one blob and look at how its depth range and volume evolve day
 by day, using the <code>daily</code> table:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="va">top</span><span class="op">$</span><span class="va">event</span><span class="op">$</span><span class="va">blob</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">dd</span> <span class="op">&lt;-</span> <span class="va">blobs</span><span class="op">$</span><span class="va">daily</span><span class="op">[</span><span class="va">blobs</span><span class="op">$</span><span class="va">daily</span><span class="op">$</span><span class="va">blob</span> <span class="op">==</span> <span class="va">b</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">dd</span><span class="op">$</span><span class="va">date</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "1999-05-31" "1999-06-27"</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">dd</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">depth_min_m</span>, ymax <span class="op">=</span> <span class="va">depth_max_m</span>, fill <span class="op">=</span> <span class="va">mean_delta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_reverse</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"depth (m)"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -266,16 +236,17 @@ by day, using the <code>daily</code> table:</p>
 entirely) is a day the blob temporarily loses part of its vertical
 extent – some level’s exceedance broke the connection to the surface (or
 the deep levels) that day, then reconnected once conditions there
-crossed the threshold again.</p>
+crossed the threshold again. Note that in this example however there are
+no missing values.</p>
 </div>
 <div class="section level2">
 <h2 id="depth-time-structure-of-a-single-blob">Depth-time structure of a single blob<a class="anchor" aria-label="anchor" href="#depth-time-structure-of-a-single-blob"></a>
 </h2>
 <p>The <code>voxel</code> table gives the full per-voxel footprint,
-which – aggregated across this fixture’s 4 horizontal pixels since
+which – aggregated across this fixture’s 5 horizontal pixels since
 they’re not the interesting axis here – makes a genuine depth-time
 “Hovmoeller” view of one blob’s water column:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vox</span> <span class="op">&lt;-</span> <span class="va">blobs</span><span class="op">$</span><span class="va">voxel</span><span class="op">[</span><span class="va">blobs</span><span class="op">$</span><span class="va">voxel</span><span class="op">$</span><span class="va">blob</span> <span class="op">==</span> <span class="va">b</span>, <span class="op">]</span></span>
 <span><span class="va">agg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">delta</span> <span class="op">~</span> <span class="va">date</span> <span class="op">+</span> <span class="va">depth</span>, data <span class="op">=</span> <span class="va">vox</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span></span>
@@ -289,28 +260,9 @@ they’re not the interesting axis here – makes a genuine depth-time
 <p>The gaps (white tiles) are days/levels that didn’t exceed the
 threshold that day and so aren’t part of the blob – exactly the same
 days visible as notches in the ribbon plot above, just resolved to the
-individual level rather than a min/max envelope.</p>
-</div>
-<div class="section level2">
-<h2 id="api-notes">API notes<a class="anchor" aria-label="anchor" href="#api-notes"></a>
-</h2>
-<ul>
-<li>No new argument was added to switch this on – it’s inferred from
-<code>clim_file</code>, matching
-<code><a href="../reference/detect_event3.html">detect_event3()</a></code>/<code><a href="../reference/category_daily3.html">category_daily3()</a></code>.</li>
-<li>The old <code>connectivity</code> argument is gone. It only ever
-accepted the value <code>6</code> (an assertion, not a real choice), so
-there was no configurability to preserve; connectivity is now chosen
-automatically – 6 (lon/lat/time) for an ordinary 3D
-<code>clim_file</code>, 8 (lon/lat/depth/time) for a depth-resolved
-one.</li>
-<li>
-<code>wrapDateline</code> is unchanged and still only wraps
-longitude; depth is never wrapped (it isn’t periodic).</li>
-<li>For an ordinary 3D <code>clim_file</code>, none of this changes
-anything: no depth columns appear, and connectivity stays 3-axis exactly
-as before.</li>
-</ul>
+individual level rather than a min/max envelope. Note however that for
+this example there are no gaps, the distance between the tiles is due to
+the increasing size of the depth layers.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -60,10 +60,10 @@ event_file <- tempfile(fileext = ".nc")
 
 detect3(sst_file, clim_file, event_file,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/sst_test.nc...
-#> Error: NetCDF error in inq varid /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa3c9b0736.nc: NetCDF: Variable not found
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...
+#> Error: NetCDF error in inq varid /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc7ca7eeb8.nc: NetCDF: Variable not found
 
 plot_metric3(event_file, metric = "intensity_max", summary = "mean")
-#> Error: NetCDF error in open /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa3c9b0736.nc: No such file or directory
+#> Error: NetCDF error in open /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc7ca7eeb8.nc: No such file or directory
 # }
 ```

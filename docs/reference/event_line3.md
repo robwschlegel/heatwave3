@@ -96,7 +96,7 @@ clim_file <- tempfile(fileext = ".nc")
 
 ts2clm3(sst_file, clim_file,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
 #> 
@@ -106,11 +106,11 @@ ts2clm3(sst_file, clim_file,
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa4207b2ed.nc_clim.nc...
+#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa4207b2ed.nc_clim.nc
+#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -134,13 +134,13 @@ ts2clm3(sst_file, clim_file,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa4207b2ed.nc_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa4207b2ed.nc_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 event_line3(sst_file, clim_file,
             lon = 26.525, lat = -34.125,
             start_date = "2010-01-01", end_date = "2012-12-31")
-#> Error: NetCDF error in open /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa4207b2ed.nc: No such file or directory
+#> Error: NetCDF error in open /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc: No such file or directory
 # }
 ```

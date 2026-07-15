@@ -76,11 +76,11 @@ event_file <- tempfile(fileext = ".nc")
 
 detect3(sst_file, clim_file, event_file,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/sst_test.nc...
-#> Error: NetCDF error in inq varid /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa1486f191.nc: NetCDF: Variable not found
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...
+#> Error: NetCDF error in inq varid /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc7622485d4.nc: NetCDF: Variable not found
 
 cats <- category3(event_file, clim_file)
-#> Error: Event file does not exist: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmps4enhX/file15daa1486f191.nc
+#> Error: Event file does not exist: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc7622485d4.nc
 table(cats$category)
 #> Error: object 'cats' not found
 # }

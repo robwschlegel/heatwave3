@@ -30,16 +30,11 @@ days-within-some-window).
 
 This vignette uses the small 2x2 pixel, 5 depth-level GLORYS fixture
 bundled with the package
-(`system.file("extdata/glorys_depth_test.nc", package = "heatwave3")`),
-the same one used by the test suite – so, unlike
-[`vignette("depth-range")`](https://robwschlegel.github.io/heatwave3/index.html/articles/depth-range.md),
-every chunk here actually runs. The trade-off: with only 4 horizontal
-pixels, this fixture can’t show interesting *spatial* footprints (see
-the large-file examples in
-[`vignette("depth-range")`](https://robwschlegel.github.io/heatwave3/index.html/articles/depth-range.md)
-for that). What it can show clearly is the *vertical* structure this
-section adds – a blob’s footprint growing and shrinking through the
-water column over its lifetime.
+(`system.file("extdata/glorys_depth_test.nc", package = "heatwave3")`).
+The trade-off: with only 4 horizontal pixels, this fixture can’t show
+interesting *spatial* footprints. What it can show clearly is the
+*vertical* structure this section adds – a blob’s footprint growing and
+shrinking through the water column over its lifetime.
 
 ``` r
 
@@ -59,43 +54,18 @@ First, a depth-resolved climatology covering all 5 levels in the fixture
 stem <- file.path(tempdir(), "mhw4d")
 ts2clm3(f, name = stem,
         climatologyPeriod = c("1993-01-01", "2019-12-31"),
-        depth_range = c(0, 10))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b232dd03/heatwave3/extdata/glorys_depth_test.nc...
-#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
-#> Computing climatology with 1 thread(s)...
-#>   1/20 pixels (5%)  2/20 pixels (10%)  3/20 pixels (15%)  4/20 pixels (20%)  5/20 pixels (25%)  6/20 pixels (30%)  7/20 pixels (35%)  8/20 pixels (40%)  9/20 pixels (45%)  10/20 pixels (50%)  11/20 pixels (55%)  12/20 pixels (60%)  13/20 pixels (65%)  14/20 pixels (70%)  15/20 pixels (75%)  16/20 pixels (80%)  17/20 pixels (85%)  18/20 pixels (90%)  19/20 pixels (95%)  20/20 pixels (100%)
-#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc...
-#> Done.
-#> 
-#> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc
-#> Rows (long format): 7,320   grid: 2 lon x 2 lat
-#> 
-#> Head:
-#>        lon       lat doy    seas  thresh    depth
-#> 1 25.16667 -34.91667   1 24.4421 25.7957 0.494025
-#> 2 25.16667 -34.91667   2 24.4798 25.8305 0.494025
-#> 3 25.16667 -34.91667   3 24.5167 25.8673 0.494025
-#> 4 25.16667 -34.91667   4 24.5528 25.9038 0.494025
-#> 5 25.16667 -34.91667   5 24.5878 25.9396 0.494025
-#> 
-#> Tail:
-#>        lon       lat doy    seas  thresh    depth
-#> 7316 25.25 -34.83333 362 24.0087 25.4949 5.078224
-#> 7317 25.25 -34.83333 363 24.0447 25.5349 5.078224
-#> 7318 25.25 -34.83333 364 24.0814 25.5727 5.078224
-#> 7319 25.25 -34.83333 365 24.1189 25.6097 5.078224
-#> 7320 25.25 -34.83333 366 24.1567 25.6499 5.078224
-#> 
-#> Summary:
-#>   ocean pixels (valid climatology): 4
-#>   seas:   20.98 to 25.55
-#>   thresh:    22 to 26.92
-#> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpkoWEpj/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
-#> ------------------------------------------------------------------
+        depth_range = c(0, 10), 
+        quiet = TRUE)
 ```
+
+Show console output
+
+    #> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/glorys_depth_test.nc...
+    #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
+    #> Computing climatology with 1 thread(s)...
+    #>   1/20 pixels (5%)  2/20 pixels (10%)  3/20 pixels (15%)  4/20 pixels (20%)  5/20 pixels (25%)  6/20 pixels (30%)  7/20 pixels (35%)  8/20 pixels (40%)  9/20 pixels (45%)  10/20 pixels (50%)  11/20 pixels (55%)  12/20 pixels (60%)  13/20 pixels (65%)  14/20 pixels (70%)  15/20 pixels (75%)  16/20 pixels (80%)  17/20 pixels (85%)  18/20 pixels (90%)  19/20 pixels (95%)  20/20 pixels (100%)
+    #> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpcgeYwU/mhw4d_clim.nc...
+    #> Done.
 
 [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
 picks up the depth dimension from `stem_clim.nc` automatically:
@@ -203,12 +173,13 @@ Any day where the ribbon narrows (or a depth level briefly drops out
 entirely) is a day the blob temporarily loses part of its vertical
 extent – some level’s exceedance broke the connection to the surface (or
 the deep levels) that day, then reconnected once conditions there
-crossed the threshold again.
+crossed the threshold again. Note that in this example however there are
+no missing values.
 
 ## Depth-time structure of a single blob
 
 The `voxel` table gives the full per-voxel footprint, which – aggregated
-across this fixture’s 4 horizontal pixels since they’re not the
+across this fixture’s 5 horizontal pixels since they’re not the
 interesting axis here – makes a genuine depth-time “Hovmoeller” view of
 one blob’s water column:
 
@@ -230,19 +201,6 @@ ggplot(agg, aes(x = date, y = depth, fill = delta)) +
 The gaps (white tiles) are days/levels that didn’t exceed the threshold
 that day and so aren’t part of the blob – exactly the same days visible
 as notches in the ribbon plot above, just resolved to the individual
-level rather than a min/max envelope.
-
-## API notes
-
-- No new argument was added to switch this on – it’s inferred from
-  `clim_file`, matching
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)/[`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md).
-- The old `connectivity` argument is gone. It only ever accepted the
-  value `6` (an assertion, not a real choice), so there was no
-  configurability to preserve; connectivity is now chosen automatically
-  – 6 (lon/lat/time) for an ordinary 3D `clim_file`, 8
-  (lon/lat/depth/time) for a depth-resolved one.
-- `wrapDateline` is unchanged and still only wraps longitude; depth is
-  never wrapped (it isn’t periodic).
-- For an ordinary 3D `clim_file`, none of this changes anything: no
-  depth columns appear, and connectivity stays 3-axis exactly as before.
+level rather than a min/max envelope. Note however that for this example
+there are no gaps, the distance between the tiles is due to the
+increasing size of the depth layers.

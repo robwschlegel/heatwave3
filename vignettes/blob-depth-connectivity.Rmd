@@ -17,6 +17,19 @@ knitr::opts_chunk$set(
 has_test_data <- file.exists(
   system.file("extdata/glorys_depth_test.nc", package = "heatwave3")
 )
+
+# Chunks tagged fold_output = TRUE show their code normally but wrap the
+# printed console output (e.g. ts2clm3()'s per-pixel progress messages) in a
+# collapsed <details> block, since that output is long and not the point.
+default_output_hook <- knitr::knit_hooks$get("output")
+knitr::knit_hooks$set(output = function(x, options) {
+  out <- default_output_hook(x, options)
+  if (isTRUE(options$fold_output)) {
+    sprintf("<details>\n<summary>Show console output</summary>\n\n%s\n\n</details>", out)
+  } else {
+    out
+  }
+})
 ```
 
 ## Overview
@@ -42,11 +55,9 @@ degrees or adjacent days-within-some-window).
 
 This vignette uses the small 2x2 pixel, 5 depth-level GLORYS fixture bundled
 with the package (`system.file("extdata/glorys_depth_test.nc", package =
-"heatwave3")`), the same one used by the test suite -- so, unlike
-`vignette("depth-range")`, every chunk here actually runs. The trade-off: with
+"heatwave3")`). The trade-off: with
 only 4 horizontal pixels, this fixture can't show interesting *spatial*
-footprints (see the large-file examples in `vignette("depth-range")` for
-that). What it can show clearly is the *vertical* structure this section
+footprints. What it can show clearly is the *vertical* structure this section
 adds -- a blob's footprint growing and shrinking through the water column
 over its lifetime.
 
@@ -62,11 +73,12 @@ f <- system.file("extdata/glorys_depth_test.nc", package = "heatwave3")
 First, a depth-resolved climatology covering all 5 levels in the fixture
 (0.49-5.08 m):
 
-```{r clim, eval = has_test_data}
+```{r clim, eval = has_test_data, fold_output = TRUE}
 stem <- file.path(tempdir(), "mhw4d")
 ts2clm3(f, name = stem,
         climatologyPeriod = c("1993-01-01", "2019-12-31"),
-        depth_range = c(0, 10))
+        depth_range = c(0, 10), 
+        quiet = TRUE)
 ```
 
 `detect_blob3()` picks up the depth dimension from `stem_clim.nc`
@@ -144,12 +156,12 @@ Any day where the ribbon narrows (or a depth level briefly drops out
 entirely) is a day the blob temporarily loses part of its vertical extent --
 some level's exceedance broke the connection to the surface (or the deep
 levels) that day, then reconnected once conditions there crossed the
-threshold again.
+threshold again. Note that in this example however there are no missing values.
 
 ## Depth-time structure of a single blob
 
 The `voxel` table gives the full per-voxel footprint, which -- aggregated
-across this fixture's 4 horizontal pixels since they're not the interesting
+across this fixture's 5 horizontal pixels since they're not the interesting
 axis here -- makes a genuine depth-time "Hovmoeller" view of one blob's water
 column:
 
@@ -168,17 +180,6 @@ ggplot(agg, aes(x = date, y = depth, fill = delta)) +
 The gaps (white tiles) are days/levels that didn't exceed the threshold that
 day and so aren't part of the blob -- exactly the same days visible as
 notches in the ribbon plot above, just resolved to the individual level
-rather than a min/max envelope.
+rather than a min/max envelope. Note however that for this example there are no gaps,
+the distance between the tiles is due to the increasing size of the depth layers.
 
-## API notes
-
-- No new argument was added to switch this on -- it's inferred from
-  `clim_file`, matching `detect_event3()`/`category_daily3()`.
-- The old `connectivity` argument is gone. It only ever accepted the value
-  `6` (an assertion, not a real choice), so there was no configurability to
-  preserve; connectivity is now chosen automatically -- 6 (lon/lat/time) for
-  an ordinary 3D `clim_file`, 8 (lon/lat/depth/time) for a depth-resolved one.
-- `wrapDateline` is unchanged and still only wraps longitude; depth is never
-  wrapped (it isn't periodic).
-- For an ordinary 3D `clim_file`, none of this changes anything: no depth
-  columns appear, and connectivity stays 3-axis exactly as before.

@@ -13,5 +13,6 @@
 ^heatwave3\.code-workspace$
 ^configure\.win$
 ^src/Makevars$
+^windows$
 ^CLAUDE\.md$
 ^dev$

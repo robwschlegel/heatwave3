@@ -55,6 +55,14 @@ The `dev` branch contains all of the most cutting-edge things being developed:
 remotes::install_github("robwschlegel/heatwave3@dev")
 ```
 
+If however you feel like playing it safe, the main branch is the way to go:
+
+```r
+# install.packages("remotes")
+remotes::install_github("robwschlegel/heatwave3")
+```
+
+
 ### System requirements
 
 heatwave3 requires the **netCDF C library** (version 4.0+). The `configure` script finds it automatically via `nc-config` or `pkg-config`.

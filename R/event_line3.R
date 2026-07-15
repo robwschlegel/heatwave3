@@ -37,12 +37,12 @@
 #' @examples
 #' \donttest{
 #' sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-#' clim_file <- tempfile(fileext = ".nc")
+#' stem <- file.path(tempdir(), "demo")
 #'
-#' ts2clm3(sst_file, clim_file,
+#' ts2clm3(sst_file, name = stem,
 #'         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 #'
-#' event_line3(sst_file, clim_file,
+#' event_line3(sst_file, paste0(stem, "_clim.nc"),
 #'             lon = 26.525, lat = -34.125,
 #'             start_date = "2010-01-01", end_date = "2012-12-31")
 #' }

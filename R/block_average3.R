@@ -12,13 +12,12 @@
 #' @examples
 #' \donttest{
 #' sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
-#' clim_file <- tempfile(fileext = ".nc")
-#' event_file <- tempfile(fileext = ".nc")
+#' stem <- file.path(tempdir(), "demo")
 #'
-#' detect3(sst_file, clim_file, event_file,
+#' detect3(sst_file, name = stem,
 #'         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 #'
-#' ba <- block_average3(event_file)
+#' ba <- block_average3(paste0(stem, "_events.nc"))
 #' head(ba)
 #' }
 block_average3 <- function(event_file) {

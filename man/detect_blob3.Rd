@@ -116,17 +116,17 @@ stays 3-axis (lon, lat, time) and no depth columns are added.
 \examples{
 \dontrun{
 sst_file <- "/path/to/sst.nc"
-clim_file <- tempfile(fileext = ".nc")
+stem <- tempfile()
 
 # Step 1: compute climatology
-ts2clm3(sst_file, clim_file,
+ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         n_threads = 4)
 
 # Step 2: detect spatial blobs (heatwaves)
 blobs <- detect_blob3(
   sst_file  = sst_file,
-  clim_file = clim_file,
+  clim_file = paste0(stem, "_clim.nc"),
   minVoxels = 200,
   topN      = 10,
   return    = c("event", "daily", "voxel")
@@ -137,28 +137,28 @@ head(blobs$daily)   # daily progression
 head(blobs$voxel)   # full spatial footprint
 
 # Step 2b: detect cold-spell blobs (use pctile = 10 climatology)
-clim_cold <- tempfile(fileext = ".nc")
-ts2clm3(sst_file, clim_cold,
+stem_cold <- tempfile()
+ts2clm3(sst_file, name = stem_cold,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         pctile = 10, n_threads = 4)
 
 mcs <- detect_blob3(
   sst_file   = sst_file,
-  clim_file  = clim_cold,
+  clim_file  = paste0(stem_cold, "_clim.nc"),
   coldSpells = TRUE,
   minVoxels  = 200,
   topN       = 6
 )
 
 # Step 2c: depth-resolved blobs, connected through the water column too
-clim_4d <- tempfile(fileext = ".nc")
-ts2clm3(sst_file, clim_4d,
+stem_4d <- tempfile()
+ts2clm3(sst_file, name = stem_4d,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         depth_range = c(0, 100), n_threads = 4)
 
 blobs_4d <- detect_blob3(
   sst_file  = sst_file,
-  clim_file = clim_4d,
+  clim_file = paste0(stem_4d, "_clim.nc"),
   minVoxels = 200,
   topN      = 10
 )

@@ -1,5 +1,18 @@
+VERSION = 4.4.1.1-dap
+
 CXX_STD = CXX17
 
-PKG_CPPFLAGS = -I$(LIB_NETCDF)/include
-PKG_LIBS = -L$(LIB_NETCDF)/lib -lnetcdf $(LAPACK_LIBS) $(BLAS_LIBS) $(SHLIB_OPENMP_CXXFLAGS)
-PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)
+PKG_CPPFLAGS = -I../windows/netcdf-$(VERSION)/include
+PKG_LIBS = -L../windows/netcdf-$(VERSION)/lib$(R_ARCH) \
+	-lnetcdf -lcurl -lhdf5_hl -lhdf5 -lszip -lz \
+	-lws2_32 -lcrypt32 -lwldap32
+
+all: clean winlibs
+
+winlibs:
+	"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript.exe" "../tools/winlibs.R" $(VERSION)
+
+clean:
+	rm -Rf $(SHLIB) $(OBJECTS)
+
+.PHONY: all winlibs clean

@@ -6,7 +6,7 @@
 \alias{heatwave3-package}
 \title{heatwave3: Detect Heatwaves and Cold-Spells in Gridded Data}
 \description{
-Detect marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++ with OpenMP parallelism for high performance on large datasets.
+Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++17 with std::thread parallelism for high performance on large datasets.
 }
 \seealso{
 Useful links:
@@ -17,11 +17,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Albertus J. Smit \email{albertus.smit@gmail.com} (\href{https://orcid.org/0000-0002-3799-6126}{ORCID}) [contributor]
+\strong{Maintainer}: Albertus J. Smit \email{albertus.smit@gmail.com} (\href{https://orcid.org/0000-0002-3799-6126}{ORCID})
 
 Authors:
 \itemize{
-  \item Robert W. Schlegel \email{robwschlegel@gmail.com} (\href{https://orcid.org/0000-0002-0705-1287}{ORCID}) [contributor]
+  \item Albertus J. Smit \email{albertus.smit@gmail.com} (\href{https://orcid.org/0000-0002-3799-6126}{ORCID})
+  \item Robert W. Schlegel \email{robwschlegel@gmail.com} (\href{https://orcid.org/0000-0002-0705-1287}{ORCID}) [copyright holder]
 }
 
 }

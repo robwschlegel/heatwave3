@@ -91,7 +91,7 @@ approach (Jacox et al. 2020).}
 \item{roundClm}{Number of decimal places for rounding. Default \code{4}.
 Set to \code{FALSE} to disable.}
 
-\item{n_threads}{Number of OpenMP threads for parallel computation. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}

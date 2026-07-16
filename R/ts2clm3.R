@@ -50,7 +50,7 @@
 #'   approach (Jacox et al. 2020).
 #' @param roundClm Number of decimal places for rounding. Default \code{4}.
 #'   Set to \code{FALSE} to disable.
-#' @param n_threads Number of OpenMP threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default \code{1}.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #' @param quiet Logical. Suppress the post-computation console summary (head,

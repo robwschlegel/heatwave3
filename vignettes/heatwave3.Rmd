@@ -24,8 +24,8 @@ has_test_data <- file.exists(
 
 **heatwave3** detects marine heatwaves (MHWs) and cold-spells directly on
 gridded NetCDF data using the Hobday et al. (2016, 2018) definition. All core
-algorithms are implemented in C++ with OpenMP parallelism, making it orders of
-magnitude faster than per-pixel processing with heatwaveR.
+algorithms are implemented in C++ with `std::thread` parallelism, making it
+orders of magnitude faster than per-pixel processing with heatwaveR.
 
 The typical workflow has three steps:
 
@@ -388,5 +388,5 @@ heatwave3 runs much faster than per-pixel processing with heatwaveR. On a
 The speedup comes from:
 
 1. **C++ implementation** of all core algorithms (climatology + event detection)
-2. **OpenMP parallelism** across pixels
+2. **`std::thread` parallelism** across pixels
 3. **Direct NetCDF I/O** via libnetcdf (no R overhead)

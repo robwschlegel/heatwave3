@@ -14,7 +14,7 @@
 Working with large gridded ocean temperature datasets (such as OISST, OSTIA, GLORYS, CMIP6) using **`heatwaveR`** requires looping over each pixel individually in R. For a 400 &times; 200 grid with 40 years of daily data, this takes over an hour. **`heatwave3`** addresses this with:
 
 1. **C++17 implementation** of all core algorithms (climatology, event detection, categorisation, block averages)
-2. **OpenMP parallelism** across pixels, since each pixel is independent
+2. **`std::thread` parallelism** across pixels, since each pixel is independent
 3. **Direct NetCDF I/O** via libnetcdf, with no R NetCDF packages needed at runtime
 
 ### Performance
@@ -82,15 +82,9 @@ sudo apt install libnetcdf-dev
 sudo dnf install netcdf-devel
 ```
 
-### OpenMP parallelism
+### In-process parallelism
 
-On Linux, OpenMP works without extra setup. On macOS, the `configure` script probes for a working OpenMP runtime (Apple Clang with R's own bundled libomp, Homebrew libomp, or user-supplied flags) using a compile-link-run test. If none is found, heatwave3 falls back to single-threaded mode.
-
-To install Homebrew's libomp (may help on some macOS configurations):
-
-```bash
-brew install libomp
-```
+**`heatwave3`** uses C++ `std::thread` for in-process parallelism, not OpenMP. There is no OpenMP toolchain to install or enable -- no `libomp`, no `omp.h`, nothing for `configure` to probe for -- since `std::thread` is part of the C++ standard library and works out of the box on every platform. Earlier versions used OpenMP; it was replaced because a `dlopen`-ed `libomp` could crash on macOS when heatwave3 ran alongside other native-heavy packages (terra, sf, GDAL) or inside IDEs that embed R (e.g. Positron). See the [Parallel performance](https://robwschlegel.github.io/heatwave3/articles/parallelism.html) vignette for the full story and a performance comparison.
 
 ### Thread management
 
@@ -106,7 +100,7 @@ setHW3threads(0)      # reset to default (50% of cores)
 detect_event3(..., n_threads = 12)
 ```
 
-**`heatwave3`** never calls `omp_set_num_threads()`, so it does not change thread counts for other OpenMP-using packages. It is also safe under `parallel::mclapply()` (fork-safe via `pthread_atfork`).
+**`heatwave3`** has no OpenMP dependency, so it can never change thread counts for other OpenMP-using packages in the same session. It is also fork-safe under `parallel::mclapply()`: each parallel region joins its worker threads before returning, so no heatwave3 threads are ever alive at fork time.
 
 ## Quick start
 
@@ -239,7 +233,7 @@ All functions are suffixed with `3` to avoid namespace conflicts with **`heatwav
 - [**Getting started**](https://robwschlegel.github.io/heatwave3/articles/heatwave3.html). Full pipeline walkthrough with spatial blob figures.
 - [**NetCDF output internals**](https://robwschlegel.github.io/heatwave3/articles/netcdf-output.html). Output file structure, CF compliance, and reading in R/Python/CDO.
 - [**Performance benchmark**](https://robwschlegel.github.io/heatwave3/articles/benchmark.html). **`heatwaveR`** versus **`heatwave3`** timing comparison.
-- [**Parallel performance**](https://robwschlegel.github.io/heatwave3/articles/parallelism.html). OpenMP threads versus R-side parallelism, with per-platform setup.
+- [**Parallel performance**](https://robwschlegel.github.io/heatwave3/articles/parallelism.html). In-process `std::thread` parallelism versus R-side (PSOCK) parallelism, with per-platform setup and a comparison against the retired OpenMP backend.
 
 ## Citation
 

@@ -52,7 +52,7 @@
 #'   \code{temp}, \code{seas}, \code{thresh}, \code{threshCriterion},
 #'   \code{durationCriterion}, \code{event}, \code{event_no}. Mutually exclusive
 #'   with \code{daily}. Default \code{FALSE}.
-#' @param n_threads Number of OpenMP threads. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default \code{1}.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #' @param quiet Logical. Suppress the post-computation console summary (head,

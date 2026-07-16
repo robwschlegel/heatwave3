@@ -93,7 +93,7 @@ mirroring \code{heatwaveR::detect_event(protoEvents = TRUE)}. Variables:
 \code{durationCriterion}, \code{event}, \code{event_no}. Mutually exclusive
 with \code{daily}. Default \code{FALSE}.}
 
-\item{n_threads}{Number of OpenMP threads. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}

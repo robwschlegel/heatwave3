@@ -53,7 +53,7 @@
 #' @param protoEvent Logical. Write the per-day proto-event series
 #'   (\code{paste0(name, "_protoevents.nc")}) instead of the event table. See
 #'   \code{\link{detect_event3}}. Default \code{FALSE}.
-#' @param n_threads Number of OpenMP threads. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default \code{1}.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #' @param quiet Logical. Suppress the post-computation console summaries?

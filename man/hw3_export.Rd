@@ -28,7 +28,7 @@ must be one of \code{.csv}, \code{.rds}, or \code{.parquet}. When
 
 \item{vars}{Optional character vector of data variables to read. \code{NULL}
 (the default) reads all variables present. For example \code{c("seas",
-  "thresh")} for a climatology, or \code{c("temp", "category")} for a daily
+"thresh")} for a climatology, or \code{c("temp", "category")} for a daily
 product. An unknown name raises an error listing the available variables.}
 
 \item{lon_range, lat_range}{Optional numeric \code{c(min, max)} windows. Only

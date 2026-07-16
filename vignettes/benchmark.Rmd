@@ -23,6 +23,13 @@ We compare three configurations:
 2. **heatwave3 (1 thread)**, pure C++ with single-threaded execution
 3. **heatwave3 (12 threads)**, pure C++ with OpenMP parallelism
 
+> **Backend note.** These timings were recorded before heatwave3 replaced its
+> OpenMP backend with C++ `std::thread` (see the
+> [Parallel performance](parallelism.html) vignette). The `std::thread` build
+> tracks OpenMP's scaling curve within about 5%, so the relative speedups here
+> versus heatwaveR still hold; only the in-process threading mechanism itself
+> has changed, not its performance.
+
 ## Test data
 
 ```{r data}

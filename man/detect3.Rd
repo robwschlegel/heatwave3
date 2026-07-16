@@ -118,7 +118,7 @@ or \code{"only"}. See \code{\link{detect_event3}}.}
 (\code{paste0(name, "_protoevents.nc")}) instead of the event table. See
 \code{\link{detect_event3}}. Default \code{FALSE}.}
 
-\item{n_threads}{Number of OpenMP threads. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}

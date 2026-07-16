@@ -17,7 +17,7 @@
 #' @param time_range Optional \code{c("start", "end")} date range.
 #' @param depth Optional depth index.
 #' @param roundRes Decimal places for rounding. Default \code{4}.
-#' @param n_threads Number of OpenMP threads. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default \code{1}.
 #'
 #' @return Invisibly returns the output file path.
 #'

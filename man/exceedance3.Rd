@@ -49,7 +49,7 @@ Default \code{FALSE}.}
 
 \item{roundRes}{Decimal places for rounding. Default \code{4}.}
 
-\item{n_threads}{Number of OpenMP threads. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
 }
 \value{
 Invisibly returns the output file path.

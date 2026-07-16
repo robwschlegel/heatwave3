@@ -6,9 +6,9 @@ Description: Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gr
     NetCDF data using the Hobday et al. (2016, 2018) definition. Implements
     climatology calculation, event detection, exceedance analysis, event
     categorisation, blob detection, and visualisation. All core algorithms are
-    written in C++ with OpenMP parallelism for high performance on large datasets.
+    written in C++17 with std::thread parallelism for high performance on large datasets.
 Type: Package
-Authors@R: c(person("Robert W.", "Schlegel", role = c("aut"),
+Authors@R: c(person("Robert W.", "Schlegel", role = c("aut", "cph"),
                     email = "robwschlegel@gmail.com",
                     comment = c(ORCID = "0000-0002-0705-1287")),
             person("Albertus J.", "Smit", role = c("aut", "cre"),
@@ -18,7 +18,6 @@ Maintainer: Albertus J. Smit <albertus.smit@gmail.com>
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports:
     Rcpp (>= 1.0.0),
     ggplot2,
@@ -45,3 +44,4 @@ Depends:
 SystemRequirements: GNU make, netcdf (>= 4.0), C++17
 URL: https://robwschlegel.github.io/heatwave3/index.html, https://github.com/robwschlegel/heatwave3
 NeedsCompilation: yes
+Config/roxygen2/version: 8.0.0

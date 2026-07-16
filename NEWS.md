@@ -1,3 +1,105 @@
+# heatwave3 1.2.1 (2026-07-15)
+
+## New features
+
+* **`depth_range`: native depth-resolved (4D) climatology and event
+  detection.** `ts2clm3()` and `detect3()` gain
+  `depth_range = c(min_depth, max_depth)`, which keeps a contiguous band of
+  depth levels as a real dimension instead of squeezing to a single level
+  (the existing `depth` index argument is unchanged and still available).
+  `detect_event3()` needs no new argument -- it reads the depth range
+  straight off the climatology file it already loads, so climatology and
+  event detection can never disagree about which levels they are comparing.
+  Output NetCDF files write a real `depth` dimension/variable only when more
+  than one level is present, so existing 3D output is byte-for-byte
+  unchanged. Verified bit-exact against the legacy per-level-squeeze
+  approach.
+* **Per-day/proto-event output, `hw3_export()`, `category_daily3()`,
+  `event_line3()`, and `geom_flame3()` are all depth-aware.** The
+  `daily`/`protoEvent` products gain a `depth` dimension when the source
+  climatology is depth-resolved; `hw3_export()`'s streaming subset reads
+  gain a `depth_range` argument; `category_daily3()` and `event_line3()`
+  auto-inherit the depth range from the climatology file the same way
+  `detect_event3()` does (`event_line3()` additionally gains an explicit
+  `depth` argument, matched to the nearest level actually present in the
+  climatology); `geom_flame3()`'s `GeomFlame3` ggproto gains a
+  `setup_data()` override that folds a mapped `depth` aesthetic into row
+  grouping, so each depth level gets its own flame polygons instead of being
+  drawn as one interleaved series.
+* **`detect_blob3()` now connects blobs through the water column, not just
+  across space and time.** Given a depth-resolved climatology, the
+  union-find labeller connects voxels across four axes (longitude,
+  latitude, depth, time) instead of three, by depth *index* (adjacent
+  level) -- not by a depth range or distance threshold. `event`/`daily`
+  gain `depth_min_m`, `depth_max_m`, and `depthOfPeakIntensity_m`, plus the
+  volumetric analogues of the existing area metrics: `totalVolume_km3`,
+  `peakVolume_km3`, `meanVolume_km3` (volume = footprint area x vertical
+  layer thickness, summed over the depth levels a blob occupies that day);
+  `voxel` gains a `depth` column, and `rankBy` accepts the new volume
+  metrics. The vestigial `connectivity` parameter (which only ever accepted
+  `6`) is removed.
+* **Two new vignettes.** *Depth-resolved (4D) marine heatwave analysis*
+  walks through `depth_range` end to end -- climatology, detection,
+  `hw3_export()`, and depth-resolved plotting with
+  `geom_flame3()`/`geom_lolli3()`/`event_line3()`. *4D blob connectivity
+  through the water column* demonstrates `detect_blob3()`'s depth
+  connectivity, including a depth-time "Hovmoeller" view of a single blob's
+  vertical structure. Both compile against a small (2x2 pixel, 5
+  depth-level) real GLORYS12 fixture bundled with the package
+  (`inst/extdata/glorys_depth_test.nc`, plus a 32-file annual split for
+  multi-file testing), so they actually run when the documentation site is
+  built rather than needing a large external file.
+* **New performance benchmark vignette**, *heatwave3 vs xmhw*, comparing
+  `heatwave3` against the Python `xmhw` module on an OSTIA Mediterranean
+  grid (104 lon x 60 lat, 6,240 ocean pixels, 15,706 daily steps,
+  1982-2024). Measured on Ubuntu 24.04 (16 cores, R 4.6.0): `heatwave3`
+  completes in 22.5 sec single-threaded (56x faster than the ca. 21 min
+  `heatwaveR` serial baseline) and 7.4 sec on 12 threads (170x); `xmhw`
+  without `dask` takes ca. 40 min.
+
+## Bug fixes
+
+* **`hw3_export()`'s climatology reader assumed `npixels = nlon*nlat`.** For
+  a depth-resolved climatology file this silently misread the data (each
+  pixel's depth levels were interleaved into what the reader thought were
+  separate horizontal pixels). Fixed alongside the `depth_range` work.
+* **Stale `detect3()`/`ts2clm3()` examples were failing `R CMD check
+  --as-cran`.** Several `@examples` blocks (`block_average3()`,
+  `category3()`, `plot_metric3()`, `event_line3()`, `detect_blob3()`) still
+  called `detect3()`/`ts2clm3()` with the pre-1.2.0 positional-argument
+  convention (separate `clim_file`/`event_file` paths). Under the current
+  `name`-stem signature this let a tempfile path silently land in the
+  `var_name` parameter slot, causing a `NetCDF: Variable not found` error
+  -- failing the `\donttest{}` examples in GitHub Actions CI without
+  failing locally (`devtools::run_examples()` skips `\donttest{}` by
+  default).
+
+## Documentation
+
+* **Rebuilt pkgdown site** with the two new depth-resolved vignettes and
+  the xmhw benchmark vignette indexed and linked from the navbar.
+* **README** The Vignettes section now links each title to its pkgdown
+  page; the Citation section gained DOIs for the Hobday et al. (2016, 2018)
+  references; all external DOI/resource links (README and the pkgdown
+  Resources menu) now open in a new tab; the installation section better
+  distinguishes the `dev` branch from `main`.
+
+## Internal
+
+* **CI: macOS and Windows `R-CMD-check` jobs failed to find netCDF.**
+  Neither runner ships libnetcdf, and `setup-r-dependencies`'s automatic
+  system-requirement resolution only covers Linux. Added a
+  `brew install netcdf` step for macOS. For Windows, added
+  `tools/winlibs.R` plus a rewritten `src/Makevars.win` that downloads a
+  prebuilt netcdf-mingw bundle from `rwinlib/netcdf`, mirroring the CRAN
+  `ncdf4` package's approach -- ultimately dropped from CI (below) after
+  this still failed to link against Rtools' UCRT toolchain (the bundled
+  static libraries were built against the legacy MSVCRT runtime).
+* **Windows removed from the CI test matrix.** `R-CMD-check` now runs
+  macOS and Ubuntu only. Windows remains a best-effort build target via
+  `src/Makevars.win` for anyone building locally, but is no longer covered
+  by CI.
+
 # heatwave3 1.2.0 (2026-06-04)
 
 ## Breaking changes

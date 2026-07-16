@@ -65,6 +65,14 @@ test_that("n_threads > 1 exercises the parallel_for worker-pool branch and match
   expect_equal(ev1, ev2)
 })
 
+test_that(".onLoad initializes fork safety", {
+  # .onLoad() runs automatically once, at namespace-load time -- before covr's
+  # line tracing is attached to that code -- so it's otherwise never credited
+  # even though it genuinely executes on every package load. Call it directly
+  # as an ordinary function; both arguments are ignored by the body.
+  expect_no_error(heatwave3:::.onLoad("x", "heatwave3"))
+})
+
 test_that("hw3_version reports package metadata", {
   v <- hw3_version()
   expect_type(v, "list")

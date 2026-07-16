@@ -1,26 +1,32 @@
+<div id="main" class="col-md-9" role="main">
+
 # NetCDF output internals
+
+<div class="section level2">
 
 ## Overview
 
 heatwave3 produces two types of NetCDF output files:
 
-1.  **Climatology file** (from
-    [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)),
-    holding seasonal and threshold climatologies per pixel per
-    day-of-year
-2.  **Event file** (from
-    [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)),
-    holding detected events stored as a CF ragged array
+1.  **Climatology file** (from `ts2clm3()`), holding seasonal and
+    threshold climatologies per pixel per day-of-year
+2.  **Event file** (from `detect_event3()`), holding detected events
+    stored as a CF ragged array
 
 Both files target CF-1.8 compliance and can be read by any
 NetCDF-capable tool (R ncdf4, Python xarray/netCDF4, CDO, ncdump,
 Panoply).
 
+</div>
+
+<div class="section level2">
+
 ## Climatology file structure
 
-Produced by
-[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
-Contains the 366-day climatological cycle for each pixel.
+Produced by `ts2clm3()`. Contains the 366-day climatological cycle for
+each pixel.
+
+<div class="section level3">
 
 ### Dimensions
 
@@ -30,16 +36,24 @@ Contains the 366-day climatological cycle for each pixel.
 | `lat`     | nlat | Latitude grid points                    |
 | `doy`     | 366  | Day of year (1–366, including leap day) |
 
+</div>
+
+<div class="section level3">
+
 ### Variables
 
-| Variable | Dimensions | Units | Description |
-|----|----|----|----|
-| `lon` | (lon) | degrees_east | Longitude coordinate |
-| `lat` | (lat) | degrees_north | Latitude coordinate |
-| `doy` | (doy) | none | Day of year index |
-| `seas` | (lon, lat, doy) | degC | Seasonal mean climatology |
-| `thresh` | (lon, lat, doy) | degC | Threshold climatology (such as the 90th percentile) |
-| `var` | (lon, lat, doy) | degC | Variance climatology (optional, if `var = TRUE`) |
+| Variable | Dimensions      | Units          | Description                                         |
+|----------|-----------------|----------------|-----------------------------------------------------|
+| `lon`    | (lon)           | degrees\_east  | Longitude coordinate                                |
+| `lat`    | (lat)           | degrees\_north | Latitude coordinate                                 |
+| `doy`    | (doy)           | none           | Day of year index                                   |
+| `seas`   | (lon, lat, doy) | degC           | Seasonal mean climatology                           |
+| `thresh` | (lon, lat, doy) | degC           | Threshold climatology (such as the 90th percentile) |
+| `var`    | (lon, lat, doy) | degC           | Variance climatology (optional, if `var = TRUE`)    |
+
+</div>
+
+<div class="section level3">
 
 ### Global attributes
 
@@ -54,10 +68,15 @@ Contains the 366-day climatological cycle for each pixel.
 | `windowHalfWidth`         | 5               | Sliding window half-width     |
 | `smoothPercentileWidth`   | 31              | Rolling mean smoothing width  |
 
+</div>
+
+<div class="section level3">
+
 ### Reading in R
 
-``` r
+<div id="cb1" class="sourceCode">
 
+``` r
 library(ncdf4)
 nc <- nc_open("clim_output.nc")
 
@@ -72,7 +91,15 @@ seas_jan1 <- seas[1, , ]
 nc_close(nc)
 ```
 
+</div>
+
+</div>
+
+<div class="section level3">
+
 ### Reading in Python
+
+<div id="cb2" class="sourceCode">
 
 ``` python
 import xarray as xr
@@ -81,26 +108,46 @@ ds = xr.open_dataset("clim_output.nc")
 ds["seas"].sel(doy=1).plot()
 ```
 
+</div>
+
+</div>
+
+<div class="section level3">
+
 ### Reading with CDO
+
+<div id="cb3" class="sourceCode">
 
 ``` bash
 # Extract seasonal climatology as a time series (366 steps)
 cdo selvar,seas clim_output.nc seas_only.nc
 ```
 
+</div>
+
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## Event file structure
 
-Produced by
-[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
-Uses a **flat event dimension**, where each row represents one detected
-event at one pixel. This avoids padding to a maximum number of events
-per pixel and keeps the file compact.
+Produced by `detect_event3()`. Uses a **flat event dimension**, where
+each row represents one detected event at one pixel. This avoids padding
+to a maximum number of events per pixel and keeps the file compact.
+
+<div class="section level3">
 
 ### Dimensions
 
 | Dimension | Size | Description                              |
 |-----------|------|------------------------------------------|
 | `event`   | N    | Total number of events across all pixels |
+
+</div>
+
+<div class="section level3">
 
 ### Coordinate variables
 
@@ -110,31 +157,39 @@ per pixel and keeps the file compact.
 | `lat`         | double | Latitude of the pixel                           |
 | `pixel_index` | int    | Linear pixel index (ilon × nlat + ilat)         |
 
+</div>
+
+<div class="section level3">
+
 ### Event metric variables
 
 All have dimension `(event)`:
 
-| Variable | Units | Description |
-|----|----|----|
-| `event_no` | none | Event number within the pixel |
-| `date_start` | days since ref | Start date |
-| `date_peak` | days since ref | Peak date |
-| `date_end` | days since ref | End date |
-| `duration` | days | Event duration |
-| `intensity_mean` | degC | Mean intensity (rel. to seasonal climatology) |
-| `intensity_max` | degC | Maximum (peak) intensity |
-| `intensity_var` | degC | Intensity variability (std. dev.) |
-| `intensity_cumulative` | degC days | Cumulative intensity |
-| `intensity_mean_relThresh` | degC | Mean intensity (rel. to threshold) |
-| `intensity_max_relThresh` | degC | Max intensity (rel. to threshold) |
-| `intensity_var_relThresh` | degC | Variability (rel. to threshold) |
-| `intensity_cumulative_relThresh` | degC days | Cumulative (rel. to threshold) |
-| `intensity_mean_abs` | degC | Mean absolute temperature |
-| `intensity_max_abs` | degC | Max absolute temperature |
-| `intensity_var_abs` | degC | Absolute temperature variability |
-| `intensity_cumulative_abs` | degC days | Cumulative absolute temperature |
-| `rate_onset` | degC/day | Rate of onset |
-| `rate_decline` | degC/day | Rate of decline |
+| Variable                         | Units          | Description                                   |
+|----------------------------------|----------------|-----------------------------------------------|
+| `event_no`                       | none           | Event number within the pixel                 |
+| `date_start`                     | days since ref | Start date                                    |
+| `date_peak`                      | days since ref | Peak date                                     |
+| `date_end`                       | days since ref | End date                                      |
+| `duration`                       | days           | Event duration                                |
+| `intensity_mean`                 | degC           | Mean intensity (rel. to seasonal climatology) |
+| `intensity_max`                  | degC           | Maximum (peak) intensity                      |
+| `intensity_var`                  | degC           | Intensity variability (std. dev.)             |
+| `intensity_cumulative`           | degC days      | Cumulative intensity                          |
+| `intensity_mean_relThresh`       | degC           | Mean intensity (rel. to threshold)            |
+| `intensity_max_relThresh`        | degC           | Max intensity (rel. to threshold)             |
+| `intensity_var_relThresh`        | degC           | Variability (rel. to threshold)               |
+| `intensity_cumulative_relThresh` | degC days      | Cumulative (rel. to threshold)                |
+| `intensity_mean_abs`             | degC           | Mean absolute temperature                     |
+| `intensity_max_abs`              | degC           | Max absolute temperature                      |
+| `intensity_var_abs`              | degC           | Absolute temperature variability              |
+| `intensity_cumulative_abs`       | degC days      | Cumulative absolute temperature               |
+| `rate_onset`                     | degC/day       | Rate of onset                                 |
+| `rate_decline`                   | degC/day       | Rate of decline                               |
+
+</div>
+
+<div class="section level3">
 
 ### Date encoding
 
@@ -143,8 +198,9 @@ integer offsets in units of `"days since YYYY-MM-DD"`, where the
 reference date is the first time step of the input SST file. To convert
 to actual dates:
 
-``` r
+<div id="cb4" class="sourceCode">
 
+``` r
 library(ncdf4)
 nc <- nc_open("event_output.nc")
 
@@ -163,6 +219,12 @@ event_lat <- ncvar_get(nc, "lat")
 nc_close(nc)
 ```
 
+</div>
+
+</div>
+
+<div class="section level3">
+
 ### Global attributes
 
 | Attribute          | Description                       |
@@ -174,38 +236,48 @@ nc_close(nc)
 | `maxGap`           | Maximum gap setting               |
 | `coldSpells`       | 0 or 1                            |
 
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## CF compliance notes
 
 heatwave3 output files aim for CF-1.8 compliance:
 
 **Compliant:**
 
-- `Conventions` global attribute set to “CF-1.8”
-- Coordinate variables have `units` (`degrees_east`, `degrees_north`)
-- Coordinate variables have `axis` attributes (X, Y, T)
-- Data variables have `long_name` and `units`
-- Date variables use CF time encoding (`days since ...`)
-- NetCDF-4 format with compression (deflate level 4)
+-   `Conventions` global attribute set to “CF-1.8”
+-   Coordinate variables have `units` (`degrees_east`, `degrees_north`)
+-   Coordinate variables have `axis` attributes (X, Y, T)
+-   Data variables have `long_name` and `units`
+-   Date variables use CF time encoding (`days since ...`)
+-   NetCDF-4 format with compression (deflate level 4)
 
 **Best-effort (not strictly required by CF):**
 
-- The event file uses a flat dimension rather than CF indexed ragged
-  arrays (`sample_dimension` / `instance_dimension` attributes are not
-  set). This is a pragmatic choice, since the flat layout is simpler to
-  read and write, and all major tools handle it correctly.
-- `standard_name` attributes are set on coordinate variables but not on
-  all data variables (the 19 event metrics do not have CF standard
-  names, as MHW metrics are domain-specific).
+-   The event file uses a flat dimension rather than CF indexed ragged
+    arrays (`sample_dimension` / `instance_dimension` attributes are not
+    set). This is a pragmatic choice, since the flat layout is simpler
+    to read and write, and all major tools handle it correctly.
+-   `standard_name` attributes are set on coordinate variables but not
+    on all data variables (the 19 event metrics do not have CF standard
+    names, as MHW metrics are domain-specific).
+
+</div>
+
+<div class="section level2">
 
 ## Alternative output formats
 
 The compute functions always write NetCDF. To read a product into R, or
-convert it to CSV, RDS, or Parquet, use
-[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md),
-which auto-detects the product type and is backed by the C++ reader:
+convert it to CSV, RDS, or Parquet, use `hw3_export()`, which
+auto-detects the product type and is backed by the C++ reader:
+
+<div id="cb5" class="sourceCode">
 
 ``` r
-
 # Read into R (whole, or a quick preview with n =)
 events <- hw3_export("benguela_events.nc")
 head(hw3_export("benguela_events.nc", n = 20))
@@ -215,11 +287,17 @@ hw3_export("benguela_events.nc", file_out = "events.parquet")
 hw3_export("benguela_clim.nc",   file_out = "clim.csv")
 ```
 
+</div>
+
 **Format comparison:**
 
-| Format | Size | Speed | Interop | Notes |
-|----|----|----|----|----|
-| NetCDF | Small (compressed) | Fast (C library) | Excellent | Primary format, always produced |
-| Parquet | Small (columnar) | Fast | Good (R/Python/Spark) | Requires `arrow` package |
-| RDA | Medium | Fast (R native) | R only | Contains a list named `hw3_data` |
-| CSV | Large (text) | Slow | Universal | Not recommended for large grids |
+| Format  | Size               | Speed            | Interop               | Notes                            |
+|---------|--------------------|------------------|-----------------------|----------------------------------|
+| NetCDF  | Small (compressed) | Fast (C library) | Excellent             | Primary format, always produced  |
+| Parquet | Small (columnar)   | Fast             | Good (R/Python/Spark) | Requires `arrow` package         |
+| RDA     | Medium             | Fast (R native)  | R only                | Contains a list named `hw3_data` |
+| CSV     | Large (text)       | Slow             | Universal             | Not recommended for large grids  |
+
+</div>
+
+</div>

@@ -1,4 +1,8 @@
+<div id="main" class="col-md-9" role="main">
+
 # Parallel performance: in-process threads vs R-side parallelism
+
+<div class="section level2">
 
 ## Two kinds of parallelism
 
@@ -12,10 +16,9 @@ exploited in two distinct ways.
     using `std::thread`. Everything happens inside a single R process:
     the data slab is read once into shared memory, the threads compute,
     and one set of output files is written. Controlled by the
-    `n_threads` argument (or
-    [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)).
-    This is the fast path on a single machine, and it works out of the
-    box on every platform with no OpenMP toolchain required.
+    `n_threads` argument (or `setHW3threads()`). This is the fast path
+    on a single machine, and it works out of the box on every platform
+    with no OpenMP toolchain required.
 
 2.  **R-side parallelism (across processes).** Several R processes each
     run `heatwave3` single-threaded on a *spatial tile* of the grid, and
@@ -32,26 +35,41 @@ reach for each.
 > sessions (terra/GDAL, conda toolchains, or the Positron/`ark` kernel).
 > The [Results](#results) below compare the two backends.
 
+</div>
+
+<div class="section level2">
+
 ## Is multithreading active?
 
-[`getHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
-reports the default thread count (roughly half your cores). `n_threads`
-is honoured on every platform; there is no build-time switch to miss.
+`getHW3threads()` reports the default thread count (roughly half your
+cores). `n_threads` is honoured on every platform; there is no
+build-time switch to miss.
+
+<div id="cb1" class="sourceCode">
 
 ``` r
-
 library(heatwave3)
 getHW3threads()
 #> [1] 9        # default: 50% of 18 cores
 ```
 
+</div>
+
 The shared library links no OpenMP runtime; it uses `std::thread`
 (pthreads):
+
+<div id="cb2" class="sourceCode">
 
 ``` sh
 otool -L $(Rscript -e 'cat(system.file("libs/heatwave3.so", package="heatwave3"))')   # macOS
 ldd       $(Rscript -e 'cat(system.file("libs/heatwave3.so", package="heatwave3"))')   # Linux
 ```
+
+</div>
+
+</div>
+
+<div class="section level2">
 
 ## The dataset
 
@@ -60,24 +78,32 @@ east coast: a 400 × 200 grid at 0.05° resolution (15–35°E, 38–28°S),
 14,276 daily time steps (1982–2021), of which roughly 50,000 pixels are
 ocean. The climatological baseline is 1982–2011.
 
-``` r
+<div id="cb3" class="sourceCode">
 
+``` r
 sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
 var_name <- "analysed_sst"
 clim_period <- c("1982-01-01", "2011-12-31")
 ```
 
+</div>
+
 All three methods produce the **same deliverable**, the full event table
 as an in-memory `data.frame`, so their wall-clock times are directly
 comparable.
+
+</div>
+
+<div class="section level2">
 
 ## Method 1: single-threaded
 
 The baseline. `n_threads = 1` forces one core regardless of the package
 default.
 
-``` r
+<div id="cb4" class="sourceCode">
 
+``` r
 library(heatwave3)
 
 run_once <- function(nthreads, lon_range = NULL) {
@@ -99,13 +125,20 @@ run_once <- function(nthreads, lon_range = NULL) {
 system.time(ev1 <- run_once(1L))
 ```
 
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## Method 2: in-process multithreading
 
 Identical call, more threads. Because pixels are independent, each
 thread takes a share of them, with no locking and no coordination.
 
-``` r
+<div id="cb5" class="sourceCode">
 
+``` r
 system.time(ev12 <- run_once(12L))
 
 # Results are independent of thread count:
@@ -113,15 +146,24 @@ nrow(ev1) == nrow(ev12)
 #> [1] TRUE
 ```
 
+</div>
+
 Sweeping the thread count maps the scaling curve:
 
-``` r
+<div id="cb6" class="sourceCode">
 
+``` r
 for (nt in c(1, 2, 4, 8, 12, 16)) {
   t <- system.time(run_once(nt))[["elapsed"]]
   cat(sprintf("%2d threads: %5.1f s\n", nt, t))
 }
 ```
+
+</div>
+
+</div>
+
+<div class="section level2">
 
 ## Method 3: R-side parallelism (PSOCK)
 
@@ -132,16 +174,16 @@ independent, the union of the tiles is **identical** to a whole-domain
 run.
 
 We use a **PSOCK cluster** (independent R processes) rather than
-fork-based [`mclapply()`](https://rdrr.io/r/parallel/mclapply.html). On
-macOS, forking after the NetCDF/HDF5 and Apple Objective-C runtimes have
-initialised is unsafe (sporadic worker crashes, and the
-`+[NSCharacterSet initialize] ... fork()` abort). PSOCK launches clean
-processes that each open their own files, like running several `Rscript`
-jobs side by side. It is also the only option on Windows, where `fork()`
-does not exist.
+fork-based `mclapply()`. On macOS, forking after the NetCDF/HDF5 and
+Apple Objective-C runtimes have initialised is unsafe (sporadic worker
+crashes, and the `+[NSCharacterSet initialize] ... fork()` abort). PSOCK
+launches clean processes that each open their own files, like running
+several `Rscript` jobs side by side. It is also the only option on
+Windows, where `fork()` does not exist.
+
+<div id="cb7" class="sourceCode">
 
 ``` r
-
 library(parallel)
 
 # Read the longitude coordinate once (cheap), to cut non-overlapping tiles.
@@ -185,10 +227,16 @@ run_psock <- function(n_workers) {
 system.time(evp <- run_psock(16L))
 ```
 
+</div>
+
 The `n_threads = 1L` inside each worker is essential: each
 freshly-loaded `heatwave3` otherwise defaults to *half the cores*, so 16
 workers each spawning 9 threads would oversubscribe the machine badly.
 See [Don’t oversubscribe](#dont-oversubscribe).
+
+</div>
+
+<div class="section level2">
 
 ## Results
 
@@ -211,7 +259,7 @@ See [Don’t oversubscribe](#dont-oversubscribe).
 | PSOCK (R workers)          |              16 |     18.4 |      6.1 |
 
 Wall-clock time to produce the full event table. Speed-up is relative to
-the single-threaded baseline. {.table}
+the single-threaded baseline.
 
 ![Speed-up versus thread or worker count for std::thread, the previous
 OpenMP build, and PSOCK, against the ideal linear line. The std::thread
@@ -222,6 +270,8 @@ On this run (whole domain, ca. 50,000 ocean pixels, warm file cache),
 the single-threaded baseline took **112 s**. In-process `std::thread`
 reached **3.0×** (37 s) at 16 threads, and R-side PSOCK reached **6.1×**
 (18 s) at 16 workers. Every run returned the same 4,863,985 events.
+
+<div class="section level3">
 
 ### std::thread vs OpenMP
 
@@ -236,6 +286,10 @@ sf, GDAL) in the same process, and the removal of the OpenMP build
 dependency altogether. The dashed line in the figure is the old OpenMP
 build; the solid green line, the current `std::thread` build, sits just
 beneath it.
+
+</div>
+
+<div class="section level3">
 
 ### Reading the curves
 
@@ -259,17 +313,15 @@ flattened.
 
 Two caveats keep this from being a blanket “PSOCK wins”:
 
-- **Endpoint.** This benchmark reads the events back into an in-memory
-  `data.frame` (via
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)),
-  which makes the serial assembly a large part of the thread build’s
-  tail. The usual production endpoint (just write the event NetCDF and
-  stop) removes that assembly, shrinking the serial fraction and
-  narrowing the gap.
-- **Storage.** PSOCK’s edge depends on those per-worker reads being
-  cheap. On a cold cache or slow/network disk, sixteen processes reading
-  at once can contend, eroding or reversing the advantage. The
-  in-process threads read the slab exactly once.
+-   **Endpoint.** This benchmark reads the events back into an in-memory
+    `data.frame` (via `hw3_export()`), which makes the serial assembly a
+    large part of the thread build’s tail. The usual production endpoint
+    (just write the event NetCDF and stop) removes that assembly,
+    shrinking the serial fraction and narrowing the gap.
+-   **Storage.** PSOCK’s edge depends on those per-worker reads being
+    cheap. On a cold cache or slow/network disk, sixteen processes
+    reading at once can contend, eroding or reversing the advantage. The
+    in-process threads read the slab exactly once.
 
 In-process threading also stays the *simpler* option, with one call, one
 output file, no tiling or merge, and no inter-process serialisation.
@@ -277,33 +329,48 @@ PSOCK earns its overhead by parallelising the read and the assembly as
 well as the compute, by isolating failures to a single tile, and by
 scaling across separate machines.
 
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## Discussion
+
+<div class="section level3">
 
 ### When to use which
 
-- **In-process threads (`std::thread`)** are the default on a single
-  machine. They have the lowest overhead, use shared memory, and write
-  one NetCDF. Set `n_threads`, or leave it at the package default.
-  Nothing to build or enable.
-- **R-side parallelism (PSOCK)** is for when (a) you want the read and
-  the assembly parallelised too, not just the per-pixel compute, (b) you
-  want to spread work across **multiple machines** in a cluster, or (c)
-  you want process isolation so one failing tile cannot bring down the
-  whole run. Each worker writes its own tile, and you merge afterwards.
-- The two combine across a cluster. One PSOCK (or MPI) worker per node,
-  each using `n_threads` across that node’s cores, is the standard HPC
-  pattern. On a single workstation, pick one.
+-   **In-process threads (`std::thread`)** are the default on a single
+    machine. They have the lowest overhead, use shared memory, and write
+    one NetCDF. Set `n_threads`, or leave it at the package default.
+    Nothing to build or enable.
+-   **R-side parallelism (PSOCK)** is for when (a) you want the read and
+    the assembly parallelised too, not just the per-pixel compute, (b)
+    you want to spread work across **multiple machines** in a cluster,
+    or (c) you want process isolation so one failing tile cannot bring
+    down the whole run. Each worker writes its own tile, and you merge
+    afterwards.
+-   The two combine across a cluster. One PSOCK (or MPI) worker per
+    node, each using `n_threads` across that node’s cores, is the
+    standard HPC pattern. On a single workstation, pick one.
+
+</div>
+
+<div class="section level3">
 
 ### Correctness
 
 Because pixels are independent, every method returns the **identical**
-event table (we assert [`nrow()`](https://rdrr.io/r/base/nrow.html)
-equality above, and the per-pixel metrics match to the bit). Tiling
-changes only *which* process computes a pixel, never the result. The one
-exception is
-[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md),
-which finds spatially **connected** heatwave blobs across pixels. That
+event table (we assert `nrow()` equality above, and the per-pixel
+metrics match to the bit). Tiling changes only *which* process computes
+a pixel, never the result. The one exception is `detect_blob3()`, which
+finds spatially **connected** heatwave blobs across pixels. That
 computation must see the whole grid and **cannot** be tiled this way.
+
+</div>
+
+<div class="section level3">
 
 ### Do not oversubscribe
 
@@ -311,13 +378,19 @@ Running *N* worker processes that each launch *M* threads creates *N ×
 M* threads. If that exceeds your physical cores, the threads contend for
 them and everything slows down. Practical limits:
 
-- Pure threads: `n_threads` ≤ physical cores.
-- Pure PSOCK: `n_workers` ≤ physical cores, **`n_threads = 1` in every
-  worker**.
-- Hybrid (cluster): `n_workers_per_node × n_threads ≈ cores_per_node`.
+-   Pure threads: `n_threads` ≤ physical cores.
+-   Pure PSOCK: `n_workers` ≤ physical cores, **`n_threads = 1` in every
+    worker**.
+-   Hybrid (cluster): `n_workers_per_node × n_threads ≈ cores_per_node`.
 
 `heatwave3` defaults to ca. 50% of cores so that a careless nested call
 does not saturate the machine, but explicit is better than implicit.
+
+</div>
+
+</div>
+
+<div class="section level2">
 
 ## Platform notes
 
@@ -332,7 +405,11 @@ package builds. The only external dependency is the NetCDF C library;
       LIBS:     -L/opt/homebrew/lib -lnetcdf
     Parallelism: C++ std::thread (no OpenMP runtime required)
 
+<div class="section level3">
+
 ### Linux
+
+<div id="cb9" class="sourceCode">
 
 ``` sh
 sudo apt install libnetcdf-dev build-essential   # Debian/Ubuntu
@@ -340,16 +417,25 @@ sudo dnf install netcdf-devel gcc-c++             # Fedora/RHEL
 R CMD INSTALL heatwave3
 ```
 
-Fork-based [`mclapply()`](https://rdrr.io/r/parallel/mclapply.html) is
-also safe here, though PSOCK remains the portable choice for R-side
-parallelism.
+</div>
+
+Fork-based `mclapply()` is also safe here, though PSOCK remains the
+portable choice for R-side parallelism.
+
+</div>
+
+<div class="section level3">
 
 ### macOS
+
+<div id="cb10" class="sourceCode">
 
 ``` sh
 brew install netcdf      # the only external requirement
 R CMD INSTALL heatwave3
 ```
+
+</div>
 
 `std::thread` needs no Homebrew `libomp` and no `omp.h`. It also removes
 a class of crash seen on earlier OpenMP builds: a `dlopen`-ed `libomp`
@@ -360,28 +446,38 @@ toolchains, or the Positron/`ark` kernel that embeds R) and segfault in
 load order or front-end.
 
 For **R-side** parallelism on macOS, prefer PSOCK. If you must use
-[`mclapply()`](https://rdrr.io/r/parallel/mclapply.html), export
-`OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES` before starting R, and treat
-concurrent forked NetCDF/HDF5 access as unsafe.
+`mclapply()`, export `OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES` before
+starting R, and treat concurrent forked NetCDF/HDF5 access as unsafe.
+
+</div>
+
+<div class="section level3">
 
 ### Windows
 
 `configure.win` locates NetCDF and multithreading via `n_threads` works
-with no extra steps. There is no `fork()` on Windows, so
-[`mclapply()`](https://rdrr.io/r/parallel/mclapply.html) silently runs
-serially, and R-side parallelism **must** use a PSOCK cluster
-([`makeCluster()`](https://rdrr.io/r/parallel/makeCluster.html) /
-[`parLapply()`](https://rdrr.io/r/parallel/clusterApply.html)), exactly
-as shown above.
+with no extra steps. There is no `fork()` on Windows, so `mclapply()`
+silently runs serially, and R-side parallelism **must** use a PSOCK
+cluster (`makeCluster()` / `parLapply()`), exactly as shown above.
+
+</div>
+
+</div>
+
+<div class="section level2">
 
 ## Summary
 
-| Approach | Enable with | Best when | Notes |
-|----|----|----|----|
-| Single-threaded | `n_threads = 1` | debugging, tiny grids | reference result |
-| Threads (`std::thread`) | `n_threads = N` | one machine | low overhead, shared memory, single output, no OpenMP needed |
-| PSOCK | [`parallel::makeCluster`](https://rdrr.io/r/parallel/makeCluster.html) | many machines, or process isolation | tile by longitude, `n_threads = 1` per worker |
+| Approach                | Enable with             | Best when                           | Notes                                                        |
+|-------------------------|-------------------------|-------------------------------------|--------------------------------------------------------------|
+| Single-threaded         | `n_threads = 1`         | debugging, tiny grids               | reference result                                             |
+| Threads (`std::thread`) | `n_threads = N`         | one machine                         | low overhead, shared memory, single output, no OpenMP needed |
+| PSOCK                   | `parallel::makeCluster` | many machines, or process isolation | tile by longitude, `n_threads = 1` per worker                |
 
 All three give the same science. In-process threads are the efficient
 default on a single host, and R-side parallelism is the route to
 multi-machine scaling and process isolation.
+
+</div>
+
+</div>

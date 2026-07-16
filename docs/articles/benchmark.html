@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -96,22 +96,19 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This vignette benchmarks heatwave3 against heatwaveR on a realistic
-gridded SST dataset, the full OSTIA South-West Indian Ocean reanalysis
-(400 lon × 200 lat, ca. 49,800 ocean pixels, 14,276 daily time steps,
-1982–2021).</p>
+<p>This vignette benchmarks heatwave3 against heatwaveR on a realistic gridded SST dataset, the full OSTIA South-West Indian Ocean reanalysis (400 lon × 200 lat, ca. 49,800 ocean pixels, 14,276 daily time steps, 1982–2021).</p>
 <p>We compare three configurations:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>heatwaveR</strong>, serial per-pixel R + C++ (the standard
-approach)</li>
+<strong>heatwaveR</strong>, serial per-pixel R + C++ (the standard approach)</li>
 <li>
-<strong>heatwave3 (1 thread)</strong>, pure C++ with single-threaded
-execution</li>
+<strong>heatwave3 (1 thread)</strong>, pure C++ with single-threaded execution</li>
 <li>
-<strong>heatwave3 (12 threads)</strong>, pure C++ with OpenMP
-parallelism</li>
+<strong>heatwave3 (12 threads)</strong>, pure C++ with OpenMP parallelism</li>
 </ol>
+<blockquote>
+<p><strong>Backend note.</strong> These timings were recorded before heatwave3 replaced its OpenMP backend with C++ <code>std::thread</code> (see the <a href="parallelism.html">Parallel performance</a> vignette). The <code>std::thread</code> build tracks OpenMP’s scaling curve within about 5%, so the relative speedups here versus heatwaveR still hold; only the in-process threading mechanism itself has changed, not its performance.</p>
+</blockquote>
 </div>
 <div class="section level2">
 <h2 id="test-data">Test data<a class="anchor" aria-label="anchor" href="#test-data"></a>
@@ -168,9 +165,7 @@ parallelism</li>
 <div class="section level2">
 <h2 id="heatwaver-serial-baseline">heatwaveR: serial baseline<a class="anchor" aria-label="anchor" href="#heatwaver-serial-baseline"></a>
 </h2>
-<p>heatwaveR processes one pixel at a time. We time a 20-pixel sample
-(data pre-loaded to isolate computation from I/O) and extrapolate to the
-full grid.</p>
+<p>heatwaveR processes one pixel at a time. We time a 20-pixel sample (data pre-loaded to isolate computation from I/O) and extrapolate to the full grid.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwaveR/index.html" class="external-link">heatwaveR</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://cirrus.ucsd.edu/~pierce/ncdf/" class="external-link">ncdf4</a></span><span class="op">)</span></span>
@@ -208,13 +203,6 @@ full grid.</p>
 </h2>
 <p>Benchmarked on an Apple M3 Pro (12-core), macOS 15.5, R 4.5.3.</p>
 <table class="table">
-<colgroup>
-<col width="17%">
-<col width="25%">
-<col width="23%">
-<col width="14%">
-<col width="19%">
-</colgroup>
 <thead><tr class="header">
 <th>Method</th>
 <th>Climatology</th>
@@ -249,44 +237,27 @@ full grid.</p>
 <p>The speedup comes from three sources:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>C++ algorithms</strong>. Climatology (sliding-window
-percentile) and event detection (run-length encoding, gap joining, 19
-metrics) are implemented in pure C++ rather than R + data.table.</li>
+<strong>C++ algorithms</strong>. Climatology (sliding-window percentile) and event detection (run-length encoding, gap joining, 19 metrics) are implemented in pure C++ rather than R + data.table.</li>
 <li>
-<strong>OpenMP parallelism</strong>. Each pixel is independent, so
-OpenMP distributes pixels across cores with zero coordination
-overhead.</li>
+<strong>OpenMP parallelism</strong>. Each pixel is independent, so OpenMP distributes pixels across cores with zero coordination overhead.</li>
 <li>
-<strong>Direct NetCDF I/O</strong>. Reads the full data slab in one
-C call via libnetcdf, avoiding R’s per-pixel ncdf4 random-access
-overhead.</li>
+<strong>Direct NetCDF I/O</strong>. Reads the full data slab in one C call via libnetcdf, avoiding R’s per-pixel ncdf4 random-access overhead.</li>
 </ol>
 <div class="section level3">
 <h3 id="scaling-notes">Scaling notes<a class="anchor" aria-label="anchor" href="#scaling-notes"></a>
 </h3>
 <ul>
-<li>The 12-thread run is 2.2× faster than single-threaded, not 12×,
-because the full 400×200 grid must first be read into memory (ca. 900 MB
-for this dataset) and the NetCDF I/O is single-threaded. The parallelism
-benefit is in the computation phase only.</li>
-<li>For grids that fit in memory, I/O accounts for roughly 40–60% of
-wall time. Larger grids with more ocean pixels show better parallel
-scaling as the compute fraction grows.</li>
-<li>On Linux with gcc OpenMP (which has lower thread-creation overhead
-than macOS libomp), parallel scaling is typically better.</li>
+<li>The 12-thread run is 2.2× faster than single-threaded, not 12×, because the full 400×200 grid must first be read into memory (ca. 900 MB for this dataset) and the NetCDF I/O is single-threaded. The parallelism benefit is in the computation phase only.</li>
+<li>For grids that fit in memory, I/O accounts for roughly 40–60% of wall time. Larger grids with more ocean pixels show better parallel scaling as the compute fraction grows.</li>
+<li>On Linux with gcc OpenMP (which has lower thread-creation overhead than macOS libomp), parallel scaling is typically better.</li>
 </ul>
 </div>
 </div>
 <div class="section level2">
 <h2 id="benguela-region-daily-files-full-pipeline">Benguela region: daily files, full pipeline<a class="anchor" aria-label="anchor" href="#benguela-region-daily-files-full-pipeline"></a>
 </h2>
-<p>This benchmark applies heatwave3 to a production-scale analysis, the
-Benguela upwelling system, using <strong>16,049 individual daily OSTIA
-files</strong> (1982–2025) with the WMO 1991–2020 climatological
-baseline.</p>
-<p>The subsetted OSTIA files cover 7–20°E, 35–17°S at 0.05° resolution
-(260 lon × 360 lat = 93,600 pixels). This is a region with strong
-upwelling variability and a mix of ocean and land pixels.</p>
+<p>This benchmark applies heatwave3 to a production-scale analysis, the Benguela upwelling system, using <strong>16,049 individual daily OSTIA files</strong> (1982–2025) with the WMO 1991–2020 climatological baseline.</p>
+<p>The subsetted OSTIA files cover 7–20°E, 35–17°S at 0.05° resolution (260 lon × 360 lat = 93,600 pixels). This is a region with strong upwelling variability and a mix of ocean and land pixels.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
@@ -350,10 +321,7 @@ upwelling variability and a mix of ocean and land pixels.</p>
 </tr>
 </tbody>
 </table>
-<p>For comparison, processing 93,600 pixels serially with heatwaveR at
-ca. 0.083 sec/pixel would take ca. <strong>2.2 hours</strong>. heatwave3
-completes the same analysis in 3.4 minutes, a <strong>ca. 38×
-speedup</strong>.</p>
+<p>For comparison, processing 93,600 pixels serially with heatwaveR at ca. 0.083 sec/pixel would take ca. <strong>2.2 hours</strong>. heatwave3 completes the same analysis in 3.4 minutes, a <strong>ca. 38× speedup</strong>.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

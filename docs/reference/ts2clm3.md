@@ -1,10 +1,20 @@
+<div id="main" class="col-md-9" role="main">
+
 # Compute climatology for gridded NetCDF data
+
+<div class="ref-description section level2">
 
 Calculates seasonal and threshold climatologies for each pixel in a
 gridded NetCDF file, following the Hobday et al. (2016) methodology.
 This is the gridded equivalent of `heatwaveR::ts2clm()`.
 
+</div>
+
+<div class="section level2">
+
 ## Usage
+
+<div class="sourceCode">
 
 ``` r
 ts2clm3(
@@ -31,126 +41,142 @@ ts2clm3(
 )
 ```
 
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## Arguments
 
-- file_in:
+-   file\_in:
 
-  Path to a single multi-timestep NetCDF file, **or** a character vector
-  of daily NetCDF file paths, **or** a directory path containing daily
-  NetCDF files (matched by `.nc` or `.nc4` extension).
+    Path to a single multi-timestep NetCDF file, **or** a character
+    vector of daily NetCDF file paths, **or** a directory path
+    containing daily NetCDF files (matched by `.nc` or `.nc4`
+    extension).
 
-- name:
+-   name:
 
-  Output base name (a path stem). The climatology is written to
-  `paste0(name, "_clim.nc")`, so `name = "results/cape_coast"` produces
-  `results/cape_coast_clim.nc`. The directory must exist.
+    Output base name (a path stem). The climatology is written to
+    `paste0(name, "_clim.nc")`, so `name = "results/cape_coast"`
+    produces `results/cape_coast_clim.nc`. The directory must exist.
 
-- climatologyPeriod:
+-   climatologyPeriod:
 
-  A character vector of length 2 specifying the start and end dates of
-  the baseline period, for example `c("1982-01-01", "2011-12-31")`.
+    A character vector of length 2 specifying the start and end dates of
+    the baseline period, for example `c("1982-01-01", "2011-12-31")`.
 
-- lon_range:
+-   lon\_range:
 
-  Optional numeric vector of length 2: `c(min_lon, max_lon)`. If `NULL`,
-  all longitudes are used.
+    Optional numeric vector of length 2: `c(min_lon, max_lon)`. If
+    `NULL`, all longitudes are used.
 
-- lat_range:
+-   lat\_range:
 
-  Optional numeric vector of length 2: `c(min_lat, max_lat)`. If `NULL`,
-  all latitudes are used.
+    Optional numeric vector of length 2: `c(min_lat, max_lat)`. If
+    `NULL`, all latitudes are used.
 
-- time_range:
+-   time\_range:
 
-  Optional character vector of length 2: `c("start", "end")`. If `NULL`,
-  all time steps are read.
+    Optional character vector of length 2: `c("start", "end")`. If
+    `NULL`, all time steps are read.
 
-- depth:
+-   depth:
 
-  Optional integer depth/level index for 4D data. Default `NULL` (no
-  depth subsetting). Selects and squeezes a single level – the
-  climatology is computed as if the data were 3D. Mutually exclusive
-  with `depth_range`.
+    Optional integer depth/level index for 4D data. Default `NULL` (no
+    depth subsetting). Selects and squeezes a single level – the
+    climatology is computed as if the data were 3D. Mutually exclusive
+    with `depth_range`.
 
-- depth_range:
+-   depth\_range:
 
-  Optional numeric vector of length 2: `c(min_depth, max_depth)` in the
-  depth coordinate's own units (typically metres, positive down). Unlike
-  `depth`, this keeps the full contiguous band of depth levels falling
-  in this range as a real dimension: the climatology is computed
-  independently for every `(lon, lat, depth)` triple, and
-  `paste0(name, "_clim.nc")` gains a `depth` dimension/coordinate.
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
-  automatically detects and matches this depth range from the
-  climatology file – no separate argument is needed there. Mutually
-  exclusive with `depth`. Default `NULL` (no depth subsetting).
+    Optional numeric vector of length 2: `c(min_depth, max_depth)` in
+    the depth coordinate's own units (typically metres, positive down).
+    Unlike `depth`, this keeps the full contiguous band of depth levels
+    falling in this range as a real dimension: the climatology is
+    computed independently for every `(lon, lat, depth)` triple, and
+    `paste0(name, "_clim.nc")` gains a `depth` dimension/coordinate.
+    `detect_event3` automatically detects and matches this depth range
+    from the climatology file – no separate argument is needed there.
+    Mutually exclusive with `depth`. Default `NULL` (no depth
+    subsetting).
 
-- var_name:
+-   var\_name:
 
-  Name of the SST variable in the NetCDF file. If `NULL`, the variable
-  is auto-detected.
+    Name of the SST variable in the NetCDF file. If `NULL`, the variable
+    is auto-detected.
 
-- maxPadLength:
+-   maxPadLength:
 
-  Maximum number of consecutive missing days to interpolate. Default
-  `FALSE` (no interpolation). Set to an integer to enable.
+    Maximum number of consecutive missing days to interpolate. Default
+    `FALSE` (no interpolation). Set to an integer to enable.
 
-- windowHalfWidth:
+-   windowHalfWidth:
 
-  Half-width of the sliding window for climatology calculation. Default
-  `5` (11-day window).
+    Half-width of the sliding window for climatology calculation.
+    Default `5` (11-day window).
 
-- pctile:
+-   pctile:
 
-  Percentile for the threshold climatology. Default `90`.
+    Percentile for the threshold climatology. Default `90`.
 
-- smoothPercentile:
+-   smoothPercentile:
 
-  Logical. Apply rolling mean smoothing to the climatology? Default
-  `TRUE`.
+    Logical. Apply rolling mean smoothing to the climatology? Default
+    `TRUE`.
 
-- smoothPercentileWidth:
+-   smoothPercentileWidth:
 
-  Width of the rolling mean window for smoothing. Default `31`.
+    Width of the rolling mean window for smoothing. Default `31`.
 
-- var:
+-   var:
 
-  Logical. Compute variance climatology? Default `FALSE`.
+    Logical. Compute variance climatology? Default `FALSE`.
 
-- detrend:
+-   detrend:
 
-  Logical. Remove a linear trend from each pixel's time series before
-  computing the climatology? Default `FALSE` (fixed-baseline, Hobday et
-  al. 2016). Set to `TRUE` to apply the detrended-baseline approach
-  (Jacox et al. 2020).
+    Logical. Remove a linear trend from each pixel's time series before
+    computing the climatology? Default `FALSE` (fixed-baseline, Hobday
+    et al. 2016). Set to `TRUE` to apply the detrended-baseline approach
+    (Jacox et al. 2020).
 
-- roundClm:
+-   roundClm:
 
-  Number of decimal places for rounding. Default `4`. Set to `FALSE` to
-  disable.
+    Number of decimal places for rounding. Default `4`. Set to `FALSE`
+    to disable.
 
-- n_threads:
+-   n\_threads:
 
-  Number of OpenMP threads for parallel computation. Default `1`.
+    Number of threads for parallel computation. Default `1`.
 
-- skip_bad_files:
+-   skip\_bad\_files:
 
-  Logical. For multi-file inputs, skip unreadable files or files with
-  mismatched grids instead of failing. Default `FALSE`.
+    Logical. For multi-file inputs, skip unreadable files or files with
+    mismatched grids instead of failing. Default `FALSE`.
 
-- quiet:
+-   quiet:
 
-  Logical. Suppress the post-computation console summary (head, tail,
-  and summary statistics of the climatology)? Default `FALSE`.
+    Logical. Suppress the post-computation console summary (head, tail,
+    and summary statistics of the climatology)? Default `FALSE`.
+
+</div>
+
+<div class="section level2">
 
 ## Value
 
 Invisibly returns the path to the climatology NetCDF
-(`paste0(name, "_clim.nc")`). Use
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
-to read it into a `data.frame` or export it to CSV/RDS/Parquet.
+(`paste0(name, "_clim.nc")`). Use `hw3_export` to read it into a
+`data.frame` or export it to CSV/RDS/Parquet.
+
+</div>
+
+<div class="section level2">
 
 ## Examples
+
+<div class="sourceCode">
 
 ``` r
 if (FALSE) { # \dontrun{
@@ -160,3 +186,9 @@ ts2clm3(file_in = "path/to/sst.nc",
         lon_range = c(25, 26), lat_range = c(-34, -33))
 } # }
 ```
+
+</div>
+
+</div>
+
+</div>

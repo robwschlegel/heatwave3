@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -96,27 +96,20 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This vignette benchmarks <code>heatwave3</code> against the python
-module <code>xmhw</code> on the OSTIA gridded SST dataset for the French
-coastline of the Mediterranean Sea (104 lon × 60 lat, 6,240 ocean
-pixels, 15,706 daily time steps, 1982–2024).</p>
+<p>This vignette benchmarks <code>heatwave3</code> against the python module <code>xmhw</code> on the OSTIA gridded SST dataset for the French coastline of the Mediterranean Sea (104 lon × 60 lat, 6,240 ocean pixels, 15,706 daily time steps, 1982–2024).</p>
 <p>We compare three configurations:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>heatwaveR</strong>, serial per-pixel R + C++ (the standard
-approach)</li>
+<strong>heatwaveR</strong>, serial per-pixel R + C++ (the standard approach)</li>
 <li>
 <strong>xmhw</strong>, pure python without <code>dask</code>
 </li>
 <li>
-<strong>heatwave3 (1 thread)</strong>, pure C++ with single-threaded
-execution</li>
+<strong>heatwave3 (1 thread)</strong>, pure C++ with single-threaded execution</li>
 <li>
-<strong>heatwave3 (12 threads)</strong>, pure C++ with
-multi-threading</li>
+<strong>heatwave3 (12 threads)</strong>, pure C++ with multi-threading</li>
 <li>
-<strong>xmhw (dask)</strong>, pure python with <code>dask</code>
-enabled</li>
+<strong>xmhw (dask)</strong>, pure python with <code>dask</code> enabled</li>
 </ol>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Necessary R packages</span></span>
@@ -156,10 +149,7 @@ enabled</li>
 <div class="section level2">
 <h2 id="python-environment">Python environment<a class="anchor" aria-label="anchor" href="#python-environment"></a>
 </h2>
-<p>We will control the comparison across R and python by using an
-existing python v3.12 environemnt created for this tutorial with the
-following modules installed: <code>netCDF4</code>, <code>xarray</code>,
-<code>dask</code>, and <code>xmhw</code>.</p>
+<p>We will control the comparison across R and python by using an existing python v3.12 environemnt created for this tutorial with the following modules installed: <code>netCDF4</code>, <code>xarray</code>, <code>dask</code>, and <code>xmhw</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Activate the conda environment and load functionality into R environment</span></span>
 <span><span class="fu">use_condaenv</span><span class="op">(</span><span class="st">"RiOMar"</span>, required <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -177,9 +167,7 @@ following modules installed: <code>netCDF4</code>, <code>xarray</code>,
 <div class="section level2">
 <h2 id="heatwaver-serial-baseline">heatwaveR: serial baseline<a class="anchor" aria-label="anchor" href="#heatwaver-serial-baseline"></a>
 </h2>
-<p><code>heatwaveR</code> processes one pixel at a time. We time a
-20-pixel sample (data pre-loaded to isolate computation from I/O) and
-extrapolate to the full grid.</p>
+<p><code>heatwaveR</code> processes one pixel at a time. We time a 20-pixel sample (data pre-loaded to isolate computation from I/O) and extrapolate to the full grid.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_open.html" class="external-link">nc_open</a></span><span class="op">(</span><span class="va">sst_file</span><span class="op">)</span></span>
 <span><span class="va">time_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"time"</span><span class="op">)</span></span>
@@ -289,25 +277,13 @@ extrapolate to the full grid.</p>
 <div class="section level2">
 <h2 id="xmhw-dask">xmhw: dask<a class="anchor" aria-label="anchor" href="#xmhw-dask"></a>
 </h2>
-<p>Note that the <code>xmhw</code> will also work with
-<code>dask</code>, which itself can have parellelism established. This
-is however outside of the scope of the capacity of an Rmarkdown file and
-<code>reticulate</code> to be able to replicate reasonably. The
-interested researcher is advised to read the tutorial available on the
-<code>xmhw</code> website: <a href="https://xmhw.readthedocs.io/en/latest/dask.html" class="external-link uri">https://xmhw.readthedocs.io/en/latest/dask.html</a></p>
+<p>Note that the <code>xmhw</code> will also work with <code>dask</code>, which itself can have parellelism established. This is however outside of the scope of the capacity of an Rmarkdown file and <code>reticulate</code> to be able to replicate reasonably. The interested researcher is advised to read the tutorial available on the <code>xmhw</code> website: <a href="https://xmhw.readthedocs.io/en/latest/dask.html" class="external-link uri">https://xmhw.readthedocs.io/en/latest/dask.html</a></p>
 </div>
 <div class="section level2">
 <h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
 </h2>
 <p>Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.0.</p>
 <table class="table">
-<colgroup>
-<col width="17%">
-<col width="25%">
-<col width="23%">
-<col width="14%">
-<col width="19%">
-</colgroup>
 <thead><tr class="header">
 <th>Method</th>
 <th>Climatology</th>
@@ -346,12 +322,7 @@ interested researcher is advised to read the tutorial available on the
 </tr>
 </tbody>
 </table>
-<p>Note then that the base <code>heatwaveR</code> script is already
-almost twice as fast as <code>xmhw</code> if this analysis has not been
-optimised for <code>dask</code>. Also note that as part of the operation
-of <code>heatwave3</code> the output of the files are saved to local
-disk in an orderly fashion. The saving of the output of
-<code>xmhw</code> would add additional total run-time.</p>
+<p>Note then that the base <code>heatwaveR</code> script is already almost twice as fast as <code>xmhw</code> if this analysis has not been optimised for <code>dask</code>. Also note that as part of the operation of <code>heatwave3</code> the output of the files are saved to local disk in an orderly fashion. The saving of the output of <code>xmhw</code> would add additional total run-time.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

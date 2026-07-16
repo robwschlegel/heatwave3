@@ -1,11 +1,21 @@
+<div id="main" class="col-md-9" role="main">
+
 # Read or export a heatwave3 NetCDF product
+
+<div class="ref-description section level2">
 
 Reads any heatwave3 NetCDF output (climatology, events, daily series, or
 proto-events) using the fast C++ reader, and either returns it as a long
 `data.frame` for examination or writes it to a flat companion file. The
 product type is detected automatically from the file.
 
+</div>
+
+<div class="section level2">
+
 ## Usage
+
+<div class="sourceCode">
 
 ``` r
 hw3_export(
@@ -22,75 +32,87 @@ hw3_export(
 )
 ```
 
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## Arguments
 
-- file:
+-   file:
 
-  Path to a heatwave3 NetCDF output file (any of the products written by
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
-  or
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)).
+    Path to a heatwave3 NetCDF output file (any of the products written
+    by `ts2clm3` or `detect_event3`).
 
-- file_out:
+-   file\_out:
 
-  Optional path for a flat companion file. When supplied, the product is
-  written there and the path is returned invisibly; the extension must
-  be one of `.csv`, `.rds`, or `.parquet`. When `NULL` (the default),
-  the product is returned as a `data.frame`.
+    Optional path for a flat companion file. When supplied, the product
+    is written there and the path is returned invisibly; the extension
+    must be one of `.csv`, `.rds`, or `.parquet`. When `NULL` (the
+    default), the product is returned as a `data.frame`.
 
-- vars:
+-   vars:
 
-  Optional character vector of data variables to read. `NULL` (the
-  default) reads all variables present. For example
-  `c("seas", "thresh")` for a climatology, or `c("temp", "category")`
-  for a daily product. An unknown name raises an error listing the
-  available variables.
+    Optional character vector of data variables to read. `NULL` (the
+    default) reads all variables present. For example
+    `c("seas", "thresh")` for a climatology, or `c("temp", "category")`
+    for a daily product. An unknown name raises an error listing the
+    available variables.
 
-- lon_range, lat_range:
+-   lon\_range, lat\_range:
 
-  Optional numeric `c(min, max)` windows. Only the overlapping grid
-  cells are read from disk (a true hyperslab read, so the rest of the
-  file is never loaded). For the events product these filter events by
-  their per-event coordinate.
+    Optional numeric `c(min, max)` windows. Only the overlapping grid
+    cells are read from disk (a true hyperslab read, so the rest of the
+    file is never loaded). For the events product these filter events by
+    their per-event coordinate.
 
-- time_range:
+-   time\_range:
 
-  Optional `c("start", "end")` dates (e.g.
-  `c("2015-01-01", "2015-12-31")`). Subsets the time dimension of daily
-  and proto-event products; for events it keeps events overlapping the
-  range. Ignored for a climatology (which has a day-of-year axis, not
-  time).
+    Optional `c("start", "end")` dates (e.g.
+    `c("2015-01-01", "2015-12-31")`). Subsets the time dimension of
+    daily and proto-event products; for events it keeps events
+    overlapping the range. Ignored for a climatology (which has a
+    day-of-year axis, not time).
 
-- depth_range:
+-   depth\_range:
 
-  Optional numeric `c(min_depth, max_depth)` window (metres). Only
-  meaningful for a depth-resolved climatology or daily/ proto-event
-  product (written with `ts2clm3(depth_range = ...)`); for events it
-  filters by each event's `depth`. Ignored (with a warning) if the file
-  has no depth dimension/column.
+    Optional numeric `c(min_depth, max_depth)` window (metres). Only
+    meaningful for a depth-resolved climatology or daily/ proto-event
+    product (written with `ts2clm3(depth_range = ...)`); for events it
+    filters by each event's `depth`. Ignored (with a warning) if the
+    file has no depth dimension/column.
 
-- n:
+-   n:
 
-  Optional integer. Return only the first `n` rows. For gridded products
-  this also caps how much is read from disk, so it is a cheap preview
-  even for very large files. `NULL` (the default) returns the whole
-  (possibly subset) table, with a warning if an unsubset whole read is
-  large.
+    Optional integer. Return only the first `n` rows. For gridded
+    products this also caps how much is read from disk, so it is a cheap
+    preview even for very large files. `NULL` (the default) returns the
+    whole (possibly subset) table, with a warning if an unsubset whole
+    read is large.
 
-- type:
+-   type:
 
-  Optional override of the auto-detected product, one of `"clim"`,
-  `"event"`, `"daily"`, or `"protoevents"`. Normally left `NULL`.
+    Optional override of the auto-detected product, one of `"clim"`,
+    `"event"`, `"daily"`, or `"protoevents"`. Normally left `NULL`.
 
-- chunk_size:
+-   chunk\_size:
 
-  Number of rows per CSV or Parquet write chunk for a whole (unsubset)
-  export. Default `1000000`.
+    Number of rows per CSV or Parquet write chunk for a whole (unsubset)
+    export. Default `1000000`.
+
+</div>
+
+<div class="section level2">
 
 ## Value
 
 If `file_out` is supplied, invisibly returns its path. Otherwise returns
 a `data.frame` (the whole product, or the requested subset).
+
+</div>
+
+<div class="section level2">
 
 ## Details
 
@@ -103,7 +125,13 @@ to `file_out` is written in row chunks.
 Writing formats (chosen by the `file_out` extension): `.csv`, `.rds`, or
 `.parquet` (the last requires the arrow package).
 
+</div>
+
+<div class="section level2">
+
 ## Examples
+
+<div class="sourceCode">
 
 ``` r
 # \donttest{
@@ -111,7 +139,7 @@ sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 stem <- file.path(tempdir(), "demo")
 detect3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"), daily = "also")
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
 #> 
@@ -121,11 +149,11 @@ detect3(sst_file, name = stem,
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc...
+#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc
+#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -149,11 +177,11 @@ detect3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc...
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
 #> 
@@ -164,13 +192,13 @@ detect3(sst_file, name = stem,
   5/6 pixels (83%)
   6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing per-day series to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events_daily.nc...
+#> Writing per-day series to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc...
 #> Done.
-#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc...
+#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc
+#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -243,12 +271,12 @@ detect3(sst_file, name = stem,
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 #> 
 #> ------------------------------------------------------------------
-#> Daily series written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events_daily.nc
+#> Daily series written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc
 #> Rows (long format): 85,656   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -284,8 +312,8 @@ detect3(sst_file, name = stem,
 #>   event-days: 5195
 #>   category: 1=8922  2=439  3=3
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events_daily.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 # First rows of the events product (cheap preview)
@@ -2533,3 +2561,9 @@ hw3_export(paste0(stem, "_events_daily.nc"),
            file_out = tempfile(fileext = ".csv"))
 # }
 ```
+
+</div>
+
+</div>
+
+</div>

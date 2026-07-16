@@ -1,10 +1,20 @@
+<div id="main" class="col-md-9" role="main">
+
 # Flame geom for MHW visualisation
+
+<div class="ref-description section level2">
 
 A ggplot2 geom that fills the area between two lines (temperature and
 threshold) where the first exceeds the second, creating "flame"
 polygons. For cold-spells, set `reverse = TRUE` to fill where `y < y2`.
 
+</div>
+
+<div class="section level2">
+
 ## Usage
+
+<div class="sourceCode">
 
 ``` r
 geom_flame3(
@@ -22,73 +32,93 @@ geom_flame3(
 )
 ```
 
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## Arguments
 
-- mapping:
+-   mapping:
 
-  Set of aesthetic mappings. Requires `x`, `y`, and `y2`. An optional
-  `depth` aesthetic can be mapped for depth-resolved data (see Details).
+    Set of aesthetic mappings. Requires `x`, `y`, and `y2`. An optional
+    `depth` aesthetic can be mapped for depth-resolved data (see
+    Details).
 
-- data:
+-   data:
 
-  The data to display.
+    The data to display.
 
-- stat:
+-   stat:
 
-  The statistical transformation. Default `"identity"`.
+    The statistical transformation. Default `"identity"`.
 
-- position:
+-   position:
 
-  Position adjustment. Default `"identity"`.
+    Position adjustment. Default `"identity"`.
 
-- ...:
+-   ...:
 
-  Additional arguments passed to the layer.
+    Additional arguments passed to the layer.
 
-- n:
+-   n:
 
-  Minimum number of consecutive exceeding points. Default `0`.
+    Minimum number of consecutive exceeding points. Default `0`.
 
-- n_gap:
+-   n\_gap:
 
-  Maximum gap to bridge between exceeding segments. Default `0`.
+    Maximum gap to bridge between exceeding segments. Default `0`.
 
-- reverse:
+-   reverse:
 
-  Logical. If `TRUE`, fill where `y < y2` (for cold-spells). Default
-  `FALSE` (fill where `y > y2`).
+    Logical. If `TRUE`, fill where `y < y2` (for cold-spells). Default
+    `FALSE` (fill where `y > y2`).
 
-- na.rm:
+-   na.rm:
 
-  Remove NAs? Default `FALSE`.
+    Remove NAs? Default `FALSE`.
 
-- show.legend:
+-   show.legend:
 
-  Show legend? Default `NA`.
+    Show legend? Default `NA`.
 
-- inherit.aes:
+-   inherit.aes:
 
-  Inherit aesthetics from the plot? Default `TRUE`.
+    Inherit aesthetics from the plot? Default `TRUE`.
+
+</div>
+
+<div class="section level2">
 
 ## Value
 
 A ggplot2 layer.
 
+</div>
+
+<div class="section level2">
+
 ## Details
 
 `geom_flame3()` finds exceedance runs by walking each group's rows in
 order, so a single group must be one continuous series through `x`. For
-depth-resolved data (e.g.
-[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
-on a `ts2clm3(depth_range = ...)` product), map `depth` as an aesthetic
-– `aes(x = t, y = temp, y2 = thresh, depth = depth)` – and it is
+depth-resolved data (e.g. `hw3_export()` on a
+`ts2clm3(depth_range = ...)` product), map `depth` as an aesthetic –
+`aes(x = t, y = temp, y2 = thresh, depth = depth)` – and it is
 automatically folded into the row grouping, so each depth level gets its
 own exceedance runs instead of being treated as one series with depths
 interleaved. This happens even though `depth` is a plain numeric column,
 which ggplot2's own default grouping would otherwise merge into a single
 group (unlike a discrete aesthetic such as `colour`).
 
+</div>
+
+<div class="section level2">
+
 ## Examples
+
+<div class="sourceCode">
 
 ``` r
 library(ggplot2)
@@ -103,3 +133,9 @@ ggplot(df, aes(x = x, y = y, y2 = y2)) +
   geom_line()
 
 ```
+
+</div>
+
+</div>
+
+</div>

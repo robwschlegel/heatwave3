@@ -1,12 +1,20 @@
+<div id="main" class="col-md-9" role="main">
+
 # All-in-one marine heatwave detection for gridded data
 
-The primary entry point for `heatwave3`. Runs
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
-followed by
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
-in a single call, with optional inline category computation.
+<div class="ref-description section level2">
+
+The primary entry point for `heatwave3`. Runs `ts2clm3` followed by
+`detect_event3` in a single call, with optional inline category
+computation.
+
+</div>
+
+<div class="section level2">
 
 ## Usage
+
+<div class="sourceCode">
 
 ``` r
 detect3(
@@ -45,167 +53,178 @@ detect3(
 )
 ```
 
+</div>
+
+</div>
+
+<div class="section level2">
+
 ## Arguments
 
-- file_in:
+-   file\_in:
 
-  Path to input NetCDF file (or directory/vector of daily files).
+    Path to input NetCDF file (or directory/vector of daily files).
 
-- name:
+-   name:
 
-  Output base name (a path stem) shared by both stages. Produces
-  `paste0(name, "_clim.nc")` and `paste0(name, "_events.nc")` (plus the
-  per-day products; see `daily` and `protoEvent`). The directory must
-  exist.
+    Output base name (a path stem) shared by both stages. Produces
+    `paste0(name, "_clim.nc")` and `paste0(name, "_events.nc")` (plus
+    the per-day products; see `daily` and `protoEvent`). The directory
+    must exist.
 
-- climatologyPeriod:
+-   climatologyPeriod:
 
-  Character vector of length 2 with start and end dates of the baseline
-  period, for example `c("1991-01-01", "2020-12-31")`.
+    Character vector of length 2 with start and end dates of the
+    baseline period, for example `c("1991-01-01", "2020-12-31")`.
 
-- var_name:
+-   var\_name:
 
-  Name of the SST variable. If `NULL`, auto-detected.
+    Name of the SST variable. If `NULL`, auto-detected.
 
-- lon_range:
+-   lon\_range:
 
-  Optional `c(min, max)` longitude range.
+    Optional `c(min, max)` longitude range.
 
-- lat_range:
+-   lat\_range:
 
-  Optional `c(min, max)` latitude range.
+    Optional `c(min, max)` latitude range.
 
-- time_range:
+-   time\_range:
 
-  Optional `c("start", "end")` date range.
+    Optional `c("start", "end")` date range.
 
-- depth:
+-   depth:
 
-  Optional depth/level index for 4D data.
+    Optional depth/level index for 4D data.
 
-- depth_range:
+-   depth\_range:
 
-  Optional numeric vector of length 2: `c(min_depth, max_depth)`. Runs
-  the climatology and event detection natively across this contiguous
-  band of depth levels instead of a single squeezed level – see
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)'s
-  `depth_range` for details. Mutually exclusive with `depth`. Compatible
-  with `daily`/`protoEvent`: the per-day product gains a `depth`
-  dimension the same way the climatology and event files do.
+    Optional numeric vector of length 2: `c(min_depth, max_depth)`. Runs
+    the climatology and event detection natively across this contiguous
+    band of depth levels instead of a single squeezed level – see
+    `ts2clm3`'s `depth_range` for details. Mutually exclusive with
+    `depth`. Compatible with `daily`/`protoEvent`: the per-day product
+    gains a `depth` dimension the same way the climatology and event
+    files do.
 
-- maxPadLength:
+-   maxPadLength:
 
-  Max consecutive NAs to interpolate. Default `FALSE`.
+    Max consecutive NAs to interpolate. Default `FALSE`.
 
-- windowHalfWidth:
+-   windowHalfWidth:
 
-  Half-width of climatology window. Default `5`.
+    Half-width of climatology window. Default `5`.
 
-- pctile:
+-   pctile:
 
-  Percentile for threshold. Default `90` (heatwaves); use `10` for
-  cold-spells.
+    Percentile for threshold. Default `90` (heatwaves); use `10` for
+    cold-spells.
 
-- smoothPercentile:
+-   smoothPercentile:
 
-  Apply rolling mean smoothing? Default `TRUE`.
+    Apply rolling mean smoothing? Default `TRUE`.
 
-- smoothPercentileWidth:
+-   smoothPercentileWidth:
 
-  Smoothing window width. Default `31`.
+    Smoothing window width. Default `31`.
 
-- detrend:
+-   detrend:
 
-  Logical. Remove a linear trend before climatology calculation? Default
-  `FALSE`.
+    Logical. Remove a linear trend before climatology calculation?
+    Default `FALSE`.
 
-- minDuration:
+-   minDuration:
 
-  Minimum event duration in days. Default `5`.
+    Minimum event duration in days. Default `5`.
 
-- minDuration2:
+-   minDuration2:
 
-  Secondary minimum duration. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+    Secondary minimum duration. See `detect_event3`.
 
-- joinAcrossGaps:
+-   joinAcrossGaps:
 
-  Join events across short gaps? Default `TRUE`.
+    Join events across short gaps? Default `TRUE`.
 
-- maxGap:
+-   maxGap:
 
-  Maximum gap length to join. Default `2`.
+    Maximum gap length to join. Default `2`.
 
-- maxGap2:
+-   maxGap2:
 
-  Secondary maximum gap length. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+    Secondary maximum gap length. See `detect_event3`.
 
-- threshClim2:
+-   threshClim2:
 
-  Optional gridded NetCDF logical criterion for secondary event
-  detection. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+    Optional gridded NetCDF logical criterion for secondary event
+    detection. See `detect_event3`.
 
-- threshClim2_var_name:
+-   threshClim2\_var\_name:
 
-  Name of the `threshClim2` variable. If `NULL`, it is auto-detected.
+    Name of the `threshClim2` variable. If `NULL`, it is auto-detected.
 
-- coldSpells:
+-   coldSpells:
 
-  Detect cold-spells? Default `FALSE`.
+    Detect cold-spells? Default `FALSE`.
 
-- category:
+-   category:
 
-  Logical. Compute Hobday et al. (2018) severity categories inline?
-  Default `FALSE`.
+    Logical. Compute Hobday et al. (2018) severity categories inline?
+    Default `FALSE`.
 
-- hemisphere:
+-   hemisphere:
 
-  Character. `"south"` (default) or `"north"`.
+    Character. `"south"` (default) or `"north"`.
 
-- roundClm:
+-   roundClm:
 
-  Decimal places for climatology rounding. Default `4`.
+    Decimal places for climatology rounding. Default `4`.
 
-- roundRes:
+-   roundRes:
 
-  Decimal places for event metric rounding. Default `4`.
+    Decimal places for event metric rounding. Default `4`.
 
-- daily:
+-   daily:
 
-  Per-day output control: `"none"` (default), `"also"`, or `"only"`. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+    Per-day output control: `"none"` (default), `"also"`, or `"only"`.
+    See `detect_event3`.
 
-- protoEvent:
+-   protoEvent:
 
-  Logical. Write the per-day proto-event series
-  (`paste0(name, "_protoevents.nc")`) instead of the event table. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
-  Default `FALSE`.
+    Logical. Write the per-day proto-event series
+    (`paste0(name, "_protoevents.nc")`) instead of the event table. See
+    `detect_event3`. Default `FALSE`.
 
-- n_threads:
+-   n\_threads:
 
-  Number of OpenMP threads. Default `1`.
+    Number of threads for parallel computation. Default `1`.
 
-- skip_bad_files:
+-   skip\_bad\_files:
 
-  Logical. For multi-file inputs, skip unreadable files or files with
-  mismatched grids instead of failing. Default `FALSE`.
+    Logical. For multi-file inputs, skip unreadable files or files with
+    mismatched grids instead of failing. Default `FALSE`.
 
-- quiet:
+-   quiet:
 
-  Logical. Suppress the post-computation console summaries? Default
-  `FALSE`.
+    Logical. Suppress the post-computation console summaries? Default
+    `FALSE`.
+
+</div>
+
+<div class="section level2">
 
 ## Value
 
 Invisibly returns a named character vector of the NetCDF files written
 (`clim` plus a subset of `events`, `daily`, `protoevents`). Use
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
-to read or export any of them.
+`hw3_export` to read or export any of them.
+
+</div>
+
+<div class="section level2">
 
 ## Examples
+
+<div class="sourceCode">
 
 ``` r
 # \donttest{
@@ -213,7 +232,7 @@ sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 
 detect3(sst_file, name = file.path(tempdir(), "demo"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
 #> 
@@ -223,11 +242,11 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc...
+#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc
+#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -251,11 +270,11 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_clim.nc...
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
+#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
 #> 
@@ -266,11 +285,11 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
   5/6 pixels (83%)
   6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc...
+#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc
+#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -343,8 +362,14 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 # }
 ```
+
+</div>
+
+</div>
+
+</div>

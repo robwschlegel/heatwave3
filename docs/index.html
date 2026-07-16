@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Detect Heatwaves and Cold-Spells in Gridded Data">
-<meta name="description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++ with OpenMP parallelism for high performance on large datasets.">
-<meta property="og:description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++ with OpenMP parallelism for high performance on large datasets.">
+<meta name="description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++17 with std::thread parallelism for high performance on large datasets.">
+<meta property="og:description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++17 with std::thread parallelism for high performance on large datasets.">
 <meta property="og:image" content="https://robwschlegel.github.io/heatwave3/index.html/logo.png">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -88,7 +88,6 @@
 </h1>
 </div>
 <!-- badges: start -->
-
 <p><strong><code>heatwave3</code></strong> detects marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF files using the Hobday et al. (2016, 2018) definition. It is a ground-up C++ reimplementation of <a href="https://robwschlegel.github.io/heatwaveR/" class="external-link"><strong><code>heatwaveR</code></strong></a>, designed for gridded datasets rather than individual time series.</p>
 <div class="section level2">
 <h2 id="why-heatwave3">Why heatwave3?<a class="anchor" aria-label="anchor" href="#why-heatwave3"></a>
@@ -98,7 +97,7 @@
 <li>
 <strong>C++17 implementation</strong> of all core algorithms (climatology, event detection, categorisation, block averages)</li>
 <li>
-<strong>OpenMP parallelism</strong> across pixels, since each pixel is independent</li>
+<strong><code>std::thread</code> parallelism</strong> across pixels, since each pixel is independent</li>
 <li>
 <strong>Direct NetCDF I/O</strong> via libnetcdf, with no R NetCDF packages needed at runtime</li>
 </ol>
@@ -107,23 +106,23 @@
 </h3>
 <p>Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 × 200 grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M5 Max:</p>
 <table class="table">
-<thead><tr>
+<thead><tr class="header">
 <th>Method</th>
 <th>Time</th>
 <th>Speedup</th>
 </tr></thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>heatwaveR (serial)</td>
 <td>ca. 69 min</td>
 <td>1×</td>
 </tr>
-<tr>
+<tr class="even">
 <td>heatwave3 (1 thread)</td>
 <td>4.3 min</td>
 <td><strong>16×</strong></td>
 </tr>
-<tr>
+<tr class="odd">
 <td>heatwave3 (12 threads)</td>
 <td>1.9 min</td>
 <td><strong>36×</strong></td>
@@ -173,24 +172,26 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3@dev"</span><span class="op">)</span></span></code></pre></div>
+<p>If however you feel like playing it safe, the main branch is the way to go:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
 </h3>
 <p>heatwave3 requires the <strong>netCDF C library</strong> (version 4.0+). The <code>configure</code> script finds it automatically via <code>nc-config</code> or <code>pkg-config</code>.</p>
 <p><strong>macOS:</strong></p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="ex">brew</span> install netcdf</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install netcdf</span></code></pre></div>
 <p><strong>Ubuntu / Debian:</strong></p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">sudo</span> apt install libnetcdf-dev</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install libnetcdf-dev</span></code></pre></div>
 <p><strong>Fedora / RHEL:</strong></p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">sudo</span> dnf install netcdf-devel</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> dnf install netcdf-devel</span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="openmp-parallelism">OpenMP parallelism<a class="anchor" aria-label="anchor" href="#openmp-parallelism"></a>
+<h3 id="in-process-parallelism">In-process parallelism<a class="anchor" aria-label="anchor" href="#in-process-parallelism"></a>
 </h3>
-<p>On Linux, OpenMP works without extra setup. On macOS, the <code>configure</code> script probes for a working OpenMP runtime (Apple Clang with R’s own bundled libomp, Homebrew libomp, or user-supplied flags) using a compile-link-run test. If none is found, heatwave3 falls back to single-threaded mode.</p>
-<p>To install Homebrew’s libomp (may help on some macOS configurations):</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">brew</span> install libomp</span></code></pre></div>
+<p><strong><code>heatwave3</code></strong> uses C++ <code>std::thread</code> for in-process parallelism, not OpenMP. There is no OpenMP toolchain to install or enable – no <code>libomp</code>, no <code>omp.h</code>, nothing for <code>configure</code> to probe for – since <code>std::thread</code> is part of the C++ standard library and works out of the box on every platform. Earlier versions used OpenMP; it was replaced because a <code>dlopen</code>-ed <code>libomp</code> could crash on macOS when heatwave3 ran alongside other native-heavy packages (terra, sf, GDAL) or inside IDEs that embed R (e.g. Positron). See the <a href="https://robwschlegel.github.io/heatwave3/articles/parallelism.html" class="external-link">Parallel performance</a> vignette for the full story and a performance comparison.</p>
 </div>
 <div class="section level3">
 <h3 id="thread-management">Thread management<a class="anchor" aria-label="anchor" href="#thread-management"></a>
@@ -204,7 +205,7 @@
 <span></span>
 <span><span class="co"># Or override per call:</span></span>
 <span><span class="fu"><a href="reference/detect_event3.html">detect_event3</a></span><span class="op">(</span><span class="va">...</span>, n_threads <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
-<p><strong><code>heatwave3</code></strong> never calls <code>omp_set_num_threads()</code>, so it does not change thread counts for other OpenMP-using packages. It is also safe under <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code> (fork-safe via <code>pthread_atfork</code>).</p>
+<p><strong><code>heatwave3</code></strong> has no OpenMP dependency, so it can never change thread counts for other OpenMP-using packages in the same session. It is also fork-safe under <code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply()</a></code>: each parallel region joins its worker threads before returning, so no heatwave3 threads are ever alive at fork time.</p>
 </div>
 </div>
 <div class="section level2">
@@ -323,57 +324,57 @@
 <col width="52%">
 <col width="47%">
 </colgroup>
-<thead><tr>
+<thead><tr class="header">
 <th>Function</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/detect3.html">detect3()</a></code></td>
 <td>
 <strong>Primary entry point</strong>. Climatology, detection, and optional categories</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/ts2clm3.html">ts2clm3()</a></code></td>
 <td>Compute climatology (NetCDF → NetCDF)</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/detect_event3.html">detect_event3()</a></code></td>
 <td>Detect per-pixel events (with optional inline categories)</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/detect_blob3.html">detect_blob3()</a></code></td>
 <td>3D spatial blob detection</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/category3.html">category3()</a></code></td>
 <td>Hobday et al. (2018) event categories (reads or computes)</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/block_average3.html">block_average3()</a></code></td>
 <td>Yearly aggregation of event metrics</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/exceedance3.html">exceedance3()</a></code></td>
 <td>Static threshold exceedance</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/event_line3.html">event_line3()</a></code></td>
 <td>Per-pixel time series plot</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/geom_flame3.html">geom_flame3()</a></code></td>
 <td>ggplot2 flame polygon geom</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/geom_lolli3.html">geom_lolli3()</a></code></td>
 <td>ggplot2 lollipop geom</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/plot_metric3.html">plot_metric3()</a></code></td>
 <td>Spatial map of event metrics (C++-backed aggregation)</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/hw3_export.html">hw3_export()</a></code></td>
 <td>Read any product into a data.frame, or export to CSV/RDS/Parquet</td>
 </tr>
@@ -391,7 +392,7 @@
 <li>
 <a href="https://robwschlegel.github.io/heatwave3/articles/benchmark.html" class="external-link"><strong>Performance benchmark</strong></a>. <strong><code>heatwaveR</code></strong> versus <strong><code>heatwave3</code></strong> timing comparison.</li>
 <li>
-<a href="https://robwschlegel.github.io/heatwave3/articles/parallelism.html" class="external-link"><strong>Parallel performance</strong></a>. OpenMP threads versus R-side parallelism, with per-platform setup.</li>
+<a href="https://robwschlegel.github.io/heatwave3/articles/parallelism.html" class="external-link"><strong>Parallel performance</strong></a>. In-process <code>std::thread</code> parallelism versus R-side (PSOCK) parallelism, with per-platform setup and a comparison against the retired OpenMP backend.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -445,7 +446,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Robert W. Schlegel <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-0705-1287" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Robert W. Schlegel <br><small class="roles"> Author, copyright holder </small> <a href="https://orcid.org/0000-0002-0705-1287" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>Albertus J. Smit <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-3799-6126" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>

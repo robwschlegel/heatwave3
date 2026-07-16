@@ -13,7 +13,7 @@ packages are required."><meta property="og:image" content="https://robwschlegel.
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -157,11 +157,11 @@ standard <code>+</code> operator.</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/sst_test.nc"</span>, package <span class="op">=</span> <span class="st">"heatwave3"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">clim_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".nc"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"demo"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu"><a href="ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>,</span></span>
+<span class="r-in"><span><span class="fu"><a href="ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, name <span class="op">=</span> <span class="va">stem</span>,</span></span>
 <span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmppsylXt/temp_libpathec9b4aa2cdfa/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 
@@ -171,11 +171,11 @@ standard <code>+</code> operator.</p>
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -199,14 +199,14 @@ standard <code>+</code> operator.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu">event_line3</span><span class="op">(</span><span class="va">sst_file</span>, <span class="va">clim_file</span>,</span></span>
+<span class="r-in"><span><span class="fu">event_line3</span><span class="op">(</span><span class="va">sst_file</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>            lon <span class="op">=</span> <span class="fl">26.525</span>, lat <span class="op">=</span> <span class="op">-</span><span class="fl">34.125</span>,</span></span>
 <span class="r-in"><span>            start_date <span class="op">=</span> <span class="st">"2010-01-01"</span>, end_date <span class="op">=</span> <span class="st">"2012-12-31"</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> NetCDF error in open /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//Rtmp3f4glh/file17dc75c962c11.nc: No such file or directory</span>
+<span class="r-plt img"><img src="event_line3-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

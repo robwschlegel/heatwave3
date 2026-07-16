@@ -13,6 +13,7 @@ test_that("category3 reads inline categories and validates missing climatology",
   expect_s3_class(cats, "data.frame")
   expect_true("category" %in% names(cats))
   expect_gt(nrow(cats), 0)
+  expect_false(anyNA(cats$category))
 
   # plain events (no inline categories) require a climatology file
   stem2 <- tempfile()
@@ -21,7 +22,23 @@ test_that("category3 reads inline categories and validates missing climatology",
   ev2 <- paste0(stem2, "_events.nc")
 
   expect_error(category3(ev2), "clim_file is required")
-  expect_s3_class(category3(ev2, paste0(stem2, "_clim.nc")), "data.frame")
+
+  # Regression test: category3(event_file, clim_file) must actually compute
+  # categories from the climatology rather than silently returning NA. The
+  # "category" NetCDF variable is always written by detect_event3() (filled
+  # with 0 when category = FALSE), so has_precomputed can't rely on mere
+  # presence -- it previously did, and always took the "already computed"
+  # branch, returning NA for every event no matter what.
+  cats2 <- category3(ev2, paste0(stem2, "_clim.nc"))
+  expect_s3_class(cats2, "data.frame")
+  expect_false(anyNA(cats2$category))
+  expect_true(all(cats2$category %in% c("I Moderate", "II Strong", "III Severe", "IV Extreme")))
+
+  # Same SST/climatology period -> the after-the-fact computation must agree
+  # with categories computed inline during detection.
+  ord <- order(cats$lon, cats$lat, cats$peak_date)
+  ord2 <- order(cats2$lon, cats2$lat, cats2$peak_date)
+  expect_equal(cats$category[ord], cats2$category[ord2])
 })
 
 test_that("category3 validates its file arguments", {

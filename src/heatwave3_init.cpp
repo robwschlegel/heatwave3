@@ -1000,8 +1000,16 @@ Rcpp::DataFrame hw3_category(std::string event_file,
 
     double round_mult = std::pow(10.0, roundVal);
 
-    // Check if event file already has category data
-    bool has_precomputed = !ed.category.empty();
+    // Check if event file already has category data. The "category" NetCDF
+    // variable is always defined by write_event_netcdf() -- filled with 0
+    // when detect_event3() was called with category = FALSE -- so emptiness
+    // alone can't distinguish "no data" from "real all-zero placeholder".
+    // Require at least one real (1-4) category code, mirroring the R-level
+    // check in category3().
+    bool has_precomputed = false;
+    for (int c : ed.category) {
+        if (c >= 1 && c <= 4) { has_precomputed = true; break; }
+    }
 
     if (has_precomputed) {
         // Use pre-computed category data from event file

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,9 +56,9 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.2.1" id="heatwave3-121-2026-07-15">heatwave3 1.2.1 (2026-07-15)<a class="anchor" aria-label="anchor" href="#heatwave3-121-2026-07-15"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.3.0" id="heatwave3-130-2026-07-16">heatwave3 1.3.0 (2026-07-16)<a class="anchor" aria-label="anchor" href="#heatwave3-130-2026-07-16"></a></h2>
 <div class="section level3">
-<h3 id="new-features-1-2-1">New features<a class="anchor" aria-label="anchor" href="#new-features-1-2-1"></a></h3>
+<h3 id="new-features-1-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-1-3-0"></a></h3>
 <ul><li>
 <strong><code>depth_range</code>: native depth-resolved (4D) climatology and event detection.</strong> <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> and <code><a href="../reference/detect3.html">detect3()</a></code> gain <code>depth_range = c(min_depth, max_depth)</code>, which keeps a contiguous band of depth levels as a real dimension instead of squeezing to a single level (the existing <code>depth</code> index argument is unchanged and still available). <code><a href="../reference/detect_event3.html">detect_event3()</a></code> needs no new argument – it reads the depth range straight off the climatology file it already loads, so climatology and event detection can never disagree about which levels they are comparing. Output NetCDF files write a real <code>depth</code> dimension/variable only when more than one level is present, so existing 3D output is byte-for-byte unchanged. Verified bit-exact against the legacy per-level-squeeze approach.</li>
 <li>
@@ -71,21 +71,28 @@
 <strong>New performance benchmark vignette</strong>, <em>heatwave3 vs xmhw</em>, comparing <code>heatwave3</code> against the Python <code>xmhw</code> module on an OSTIA Mediterranean grid (104 lon x 60 lat, 6,240 ocean pixels, 15,706 daily steps, 1982-2024). Measured on Ubuntu 24.04 (16 cores, R 4.6.0): <code>heatwave3</code> completes in 22.5 sec single-threaded (56x faster than the ca. 21 min <code>heatwaveR</code> serial baseline) and 7.4 sec on 12 threads (170x); <code>xmhw</code> without <code>dask</code> takes ca. 40 min.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-1-2-1">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-2-1"></a></h3>
+<h3 id="bug-fixes-1-3-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-3-0"></a></h3>
 <ul><li>
 <strong><code><a href="../reference/hw3_export.html">hw3_export()</a></code>’s climatology reader assumed <code>npixels = nlon*nlat</code>.</strong> For a depth-resolved climatology file this silently misread the data (each pixel’s depth levels were interleaved into what the reader thought were separate horizontal pixels). Fixed alongside the <code>depth_range</code> work.</li>
 <li>
 <strong>Stale <code><a href="../reference/detect3.html">detect3()</a></code>/<code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> examples were failing <code>R CMD check --as-cran</code>.</strong> Several <code>@examples</code> blocks (<code><a href="../reference/block_average3.html">block_average3()</a></code>, <code><a href="../reference/category3.html">category3()</a></code>, <code><a href="../reference/plot_metric3.html">plot_metric3()</a></code>, <code><a href="../reference/event_line3.html">event_line3()</a></code>, <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>) still called <code><a href="../reference/detect3.html">detect3()</a></code>/<code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> with the pre-1.2.0 positional-argument convention (separate <code>clim_file</code>/<code>event_file</code> paths). Under the current <code>name</code>-stem signature this let a tempfile path silently land in the <code>var_name</code> parameter slot, causing a <code>NetCDF: Variable not found</code> error – failing the <code>\donttest{}</code> examples in GitHub Actions CI without failing locally (<code><a href="https://devtools.r-lib.org/reference/run_examples.html" class="external-link">devtools::run_examples()</a></code> skips <code>\donttest{}</code> by default).</li>
+<li>
+<strong><code>category3(event_file, clim_file)</code> silently returned <code>NA</code> for every category instead of computing them.</strong> <code><a href="../reference/detect_event3.html">detect_event3()</a></code> always writes a <code>category</code> NetCDF variable to the events file (filled with <code>0</code> when <code>category = FALSE</code> was passed), so <code>hw3_category()</code>’s C++ used mere presence of that field to decide whether categories were already computed – which was always true – and so never actually used <code>clim_file</code>, even when it was supplied precisely because the event file had none. Fixed by requiring at least one real (<code>1</code>-<code>4</code>) category code before treating them as pre-computed, matching the check <code><a href="../reference/category3.html">category3()</a></code> already used on the R side to raise its “clim_file is required” error. Found and fixed while raising test coverage (below).</li>
 </ul></div>
 <div class="section level3">
-<h3 id="documentation-1-2-1">Documentation<a class="anchor" aria-label="anchor" href="#documentation-1-2-1"></a></h3>
+<h3 id="testing-1-3-0">Testing<a class="anchor" aria-label="anchor" href="#testing-1-3-0"></a></h3>
+<ul><li>
+<strong>Test coverage raised from 77.6% to over 90%</strong> (Codecov), via a five-step plan targeting the least-tested code: (1) tests for <code><a href="../reference/exceedance3.html">exceedance3()</a></code>, <code><a href="../reference/plot_metric3.html">plot_metric3()</a></code>, and <code><a href="../reference/block_average3.html">block_average3()</a></code>, which previously had none at all; (2) tests that force the multi-file/ directory ingestion path (<code>hw3_detect_events_multi</code>, <code>hw3_category_daily_multi</code>, <code>hw3_read_sst_multi</code>) using the <code>glorys_depth_test_annual</code> fixture, previously untested for <code><a href="../reference/detect_event3.html">detect_event3()</a></code>/<code><a href="../reference/category_daily3.html">category_daily3()</a></code>/<code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>; (3) direct tests for <code>hw3_version()</code>, <code>hw3_pixel_clim()</code>, <code><a href="../reference/getHW3threads.html">getHW3threads()</a></code>/ <code><a href="../reference/getHW3threads.html">setHW3threads()</a></code>, and an explicit <code>n_threads &gt; 1</code> run to exercise <code>hw3::parallel_for()</code>’s worker-pool branch (unreached by default on a 2-core CI runner, regardless of what <code>n_threads</code> a test passed); (4) edge-case tests for <code>export.R</code> (RDS export, multi-chunk CSV writes, empty subset windows, malformed <code>time_range</code>, events-product <code>lon_range</code>/<code>depth_range</code> filtering, non-quiet console summaries), <code><a href="../reference/event_line3.html">event_line3()</a></code> (directory input, event-centred window, error paths), and <code><a href="../reference/category3.html">category3()</a></code> (file-not-found, deprecated <code>S</code> argument). The <code><a href="../reference/category3.html">category3()</a></code> bug above was found in the course of this work.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="documentation-1-3-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-1-3-0"></a></h3>
 <ul><li>
 <strong>Rebuilt pkgdown site</strong> with the two new depth-resolved vignettes and the xmhw benchmark vignette indexed and linked from the navbar.</li>
 <li>
 <strong>README</strong> The Vignettes section now links each title to its pkgdown page; the Citation section gained DOIs for the Hobday et al. (2016, 2018) references; all external DOI/resource links (README and the pkgdown Resources menu) now open in a new tab; the installation section better distinguishes the <code>dev</code> branch from <code>main</code>.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="internal-1-2-1">Internal<a class="anchor" aria-label="anchor" href="#internal-1-2-1"></a></h3>
+<h3 id="internal-1-3-0">Internal<a class="anchor" aria-label="anchor" href="#internal-1-3-0"></a></h3>
 <ul><li>
 <strong>CI: macOS and Windows <code>R-CMD-check</code> jobs failed to find netCDF.</strong> Neither runner ships libnetcdf, and <code>setup-r-dependencies</code>‘s automatic system-requirement resolution only covers Linux. Added a <code>brew install netcdf</code> step for macOS. For Windows, added <code>tools/winlibs.R</code> plus a rewritten <code>src/Makevars.win</code> that downloads a prebuilt netcdf-mingw bundle from <code>rwinlib/netcdf</code>, mirroring the CRAN <code>ncdf4</code> package’s approach – ultimately dropped from CI (below) after this still failed to link against Rtools’ UCRT toolchain (the bundled static libraries were built against the legacy MSVCRT runtime).</li>
 <li>

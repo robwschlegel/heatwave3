@@ -1,4 +1,4 @@
-# heatwave3 1.2.1 (2026-07-15)
+# heatwave3 1.3.0 (2026-07-16)
 
 ## New features
 
@@ -73,6 +73,38 @@
   -- failing the `\donttest{}` examples in GitHub Actions CI without
   failing locally (`devtools::run_examples()` skips `\donttest{}` by
   default).
+* **`category3(event_file, clim_file)` silently returned `NA` for every
+  category instead of computing them.** `detect_event3()` always writes a
+  `category` NetCDF variable to the events file (filled with `0` when
+  `category = FALSE` was passed), so `hw3_category()`'s C++ used mere
+  presence of that field to decide whether categories were already
+  computed -- which was always true -- and so never actually used
+  `clim_file`, even when it was supplied precisely because the event file
+  had none. Fixed by requiring at least one real (`1`-`4`) category code
+  before treating them as pre-computed, matching the check `category3()`
+  already used on the R side to raise its "clim_file is required" error.
+  Found and fixed while raising test coverage (below).
+
+## Testing
+
+* **Test coverage raised from 77.6% to over 90%** (Codecov), via a
+  five-step plan targeting the least-tested code: (1) tests for
+  `exceedance3()`, `plot_metric3()`, and `block_average3()`, which
+  previously had none at all; (2) tests that force the multi-file/
+  directory ingestion path (`hw3_detect_events_multi`,
+  `hw3_category_daily_multi`, `hw3_read_sst_multi`) using the
+  `glorys_depth_test_annual` fixture, previously untested for
+  `detect_event3()`/`category_daily3()`/`detect_blob3()`; (3) direct tests
+  for `hw3_version()`, `hw3_pixel_clim()`, `getHW3threads()`/
+  `setHW3threads()`, and an explicit `n_threads > 1` run to exercise
+  `hw3::parallel_for()`'s worker-pool branch (unreached by default on a
+  2-core CI runner, regardless of what `n_threads` a test passed); (4)
+  edge-case tests for `export.R` (RDS export, multi-chunk CSV writes,
+  empty subset windows, malformed `time_range`, events-product
+  `lon_range`/`depth_range` filtering, non-quiet console summaries),
+  `event_line3()` (directory input, event-centred window, error paths),
+  and `category3()` (file-not-found, deprecated `S` argument). The
+  `category3()` bug above was found in the course of this work.
 
 ## Documentation
 

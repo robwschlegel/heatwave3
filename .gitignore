@@ -4,6 +4,7 @@
 .httr-oauth
 .DS_Store
 .quarto
+vignettes/*_files
 src/*.o
 src/*.so
 src/*.dll

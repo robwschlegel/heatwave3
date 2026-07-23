@@ -16,3 +16,5 @@
 ^windows$
 ^CLAUDE\.md$
 ^dev$
+^vignettes/.*_files$
+^vignettes/\.quarto$

@@ -15,7 +15,10 @@
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Performance benchmark: heatwave3 vs xmhw">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="benchmark_xmhw_files/libs/quarto-html/popper.min.js"></script><script src="benchmark_xmhw_files/libs/quarto-html/tippy.umd.min.js"></script><link href="benchmark_xmhw_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="benchmark_xmhw_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Performance benchmark: heatwave3 vs xmhw">
+<meta property="og:image" content="https://robwschlegel.github.io/heatwave3/index.html/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -77,28 +80,29 @@
 
 
   </div>
-</nav><div class="container template-article">
-
-
-
-
+</nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Performance benchmark: heatwave3 vs xmhw</h1>
-            
-      
-      <small class="dont-index">Source: <a href="https://github.com/robwschlegel/heatwave3/blob/HEAD/vignettes/benchmark_xmhw.Rmd" class="external-link"><code>vignettes/benchmark_xmhw.Rmd</code></a></small>
-      <div class="d-none name"><code>benchmark_xmhw.Rmd</code></div>
+
+
+
+
+      <small class="dont-index">Source: <a href="https://github.com/robwschlegel/heatwave3/blob/HEAD/vignettes/benchmark_xmhw.qmd" class="external-link"><code>vignettes/benchmark_xmhw.qmd</code></a></small>
+      <div class="d-none name"><code></code></div>
     </div>
 
-    
-    
-<div class="section level2">
-<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+
+
+
+
+
+    <section class="level2"><h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>This vignette benchmarks <code>heatwave3</code> against the python module <code>xmhw</code> on the OSTIA gridded SST dataset for the French coastline of the Mediterranean Sea (104 lon × 60 lat, 6,240 ocean pixels, 15,706 daily time steps, 1982–2024).</p>
-<p>We compare three configurations:</p>
-<ol style="list-style-type: decimal">
+<p>This is a Quarto (<code>.qmd</code>) document, meaning that R and python chunks run natively side by side in the same session (via <code>reticulate</code> as the shared execution engine), rather than calling python functions indirectly through <code><a href="https://rstudio.github.io/reticulate/reference/import.html" class="external-link">reticulate::import()</a></code>.</p>
+<p>We compare four configurations on this dataset:</p>
+<ol type="1">
 <li>
 <strong>heatwaveR</strong>, serial per-pixel R + C++ (the standard approach)</li>
 <li>
@@ -108,20 +112,20 @@
 <strong>heatwave3 (1 thread)</strong>, pure C++ with single-threaded execution</li>
 <li>
 <strong>heatwave3 (12 threads)</strong>, pure C++ with multi-threading</li>
-<li>
-<strong>xmhw (dask)</strong>, pure python with <code>dask</code> enabled</li>
 </ol>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<p>and, on a larger sample of the same dataset, the speed-up <code>xmhw</code> gets from <code>dask</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Necessary R packages</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://rstudio.github.io/reticulate/" class="external-link">reticulate</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://cirrus.ucsd.edu/~pierce/ncdf/" class="external-link">ncdf4</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwaveR/index.html" class="external-link">heatwaveR</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="test-data">Test data<a class="anchor" aria-label="anchor" href="#test-data"></a>
+</section><section class="level2"><h2 id="test-data">Test data<a class="anchor" aria-label="anchor" href="#test-data"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Choose bounding box</span></span>
 <span><span class="va">bbox</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="fl">2.5</span>,   <span class="co"># °E  (just west of Cerbère)</span></span>
@@ -146,36 +150,25 @@
 <span><span class="co"># 15,706 daily time steps (1982-01-01 to 2024-12-31)</span></span>
 <span><span class="co"># 6,240 ocean pixels (remainder is land)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="python-environment">Python environment<a class="anchor" aria-label="anchor" href="#python-environment"></a>
+</section><section class="level2"><h2 id="python-environment">Python environment<a class="anchor" aria-label="anchor" href="#python-environment"></a>
 </h2>
-<p>We will control the comparison across R and python by using an existing python v3.12 environemnt created for this tutorial with the following modules installed: <code>netCDF4</code>, <code>xarray</code>, <code>dask</code>, and <code>xmhw</code>.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Activate the conda environment and load functionality into R environment</span></span>
-<span><span class="fu">use_condaenv</span><span class="op">(</span><span class="st">"RiOMar"</span>, required <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">nc4</span> <span class="op">&lt;-</span> <span class="fu">import</span><span class="op">(</span><span class="st">"netCDF4"</span><span class="op">)</span></span>
-<span><span class="va">xmhw</span> <span class="op">&lt;-</span> <span class="fu">import</span><span class="op">(</span><span class="st">"xmhw.xmhw"</span><span class="op">)</span></span>
-<span><span class="va">xr</span> <span class="op">&lt;-</span> <span class="fu">import</span><span class="op">(</span><span class="st">"xarray"</span><span class="op">)</span></span>
-<span><span class="va">dask</span> <span class="op">&lt;-</span> <span class="fu">import</span><span class="op">(</span><span class="st">"dask"</span><span class="op">)</span></span>
-<span><span class="va">builtins</span> <span class="op">&lt;-</span> <span class="fu">import_builtins</span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Pull out the two key functions</span></span>
-<span><span class="va">x_threshold</span> <span class="op">&lt;-</span> <span class="va">xmhw</span><span class="op">$</span><span class="va">threshold</span></span>
-<span><span class="va">x_detect</span> <span class="op">&lt;-</span> <span class="va">xmhw</span><span class="op">$</span><span class="va">detect</span></span>
-<span><span class="va">py_slice</span> <span class="op">&lt;-</span> <span class="va">builtins</span><span class="op">$</span><span class="va">slice</span></span></code></pre></div>
+<p>We control the comparison across R and python by using an existing python v3.12 environment with the following modules installed: <code>netCDF4</code>, <code>xarray</code>, <code>dask</code>, and <code>xmhw</code>. <code>reticulate</code> activates this environment once, and every <code>python</code> chunk below runs in it — R objects such as <code>sst_file</code> are available in python as <code>r.sst_file</code>, and vice versa.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rstudio.github.io/reticulate/reference/use_python.html" class="external-link">use_condaenv</a></span><span class="op">(</span><span class="st">"RiOMar"</span>, required <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="heatwaver-serial-baseline">heatwaveR: serial baseline<a class="anchor" aria-label="anchor" href="#heatwaver-serial-baseline"></a>
+</section><section class="level2"><h2 id="heatwaver-serial-baseline">heatwaveR: serial baseline<a class="anchor" aria-label="anchor" href="#heatwaver-serial-baseline"></a>
 </h2>
 <p><code>heatwaveR</code> processes one pixel at a time. We time a 20-pixel sample (data pre-loaded to isolate computation from I/O) and extrapolate to the full grid.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_open.html" class="external-link">nc_open</a></span><span class="op">(</span><span class="va">sst_file</span><span class="op">)</span></span>
 <span><span class="va">time_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"time"</span><span class="op">)</span></span>
 <span><span class="va">dates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"1970-01-01"</span><span class="op">)</span> <span class="op">+</span> <span class="va">time_raw</span> <span class="op">/</span> <span class="fl">86400</span></span>
 <span></span>
 <span><span class="co"># Pre-load one longitude column (20 lat pixels)</span></span>
 <span><span class="va">sst_col</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/ncvar_get.html" class="external-link">ncvar_get</a></span><span class="op">(</span><span class="va">nc</span>, <span class="st">"analysed_sst"</span>,</span>
-<span>                     start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, </span>
+<span>                     start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>                     count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">20</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/ncdf4/man/nc_close.html" class="external-link">nc_close</a></span><span class="op">(</span><span class="va">nc</span><span class="op">)</span></span>
 <span></span>
@@ -184,9 +177,9 @@
 <span></span>
 <span><span class="va">t_hwr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="va">ocean_idx</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">n_test</span><span class="op">]</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">clm</span> <span class="op">&lt;-</span> <span class="fu">ts2clm</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>t <span class="op">=</span> <span class="va">dates</span>, temp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">sst_col</span><span class="op">[</span><span class="va">j</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="va">clm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.html" class="external-link">ts2clm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>t <span class="op">=</span> <span class="va">dates</span>, temp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">sst_col</span><span class="op">[</span><span class="va">j</span>, <span class="op">]</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                  climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu">detect_event</span><span class="op">(</span><span class="va">clm</span><span class="op">)</span></span>
+<span>    <span class="va">ev</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">detect_event</a></span><span class="op">(</span><span class="va">clm</span><span class="op">)</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">}</span><span class="op">)</span></span>
 <span></span>
@@ -198,46 +191,45 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Estimated total:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">estimated</span><span class="op">)</span>, <span class="st">"sec ("</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">estimated</span> <span class="op">/</span> <span class="fl">60</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"min)\n"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="xmhw-out-of-the-box">xmhw: out-of-the-box<a class="anchor" aria-label="anchor" href="#xmhw-out-of-the-box"></a>
+</section><section class="level2"><h2 id="xmhw-out-of-the-box">xmhw: out-of-the-box<a class="anchor" aria-label="anchor" href="#xmhw-out-of-the-box"></a>
 </h2>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Open sst file with xarray and extract the same subset of data as the heatwaveR example above</span></span>
-<span><span class="va">x_ds</span> <span class="op">&lt;-</span> <span class="va">xr</span><span class="op">$</span><span class="fu">open_dataset</span><span class="op">(</span><span class="va">sst_file</span><span class="op">)</span></span>
-<span><span class="va">x_sst</span> <span class="op">&lt;-</span> <span class="va">x_ds</span><span class="op">[[</span><span class="st">"analysed_sst"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="fu">isel</span><span class="op">(</span></span>
-<span>  longitude <span class="op">=</span> <span class="fl">0L</span>, <span class="co"># first longitude only (1 pixel)</span></span>
-<span>  latitude  <span class="op">=</span> <span class="fu">py_slice</span><span class="op">(</span><span class="fl">0L</span>, <span class="fl">20L</span><span class="op">)</span> <span class="co"># first 20 latitudes</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Check output</span></span>
-<span><span class="co"># print(x_sst)</span></span>
-<span><span class="co"># print(x_sst$shape) </span></span>
-<span></span>
-<span><span class="co"># Determine climatology data</span></span>
-<span><span class="va">x_clim_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>  <span class="va">x_clim</span> <span class="op">&lt;-</span> <span class="fu">x_threshold</span><span class="op">(</span><span class="va">x_sst</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Detect events</span></span>
-<span><span class="va">x_event_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
-<span>  <span class="va">x_event</span> <span class="op">&lt;-</span> <span class="fu">x_detect</span><span class="op">(</span><span class="va">x_sst</span>, <span class="va">x_clim</span><span class="op">[</span><span class="st">'thresh'</span><span class="op">]</span>, <span class="va">x_clim</span><span class="op">[</span><span class="st">'seas'</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Time estimates</span></span>
-<span><span class="va">x_clim_est</span> <span class="op">&lt;-</span> <span class="va">x_clim_time</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">/</span><span class="fl">20</span><span class="op">*</span><span class="fl">6240</span></span>
-<span><span class="va">x_event_est</span> <span class="op">&lt;-</span> <span class="va">x_event_time</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span><span class="op">/</span><span class="fl">20</span><span class="op">*</span><span class="fl">6240</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Climatology (estimated):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">x_clim_est</span><span class="op">)</span>, <span class="st">"sec ("</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="op">(</span><span class="va">x_clim_est</span><span class="op">)</span> <span class="op">/</span> <span class="fl">60</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"min)\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Detection (estimated):  "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">x_event_est</span><span class="op">)</span>, <span class="st">"sec ("</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="op">(</span><span class="va">x_event_est</span><span class="op">)</span> <span class="op">/</span> <span class="fl">60</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"min)\n"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Total (estimated):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">x_clim_est</span> <span class="op">+</span> <span class="va">x_event_est</span><span class="op">)</span>, <span class="st">"sec ("</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="op">(</span><span class="va">x_clim_est</span> <span class="op">+</span> <span class="va">x_event_est</span><span class="op">)</span> <span class="op">/</span> <span class="fl">60</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"min)\n"</span><span class="op">)</span></span></code></pre></div>
+<p>Native python, sharing <code>sst_file</code> from the R session via <code>r.sst_file</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> xarray <span class="im">as</span> xr</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Open sst file with xarray and extract the same subset of data as the heatwaveR example above</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>x_ds <span class="op">=</span> xr.open_dataset(r.sst_file)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>x_sst <span class="op">=</span> x_ds[<span class="st">"analysed_sst"</span>].isel(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    longitude<span class="op">=</span><span class="dv">0</span>,        <span class="co"># first longitude only (1 pixel)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    latitude<span class="op">=</span><span class="bu">slice</span>(<span class="dv">0</span>, <span class="dv">20</span>)  <span class="co"># first 20 latitudes</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> xmhw.xmhw <span class="im">import</span> threshold <span class="im">as</span> x_threshold, detect <span class="im">as</span> x_detect</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Determine climatology data</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>x_clim <span class="op">=</span> x_threshold(x_sst)</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>x_clim_time <span class="op">=</span> time.time() <span class="op">-</span> t0</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Detect events</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>x_event <span class="op">=</span> x_detect(x_sst, x_clim[<span class="st">"thresh"</span>], x_clim[<span class="st">"seas"</span>])</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>x_event_time <span class="op">=</span> time.time() <span class="op">-</span> t0</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Time estimates</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>x_clim_est <span class="op">=</span> x_clim_time <span class="op">/</span> <span class="dv">20</span> <span class="op">*</span> <span class="dv">6240</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>x_event_est <span class="op">=</span> x_event_time <span class="op">/</span> <span class="dv">20</span> <span class="op">*</span> <span class="dv">6240</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Climatology (estimated): </span><span class="sc">{</span><span class="bu">round</span>(x_clim_est)<span class="sc">}</span><span class="ss"> sec (</span><span class="sc">{</span><span class="bu">round</span>(x_clim_est <span class="op">/</span> <span class="dv">60</span>, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> min)"</span>)</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Detection (estimated):   </span><span class="sc">{</span><span class="bu">round</span>(x_event_est)<span class="sc">}</span><span class="ss"> sec (</span><span class="sc">{</span><span class="bu">round</span>(x_event_est <span class="op">/</span> <span class="dv">60</span>, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> min)"</span>)</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total (estimated): </span><span class="sc">{</span><span class="bu">round</span>(x_clim_est <span class="op">+</span> x_event_est)<span class="sc">}</span><span class="ss"> sec "</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>      <span class="ss">f"(</span><span class="sc">{</span><span class="bu">round</span>((x_clim_est <span class="op">+</span> x_event_est) <span class="op">/</span> <span class="dv">60</span>, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> min)"</span>)</span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="heatwave3-single-threaded">heatwave3: single-threaded<a class="anchor" aria-label="anchor" href="#heatwave3-single-threaded"></a>
+</section><section class="level2"><h2 id="heatwave3-single-threaded">heatwave3: single-threaded<a class="anchor" aria-label="anchor" href="#heatwave3-single-threaded"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"bench"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">t_clim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
@@ -255,10 +247,10 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Detection:  "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">t_event</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"sec\n"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Total:      "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">t_clim</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span> <span class="op">+</span> <span class="va">t_event</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"sec\n"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="heatwave3-12-threads">heatwave3: 12 threads<a class="anchor" aria-label="anchor" href="#heatwave3-12-threads"></a>
+</section><section class="level2"><h2 id="heatwave3-12-threads">heatwave3: 12 threads<a class="anchor" aria-label="anchor" href="#heatwave3-12-threads"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">t_clim_12</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="../reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>          climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span>,</span>
@@ -274,22 +266,23 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Detection:  "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">t_event_12</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"sec\n"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Total:      "</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">t_clim_12</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span> <span class="op">+</span> <span class="va">t_event_12</span><span class="op">[</span><span class="fl">3</span><span class="op">]</span>, <span class="fl">1</span><span class="op">)</span>, <span class="st">"sec\n"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<div class="section level2">
-<h2 id="xmhw-dask">xmhw: dask<a class="anchor" aria-label="anchor" href="#xmhw-dask"></a>
+</section><section class="level2"><h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
 </h2>
-<p>Note that the <code>xmhw</code> will also work with <code>dask</code>, which itself can have parellelism established. This is however outside of the scope of the capacity of an Rmarkdown file and <code>reticulate</code> to be able to replicate reasonably. The interested researcher is advised to read the tutorial available on the <code>xmhw</code> website: <a href="https://xmhw.readthedocs.io/en/latest/dask.html" class="external-link uri">https://xmhw.readthedocs.io/en/latest/dask.html</a></p>
-</div>
-<div class="section level2">
-<h2 id="results">Results<a class="anchor" aria-label="anchor" href="#results"></a>
-</h2>
-<p>Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.0.</p>
-<table class="table">
+<p>Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.1.</p>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 25%">
+<col style="width: 23%">
+<col style="width: 14%">
+<col style="width: 19%">
+</colgroup>
 <thead><tr class="header">
 <th>Method</th>
 <th>Climatology</th>
 <th>Detection</th>
 <th>Total</th>
-<th></th>
+<th>Speedup</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
@@ -322,12 +315,191 @@
 </tr>
 </tbody>
 </table>
-<p>Note then that the base <code>heatwaveR</code> script is already almost twice as fast as <code>xmhw</code> if this analysis has not been optimised for <code>dask</code>. Also note that as part of the operation of <code>heatwave3</code> the output of the files are saved to local disk in an orderly fashion. The saving of the output of <code>xmhw</code> would add additional total run-time.</p>
+<p>Note that the base <code>heatwaveR</code> script is already almost twice as fast as <code>xmhw</code> when the latter has not been optimised with <code>dask</code>. Also note that, as part of its operation, <code>heatwave3</code> saves its output to local disk in an orderly fashion; saving the output of <code>xmhw</code> would add additional total run-time.</p>
+</section><section class="level2"><h2 id="xmhw-dask">xmhw: dask<a class="anchor" aria-label="anchor" href="#xmhw-dask"></a>
+</h2>
+<p><code>xmhw</code>’s <code>threshold()</code> and <code>detect()</code> are dask-aware: if the input <code>DataArray</code> is chunked, both functions dispatch to dask automatically rather than looping serially over pixels. The single-longitude, 20-pixel sample used above is too small to say anything meaningful about chunk-level parallelism, so this comparison uses a larger, still real, sample of the same OSTIA French Med dataset: 20 of the 104 longitudes across all 60 latitudes (1,200 pixels), timed directly (not extrapolated) with and without <code>dask</code>, then scaled to the full 6,240-pixel grid the same way the other sections extrapolate from their smaller samples.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>x_sst_sub <span class="op">=</span> x_ds[<span class="st">"analysed_sst"</span>].isel(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    longitude<span class="op">=</span><span class="bu">slice</span>(<span class="dv">0</span>, <span class="dv">20</span>),  <span class="co"># 20 of 104 longitudes</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    latitude<span class="op">=</span><span class="bu">slice</span>(<span class="dv">0</span>, <span class="dv">60</span>)    <span class="co"># all 60 latitudes</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>).load()</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(x_sst_sub.shape)  <span class="co"># (15706, 60, 20) -&gt; 1,200 pixels</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>n_sub <span class="op">=</span> <span class="dv">20</span> <span class="op">*</span> <span class="dv">60</span></span></code></pre></div>
 </div>
-  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+<section class="level3"><h3 id="serial-no-dask">Serial (no dask)<a class="anchor" aria-label="anchor" href="#serial-no-dask"></a>
+</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>sub_clim <span class="op">=</span> x_threshold(x_sst_sub, climatologyPeriod<span class="op">=</span>[<span class="dv">1982</span>, <span class="dv">2011</span>])</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>t_clim_serial <span class="op">=</span> time.time() <span class="op">-</span> t0</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>sub_event <span class="op">=</span> x_detect(x_sst_sub, sub_clim[<span class="st">"thresh"</span>], sub_clim[<span class="st">"seas"</span>])</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>t_event_serial <span class="op">=</span> time.time() <span class="op">-</span> t0</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Climatology: </span><span class="sc">{</span><span class="bu">round</span>(t_clim_serial, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> sec"</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Detection:   </span><span class="sc">{</span><span class="bu">round</span>(t_event_serial, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> sec"</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total:       </span><span class="sc">{</span><span class="bu">round</span>(t_clim_serial <span class="op">+</span> t_event_serial, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> sec"</span>)</span></code></pre></div>
+</div>
+</section><section class="level3"><h3 id="chunked-with-dask">Chunked with dask<a class="anchor" aria-label="anchor" href="#chunked-with-dask"></a>
+</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> dask.distributed <span class="im">import</span> Client, LocalCluster</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>cluster <span class="op">=</span> LocalCluster(n_workers<span class="op">=</span><span class="dv">8</span>, threads_per_worker<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>client <span class="op">=</span> Client(cluster)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>x_ds_lazy <span class="op">=</span> xr.open_dataset(r.sst_file, chunks<span class="op">=</span>{})</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>x_sst_sub_lazy <span class="op">=</span> x_ds_lazy[<span class="st">"analysed_sst"</span>].isel(</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    longitude<span class="op">=</span><span class="bu">slice</span>(<span class="dv">0</span>, <span class="dv">20</span>),</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    latitude<span class="op">=</span><span class="bu">slice</span>(<span class="dv">0</span>, <span class="dv">60</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Full time series per chunk (required for the climatology window), spatial</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># dims split into 10x5-pixel blocks so dask can schedule chunks across workers</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>x_sst_sub_lazy <span class="op">=</span> x_sst_sub_lazy.chunk({<span class="st">"time"</span>: <span class="op">-</span><span class="dv">1</span>, <span class="st">"latitude"</span>: <span class="dv">10</span>, <span class="st">"longitude"</span>: <span class="dv">5</span>})</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>sub_clim_d <span class="op">=</span> x_threshold(x_sst_sub_lazy, climatologyPeriod<span class="op">=</span>[<span class="dv">1982</span>, <span class="dv">2011</span>]).compute()</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>t_clim_dask <span class="op">=</span> time.time() <span class="op">-</span> t0</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>sub_event_d <span class="op">=</span> x_detect(x_sst_sub_lazy, sub_clim_d[<span class="st">"thresh"</span>], sub_clim_d[<span class="st">"seas"</span>]).compute()</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>t_event_dask <span class="op">=</span> time.time() <span class="op">-</span> t0</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Climatology: </span><span class="sc">{</span><span class="bu">round</span>(t_clim_dask, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> sec"</span>)</span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Detection:   </span><span class="sc">{</span><span class="bu">round</span>(t_event_dask, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> sec"</span>)</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Total:       </span><span class="sc">{</span><span class="bu">round</span>(t_clim_dask <span class="op">+</span> t_event_dask, <span class="dv">1</span>)<span class="sc">}</span><span class="ss"> sec"</span>)</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>client.close()</span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>cluster.close()</span></code></pre></div>
+</div>
+</section><section class="level3"><h3 id="dask-results">Dask results<a class="anchor" aria-label="anchor" href="#dask-results"></a>
+</h3>
+<p>Benchmarked on Ubuntu 24.04, 16 cores (8 dask workers, 1 thread each), R 4.6.1, on the 1,200-pixel sample described above (chunked <code>{time: -1, latitude: 10, longitude: 5}</code>, i.e. 24 chunks across 8 workers). The full 6,240-pixel grid figures are a linear extrapolation from that sample, as elsewhere in this vignette; because <code>dask</code>’s benefit depends on chunk count and scheduling overhead, not just pixel count, this extrapolation is less reliable here than for the single-threaded timings above and should be read as indicative rather than exact.</p>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 9%">
+<col style="width: 14%">
+<col style="width: 13%">
+<col style="width: 22%">
+<col style="width: 28%">
+<col style="width: 10%">
+</colgroup>
+<thead><tr class="header">
+<th>Method</th>
+<th>Climatology</th>
+<th>Detection</th>
+<th>Total (1,200 px)</th>
+<th>Total (est., 6,240 px)</th>
+<th>Speedup</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>xmhw (serial)</td>
+<td>253.6 sec</td>
+<td>221.2 sec</td>
+<td><strong>474.9 sec (7.9 min)</strong></td>
+<td>ca. 2,469 sec (41.2 min)</td>
+<td>1×</td>
+</tr>
+<tr class="even">
+<td>xmhw (dask, 8 workers)</td>
+<td>388.5 sec</td>
+<td>45.7 sec</td>
+<td><strong>434.1 sec (7.2 min)</strong></td>
+<td>ca. 2,258 sec (37.6 min)</td>
+<td><strong>1.09×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The result is more nuanced than “dask makes xmhw faster.” <code>detect()</code> benefits substantially from chunking (221.2 sec → 45.7 sec, ca. 4.8×), since threshold exceedance and run-length encoding parallelise cleanly across independent pixel chunks. <code>threshold()</code>, however, is <em>slower</em> under dask here (253.6 sec → 388.5 sec) — the sliding-window percentile calculation it performs is heavier per chunk, and with only 24 chunks spread across 8 workers, the task-graph construction and inter-process communication overhead of <code>dask.distributed</code> outweighs the parallelism gained. The two effects roughly cancel out, leaving only a modest 1.09× overall speedup on this sample. A different chunking strategy (fewer, larger chunks) or a larger grid with more independent work per chunk may shift this balance; readers repeating this benchmark on their own data should not assume dask is a free win without checking both steps separately, as done here. Even with <code>dask</code>, <code>xmhw</code> remains well behind <code>heatwave3</code> on this dataset (compare against the Results table above). For a full walk-through of chunking strategy and cluster setup, see the <code>xmhw</code> documentation: <a href="https://xmhw.readthedocs.io/en/latest/dask.html" class="external-link uri">https://xmhw.readthedocs.io/en/latest/dask.html</a>.</p>
+</section></section><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'light-border',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config);
+    }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
-
 
 
     <footer><div class="pkgdown-footer-left">

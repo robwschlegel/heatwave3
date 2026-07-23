@@ -1,20 +1,10 @@
-<div id="main" class="col-md-9" role="main">
-
 # Spatial map of event metrics
-
-<div class="ref-description section level2">
 
 Creates a map showing the spatial distribution of a chosen event metric
 from the event NetCDF output. The per-pixel aggregation is performed in
 C++ for efficiency; the R layer handles only the ggplot2 rendering.
 
-</div>
-
-<div class="section level2">
-
 ## Usage
-
-<div class="sourceCode">
 
 ``` r
 plot_metric3(
@@ -26,56 +16,41 @@ plot_metric3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Arguments
 
--   event\_file:
+- event_file:
 
-    Path to the event NetCDF file from `detect_event3`.
+  Path to the event NetCDF file from
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
 
--   metric:
+- metric:
 
-    Character. The event metric to map. Options include
-    `"intensity_max"` (default), `"intensity_mean"`,
-    `"intensity_cumulative"`, `"duration"`, `"rate_onset"`,
-    `"rate_decline"`, and all `relThresh`/`abs` variants.
+  Character. The event metric to map. Options include `"intensity_max"`
+  (default), `"intensity_mean"`, `"intensity_cumulative"`, `"duration"`,
+  `"rate_onset"`, `"rate_decline"`, and all `relThresh`/`abs` variants.
 
--   summary:
+- summary:
 
-    Character. How to aggregate across events per pixel. One of `"mean"`
-    (default), `"max"`, `"min"`, `"sum"`, or `"count"`.
+  Character. How to aggregate across events per pixel. One of `"mean"`
+  (default), `"max"`, `"min"`, `"sum"`, or `"count"`.
 
--   coastline:
+- coastline:
 
-    Logical. Add a coastline layer? Requires the `rnaturalearth` and
-    `sf` packages. Default `TRUE`.
+  Logical. Add a coastline layer? Requires the `rnaturalearth` and `sf`
+  packages. Default `TRUE`.
 
--   ...:
+- ...:
 
-    Additional arguments passed to `ggplot2::scale_fill_viridis_c`.
-
-</div>
-
-<div class="section level2">
+  Additional arguments passed to
+  [`ggplot2::scale_fill_viridis_c`](https://ggplot2.tidyverse.org/reference/scale_viridis.html).
 
 ## Value
 
 A ggplot object. The underlying data is accessible via
-`ggplot2::layer_data()` or by calling `hw3_read_metric_summary()`
-directly.
-
-</div>
-
-<div class="section level2">
+[`ggplot2::layer_data()`](https://ggplot2.tidyverse.org/reference/ggplot_build.html)
+or by calling `hw3_read_metric_summary()` directly.
 
 ## Examples
-
-<div class="sourceCode">
 
 ``` r
 # \donttest{
@@ -84,21 +59,15 @@ stem <- file.path(tempdir(), "demo")
 
 detect3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
-#> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)
-#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
+#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
+#> Writing climatology to /tmp/RtmpzRFSE7/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc
+#> Climatology written to: /tmp/RtmpzRFSE7/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -122,26 +91,20 @@ detect3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /tmp/RtmpzRFSE7/demo_clim.nc...
+#> Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)
+#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc...
+#> Writing events to /tmp/RtmpzRFSE7/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc
+#> Events written to: /tmp/RtmpzRFSE7/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -214,19 +177,11 @@ detect3(sst_file, name = stem,
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 plot_metric3(paste0(stem, "_events.nc"), metric = "intensity_max", summary = "mean")
-#> Coordinate system already present.
-#> ℹ Adding new coordinate system, which will replace the existing one.
 
 # }
 ```
-
-</div>
-
-</div>
-
-</div>

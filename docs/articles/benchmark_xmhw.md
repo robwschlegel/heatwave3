@@ -1,8 +1,4 @@
-<div id="main" class="col-md-9" role="main">
-
 # Performance benchmark: heatwave3 vs xmhw
-
-<div class="section level2">
 
 ## Overview
 
@@ -11,17 +7,24 @@ the OSTIA gridded SST dataset for the French coastline of the
 Mediterranean Sea (104 lon × 60 lat, 6,240 ocean pixels, 15,706 daily
 time steps, 1982–2024).
 
-We compare three configurations:
+This is a Quarto (`.qmd`) document, meaning that R and python chunks run
+natively side by side in the same session (via `reticulate` as the
+shared execution engine), rather than calling python functions
+indirectly through
+[`reticulate::import()`](https://rstudio.github.io/reticulate/reference/import.html).
+
+We compare four configurations on this dataset:
 
 1.  **heatwaveR**, serial per-pixel R + C++ (the standard approach)
 2.  **xmhw**, pure python without `dask`
 3.  **heatwave3 (1 thread)**, pure C++ with single-threaded execution
 4.  **heatwave3 (12 threads)**, pure C++ with multi-threading
-5.  **xmhw (dask)**, pure python with `dask` enabled
 
-<div id="cb1" class="sourceCode">
+and, on a larger sample of the same dataset, the speed-up `xmhw` gets
+from `dask`.
 
 ``` r
+
 # Necessary R packages
 library(reticulate)
 library(ncdf4)
@@ -29,17 +32,10 @@ library(heatwaveR)
 library(heatwave3)
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Test data
 
-<div id="cb2" class="sourceCode">
-
 ``` r
+
 # Choose bounding box
 bbox <- c(
   2.5,   # °E  (just west of Cerbère)
@@ -65,40 +61,19 @@ sst_file <- "/home/calanus/data/OSTIA/METOFFICE-GLO-SST-L4-REP-OBS-SST_French_Me
 # 6,240 ocean pixels (remainder is land)
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Python environment
 
-We will control the comparison across R and python by using an existing
-python v3.12 environemnt created for this tutorial with the following
-modules installed: `netCDF4`, `xarray`, `dask`, and `xmhw`.
-
-<div id="cb3" class="sourceCode">
+We control the comparison across R and python by using an existing
+python v3.12 environment with the following modules installed:
+`netCDF4`, `xarray`, `dask`, and `xmhw`. `reticulate` activates this
+environment once, and every `python` chunk below runs in it — R objects
+such as `sst_file` are available in python as `r.sst_file`, and vice
+versa.
 
 ``` r
-# Activate the conda environment and load functionality into R environment
+
 use_condaenv("RiOMar", required = TRUE)
-nc4 <- import("netCDF4")
-xmhw <- import("xmhw.xmhw")
-xr <- import("xarray")
-dask <- import("dask")
-builtins <- import_builtins()
-
-# Pull out the two key functions
-x_threshold <- xmhw$threshold
-x_detect <- xmhw$detect
-py_slice <- builtins$slice
 ```
-
-</div>
-
-</div>
-
-<div class="section level2">
 
 ## heatwaveR: serial baseline
 
@@ -106,16 +81,15 @@ py_slice <- builtins$slice
 (data pre-loaded to isolate computation from I/O) and extrapolate to the
 full grid.
 
-<div id="cb4" class="sourceCode">
-
 ``` r
+
 nc <- nc_open(sst_file)
 time_raw <- ncvar_get(nc, "time")
 dates <- as.Date("1970-01-01") + time_raw / 86400
 
 # Pre-load one longitude column (20 lat pixels)
 sst_col <- ncvar_get(nc, "analysed_sst",
-                     start = c(1, 1, 1), 
+                     start = c(1, 1, 1),
                      count = c(1, 20, -1))
 nc_close(nc)
 
@@ -139,61 +113,47 @@ cat("Estimated total:", round(estimated), "sec (",
     round(estimated / 60, 1), "min)\n")
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## xmhw: out-of-the-box
 
-<div id="cb5" class="sourceCode">
+Native python, sharing `sst_file` from the R session via `r.sst_file`.
 
-``` r
+``` python
+import xarray as xr
+import time
+
 # Open sst file with xarray and extract the same subset of data as the heatwaveR example above
-x_ds <- xr$open_dataset(sst_file)
-x_sst <- x_ds[["analysed_sst"]]$isel(
-  longitude = 0L, # first longitude only (1 pixel)
-  latitude  = py_slice(0L, 20L) # first 20 latitudes
+x_ds = xr.open_dataset(r.sst_file)
+x_sst = x_ds["analysed_sst"].isel(
+    longitude=0,        # first longitude only (1 pixel)
+    latitude=slice(0, 20)  # first 20 latitudes
 )
 
-# Check output
-# print(x_sst)
-# print(x_sst$shape) 
+from xmhw.xmhw import threshold as x_threshold, detect as x_detect
 
 # Determine climatology data
-x_clim_time <- system.time(
-  x_clim <- x_threshold(x_sst)
-)
+t0 = time.time()
+x_clim = x_threshold(x_sst)
+x_clim_time = time.time() - t0
 
 # Detect events
-x_event_time <- system.time(
-  x_event <- x_detect(x_sst, x_clim['thresh'], x_clim['seas'])
-)
+t0 = time.time()
+x_event = x_detect(x_sst, x_clim["thresh"], x_clim["seas"])
+x_event_time = time.time() - t0
 
 # Time estimates
-x_clim_est <- x_clim_time[3]/20*6240
-x_event_est <- x_event_time[3]/20*6240
+x_clim_est = x_clim_time / 20 * 6240
+x_event_est = x_event_time / 20 * 6240
 
-cat("Climatology (estimated):", round(x_clim_est), "sec (",
-    round((x_clim_est) / 60, 1), "min)\n")
-cat("Detection (estimated):  ", round(x_event_est), "sec (",
-    round((x_event_est) / 60, 1), "min)\n")
-cat("Total (estimated):", round(x_clim_est + x_event_est), "sec (",
-    round((x_clim_est + x_event_est) / 60, 1), "min)\n")
+print(f"Climatology (estimated): {round(x_clim_est)} sec ({round(x_clim_est / 60, 1)} min)")
+print(f"Detection (estimated):   {round(x_event_est)} sec ({round(x_event_est / 60, 1)} min)")
+print(f"Total (estimated): {round(x_clim_est + x_event_est)} sec "
+      f"({round((x_clim_est + x_event_est) / 60, 1)} min)")
 ```
-
-</div>
-
-</div>
-
-<div class="section level2">
 
 ## heatwave3: single-threaded
 
-<div id="cb6" class="sourceCode">
-
 ``` r
+
 stem <- file.path(tempdir(), "bench")
 
 t_clim <- system.time(
@@ -212,17 +172,10 @@ cat("Detection:  ", round(t_event[3], 1), "sec\n")
 cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## heatwave3: 12 threads
 
-<div id="cb7" class="sourceCode">
-
 ``` r
+
 t_clim_12 <- system.time(
   ts2clm3(sst_file, name = stem,
           climatologyPeriod = c("1982-01-01", "2011-12-31"),
@@ -239,42 +192,125 @@ cat("Detection:  ", round(t_event_12[3], 1), "sec\n")
 cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
 ```
 
-</div>
+## Results
 
-</div>
+Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.1.
 
-<div class="section level2">
+| Method | Climatology | Detection | Total | Speedup |
+|----|----|----|----|----|
+| heatwaveR (serial) | n/a | n/a | ca. 1,262 sec (21 min) | 1× |
+| xmhw (serial) | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5× |
+| heatwave3 (1 thread) | 17.5 sec | 5 sec | **22.5 sec** | **56×** |
+| heatwave3 (12 threads) | 3.7 sec | 3.7 sec | **7.4 sec** | **170×** |
+
+Note that the base `heatwaveR` script is already almost twice as fast as
+`xmhw` when the latter has not been optimised with `dask`. Also note
+that, as part of its operation, `heatwave3` saves its output to local
+disk in an orderly fashion; saving the output of `xmhw` would add
+additional total run-time.
 
 ## xmhw: dask
 
-Note that the `xmhw` will also work with `dask`, which itself can have
-parellelism established. This is however outside of the scope of the
-capacity of an Rmarkdown file and `reticulate` to be able to replicate
-reasonably. The interested researcher is advised to read the tutorial
-available on the `xmhw` website:
-<https://xmhw.readthedocs.io/en/latest/dask.html>
+`xmhw`’s `threshold()` and `detect()` are dask-aware: if the input
+`DataArray` is chunked, both functions dispatch to dask automatically
+rather than looping serially over pixels. The single-longitude, 20-pixel
+sample used above is too small to say anything meaningful about
+chunk-level parallelism, so this comparison uses a larger, still real,
+sample of the same OSTIA French Med dataset: 20 of the 104 longitudes
+across all 60 latitudes (1,200 pixels), timed directly (not
+extrapolated) with and without `dask`, then scaled to the full
+6,240-pixel grid the same way the other sections extrapolate from their
+smaller samples.
 
-</div>
+``` python
+x_sst_sub = x_ds["analysed_sst"].isel(
+    longitude=slice(0, 20),  # 20 of 104 longitudes
+    latitude=slice(0, 60)    # all 60 latitudes
+).load()
+print(x_sst_sub.shape)  # (15706, 60, 20) -> 1,200 pixels
+n_sub = 20 * 60
+```
 
-<div class="section level2">
+### Serial (no dask)
 
-## Results
+``` python
+t0 = time.time()
+sub_clim = x_threshold(x_sst_sub, climatologyPeriod=[1982, 2011])
+t_clim_serial = time.time() - t0
 
-Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.0.
+t0 = time.time()
+sub_event = x_detect(x_sst_sub, sub_clim["thresh"], sub_clim["seas"])
+t_event_serial = time.time() - t0
 
-| Method                 | Climatology   | Detection   | Total                    |          |
-|------------------------|---------------|-------------|--------------------------|----------|
-| heatwaveR (serial)     | n/a           | n/a         | ca. 1,262 sec (21 min)   | 1×       |
-| xmhw (serial)          | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5×     |
-| heatwave3 (1 thread)   | 17.5 sec      | 5 sec       | **22.5 sec**             | **56×**  |
-| heatwave3 (12 threads) | 3.7 sec       | 3.7 sec     | **7.4 sec**              | **170×** |
+print(f"Climatology: {round(t_clim_serial, 1)} sec")
+print(f"Detection:   {round(t_event_serial, 1)} sec")
+print(f"Total:       {round(t_clim_serial + t_event_serial, 1)} sec")
+```
 
-Note then that the base `heatwaveR` script is already almost twice as
-fast as `xmhw` if this analysis has not been optimised for `dask`. Also
-note that as part of the operation of `heatwave3` the output of the
-files are saved to local disk in an orderly fashion. The saving of the
-output of `xmhw` would add additional total run-time.
+### Chunked with dask
 
-</div>
+``` python
+from dask.distributed import Client, LocalCluster
 
-</div>
+cluster = LocalCluster(n_workers=8, threads_per_worker=1)
+client = Client(cluster)
+
+x_ds_lazy = xr.open_dataset(r.sst_file, chunks={})
+x_sst_sub_lazy = x_ds_lazy["analysed_sst"].isel(
+    longitude=slice(0, 20),
+    latitude=slice(0, 60)
+)
+# Full time series per chunk (required for the climatology window), spatial
+# dims split into 10x5-pixel blocks so dask can schedule chunks across workers
+x_sst_sub_lazy = x_sst_sub_lazy.chunk({"time": -1, "latitude": 10, "longitude": 5})
+
+t0 = time.time()
+sub_clim_d = x_threshold(x_sst_sub_lazy, climatologyPeriod=[1982, 2011]).compute()
+t_clim_dask = time.time() - t0
+
+t0 = time.time()
+sub_event_d = x_detect(x_sst_sub_lazy, sub_clim_d["thresh"], sub_clim_d["seas"]).compute()
+t_event_dask = time.time() - t0
+
+print(f"Climatology: {round(t_clim_dask, 1)} sec")
+print(f"Detection:   {round(t_event_dask, 1)} sec")
+print(f"Total:       {round(t_clim_dask + t_event_dask, 1)} sec")
+
+client.close()
+cluster.close()
+```
+
+### Dask results
+
+Benchmarked on Ubuntu 24.04, 16 cores (8 dask workers, 1 thread each), R
+4.6.1, on the 1,200-pixel sample described above (chunked
+`{time: -1, latitude: 10, longitude: 5}`, i.e. 24 chunks across 8
+workers). The full 6,240-pixel grid figures are a linear extrapolation
+from that sample, as elsewhere in this vignette; because `dask`’s
+benefit depends on chunk count and scheduling overhead, not just pixel
+count, this extrapolation is less reliable here than for the
+single-threaded timings above and should be read as indicative rather
+than exact.
+
+| Method | Climatology | Detection | Total (1,200 px) | Total (est., 6,240 px) | Speedup |
+|----|----|----|----|----|----|
+| xmhw (serial) | 253.6 sec | 221.2 sec | **474.9 sec (7.9 min)** | ca. 2,469 sec (41.2 min) | 1× |
+| xmhw (dask, 8 workers) | 388.5 sec | 45.7 sec | **434.1 sec (7.2 min)** | ca. 2,258 sec (37.6 min) | **1.09×** |
+
+The result is more nuanced than “dask makes xmhw faster.” `detect()`
+benefits substantially from chunking (221.2 sec → 45.7 sec, ca. 4.8×),
+since threshold exceedance and run-length encoding parallelise cleanly
+across independent pixel chunks. `threshold()`, however, is *slower*
+under dask here (253.6 sec → 388.5 sec) — the sliding-window percentile
+calculation it performs is heavier per chunk, and with only 24 chunks
+spread across 8 workers, the task-graph construction and inter-process
+communication overhead of `dask.distributed` outweighs the parallelism
+gained. The two effects roughly cancel out, leaving only a modest 1.09×
+overall speedup on this sample. A different chunking strategy (fewer,
+larger chunks) or a larger grid with more independent work per chunk may
+shift this balance; readers repeating this benchmark on their own data
+should not assume dask is a free win without checking both steps
+separately, as done here. Even with `dask`, `xmhw` remains well behind
+`heatwave3` on this dataset (compare against the Results table above).
+For a full walk-through of chunking strategy and cluster setup, see the
+`xmhw` documentation: <https://xmhw.readthedocs.io/en/latest/dask.html>.

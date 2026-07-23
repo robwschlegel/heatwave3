@@ -1,13 +1,7 @@
-<div id="main" class="col-md-9" role="main">
-
 # CLAUDE.md
-
-<div id="claudemd" class="section level1">
 
 This file provides guidance to Claude Code (claude.ai/code) when working
 with code in this repository.
-
-<div class="section level2">
 
 ## What Is This Project?
 
@@ -22,13 +16,7 @@ This is a ground-up C++ reimplementation of
 [heatwaveR](https://robwschlegel.github.io/heatwaveR/), designed for
 gridded data rather than per-pixel time series.
 
-</div>
-
-<div class="section level2">
-
 ## Build & Development Commands
-
-<div id="cb1" class="sourceCode">
 
 ``` bash
 # Load package in dev mode
@@ -48,116 +36,114 @@ testthat::test_file("tests/testthat/test-ts2clm3.R")
 devtools::check()
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Architecture
-
-<div class="section level3">
 
 ### C++ Core (`src/`)
 
 All compute-intensive work is in C++ with Rcpp bindings:
 
--   **`netcdf_io.cpp/h`** — Direct NetCDF-C I/O with spatial/temporal
-    subsetting, CF time parsing, scale\_factor/add\_offset/\_FillValue
-    handling. Supports both NC\_CHAR and NC\_STRING attributes. Reorders
-    data to pixel-major layout \[pixel\]\[time\] for cache-friendly
-    per-pixel processing. Reads and writes climatology, event, and SST
-    NetCDF files.
+- **`netcdf_io.cpp/h`** — Direct NetCDF-C I/O with spatial/temporal
+  subsetting, CF time parsing, scale_factor/add_offset/\_FillValue
+  handling. Supports both NC_CHAR and NC_STRING attributes. Reorders
+  data to pixel-major layout \[pixel\]\[time\] for cache-friendly
+  per-pixel processing. Reads and writes climatology, event, and SST
+  NetCDF files.
 
--   **`climatology.cpp/h`** — Full ts2clm algorithm: gap filling, NA
-    interpolation, DOY assignment (non-leap years skip DOY 60), spread
-    to DOY×year matrix, sliding-window percentile (Type-7 quantile
-    matching R exactly), circular-padded rolling mean smoothing.
-    `std::thread` parallelism over pixels with progress reporting.
+- **`climatology.cpp/h`** — Full ts2clm algorithm: gap filling, NA
+  interpolation, DOY assignment (non-leap years skip DOY 60), spread to
+  DOY×year matrix, sliding-window percentile (Type-7 quantile matching R
+  exactly), circular-padded rolling mean smoothing. `std::thread`
+  parallelism over pixels with progress reporting.
 
--   **`event_detect.cpp/h`** — Full detect\_event algorithm: threshold
-    exceedance, run-length encoding, duration filtering, gap joining, 19
-    event metric computations. Cold spell support (threshold inversion).
-    Optional inline Hobday et al. (2018) category computation (I
-    Moderate through IV Extreme) and season assignment. `std::thread`
-    parallelism over pixels with progress reporting.
+- **`event_detect.cpp/h`** — Full detect_event algorithm: threshold
+  exceedance, run-length encoding, duration filtering, gap joining, 19
+  event metric computations. Cold spell support (threshold inversion).
+  Optional inline Hobday et al. (2018) category computation (I Moderate
+  through IV Extreme) and season assignment. `std::thread` parallelism
+  over pixels with progress reporting.
 
--   **`blob_label.cpp`** — 3D connected-component labeling (union-find,
-    6-connectivity, optional dateline wrap). Ported from heatwaveR.
+- **`blob_label.cpp`** — 3D connected-component labeling (union-find,
+  6-connectivity, optional dateline wrap). Ported from heatwaveR.
 
--   **`blob_metrics.cpp`** — Per-(blob, day) spatial metric reduction.
-    Ported from heatwaveR.
+- **`blob_metrics.cpp`** — Per-(blob, day) spatial metric reduction.
+  Ported from heatwaveR.
 
--   **`heatwave3_init.cpp`** — Rcpp exports bridging C++ to R. Key
-    exports: `hw3_compute_clim`, `hw3_detect_events` (with
-    category/hemisphere and protoEvent/write\_daily params),
-    `hw3_read_sst`, `hw3_read_event_nc`, `hw3_read_clim_nc`,
-    `hw3_read_daily_nc`, `hw3_category`, `hw3_block_average`,
-    `hw3_read_metric_summary`.
+- **`heatwave3_init.cpp`** — Rcpp exports bridging C++ to R. Key
+  exports: `hw3_compute_clim`, `hw3_detect_events` (with
+  category/hemisphere and protoEvent/write_daily params),
+  `hw3_read_sst`, `hw3_read_event_nc`, `hw3_read_clim_nc`,
+  `hw3_read_daily_nc`, `hw3_category`, `hw3_block_average`,
+  `hw3_read_metric_summary`.
 
--   **`heatwave3_types.h`** — Core structs: `EventResult` (19 metrics +
-    category + season), `EventData` (for reading event NetCDF),
-    `SubsetSpec`, `ClimData`, `GridData`.
-
-</div>
-
-<div class="section level3">
+- **`heatwave3_types.h`** — Core structs: `EventResult` (19 metrics +
+  category + season), `EventData` (for reading event NetCDF),
+  `SubsetSpec`, `ClimData`, `GridData`.
 
 ### R API (`R/`)
 
 Function names are suffixed with `3` to avoid conflicts with heatwaveR:
 
-**Output naming.** `ts2clm3()`, `detect_event3()`, and `detect3()` take
-a single `name` (path stem) and derive output filenames:
+**Output naming.**
+[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
+[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
+and
+[`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+take a single `name` (path stem) and derive output filenames:
 `<name>_clim.nc`, `<name>_events.nc`, `<name>_events_daily.nc`,
 `<name>_protoevents.nc`. They always write their native NetCDF and
 return the written path(s) invisibly; there is no
 `return_df`/`save_file`. To read a product into R or export it to
-CSV/RDS/Parquet, use `hw3_export()`.
+CSV/RDS/Parquet, use
+[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md).
 
--   **`detect3()`** — **Primary entry point.** All-in-one: climatology +
-    detection + optional inline categories. Returns the written paths
-    invisibly.
--   **`ts2clm3()`** — NetCDF → climatology NetCDF (seas + thresh per DOY
-    per pixel) at `<name>_clim.nc`.
--   **`detect_event3()`** — SST + climatology → event NetCDF.
-    `clim_file` defaults to `<name>_clim.nc`. Supports `category = TRUE`
-    (inline categories) and `hemisphere = "south"/"north"`. Per-day
-    output via `daily = c("none","also","only")` (writes
-    `<name>_events_daily.nc` with
-    temp/seas/thresh/intensity/event/event\_no + daily category) and
-    `protoEvent = TRUE` (writes `<name>_protoevents.nc` with the
-    heatwaveR proto flags, instead of the event table). All per-day
-    products are gridded `[lon, lat, time]`.
--   **`hw3_export()`** — Read/export hub: auto-detects the product (via
-    `hw3_file_meta`), returns a long data.frame (whole or first `n`
-    rows) or writes a flat `.csv`/`.rds`/`.parquet`. Reading is
-    C++-backed.
--   **`category3()`** — Reads pre-computed categories from event file,
-    or computes from climatology file for older events. `hemisphere`
-    parameter replaces deprecated `S`.
--   **`category_daily3()`** — Per-pixel daily MHW/MCS series for a date
-    window, built in C++ from SST + clim + events (windowed SST
-    hyperslab, no re-detection; event membership read from the events
-    file). Returns the full daily grid with the same columns as the
-    `daily="also"` product
-    (`lon, lat, t, temp, seas, thresh, intensity, event, event_no, category`);
-    `category` is set on event-member exceedance days and `NA`
-    elsewhere, with `ice_thresh` for the cold-spell ice category. The
-    MHW Tracker’s `load_sub_cat_clim()` event-day subset is
-    `subset(x, !is.na(category))`.
--   **`block_average3()`** — Yearly event metric aggregation (pure C++)
--   **`exceedance3()`** — Static threshold exceedance
--   **`detect_blob3()`** — 4D spatially-connected blob detection
--   **`event_line3()`** — Per-pixel time series plot from NetCDF (C++
-    reader, no ncdf4)
--   **`geom_flame3()`** / **`geom_lolli3()`** — ggplot2 custom geoms
--   **`plot_metric3()`** — Spatial map of event metrics (C++-backed
-    aggregation via `hw3_read_metric_summary`)
-
-</div>
-
-<div class="section level3">
+- **[`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)**
+  — **Primary entry point.** All-in-one: climatology + detection +
+  optional inline categories. Returns the written paths invisibly.
+- **[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)**
+  — NetCDF → climatology NetCDF (seas + thresh per DOY per pixel) at
+  `<name>_clim.nc`.
+- **[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)**
+  — SST + climatology → event NetCDF. `clim_file` defaults to
+  `<name>_clim.nc`. Supports `category = TRUE` (inline categories) and
+  `hemisphere = "south"/"north"`. Per-day output via
+  `daily = c("none","also","only")` (writes `<name>_events_daily.nc`
+  with temp/seas/thresh/intensity/event/event_no + daily category) and
+  `protoEvent = TRUE` (writes `<name>_protoevents.nc` with the heatwaveR
+  proto flags, instead of the event table). All per-day products are
+  gridded `[lon, lat, time]`.
+- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)**
+  — Read/export hub: auto-detects the product (via `hw3_file_meta`),
+  returns a long data.frame (whole or first `n` rows) or writes a flat
+  `.csv`/`.rds`/`.parquet`. Reading is C++-backed.
+- **[`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)**
+  — Reads pre-computed categories from event file, or computes from
+  climatology file for older events. `hemisphere` parameter replaces
+  deprecated `S`.
+- **[`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md)**
+  — Per-pixel daily MHW/MCS series for a date window, built in C++ from
+  SST + clim + events (windowed SST hyperslab, no re-detection; event
+  membership read from the events file). Returns the full daily grid
+  with the same columns as the `daily="also"` product
+  (`lon, lat, t, temp, seas, thresh, intensity, event, event_no, category`);
+  `category` is set on event-member exceedance days and `NA` elsewhere,
+  with `ice_thresh` for the cold-spell ice category. The MHW Tracker’s
+  `load_sub_cat_clim()` event-day subset is
+  `subset(x, !is.na(category))`.
+- **[`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md)**
+  — Yearly event metric aggregation (pure C++)
+- **[`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md)**
+  — Static threshold exceedance
+- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)**
+  — 4D spatially-connected blob detection
+- **[`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)**
+  — Per-pixel time series plot from NetCDF (C++ reader, no ncdf4)
+- **[`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)**
+  /
+  **[`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md)**
+  — ggplot2 custom geoms
+- **[`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md)**
+  — Spatial map of event metrics (C++-backed aggregation via
+  `hw3_read_metric_summary`)
 
 ### Data Flow
 
@@ -172,20 +158,17 @@ Or all-in-one:
     NetCDF (SST) → detect3(name="X", category=TRUE) → X_clim.nc + X_events.nc
     hw3_export("X_events.nc") → data.frame  (or .csv/.rds/.parquet)
 
-</div>
-
-<div class="section level3">
-
 ### Key Design Decisions
 
 1.  **Pixel-major memory layout**: SST data reordered to
     \[pixel\]\[time\] for contiguous per-pixel time series access during
     the `std::thread` parallel loops.
-2.  **Type-7 quantile**: Matches R’s default `quantile()` exactly via
+2.  **Type-7 quantile**: Matches R’s default
+    [`quantile()`](https://rdrr.io/r/stats/quantile.html) exactly via
     linear interpolation.
 3.  **CF ragged array**: Event NetCDF uses an `event` dimension with
     lon/lat coordinate variables — avoids wasteful padding to
-    max\_events.
+    max_events.
 4.  **No R NetCDF dependency at runtime**: Uses libnetcdf C API directly
     via `configure` script. All four functions that previously used
     ncdf4 (`category3`, `block_average3`, `plot_metric3`, `event_line3`)
@@ -193,25 +176,15 @@ Or all-in-one:
 5.  **Inline categories**: Category computation uses the same
     climatology data already loaded during detection — zero extra I/O.
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Build System
 
--   `configure` — Finds libnetcdf via nc-config, pkg-config, or common
-    paths. Adds rpath on macOS. No OpenMP probe (parallelism is
-    `std::thread`).
--   `src/Makevars.in` — Template substituted by configure.
--   `src/Makevars` — Generated; links `-lnetcdf` + `-pthread` (for
-    `std::thread`; no OpenMP runtime).
--   SystemRequirements: netcdf (&gt;= 4.0), C++17
-
-</div>
-
-<div class="section level2">
+- `configure` — Finds libnetcdf via nc-config, pkg-config, or common
+  paths. Adds rpath on macOS. No OpenMP probe (parallelism is
+  `std::thread`).
+- `src/Makevars.in` — Template substituted by configure.
+- `src/Makevars` — Generated; links `-lnetcdf` + `-pthread` (for
+  `std::thread`; no OpenMP runtime).
+- SystemRequirements: netcdf (\>= 4.0), C++17
 
 ## Testing
 
@@ -222,21 +195,11 @@ verify: - Climatology seas/thresh match to 1e-4 (rounding precision) -
 Event count, duration exact match - Event intensity metrics match to
 2e-4
 
-</div>
-
-<div class="section level2">
-
 ## Performance
 
 Benchmark on 400 pixels (20×20, 14K time steps): - heatwave3: 0.53 sec
-(4 threads) — **\~71× faster** than heatwaveR
+(4 threads) — **~71× faster** than heatwaveR
 
 Benguela analysis (93,600 pixels, 16,049 daily files, 12 threads): -
-Climatology: \~1 min - Detection + categories: \~3 min - Total: \~4 min
+Climatology: ~1 min - Detection + categories: ~3 min - Total: ~4 min
 end-to-end
-
-</div>
-
-</div>
-
-</div>

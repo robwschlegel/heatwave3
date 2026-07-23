@@ -1,19 +1,9 @@
-<div id="main" class="col-md-9" role="main">
-
 # Static threshold exceedance detection for gridded data
-
-<div class="ref-description section level2">
 
 Detects periods where SST exceeds (or falls below) a fixed threshold for
 each pixel, without requiring a climatology baseline.
 
-</div>
-
-<div class="section level2">
-
 ## Usage
-
-<div class="sourceCode">
 
 ``` r
 exceedance3(
@@ -34,86 +24,70 @@ exceedance3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Arguments
 
--   file\_in:
+- file_in:
 
-    Path to input NetCDF file.
+  Path to input NetCDF file.
 
--   file\_out:
+- file_out:
 
-    Path for output event NetCDF file.
+  Path for output event NetCDF file.
 
--   threshold:
+- threshold:
 
-    The static threshold value.
+  The static threshold value.
 
--   var\_name:
+- var_name:
 
-    SST variable name. If `NULL`, auto-detected.
+  SST variable name. If `NULL`, auto-detected.
 
--   below:
+- below:
 
-    Logical. If `TRUE`, detect exceedances below the threshold. Default
-    `FALSE`.
+  Logical. If `TRUE`, detect exceedances below the threshold. Default
+  `FALSE`.
 
--   minDuration:
+- minDuration:
 
-    Minimum event duration in days. Default `5`.
+  Minimum event duration in days. Default `5`.
 
--   joinAcrossGaps:
+- joinAcrossGaps:
 
-    Join events across short gaps? Default `TRUE`.
+  Join events across short gaps? Default `TRUE`.
 
--   maxGap:
+- maxGap:
 
-    Maximum gap to join. Default `2`.
+  Maximum gap to join. Default `2`.
 
--   lon\_range:
+- lon_range:
 
-    Optional `c(min, max)` longitude range.
+  Optional `c(min, max)` longitude range.
 
--   lat\_range:
+- lat_range:
 
-    Optional `c(min, max)` latitude range.
+  Optional `c(min, max)` latitude range.
 
--   time\_range:
+- time_range:
 
-    Optional `c("start", "end")` date range.
+  Optional `c("start", "end")` date range.
 
--   depth:
+- depth:
 
-    Optional depth index.
+  Optional depth index.
 
--   roundRes:
+- roundRes:
 
-    Decimal places for rounding. Default `4`.
+  Decimal places for rounding. Default `4`.
 
--   n\_threads:
+- n_threads:
 
-    Number of threads for parallel computation. Default `1`.
-
-</div>
-
-<div class="section level2">
+  Number of threads for parallel computation. Default `1`.
 
 ## Value
 
 Invisibly returns the output file path.
 
-</div>
-
-<div class="section level2">
-
 ## Examples
-
-<div class="sourceCode">
 
 ``` r
 if (FALSE) { # \dontrun{
@@ -124,9 +98,3 @@ event_file <- tempfile(fileext = ".nc")
 exceedance3(sst_file, event_file, threshold = 295)
 } # }
 ```
-
-</div>
-
-</div>
-
-</div>

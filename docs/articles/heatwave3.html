@@ -96,14 +96,22 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p><strong>heatwave3</strong> detects marine heatwaves (MHWs) and cold-spells directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. All core algorithms are implemented in C++ with <code>std::thread</code> parallelism, making it orders of magnitude faster than per-pixel processing with heatwaveR.</p>
+<p><strong>heatwave3</strong> detects marine heatwaves (MHWs) and
+cold-spells directly on gridded NetCDF data using the Hobday et
+al. (2016, 2018) definition. All core algorithms are implemented in C++
+with <code>std::thread</code> parallelism, making it orders of magnitude
+faster than per-pixel processing with heatwaveR.</p>
 <p>The typical workflow has three steps:</p>
 <ol style="list-style-type: decimal">
 <li>
-<code><a href="../reference/ts2clm3.html">ts2clm3()</a></code>, to compute seasonal and threshold climatologies</li>
+<code><a href="../reference/ts2clm3.html">ts2clm3()</a></code>, to compute seasonal and threshold
+climatologies</li>
 <li>
-<code><a href="../reference/detect_event3.html">detect_event3()</a></code>, to detect events from the climatologies</li>
-<li>Analyse/visualise with <code><a href="../reference/category3.html">category3()</a></code>, <code><a href="../reference/block_average3.html">block_average3()</a></code>, <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>, or the plotting functions</li>
+<code><a href="../reference/detect_event3.html">detect_event3()</a></code>, to detect events from the
+climatologies</li>
+<li>Analyse/visualise with <code><a href="../reference/category3.html">category3()</a></code>,
+<code><a href="../reference/block_average3.html">block_average3()</a></code>, <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>, or the
+plotting functions</li>
 </ol>
 </div>
 <div class="section level2">
@@ -112,12 +120,18 @@
 <p>heatwave3 accepts three kinds of SST input:</p>
 <ul>
 <li>
-<strong>A single multi-timestep NetCDF file</strong> (such as a merged time series)</li>
+<strong>A single multi-timestep NetCDF file</strong> (such as a
+merged time series)</li>
 <li><strong>A vector of daily NetCDF file paths</strong></li>
 <li>
-<strong>A directory</strong> containing daily <code>.nc</code> or <code>.nc4</code> files</li>
+<strong>A directory</strong> containing daily <code>.nc</code> or
+<code>.nc4</code> files</li>
 </ul>
-<p>NetCDF variable and dimension names are auto-detected using CF conventions (<code>axis</code>, <code>standard_name</code>, <code>units</code> attributes) and common naming patterns. This means the package works with GHRSST, OISST, OSTIA, ERA5, CMIP6, and other datasets without needing to specify dimension names.</p>
+<p>NetCDF variable and dimension names are auto-detected using CF
+conventions (<code>axis</code>, <code>standard_name</code>,
+<code>units</code> attributes) and common naming patterns. This means
+the package works with GHRSST, OISST, OSTIA, ERA5, CMIP6, and other
+datasets without needing to specify dimension names.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
@@ -147,7 +161,9 @@
 <div class="section level2">
 <h2 id="basic-pipeline">Basic pipeline<a class="anchor" aria-label="anchor" href="#basic-pipeline"></a>
 </h2>
-<p>Here we show the full pipeline using the bundled OSTIA test dataset (3×2 pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).</p>
+<p>Here we show the full pipeline using the bundled OSTIA test dataset
+(3×2 pixels off the Agulhas coast, 1982–2021, 40 years of daily
+SST).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
@@ -160,15 +176,15 @@
 <span>        name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span>,</span>
 <span>        n_threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   6/6 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/RtmpQiKMmg/demo_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /tmp/RtmpQiKMmg/demo_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 2,196   grid: 2 lon x 3 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -192,20 +208,20 @@
 <span><span class="co">#&gt;   seas:   291.1 to 295.6</span></span>
 <span><span class="co">#&gt;   thresh: 292.4 to 297.6</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/RtmpQiKMmg/demo_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/RtmpQiKMmg/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/RtmpQiKMmg/demo_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   6/6 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 610 events across 6 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/RtmpQiKMmg/demo_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_events.nc</span></span>
+<span><span class="co">#&gt; Events written to: /tmp/RtmpQiKMmg/demo_events.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 610</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -242,35 +258,35 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Tail:</span></span>
 <span><span class="co">#&gt;        lon     lat pixel_index event_no date_start  date_peak   date_end</span></span>
-<span><span class="co">#&gt; 606 26.575 -34.075           4      100 2019-02-27 2019-03-02 2019-03-04</span></span>
-<span><span class="co">#&gt; 607 26.575 -34.075           4      101 2019-07-07 2019-07-11 2019-07-14</span></span>
-<span><span class="co">#&gt; 608 26.575 -34.075           4      102 2019-08-29 2019-08-31 2019-09-04</span></span>
-<span><span class="co">#&gt; 609 26.575 -34.075           4      103 2019-10-19 2019-10-26 2019-10-31</span></span>
-<span><span class="co">#&gt; 610 26.575 -34.075           4      104 2020-07-05 2020-07-06 2020-07-09</span></span>
+<span><span class="co">#&gt; 606 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14</span></span>
+<span><span class="co">#&gt; 607 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05</span></span>
+<span><span class="co">#&gt; 608 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01</span></span>
+<span><span class="co">#&gt; 609 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09</span></span>
+<span><span class="co">#&gt; 610 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30</span></span>
 <span><span class="co">#&gt;     duration intensity_mean intensity_max intensity_var intensity_cumulative</span></span>
-<span><span class="co">#&gt; 606        6         2.3280        2.6520        0.2624              13.9679</span></span>
-<span><span class="co">#&gt; 607        8         1.9937        2.4175        0.2732              15.9493</span></span>
-<span><span class="co">#&gt; 608        7         2.4202        2.9167        0.5184              16.9417</span></span>
-<span><span class="co">#&gt; 609       13         2.5752        3.9481        0.7323              33.4774</span></span>
-<span><span class="co">#&gt; 610        5         1.9388        2.5567        0.4944               9.6940</span></span>
+<span><span class="co">#&gt; 606        8         1.9123        2.6167        0.3509              15.2983</span></span>
+<span><span class="co">#&gt; 607        7         2.6135        3.2218        0.6238              18.2944</span></span>
+<span><span class="co">#&gt; 608       12         2.7097        4.2806        0.9613              32.5162</span></span>
+<span><span class="co">#&gt; 609        5         1.9184        2.4610        0.4567               9.5918</span></span>
+<span><span class="co">#&gt; 610        7         1.7027        1.8887        0.1673              11.9191</span></span>
 <span><span class="co">#&gt;     intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span></span>
-<span><span class="co">#&gt; 606                   0.4701                  0.7911                  0.2549</span></span>
-<span><span class="co">#&gt; 607                   0.6743                  1.1037                  0.2807</span></span>
-<span><span class="co">#&gt; 608                   1.0094                  1.5135                  0.5207</span></span>
-<span><span class="co">#&gt; 609                   1.0904                  2.4535                  0.7207</span></span>
-<span><span class="co">#&gt; 610                   0.5972                  1.2075                  0.4848</span></span>
+<span><span class="co">#&gt; 606                   0.5331                  1.2395                  0.3545</span></span>
+<span><span class="co">#&gt; 607                   1.2196                  1.8291                  0.6356</span></span>
+<span><span class="co">#&gt; 608                   1.2481                  2.8252                  0.9574</span></span>
+<span><span class="co">#&gt; 609                   0.5193                  1.0566                  0.4505</span></span>
+<span><span class="co">#&gt; 610                   0.3486                  0.5476                  0.1719</span></span>
 <span><span class="co">#&gt;     intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span></span>
-<span><span class="co">#&gt; 606                         2.8209           297.2000            297.52</span></span>
-<span><span class="co">#&gt; 607                         5.3942           294.2825            294.70</span></span>
-<span><span class="co">#&gt; 608                         7.0655           294.1014            294.60</span></span>
-<span><span class="co">#&gt; 609                        14.1748           294.5685            295.96</span></span>
-<span><span class="co">#&gt; 610                         2.9861           294.2600            294.89</span></span>
+<span><span class="co">#&gt; 606                         4.2646           293.7725            294.47</span></span>
+<span><span class="co">#&gt; 607                         8.5369           293.8743            294.48</span></span>
+<span><span class="co">#&gt; 608                        14.9767           294.3308            295.87</span></span>
+<span><span class="co">#&gt; 609                         2.5966           293.8140            294.37</span></span>
+<span><span class="co">#&gt; 610                         2.4402           292.9757            293.17</span></span>
 <span><span class="co">#&gt;     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span></span>
-<span><span class="co">#&gt; 606            0.2535                  1783.20     0.1799       0.0644</span></span>
-<span><span class="co">#&gt; 607            0.2628                  2354.26     0.1482       0.0497</span></span>
-<span><span class="co">#&gt; 608            0.5172                  2058.71     0.5040       0.2357</span></span>
-<span><span class="co">#&gt; 609            0.7987                  3829.39     0.2713       0.2823</span></span>
-<span><span class="co">#&gt; 610            0.5098                  1471.30     0.3171       0.3182</span></span>
+<span><span class="co">#&gt; 606            0.3438                  2350.18     0.2090       0.1836</span></span>
+<span><span class="co">#&gt; 607            0.6214                  2057.12     0.2155       0.5020</span></span>
+<span><span class="co">#&gt; 608            0.9940                  3531.97     0.5195       0.4084</span></span>
+<span><span class="co">#&gt; 609            0.4723                  1469.07     0.3247       0.2915</span></span>
+<span><span class="co">#&gt; 610            0.1695                  2050.83     0.2322       0.0693</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Summary:</span></span>
 <span><span class="co">#&gt;   events: 610   pixels with events: 6</span></span>
@@ -278,8 +294,8 @@
 <span><span class="co">#&gt;   duration (days):     5 to    38</span></span>
 <span><span class="co">#&gt;   intensity_max:   1.314 to 4.911</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_events.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpafxSc0/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/RtmpQiKMmg/demo_events.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/RtmpQiKMmg/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
 <span></span>
 <span><span class="co"># The two products follow the naming convention &lt;name&gt;_clim.nc / &lt;name&gt;_events.nc</span></span>
@@ -289,7 +305,8 @@
 <div class="section level2">
 <h2 id="per-pixel-time-series-plot">Per-pixel time series plot<a class="anchor" aria-label="anchor" href="#per-pixel-time-series-plot"></a>
 </h2>
-<p>Extract a single pixel and produce a heatwaveR-style event line plot with flame polygons showing events above the threshold.</p>
+<p>Extract a single pixel and produce a heatwaveR-style event line plot
+with flame polygons showing events above the threshold.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/event_line3.html">event_line3</a></span><span class="op">(</span>sst_file <span class="op">=</span> <span class="va">sst_file</span>,</span>
 <span>            clim_file <span class="op">=</span> <span class="va">clim_file</span>,</span>
@@ -301,11 +318,10 @@
 <div class="section level2">
 <h2 id="spatial-maps">Spatial maps<a class="anchor" aria-label="anchor" href="#spatial-maps"></a>
 </h2>
-<p>Visualise the spatial distribution of any event metric across the grid.</p>
+<p>Visualise the spatial distribution of any event metric across the
+grid.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_metric3.html">plot_metric3</a></span><span class="op">(</span><span class="va">event_file</span>, metric <span class="op">=</span> <span class="st">"intensity_max"</span>, summary <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Coordinate system already present.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Adding new coordinate system, which will replace the existing one.</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_metric3.html">plot_metric3</a></span><span class="op">(</span><span class="va">event_file</span>, metric <span class="op">=</span> <span class="st">"intensity_max"</span>, summary <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="heatwave3_files/figure-html/spatial-map-1.png" class="r-plt" alt="" width="672"></p>
 </div>
 <div class="section level2">
@@ -360,7 +376,10 @@
 <div class="section level2">
 <h2 id="detrended-climatology">Detrended climatology<a class="anchor" aria-label="anchor" href="#detrended-climatology"></a>
 </h2>
-<p>By default, <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> follows Hobday et al. (2016) with a fixed baseline. To remove the long-term warming trend before computing the climatology (following Jacox et al. 2020), set <code>detrend = TRUE</code>:</p>
+<p>By default, <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> follows Hobday et al. (2016) with
+a fixed baseline. To remove the long-term warming trend before computing
+the climatology (following Jacox et al. 2020), set
+<code>detrend = TRUE</code>:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="va">sst_file</span>,</span>
 <span>        name <span class="op">=</span> <span class="st">"benguela_detrended"</span>,</span>
@@ -370,7 +389,9 @@
 <div class="section level2">
 <h2 id="output-formats">Output formats<a class="anchor" aria-label="anchor" href="#output-formats"></a>
 </h2>
-<p>The compute functions always write their native NetCDF. To read a product into R, or export it to CSV/RDS/Parquet, use <code><a href="../reference/hw3_export.html">hw3_export()</a></code>, which auto-detects the product type:</p>
+<p>The compute functions always write their native NetCDF. To read a
+product into R, or export it to CSV/RDS/Parquet, use
+<code><a href="../reference/hw3_export.html">hw3_export()</a></code>, which auto-detects the product type:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Read the events back as a data.frame (whole, or a quick preview with n =)</span></span>
 <span><span class="va">events</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hw3_export.html">hw3_export</a></span><span class="op">(</span><span class="st">"benguela_events.nc"</span><span class="op">)</span></span>
@@ -383,7 +404,8 @@
 <div class="section level2">
 <h2 id="cold-spells">Cold spells<a class="anchor" aria-label="anchor" href="#cold-spells"></a>
 </h2>
-<p>Detect marine cold-spells by setting <code>pctile = 10</code> for the climatology and <code>coldSpells = TRUE</code> for detection.</p>
+<p>Detect marine cold-spells by setting <code>pctile = 10</code> for the
+climatology and <code>coldSpells = TRUE</code> for detection.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="va">sst_file</span>,</span>
 <span>        name <span class="op">=</span> <span class="st">"benguela_cold"</span>,</span>
@@ -397,8 +419,13 @@
 <div class="section level2">
 <h2 id="spatial-blob-detection">Spatial blob detection<a class="anchor" aria-label="anchor" href="#spatial-blob-detection"></a>
 </h2>
-<p>The examples below reproduce the spatial blob analysis from Schlegel et al., using the OSTIA dataset covering the South African coast (15–35°E, 28–38°S). They show heatwave blob footprints, daily area evolution, centroid trajectories, persistence maps, and the cold-spell equivalents.</p>
-<p>All six figure types correspond to the example outputs in <code>heatwaveR/dev_doc/figs/</code>.</p>
+<p>The examples below reproduce the spatial blob analysis from Schlegel
+et al., using the OSTIA dataset covering the South African coast
+(15–35°E, 28–38°S). They show heatwave blob footprints, daily area
+evolution, centroid trajectories, persistence maps, and the cold-spell
+equivalents.</p>
+<p>All six figure types correspond to the example outputs in
+<code>heatwaveR/dev_doc/figs/</code>.</p>
 <div class="section level3">
 <h3 id="setup-climatology-and-blob-detection">Setup: climatology and blob detection<a class="anchor" aria-label="anchor" href="#setup-climatology-and-blob-detection"></a>
 </h3>
@@ -426,7 +453,7 @@
 <span>                      return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event"</span>, <span class="st">"daily"</span>, <span class="st">"voxel"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Coastline for map overlays</span></span>
-<span><span class="va">land</span> <span class="op">&lt;-</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html" class="external-link">ne_countries</a></span><span class="op">(</span>scale <span class="op">=</span> <span class="st">"medium"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span>
+<span><span class="va">land</span> <span class="op">&lt;-</span> <span class="fu">rnaturalearth</span><span class="fu">::</span><span class="fu">ne_countries</span><span class="op">(</span>scale <span class="op">=</span> <span class="st">"medium"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span>
 <span><span class="va">land_clip</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_crop.html" class="external-link">st_crop</a></span><span class="op">(</span><span class="va">land</span>, xmin <span class="op">=</span> <span class="va">xlim</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, xmax <span class="op">=</span> <span class="va">xlim</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
 <span>                         ymin <span class="op">=</span> <span class="va">ylim</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, ymax <span class="op">=</span> <span class="va">ylim</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -592,7 +619,8 @@
 <div class="section level2">
 <h2 id="performance">Performance<a class="anchor" aria-label="anchor" href="#performance"></a>
 </h2>
-<p>heatwave3 runs much faster than per-pixel processing with heatwaveR. On a 20×20 grid (400 pixels, 14,276 daily time steps each):</p>
+<p>heatwave3 runs much faster than per-pixel processing with heatwaveR.
+On a 20×20 grid (400 pixels, 14,276 daily time steps each):</p>
 <table class="table">
 <thead><tr class="header">
 <th>Method</th>
@@ -615,11 +643,14 @@
 <p>The speedup comes from:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>C++ implementation</strong> of all core algorithms (climatology + event detection)</li>
+<strong>C++ implementation</strong> of all core algorithms
+(climatology + event detection)</li>
 <li>
-<strong><code>std::thread</code> parallelism</strong> across pixels</li>
+<strong><code>std::thread</code> parallelism</strong> across
+pixels</li>
 <li>
-<strong>Direct NetCDF I/O</strong> via libnetcdf (no R overhead)</li>
+<strong>Direct NetCDF I/O</strong> via libnetcdf (no R
+overhead)</li>
 </ol>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

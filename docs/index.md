@@ -1,16 +1,10 @@
-<div id="main" class="col-md-9" role="main">
-
 # heatwave3
-
-<div class="section level1">
 
 **`heatwave3`** detects marine heatwaves (MHWs) and cold-spells (MCS)
 directly on gridded NetCDF files using the Hobday et al. (2016, 2018)
 definition. It is a ground-up C++ reimplementation of
 [**`heatwaveR`**](https://robwschlegel.github.io/heatwaveR/), designed
 for gridded datasets rather than individual time series.
-
-<div class="section level2">
 
 ## Why heatwave3?
 
@@ -26,8 +20,6 @@ data, this takes over an hour. **`heatwave3`** addresses this with:
 3.  **Direct NetCDF I/O** via libnetcdf, with no R NetCDF packages
     needed at runtime
 
-<div class="section level3">
-
 ### Performance
 
 Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 × 200
@@ -42,83 +34,62 @@ grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M5 Max:
 For larger grids using daily files (Benguela region, 260 × 360 pixels,
 16,049 daily OSTIA files, 12 threads): **3.4 minutes** end-to-end.
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Features
 
--   **Climatology** (`ts2clm3`). Sliding-window percentile with Type-7
-    quantile, circular-padded rolling mean smoothing, and optional
-    linear detrending (Jacox et al. 2020).
--   **Event detection** (`detect_event3`). Threshold exceedance,
-    run-length encoding, gap joining, and 19 event metrics. MCS support.
-    Optional inline Hobday et al. (2018) categories.
--   **All-in-one pipeline** (`detect3`). Climatology, detection, and
-    optional categories in a single call from one `name` stem; read
-    results back with `hw3_export()`.
--   **Spatial blob detection** (`detect_blob3`). 4D connected-component
-    labelling with voxel-level footprint output.
--   **Event categorisation** (`category3`). Hobday et al. (2018)
-    Moderate/Strong/Severe/Extreme categories, for both MHW and MCS.
--   **Yearly aggregation** (`block_average3`) and **static threshold
-    exceedance** (`exceedance3`).
--   **Plotting**. `event_line3`, `geom_flame3`, `geom_lolli3`, and
-    `plot_metric3` (C++-backed spatial aggregation).
--   **Flexible input**. Single multi-timestep NetCDF file, directory of
-    daily files, or explicit file vector.
--   **Automatic dimension detection**. Identifies
-    lon/lat/time/depth/temperature from CF attributes, standard names,
-    and units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO,
-    GLORYS).
--   **Progress reporting**. Percentage-complete updates during long
-    climatology and detection runs.
--   **NetCDF-native output, exported on demand**. The compute functions
-    always write gridded NetCDF; `hw3_export()` reads any product back
-    into R or converts it to CSV, RDS, or Parquet, with optional
-    variable and lon/lat/time/depth subsetting.
--   **Numerical equivalence**. Climatology and event metrics match
-    **`heatwaveR`** to rounding precision, validated pixel-by-pixel.
-
-</div>
-
-<div class="section level2">
+- **Climatology** (`ts2clm3`). Sliding-window percentile with Type-7
+  quantile, circular-padded rolling mean smoothing, and optional linear
+  detrending (Jacox et al. 2020).
+- **Event detection** (`detect_event3`). Threshold exceedance,
+  run-length encoding, gap joining, and 19 event metrics. MCS support.
+  Optional inline Hobday et al. (2018) categories.
+- **All-in-one pipeline** (`detect3`). Climatology, detection, and
+  optional categories in a single call from one `name` stem; read
+  results back with
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md).
+- **Spatial blob detection** (`detect_blob3`). 4D connected-component
+  labelling with voxel-level footprint output.
+- **Event categorisation** (`category3`). Hobday et al. (2018)
+  Moderate/Strong/Severe/Extreme categories, for both MHW and MCS.
+- **Yearly aggregation** (`block_average3`) and **static threshold
+  exceedance** (`exceedance3`).
+- **Plotting**. `event_line3`, `geom_flame3`, `geom_lolli3`, and
+  `plot_metric3` (C++-backed spatial aggregation).
+- **Flexible input**. Single multi-timestep NetCDF file, directory of
+  daily files, or explicit file vector.
+- **Automatic dimension detection**. Identifies
+  lon/lat/time/depth/temperature from CF attributes, standard names, and
+  units (works with GHRSST, OISST, OSTIA, ERA5, CMIP6, NEMO, GLORYS).
+- **Progress reporting**. Percentage-complete updates during long
+  climatology and detection runs.
+- **NetCDF-native output, exported on demand**. The compute functions
+  always write gridded NetCDF;
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+  reads any product back into R or converts it to CSV, RDS, or Parquet,
+  with optional variable and lon/lat/time/depth subsetting.
+- **Numerical equivalence**. Climatology and event metrics match
+  **`heatwaveR`** to rounding precision, validated pixel-by-pixel.
 
 ## Installation
-
-<div class="section level3">
 
 ### Development version (recommended)
 
 The `dev` branch contains all of the most cutting-edge things being
 developed:
 
-<div id="cb1" class="sourceCode">
-
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("robwschlegel/heatwave3@dev")
 ```
 
-</div>
-
 If however you feel like playing it safe, the main branch is the way to
 go:
 
-<div id="cb2" class="sourceCode">
-
 ``` r
+
 # install.packages("remotes")
 remotes::install_github("robwschlegel/heatwave3")
 ```
-
-</div>
-
-</div>
-
-<div class="section level3">
 
 ### System requirements
 
@@ -128,37 +99,21 @@ heatwave3 requires the **netCDF C library** (version 4.0+). The
 
 **macOS:**
 
-<div id="cb3" class="sourceCode">
-
 ``` bash
 brew install netcdf
 ```
 
-</div>
-
 **Ubuntu / Debian:**
-
-<div id="cb4" class="sourceCode">
 
 ``` bash
 sudo apt install libnetcdf-dev
 ```
 
-</div>
-
 **Fedora / RHEL:**
-
-<div id="cb5" class="sourceCode">
 
 ``` bash
 sudo dnf install netcdf-devel
 ```
-
-</div>
-
-</div>
-
-<div class="section level3">
 
 ### In-process parallelism
 
@@ -173,19 +128,14 @@ R (e.g. Positron). See the [Parallel
 performance](https://robwschlegel.github.io/heatwave3/articles/parallelism.html)
 vignette for the full story and a performance comparison.
 
-</div>
-
-<div class="section level3">
-
 ### Thread management
 
 **`heatwave3`** defaults to **50% of available cores** (overridable via
 `R_HEATWAVE3_NUM_THREADS`). Control threads at the session level or per
 function call:
 
-<div id="cb6" class="sourceCode">
-
 ``` r
+
 library(heatwave3)
 getHW3threads()       # check current default
 setHW3threads(8)      # use 8 threads for all subsequent calls
@@ -195,25 +145,17 @@ setHW3threads(0)      # reset to default (50% of cores)
 detect_event3(..., n_threads = 12)
 ```
 
-</div>
-
 **`heatwave3`** has no OpenMP dependency, so it can never change thread
 counts for other OpenMP-using packages in the same session. It is also
-fork-safe under `parallel::mclapply()`: each parallel region joins its
-worker threads before returning, so no heatwave3 threads are ever alive
-at fork time.
-
-</div>
-
-</div>
-
-<div class="section level2">
+fork-safe under
+[`parallel::mclapply()`](https://rdrr.io/r/parallel/mclapply.html): each
+parallel region joins its worker threads before returning, so no
+heatwave3 threads are ever alive at fork time.
 
 ## Quick start
 
-<div id="cb7" class="sourceCode">
-
 ``` r
+
 library(heatwave3)
 
 sst_file <- "path/to/sst.nc"  # or a directory of daily files
@@ -237,15 +179,10 @@ head(events)
 table(events$category)
 ```
 
-</div>
-
-<div class="section level3">
-
 ### Cold-spell detection
 
-<div id="cb8" class="sourceCode">
-
 ``` r
+
 # Use pctile = 10 for the cold tail
 detect3(
   file_in           = sst_file,
@@ -261,47 +198,26 @@ detect3(
 table(hw3_export("benguela_cold_events.nc")$category)
 ```
 
-</div>
-
-</div>
-
-<div class="section level3">
-
 ### Per-pixel time series plot
 
-<div id="cb9" class="sourceCode">
-
 ``` r
+
 event_line3(sst_file, "benguela_clim.nc", lon = 25.0, lat = -34.0,
             start_date = "2018-01-01", end_date = "2019-12-31")
 ```
 
-</div>
-
-</div>
-
-<div class="section level3">
-
 ### Spatial map of peak intensity
 
-<div id="cb10" class="sourceCode">
-
 ``` r
+
 # C++-backed per-pixel aggregation, efficient even for millions of events
 plot_metric3("benguela_events.nc", metric = "intensity_max", summary = "mean")
 ```
 
-</div>
-
-</div>
-
-<div class="section level3">
-
 ### Event categories (standalone)
 
-<div id="cb11" class="sourceCode">
-
 ``` r
+
 # Reads pre-computed categories from event file (no clim_file needed)
 cats <- category3("benguela_events.nc")
 table(cats$category)
@@ -310,17 +226,10 @@ table(cats$category)
 cats <- category3("benguela_events.nc", "benguela_clim.nc", hemisphere = "south")
 ```
 
-</div>
-
-</div>
-
-<div class="section level3">
-
 ### Using daily files
 
-<div id="cb12" class="sourceCode">
-
 ``` r
+
 # Pass a directory. All .nc/.nc4 files are read, sorted, and merged
 ts2clm3(
   file_in = "/path/to/daily_ostia/",
@@ -330,17 +239,10 @@ ts2clm3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level3">
-
 ### Spatial blob detection
 
-<div id="cb13" class="sourceCode">
-
 ``` r
+
 blobs <- detect_blob3(
   sst_file  = sst_file,
   clim_file = "benguela_clim.nc",
@@ -354,17 +256,10 @@ blobs <- detect_blob3(
 # blobs$voxel: full 3D footprint (for spatial maps)
 ```
 
-</div>
-
-</div>
-
-<div class="section level3">
-
 ### Detrended climatology
 
-<div id="cb14" class="sourceCode">
-
 ``` r
+
 # Remove linear warming trend before computing climatology
 # (Jacox et al. 2020 approach)
 ts2clm3(sst_file, name = "benguela_detrended",
@@ -372,77 +267,57 @@ ts2clm3(sst_file, name = "benguela_detrended",
         detrend = TRUE)
 ```
 
-</div>
-
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## API overview
 
 All functions are suffixed with `3` to avoid namespace conflicts with
 **`heatwaveR`**:
 
-| Function           | Purpose                                                                  |
-|--------------------|--------------------------------------------------------------------------|
-| `detect3()`        | **Primary entry point**. Climatology, detection, and optional categories |
-| `ts2clm3()`        | Compute climatology (NetCDF → NetCDF)                                    |
-| `detect_event3()`  | Detect per-pixel events (with optional inline categories)                |
-| `detect_blob3()`   | 3D spatial blob detection                                                |
-| `category3()`      | Hobday et al. (2018) event categories (reads or computes)                |
-| `block_average3()` | Yearly aggregation of event metrics                                      |
-| `exceedance3()`    | Static threshold exceedance                                              |
-| `event_line3()`    | Per-pixel time series plot                                               |
-| `geom_flame3()`    | ggplot2 flame polygon geom                                               |
-| `geom_lolli3()`    | ggplot2 lollipop geom                                                    |
-| `plot_metric3()`   | Spatial map of event metrics (C++-backed aggregation)                    |
-| `hw3_export()`     | Read any product into a data.frame, or export to CSV/RDS/Parquet         |
-
-</div>
-
-<div class="section level2">
+| Function | Purpose |
+|----|----|
+| [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md) | **Primary entry point**. Climatology, detection, and optional categories |
+| [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md) | Compute climatology (NetCDF → NetCDF) |
+| [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md) | Detect per-pixel events (with optional inline categories) |
+| [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md) | 3D spatial blob detection |
+| [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md) | Hobday et al. (2018) event categories (reads or computes) |
+| [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md) | Yearly aggregation of event metrics |
+| [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md) | Static threshold exceedance |
+| [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md) | Per-pixel time series plot |
+| [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md) | ggplot2 flame polygon geom |
+| [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md) | ggplot2 lollipop geom |
+| [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md) | Spatial map of event metrics (C++-backed aggregation) |
+| [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md) | Read any product into a data.frame, or export to CSV/RDS/Parquet |
 
 ## Vignettes
 
--   [**Getting
-    started**](https://robwschlegel.github.io/heatwave3/articles/heatwave3.html).
-    Full pipeline walkthrough with spatial blob figures.
--   [**NetCDF output
-    internals**](https://robwschlegel.github.io/heatwave3/articles/netcdf-output.html).
-    Output file structure, CF compliance, and reading in R/Python/CDO.
--   [**Performance
-    benchmark**](https://robwschlegel.github.io/heatwave3/articles/benchmark.html).
-    **`heatwaveR`** versus **`heatwave3`** timing comparison.
--   [**Parallel
-    performance**](https://robwschlegel.github.io/heatwave3/articles/parallelism.html).
-    In-process `std::thread` parallelism versus R-side (PSOCK)
-    parallelism, with per-platform setup and a comparison against the
-    retired OpenMP backend.
-
-</div>
-
-<div class="section level2">
+- [**Getting
+  started**](https://robwschlegel.github.io/heatwave3/articles/heatwave3.html).
+  Full pipeline walkthrough with spatial blob figures.
+- [**NetCDF output
+  internals**](https://robwschlegel.github.io/heatwave3/articles/netcdf-output.html).
+  Output file structure, CF compliance, and reading in R/Python/CDO.
+- [**Performance
+  benchmark**](https://robwschlegel.github.io/heatwave3/articles/benchmark.html).
+  **`heatwaveR`** versus **`heatwave3`** timing comparison.
+- [**Parallel
+  performance**](https://robwschlegel.github.io/heatwave3/articles/parallelism.html).
+  In-process `std::thread` parallelism versus R-side (PSOCK)
+  parallelism, with per-platform setup and a comparison against the
+  retired OpenMP backend.
 
 ## Citation
 
 If you use **`heatwave3`** in published research, please cite:
 
--   Hobday, A.J., et al. (2016). A hierarchical approach to defining
-    marine heatwaves. *Progress in Oceanography*, 141, 227–238.
-    <https://doi.org/10.1016/j.pocean.2015.12.014>
--   Hobday, A.J., et al. (2018). Categorizing and naming marine
-    heatwaves. *Oceanography*, 31(2), 162–173.
-    <https://doi.org/10.5670/oceanog.2018.205>
--   Schlegel, R. W., & Smit, A. J. (2018). heatwaveR: A central
-    algorithm for the detection of heatwaves and cold-spells. *Journal
-    of Open Source Software*, 3(27), 821.
-    <https://doi.org/10.21105/joss.00821>
-
-</div>
-
-<div class="section level2">
+- Hobday, A.J., et al. (2016). A hierarchical approach to defining
+  marine heatwaves. *Progress in Oceanography*, 141, 227–238.
+  [https://doi.org/10.1016/j.pocean.2015.12.014](https://doi.org/10.1016/j.pocean.2015.12.014)
+- Hobday, A.J., et al. (2018). Categorizing and naming marine heatwaves.
+  *Oceanography*, 31(2), 162–173.
+  [https://doi.org/10.5670/oceanog.2018.205](https://doi.org/10.5670/oceanog.2018.205)
+- Schlegel, R. W., & Smit, A. J. (2018). heatwaveR: A central algorithm
+  for the detection of heatwaves and cold-spells. *Journal of Open
+  Source Software*, 3(27), 821.
+  [https://doi.org/10.21105/joss.00821](https://doi.org/10.21105/joss.00821)
 
 ## Code of Conduct
 
@@ -450,9 +325,3 @@ Please note that the **`heatwave3`** project is released with a
 [Contributor Code of
 Conduct](https://contributor-covenant.org/version/2/1/CODE_OF_CONDUCT.html).
 By contributing to this project, you agree to abide by its terms.
-
-</div>
-
-</div>
-
-</div>

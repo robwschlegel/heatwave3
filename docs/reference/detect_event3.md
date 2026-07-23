@@ -1,20 +1,12 @@
-<div id="main" class="col-md-9" role="main">
-
 # Detect marine heatwave events in gridded data
 
-<div class="ref-description section level2">
-
 Detects marine heatwave (or cold-spell) events for each pixel in a
-gridded dataset, using climatologies computed by `ts2clm3`. This is the
-gridded equivalent of `heatwaveR::detect_event()`.
-
-</div>
-
-<div class="section level2">
+gridded dataset, using climatologies computed by
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+This is the gridded equivalent of
+[`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html).
 
 ## Usage
-
-<div class="sourceCode">
 
 ``` r
 detect_event3(
@@ -41,142 +33,127 @@ detect_event3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Arguments
 
--   file\_in:
+- file_in:
 
-    Path to the input NetCDF file containing SST data. May also be a
-    character vector of file paths or a directory path containing daily
-    `.nc`/`.nc4` files.
+  Path to the input NetCDF file containing SST data. May also be a
+  character vector of file paths or a directory path containing daily
+  `.nc`/`.nc4` files.
 
--   name:
+- name:
 
-    Output base name (a path stem). Events are written to
-    `paste0(name, "_events.nc")`; the per-day products use
-    `"_events_daily.nc"` and `"_protoevents.nc"`. The directory must
-    exist.
+  Output base name (a path stem). Events are written to
+  `paste0(name, "_events.nc")`; the per-day products use
+  `"_events_daily.nc"` and `"_protoevents.nc"`. The directory must
+  exist.
 
--   clim\_file:
+- clim_file:
 
-    Path to the climatology NetCDF from `ts2clm3`. When `NULL` (the
-    default), `paste0(name, "_clim.nc")` is used.
+  Path to the climatology NetCDF from
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+  When `NULL` (the default), `paste0(name, "_clim.nc")` is used.
 
--   var\_name:
+- var_name:
 
-    Name of the SST variable. If `NULL`, auto-detected.
+  Name of the SST variable. If `NULL`, auto-detected.
 
--   minDuration:
+- minDuration:
 
-    Minimum duration (days) for an event. Default `5`.
+  Minimum duration (days) for an event. Default `5`.
 
--   minDuration2:
+- minDuration2:
 
-    Minimum duration for events that also satisfy `threshClim2`. Used
-    only when `threshClim2` is supplied.
+  Minimum duration for events that also satisfy `threshClim2`. Used only
+  when `threshClim2` is supplied.
 
--   joinAcrossGaps:
+- joinAcrossGaps:
 
-    Logical. Join events separated by short gaps? Default `TRUE`.
+  Logical. Join events separated by short gaps? Default `TRUE`.
 
--   maxGap:
+- maxGap:
 
-    Maximum gap length (days) to join across. Default `2`.
+  Maximum gap length (days) to join across. Default `2`.
 
--   maxGap2:
+- maxGap2:
 
-    Maximum gap length for the secondary `threshClim2` criterion. Used
-    only when `threshClim2` is supplied.
+  Maximum gap length for the secondary `threshClim2` criterion. Used
+  only when `threshClim2` is supplied.
 
--   threshClim2:
+- threshClim2:
 
-    Optional gridded NetCDF logical criterion for the secondary event
-    pass, equivalent to `heatwaveR::detect_event()`'s `threshClim2`. The
-    file must align with `file_in`; non-zero and non-missing values are
-    treated as `TRUE`. May be a single NetCDF file, a vector of files,
-    or a directory of daily `.nc`/`.nc4` files.
+  Optional gridded NetCDF logical criterion for the secondary event
+  pass, equivalent to
+  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html)'s
+  `threshClim2`. The file must align with `file_in`; non-zero and
+  non-missing values are treated as `TRUE`. May be a single NetCDF file,
+  a vector of files, or a directory of daily `.nc`/`.nc4` files.
 
--   threshClim2\_var\_name:
+- threshClim2_var_name:
 
-    Name of the secondary criterion variable. If `NULL`, it is
-    auto-detected.
+  Name of the secondary criterion variable. If `NULL`, it is
+  auto-detected.
 
--   coldSpells:
+- coldSpells:
 
-    Logical. Detect cold-spells instead of heatwaves? Default `FALSE`.
+  Logical. Detect cold-spells instead of heatwaves? Default `FALSE`.
 
--   category:
+- category:
 
-    Logical. Compute Hobday et al. (2018) severity categories (I
-    Moderate through IV Extreme) inline during detection? Categories are
-    written to the event NetCDF as additional variables. Default
-    `FALSE`.
+  Logical. Compute Hobday et al. (2018) severity categories (I Moderate
+  through IV Extreme) inline during detection? Categories are written to
+  the event NetCDF as additional variables. Default `FALSE`.
 
--   hemisphere:
+- hemisphere:
 
-    Character. Season-naming convention: `"south"` (default, austral:
-    DJF = Summer) or `"north"` (boreal: DJF = Winter). Only used when
-    `category = TRUE`.
+  Character. Season-naming convention: `"south"` (default, austral: DJF
+  = Summer) or `"north"` (boreal: DJF = Winter). Only used when
+  `category = TRUE`.
 
--   roundRes:
+- roundRes:
 
-    Number of decimal places for rounding event metrics. Default `4`.
+  Number of decimal places for rounding event metrics. Default `4`.
 
--   daily:
+- daily:
 
-    Per-day output control, one of `"none"` (default; only the event
-    table), `"also"` (event table plus a per-day NetCDF), or `"only"`
-    (per-day NetCDF, no event table). The per-day product is written to
-    `paste0(name, "_events_daily.nc")` and contains `temp`, `seas`,
-    `thresh`, `intensity` (`temp - seas`), `event`, `event_no`, and the
-    daily Hobday (2018) `category` (0 = none, 1 = I Moderate ... 4 = IV
-    Extreme).
+  Per-day output control, one of `"none"` (default; only the event
+  table), `"also"` (event table plus a per-day NetCDF), or `"only"`
+  (per-day NetCDF, no event table). The per-day product is written to
+  `paste0(name, "_events_daily.nc")` and contains `temp`, `seas`,
+  `thresh`, `intensity` (`temp - seas`), `event`, `event_no`, and the
+  daily Hobday (2018) `category` (0 = none, 1 = I Moderate ... 4 = IV
+  Extreme).
 
--   protoEvent:
+- protoEvent:
 
-    Logical. Write the per-day proto-event series to
-    `paste0(name, "_protoevents.nc")` instead of the event table,
-    mirroring `heatwaveR::detect_event(protoEvents = TRUE)`. Variables:
-    `temp`, `seas`, `thresh`, `threshCriterion`, `durationCriterion`,
-    `event`, `event_no`. Mutually exclusive with `daily`. Default
-    `FALSE`.
+  Logical. Write the per-day proto-event series to
+  `paste0(name, "_protoevents.nc")` instead of the event table,
+  mirroring `heatwaveR::detect_event(protoEvents = TRUE)`. Variables:
+  `temp`, `seas`, `thresh`, `threshCriterion`, `durationCriterion`,
+  `event`, `event_no`. Mutually exclusive with `daily`. Default `FALSE`.
 
--   n\_threads:
+- n_threads:
 
-    Number of threads for parallel computation. Default `1`.
+  Number of threads for parallel computation. Default `1`.
 
--   skip\_bad\_files:
+- skip_bad_files:
 
-    Logical. For multi-file inputs, skip unreadable files or files with
-    mismatched grids instead of failing. Default `FALSE`.
+  Logical. For multi-file inputs, skip unreadable files or files with
+  mismatched grids instead of failing. Default `FALSE`.
 
--   quiet:
+- quiet:
 
-    Logical. Suppress the post-computation console summary (head, tail,
-    and summary statistics of each product written)? Default `FALSE`.
-
-</div>
-
-<div class="section level2">
+  Logical. Suppress the post-computation console summary (head, tail,
+  and summary statistics of each product written)? Default `FALSE`.
 
 ## Value
 
 Invisibly returns a named character vector of the NetCDF files written
-(a subset of `events`, `daily`, `protoevents`). Use `hw3_export` to read
-any of them into a `data.frame` or to export to CSV/RDS/Parquet.
-
-</div>
-
-<div class="section level2">
+(a subset of `events`, `daily`, `protoevents`). Use
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+to read any of them into a `data.frame` or to export to CSV/RDS/Parquet.
 
 ## Examples
-
-<div class="sourceCode">
 
 ``` r
 # \donttest{
@@ -185,21 +162,15 @@ stem <- file.path(tempdir(), "demo")
 
 ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
-#> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)
-#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
+#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
+#> Writing climatology to /tmp/RtmpzRFSE7/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc
+#> Climatology written to: /tmp/RtmpzRFSE7/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -223,28 +194,22 @@ ts2clm3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 detect_event3(sst_file, name = stem)                 # demo_events.nc
-#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /tmp/RtmpzRFSE7/demo_clim.nc...
+#> Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)
+#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc...
+#> Writing events to /tmp/RtmpzRFSE7/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc
+#> Events written to: /tmp/RtmpzRFSE7/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -317,29 +282,23 @@ detect_event3(sst_file, name = stem)                 # demo_events.nc
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
-#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /tmp/RtmpzRFSE7/demo_clim.nc...
+#> Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)
+#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing per-day series to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc...
+#> Writing per-day series to /tmp/RtmpzRFSE7/demo_events_daily.nc...
 #> Done.
-#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc...
+#> Writing events to /tmp/RtmpzRFSE7/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc
+#> Events written to: /tmp/RtmpzRFSE7/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -412,12 +371,12 @@ detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 #> 
 #> ------------------------------------------------------------------
-#> Daily series written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc
+#> Daily series written to: /tmp/RtmpzRFSE7/demo_events_daily.nc
 #> Rows (long format): 85,656   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -453,14 +412,8 @@ detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
 #>   event-days: 5195
 #>   category: 1=8922  2=439  3=3
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_events_daily.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 # }
 ```
-
-</div>
-
-</div>
-
-</div>

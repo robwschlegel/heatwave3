@@ -96,8 +96,24 @@
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>Ocean reanalyses and models such as GLORYS12 provide temperature on a 4D grid (<code>lon</code>, <code>lat</code>, <code>depth</code>, <code>time</code>), not just at the sea surface. <strong>heatwave3</strong> can compute climatologies and detect events natively across a <strong>contiguous band of depth levels</strong>, producing one 4D climatology/event NetCDF instead of per-level 3D files.</p>
-<p>Every chunk in this vignette runs against a tiny 2x2 pixel, 5 depth-level GLORYS12 fixture bundled with the package (<code>system.file("extdata/glorys_depth_test.nc", package = "heatwave3")</code>) – the same one used by the test suite – so that this vignette actually compiles when the documentation is built. Everything shown works identically on a full-resolution file with many more pixels and depth levels; just substitute your own <code>temp_file</code>. The trade-off of the small fixture is scale, not behaviour: with only 4 horizontal pixels and 5 depth levels (0.49-5.08 m, all within the mixed layer), don’t expect dramatic spatial or vertical structure in the figures below.</p>
+<p>Ocean reanalyses and models such as GLORYS12 provide temperature on a
+4D grid (<code>lon</code>, <code>lat</code>, <code>depth</code>,
+<code>time</code>), not just at the sea surface.
+<strong>heatwave3</strong> can compute climatologies and detect events
+natively across a <strong>contiguous band of depth levels</strong>,
+producing one 4D climatology/event NetCDF instead of per-level 3D
+files.</p>
+<p>Every chunk in this vignette runs against a tiny 2x2 pixel, 5
+depth-level GLORYS12 fixture bundled with the package
+(<code>system.file("extdata/glorys_depth_test.nc", package = "heatwave3")</code>)
+– the same one used by the test suite – so that this vignette actually
+compiles when the documentation is built. Everything shown works
+identically on a full-resolution file with many more pixels and depth
+levels; just substitute your own <code>temp_file</code>. The trade-off
+of the small fixture is scale, not behaviour: with only 4 horizontal
+pixels and 5 depth levels (0.49-5.08 m, all within the mixed layer),
+don’t expect dramatic spatial or vertical structure in the figures
+below.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
@@ -110,7 +126,12 @@
 <div class="section level3">
 <h3 id="option-a-per-level-looping">Option A: per-level looping<a class="anchor" aria-label="anchor" href="#option-a-per-level-looping"></a>
 </h3>
-<p>Before <code>depth_range</code> existed, the only way to get per-depth results was to run the ordinary 3D pipeline once per level, squeezing to a single depth index each time with the existing <code>depth</code> argument. This is still a legitimate, simple approach: it can be run in parallel across depth and reuses the same validated 3D code path as every other heatwave3 analysis.</p>
+<p>Before <code>depth_range</code> existed, the only way to get
+per-depth results was to run the ordinary 3D pipeline once per level,
+squeezing to a single depth index each time with the existing
+<code>depth</code> argument. This is still a legitimate, simple
+approach: it can be run in parallel across depth and reuses the same
+validated 3D code path as every other heatwave3 analysis.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_depth</span> <span class="op">&lt;-</span> <span class="fl">5L</span>  <span class="co"># number of depth levels in this fixture</span></span>
 <span></span>
@@ -120,82 +141,97 @@
 <span>          climatologyPeriod <span class="op">=</span> <span class="va">clim_period</span>,</span>
 <span>          depth <span class="op">=</span> <span class="va">k</span>, category <span class="op">=</span> <span class="cn">TRUE</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<pre><code><span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z0_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw_z0_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z0_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw_z0_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 316 events across 4 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z0_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw_z0_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z1_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw_z1_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z1_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw_z1_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 323 events across 4 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z1_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw_z1_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z2_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw_z2_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z2_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw_z2_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 323 events across 4 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z2_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw_z2_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z3_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw_z3_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z3_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw_z3_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 326 events across 4 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z3_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw_z3_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z4_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw_z4_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z4_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw_z4_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 11688 time = 4 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 1 thread(s)...</span></span>
 <span><span class="co">#&gt;   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 326 events across 4 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw_z4_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw_z4_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span></code></pre>
-<p>The trade-off: this produces <code>n_depth</code> separate pairs of <code>_clim.nc</code>/ <code>_events.nc</code> files, each with <code>n_depth</code>-fold repeated I/O over the same lon/lat/time grid, and there is no vertical linkage between levels (each is detected completely independently, as if it were its own 3D dataset). For users who just want “climatology and events at 20 m, 50 m, 100 m…” this may already be enough – stack the files yourself downstream with <code>terra</code> (R), <code>xarray</code> (python), or <code>CDO</code> (bash).</p>
+<p>The trade-off: this produces <code>n_depth</code> separate pairs of
+<code>_clim.nc</code>/ <code>_events.nc</code> files, each with
+<code>n_depth</code>-fold repeated I/O over the same lon/lat/time grid,
+and there is no vertical linkage between levels (each is detected
+completely independently, as if it were its own 3D dataset). For users
+who just want “climatology and events at 20 m, 50 m, 100 m…” this may
+already be enough – stack the files yourself downstream with
+<code>terra</code> (R), <code>xarray</code> (python), or
+<code>CDO</code> (bash).</p>
 </div>
 <div class="section level3">
 <h3 id="option-b-native-depth_range-recommended">Option B: native <code>depth_range</code> (recommended)<a class="anchor" aria-label="anchor" href="#option-b-native-depth_range-recommended"></a>
 </h3>
-<p><code>depth_range = c(min_depth, max_depth)</code> (metres, inclusive) tells <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> and <code><a href="../reference/detect3.html">detect3()</a></code> to read every depth level whose coordinate falls in that range and compute an independent climatology/event table for every <code>(lon, lat, depth)</code> triple, in <strong>one</strong> call producing <strong>one</strong> 4D file. This avoids the repeated I/O and per-level file bookkeeping of Option A above. The fixture’s 5 levels all fall within 0-10 m:</p>
+<p><code>depth_range = c(min_depth, max_depth)</code> (metres,
+inclusive) tells <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> and <code><a href="../reference/detect3.html">detect3()</a></code> to
+read every depth level whose coordinate falls in that range and compute
+an independent climatology/event table for every
+<code>(lon, lat, depth)</code> triple, in <strong>one</strong> call
+producing <strong>one</strong> 4D file. This avoids the repeated I/O and
+per-level file bookkeeping of Option A above. The fixture’s 5 levels all
+fall within 0-10 m:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"mhw4d"</span><span class="op">)</span></span>
 <span><span class="va">clim_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="va">temp_file</span>,</span>
@@ -203,15 +239,15 @@
 <span>                     climatologyPeriod <span class="op">=</span> <span class="va">clim_period</span>,</span>
 <span>                     depth_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>,</span>
 <span>                     n_threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /tmp/Rtmp0UgQ9o/mhw4d_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 7,320   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -235,23 +271,26 @@
 <span><span class="co">#&gt;   seas:   20.98 to 25.55</span></span>
 <span><span class="co">#&gt;   thresh:    22 to 26.92</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span></code></pre></div>
-<p><code><a href="../reference/detect_event3.html">detect_event3()</a></code> needs no separate depth argument at all: it reads the depth range straight back out of the climatology file it is already loading, so climatology and event detection can never end up out of sync about which levels they are comparing.</p>
+<p><code><a href="../reference/detect_event3.html">detect_event3()</a></code> needs no separate depth argument at all:
+it reads the depth range straight back out of the climatology file it is
+already loading, so climatology and event detection can never end up out
+of sync about which levels they are comparing.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">event_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_event3.html">detect_event3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="va">temp_file</span>,</span>
 <span>                            name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>                            category <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                            n_threads <span class="op">=</span> <span class="fl">2</span>, </span>
 <span>                            quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 1614 events across 20 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw4d_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span></code></pre></div>
 <p>Or as a single call via <code><a href="../reference/detect3.html">detect3()</a></code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
@@ -261,15 +300,15 @@
 <span>        depth_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>,</span>
 <span>        category <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>        n_threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /tmp/Rtmp0UgQ9o/mhw4d_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 7,320   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -293,20 +332,20 @@
 <span><span class="co">#&gt;   seas:   20.98 to 25.55</span></span>
 <span><span class="co">#&gt;   thresh:    22 to 26.92</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 1614 events across 20 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw4d_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc</span></span>
+<span><span class="co">#&gt; Events written to: /tmp/Rtmp0UgQ9o/mhw4d_events.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 1,614</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -349,41 +388,41 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Tail:</span></span>
 <span><span class="co">#&gt;        lon       lat pixel_index event_no date_start  date_peak   date_end</span></span>
-<span><span class="co">#&gt; 1610 25.25 -34.83333          18       79 2024-06-23 2024-06-25 2024-07-01</span></span>
-<span><span class="co">#&gt; 1611 25.25 -34.83333          18       80 2024-07-15 2024-07-19 2024-07-28</span></span>
-<span><span class="co">#&gt; 1612 25.25 -34.83333          18       81 2024-08-07 2024-08-20 2024-09-03</span></span>
-<span><span class="co">#&gt; 1613 25.25 -34.83333          18       82 2024-12-08 2024-12-08 2024-12-14</span></span>
-<span><span class="co">#&gt; 1614 25.25 -34.83333          18       83 2024-12-18 2024-12-23 2024-12-29</span></span>
+<span><span class="co">#&gt; 1610 25.25 -34.83333          19       77 2024-06-23 2024-06-25 2024-07-01</span></span>
+<span><span class="co">#&gt; 1611 25.25 -34.83333          19       78 2024-07-15 2024-07-19 2024-07-28</span></span>
+<span><span class="co">#&gt; 1612 25.25 -34.83333          19       79 2024-08-07 2024-08-20 2024-09-03</span></span>
+<span><span class="co">#&gt; 1613 25.25 -34.83333          19       80 2024-12-08 2024-12-08 2024-12-14</span></span>
+<span><span class="co">#&gt; 1614 25.25 -34.83333          19       81 2024-12-18 2024-12-23 2024-12-29</span></span>
 <span><span class="co">#&gt;      duration intensity_mean intensity_max intensity_var intensity_cumulative</span></span>
-<span><span class="co">#&gt; 1610        9         1.5017        1.6836        0.1564              13.5150</span></span>
-<span><span class="co">#&gt; 1611       14         1.1987        1.6393        0.1932              16.7822</span></span>
-<span><span class="co">#&gt; 1612       28         1.4298        2.3913        0.3482              40.0337</span></span>
-<span><span class="co">#&gt; 1613        7         2.0255        2.4800        0.4034              14.1785</span></span>
-<span><span class="co">#&gt; 1614       12         2.0775        2.3796        0.2661              24.9299</span></span>
+<span><span class="co">#&gt; 1610        9         1.5018        1.6837        0.1564              13.5160</span></span>
+<span><span class="co">#&gt; 1611       14         1.1989        1.6394        0.1932              16.7848</span></span>
+<span><span class="co">#&gt; 1612       28         1.4304        2.3920        0.3483              40.0519</span></span>
+<span><span class="co">#&gt; 1613        7         2.0314        2.4793        0.3988              14.2196</span></span>
+<span><span class="co">#&gt; 1614       12         2.0886        2.3930        0.2649              25.0638</span></span>
 <span><span class="co">#&gt;      intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span></span>
 <span><span class="co">#&gt; 1610                   0.3836                  0.5506                  0.1543</span></span>
-<span><span class="co">#&gt; 1611                   0.2597                  0.6807                  0.1793</span></span>
-<span><span class="co">#&gt; 1612                   0.4674                  1.4444                  0.3469</span></span>
-<span><span class="co">#&gt; 1613                   0.7981                  1.2835                  0.4274</span></span>
-<span><span class="co">#&gt; 1614                   0.6444                  0.9559                  0.2627</span></span>
+<span><span class="co">#&gt; 1611                   0.2598                  0.6808                  0.1793</span></span>
+<span><span class="co">#&gt; 1612                   0.4680                  1.4450                  0.3469</span></span>
+<span><span class="co">#&gt; 1613                   0.8006                  1.2799                  0.4230</span></span>
+<span><span class="co">#&gt; 1614                   0.6494                  0.9636                  0.2617</span></span>
 <span><span class="co">#&gt;      intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span></span>
 <span><span class="co">#&gt; 1610                         3.4525            23.4180           23.6375</span></span>
-<span><span class="co">#&gt; 1611                         3.6362            22.7199           23.1878</span></span>
-<span><span class="co">#&gt; 1612                        13.0874            22.5690           23.5094</span></span>
-<span><span class="co">#&gt; 1613                         5.5866            25.5139           25.8759</span></span>
-<span><span class="co">#&gt; 1614                         7.7328            25.9767           26.2589</span></span>
+<span><span class="co">#&gt; 1611                         3.6376            22.7199           23.1878</span></span>
+<span><span class="co">#&gt; 1612                        13.1050            22.5689           23.5094</span></span>
+<span><span class="co">#&gt; 1613                         5.6043            25.5093           25.8656</span></span>
+<span><span class="co">#&gt; 1614                         7.7930            25.9745           26.2589</span></span>
 <span><span class="co">#&gt;      intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span></span>
 <span><span class="co">#&gt; 1610            0.1754                 210.7624     0.1591       0.0695</span></span>
 <span><span class="co">#&gt; 1611            0.2205                 318.0784     0.1170       0.0720</span></span>
-<span><span class="co">#&gt; 1612            0.3456                 631.9313     0.0781       0.0735</span></span>
-<span><span class="co">#&gt; 1613            0.3446                 178.5976     0.0000       0.1807</span></span>
-<span><span class="co">#&gt; 1614            0.2882                 311.7206     0.1368       0.1079</span></span>
+<span><span class="co">#&gt; 1612            0.3456                 631.9298     0.0782       0.0736</span></span>
+<span><span class="co">#&gt; 1613            0.3408                 178.5654     0.0000       0.1790</span></span>
+<span><span class="co">#&gt; 1614            0.2870                 311.6935     0.1370       0.1078</span></span>
 <span><span class="co">#&gt;         depth   category p_moderate p_strong p_severe p_extreme season</span></span>
-<span><span class="co">#&gt; 1610 3.819495 I Moderate          1   0.4860   0.0000         0 Winter</span></span>
-<span><span class="co">#&gt; 1611 3.819495 I Moderate          1   0.7101   0.0000         0 Winter</span></span>
-<span><span class="co">#&gt; 1612 3.819495  II Strong          1   1.0000   0.5254         0 Winter</span></span>
-<span><span class="co">#&gt; 1613 3.819495  II Strong          1   1.0000   0.0727         0 Summer</span></span>
-<span><span class="co">#&gt; 1614 3.819495 I Moderate          1   0.6553   0.0000         0 Summer</span></span>
+<span><span class="co">#&gt; 1610 5.078224 I Moderate          1   0.4860   0.0000         0 Winter</span></span>
+<span><span class="co">#&gt; 1611 5.078224 I Moderate          1   0.7102   0.0000         0 Winter</span></span>
+<span><span class="co">#&gt; 1612 5.078224  II Strong          1   1.0000   0.5258         0 Winter</span></span>
+<span><span class="co">#&gt; 1613 5.078224  II Strong          1   1.0000   0.0671         0 Summer</span></span>
+<span><span class="co">#&gt; 1614 5.078224 I Moderate          1   0.6577   0.0000         0 Summer</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Summary:</span></span>
 <span><span class="co">#&gt;   events: 1614   pixels with events: 4</span></span>
@@ -392,15 +431,16 @@
 <span><span class="co">#&gt;   intensity_max:   0.9695 to 3.165</span></span>
 <span><span class="co">#&gt;   category: I Moderate=1531  II Strong=83</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_events.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="reading-the-depth-resolved-output">Reading the depth-resolved output<a class="anchor" aria-label="anchor" href="#reading-the-depth-resolved-output"></a>
 </h2>
-<p><code><a href="../reference/hw3_export.html">hw3_export()</a></code> surfaces a <code>depth</code> column automatically whenever the source file is depth-resolved:</p>
+<p><code><a href="../reference/hw3_export.html">hw3_export()</a></code> surfaces a <code>depth</code> column
+automatically whenever the source file is depth-resolved:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">clim_df</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hw3_export.html">hw3_export</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">event_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hw3_export.html">hw3_export</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_events.nc"</span><span class="op">)</span><span class="op">)</span></span>
@@ -418,7 +458,14 @@
 <pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; 0.49 1.54 2.65 3.82 5.08 </span></span>
 <span><span class="co">#&gt;  316  323  323  326  326</span></span></code></pre>
-<p>Because every <code>(lon, lat, depth)</code> triple gets its own climatology, the seasonal cycle and threshold both flatten out with depth – the surface has the largest seasonal amplitude and the highest threshold, decaying as you move down through the mixed layer. This is already visible directly from the exported climatology data frame, with no new plotting functions required (the effect is subtle here since all 5 levels sit within the top 5 m; it’s more pronounced across a deeper range on a real file):</p>
+<p>Because every <code>(lon, lat, depth)</code> triple gets its own
+climatology, the seasonal cycle and threshold both flatten out with
+depth – the surface has the largest seasonal amplitude and the highest
+threshold, decaying as you move down through the mixed layer. This is
+already visible directly from the exported climatology data frame, with
+no new plotting functions required (the effect is subtle here since all
+5 levels sit within the top 5 m; it’s more pronounced across a deeper
+range on a real file):</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
@@ -430,7 +477,9 @@
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Seasonal climatology by depth"</span>, x <span class="op">=</span> <span class="st">"Day of year"</span>, y <span class="op">=</span> <span class="st">"degC"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span></code></pre></div>
 <p><img src="depth-range_files/figure-html/plot-clim-by-depth-1.png" class="r-plt" alt="" width="672"></p>
-<p>A depth-time Hovmoeller-style view of event intensity is also already possible by building the plot directly from <code>event_df</code>, without any new graphics functions:</p>
+<p>A depth-time Hovmoeller-style view of event intensity is also already
+possible by building the plot directly from <code>event_df</code>,
+without any new graphics functions:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">one_pixel_events</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">event_df</span>, <span class="va">lon</span> <span class="op">==</span> <span class="va">event_df</span><span class="op">$</span><span class="va">lon</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span> <span class="op">&amp;</span> <span class="va">lat</span> <span class="op">==</span> <span class="va">event_df</span><span class="op">$</span><span class="va">lat</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -443,9 +492,13 @@
 <p><img src="depth-range_files/figure-html/plot-hovmoller-1.png" class="r-plt" alt="" width="672"></p>
 </div>
 <div class="section level2">
-<h2 id="depth-resolved-event-line-plots-with-geom_flame3-geom_lolli3">Depth-resolved event-line plots with <code>geom_flame3()</code> / <code>geom_lolli3()</code><a class="anchor" aria-label="anchor" href="#depth-resolved-event-line-plots-with-geom_flame3-geom_lolli3"></a>
+<h2 id="depth-resolved-event-line-plots-with-geom_flame3-geom_lolli3">Depth-resolved event-line plots with <code>geom_flame3()</code> /
+<code>geom_lolli3()</code><a class="anchor" aria-label="anchor" href="#depth-resolved-event-line-plots-with-geom_flame3-geom_lolli3"></a>
 </h2>
-<p>The per-day product also carries a depth dimension now, so <code>daily = "also"</code> works together with <code>depth_range</code> – no separate depth argument needed here either, for the same reason <code><a href="../reference/detect_event3.html">detect_event3()</a></code> doesn’t need one:</p>
+<p>The per-day product also carries a depth dimension now, so
+<code>daily = "also"</code> works together with <code>depth_range</code>
+– no separate depth argument needed here either, for the same reason
+<code><a href="../reference/detect_event3.html">detect_event3()</a></code> doesn’t need one:</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/detect3.html">detect3</a></span><span class="op">(</span>file_in <span class="op">=</span> <span class="va">temp_file</span>,</span>
 <span>        name <span class="op">=</span> <span class="va">stem</span>,</span>
@@ -454,15 +507,15 @@
 <span>        category <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>        daily <span class="op">=</span> <span class="st">"also"</span>,</span>
 <span>        n_threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp0UgQ9o/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /tmp/Rtmp0UgQ9o/mhw4d_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 7,320   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -486,22 +539,22 @@
 <span><span class="co">#&gt;   seas:   20.98 to 25.55</span></span>
 <span><span class="co">#&gt;   thresh:    22 to 26.92</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/glorys_depth_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp0UgQ9o/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 1614 events across 20 pixels</span></span>
-<span><span class="co">#&gt; Writing per-day series to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events_daily.nc...</span></span>
+<span><span class="co">#&gt; Writing per-day series to /tmp/Rtmp0UgQ9o/mhw4d_events_daily.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/Rtmp0UgQ9o/mhw4d_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc</span></span>
+<span><span class="co">#&gt; Events written to: /tmp/Rtmp0UgQ9o/mhw4d_events.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 1,614</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -544,41 +597,41 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Tail:</span></span>
 <span><span class="co">#&gt;        lon       lat pixel_index event_no date_start  date_peak   date_end</span></span>
-<span><span class="co">#&gt; 1610 25.25 -34.83333          18       79 2024-06-23 2024-06-25 2024-07-01</span></span>
-<span><span class="co">#&gt; 1611 25.25 -34.83333          18       80 2024-07-15 2024-07-19 2024-07-28</span></span>
-<span><span class="co">#&gt; 1612 25.25 -34.83333          18       81 2024-08-07 2024-08-20 2024-09-03</span></span>
-<span><span class="co">#&gt; 1613 25.25 -34.83333          18       82 2024-12-08 2024-12-08 2024-12-14</span></span>
-<span><span class="co">#&gt; 1614 25.25 -34.83333          18       83 2024-12-18 2024-12-23 2024-12-29</span></span>
+<span><span class="co">#&gt; 1610 25.25 -34.83333          19       77 2024-06-23 2024-06-25 2024-07-01</span></span>
+<span><span class="co">#&gt; 1611 25.25 -34.83333          19       78 2024-07-15 2024-07-19 2024-07-28</span></span>
+<span><span class="co">#&gt; 1612 25.25 -34.83333          19       79 2024-08-07 2024-08-20 2024-09-03</span></span>
+<span><span class="co">#&gt; 1613 25.25 -34.83333          19       80 2024-12-08 2024-12-08 2024-12-14</span></span>
+<span><span class="co">#&gt; 1614 25.25 -34.83333          19       81 2024-12-18 2024-12-23 2024-12-29</span></span>
 <span><span class="co">#&gt;      duration intensity_mean intensity_max intensity_var intensity_cumulative</span></span>
-<span><span class="co">#&gt; 1610        9         1.5017        1.6836        0.1564              13.5150</span></span>
-<span><span class="co">#&gt; 1611       14         1.1987        1.6393        0.1932              16.7822</span></span>
-<span><span class="co">#&gt; 1612       28         1.4298        2.3913        0.3482              40.0337</span></span>
-<span><span class="co">#&gt; 1613        7         2.0255        2.4800        0.4034              14.1785</span></span>
-<span><span class="co">#&gt; 1614       12         2.0775        2.3796        0.2661              24.9299</span></span>
+<span><span class="co">#&gt; 1610        9         1.5018        1.6837        0.1564              13.5160</span></span>
+<span><span class="co">#&gt; 1611       14         1.1989        1.6394        0.1932              16.7848</span></span>
+<span><span class="co">#&gt; 1612       28         1.4304        2.3920        0.3483              40.0519</span></span>
+<span><span class="co">#&gt; 1613        7         2.0314        2.4793        0.3988              14.2196</span></span>
+<span><span class="co">#&gt; 1614       12         2.0886        2.3930        0.2649              25.0638</span></span>
 <span><span class="co">#&gt;      intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span></span>
 <span><span class="co">#&gt; 1610                   0.3836                  0.5506                  0.1543</span></span>
-<span><span class="co">#&gt; 1611                   0.2597                  0.6807                  0.1793</span></span>
-<span><span class="co">#&gt; 1612                   0.4674                  1.4444                  0.3469</span></span>
-<span><span class="co">#&gt; 1613                   0.7981                  1.2835                  0.4274</span></span>
-<span><span class="co">#&gt; 1614                   0.6444                  0.9559                  0.2627</span></span>
+<span><span class="co">#&gt; 1611                   0.2598                  0.6808                  0.1793</span></span>
+<span><span class="co">#&gt; 1612                   0.4680                  1.4450                  0.3469</span></span>
+<span><span class="co">#&gt; 1613                   0.8006                  1.2799                  0.4230</span></span>
+<span><span class="co">#&gt; 1614                   0.6494                  0.9636                  0.2617</span></span>
 <span><span class="co">#&gt;      intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span></span>
 <span><span class="co">#&gt; 1610                         3.4525            23.4180           23.6375</span></span>
-<span><span class="co">#&gt; 1611                         3.6362            22.7199           23.1878</span></span>
-<span><span class="co">#&gt; 1612                        13.0874            22.5690           23.5094</span></span>
-<span><span class="co">#&gt; 1613                         5.5866            25.5139           25.8759</span></span>
-<span><span class="co">#&gt; 1614                         7.7328            25.9767           26.2589</span></span>
+<span><span class="co">#&gt; 1611                         3.6376            22.7199           23.1878</span></span>
+<span><span class="co">#&gt; 1612                        13.1050            22.5689           23.5094</span></span>
+<span><span class="co">#&gt; 1613                         5.6043            25.5093           25.8656</span></span>
+<span><span class="co">#&gt; 1614                         7.7930            25.9745           26.2589</span></span>
 <span><span class="co">#&gt;      intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span></span>
 <span><span class="co">#&gt; 1610            0.1754                 210.7624     0.1591       0.0695</span></span>
 <span><span class="co">#&gt; 1611            0.2205                 318.0784     0.1170       0.0720</span></span>
-<span><span class="co">#&gt; 1612            0.3456                 631.9313     0.0781       0.0735</span></span>
-<span><span class="co">#&gt; 1613            0.3446                 178.5976     0.0000       0.1807</span></span>
-<span><span class="co">#&gt; 1614            0.2882                 311.7206     0.1368       0.1079</span></span>
+<span><span class="co">#&gt; 1612            0.3456                 631.9298     0.0782       0.0736</span></span>
+<span><span class="co">#&gt; 1613            0.3408                 178.5654     0.0000       0.1790</span></span>
+<span><span class="co">#&gt; 1614            0.2870                 311.6935     0.1370       0.1078</span></span>
 <span><span class="co">#&gt;         depth   category p_moderate p_strong p_severe p_extreme season</span></span>
-<span><span class="co">#&gt; 1610 3.819495 I Moderate          1   0.4860   0.0000         0 Winter</span></span>
-<span><span class="co">#&gt; 1611 3.819495 I Moderate          1   0.7101   0.0000         0 Winter</span></span>
-<span><span class="co">#&gt; 1612 3.819495  II Strong          1   1.0000   0.5254         0 Winter</span></span>
-<span><span class="co">#&gt; 1613 3.819495  II Strong          1   1.0000   0.0727         0 Summer</span></span>
-<span><span class="co">#&gt; 1614 3.819495 I Moderate          1   0.6553   0.0000         0 Summer</span></span>
+<span><span class="co">#&gt; 1610 5.078224 I Moderate          1   0.4860   0.0000         0 Winter</span></span>
+<span><span class="co">#&gt; 1611 5.078224 I Moderate          1   0.7102   0.0000         0 Winter</span></span>
+<span><span class="co">#&gt; 1612 5.078224  II Strong          1   1.0000   0.5258         0 Winter</span></span>
+<span><span class="co">#&gt; 1613 5.078224  II Strong          1   1.0000   0.0671         0 Summer</span></span>
+<span><span class="co">#&gt; 1614 5.078224 I Moderate          1   0.6577   0.0000         0 Summer</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Summary:</span></span>
 <span><span class="co">#&gt;   events: 1614   pixels with events: 4</span></span>
@@ -587,12 +640,12 @@
 <span><span class="co">#&gt;   intensity_max:   0.9695 to 3.165</span></span>
 <span><span class="co">#&gt;   category: I Moderate=1531  II Strong=83</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_events.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Daily series written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events_daily.nc</span></span>
+<span><span class="co">#&gt; Daily series written to: /tmp/Rtmp0UgQ9o/mhw4d_events_daily.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 233,760   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -628,10 +681,14 @@
 <span><span class="co">#&gt;   event-days: 14739</span></span>
 <span><span class="co">#&gt;   category: 1=24861  2=148</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events_daily.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpIGX9iU/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_events_daily.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp0UgQ9o/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span></code></pre></div>
-<p><code><a href="../reference/hw3_export.html">hw3_export()</a></code> surfaces the same <code>depth</code> column on this per-day product, and its streaming subset (<code>lon_range</code>/<code>lat_range</code>/<code>time_range</code>/<code>depth_range</code>/<code>n</code>) is depth-aware too, so a single pixel’s full depth profile over a short date window reads cheaply without loading the whole file:</p>
+<p><code><a href="../reference/hw3_export.html">hw3_export()</a></code> surfaces the same <code>depth</code> column
+on this per-day product, and its streaming subset
+(<code>lon_range</code>/<code>lat_range</code>/<code>time_range</code>/<code>depth_range</code>/<code>n</code>)
+is depth-aware too, so a single pixel’s full depth profile over a short
+date window reads cheaply without loading the whole file:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">daily_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hw3_export.html">hw3_export</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_events_daily.nc"</span><span class="op">)</span>,</span>
 <span>                       lon_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">25.16</span>, <span class="fl">25.17</span><span class="op">)</span>, lat_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34.92</span>, <span class="op">-</span><span class="fl">34.91</span><span class="op">)</span>,</span>
@@ -651,7 +708,10 @@
 <span><span class="co">#&gt; 4       NA        1 0.494025</span></span>
 <span><span class="co">#&gt; 5       NA        1 0.494025</span></span>
 <span><span class="co">#&gt; 6       NA        1 0.494025</span></span></code></pre>
-<p><code><a href="../reference/geom_flame3.html">geom_flame3()</a></code> automatically folds a mapped <code>depth</code> aesthetic into its row grouping – each depth level gets its own exceedance runs instead of being treated as one continuous series with depths interleaved – so one call plots every level:</p>
+<p><code><a href="../reference/geom_flame3.html">geom_flame3()</a></code> automatically folds a mapped
+<code>depth</code> aesthetic into its row grouping – each depth level
+gets its own exceedance runs instead of being treated as one continuous
+series with depths interleaved – so one call plots every level:</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">daily_df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">t</span>, y <span class="op">=</span> <span class="va">temp</span>, y2 <span class="op">=</span> <span class="va">thresh</span>, depth <span class="op">=</span> <span class="va">depth</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_flame3.html">geom_flame3</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -661,13 +721,17 @@
 <span>       y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html" class="external-link">expression</a></span><span class="op">(</span><span class="st">"Temperature ("</span> <span class="op">*</span> <span class="va">degree</span> <span class="op">*</span> <span class="st">"C)"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span></code></pre></div>
 <p><img src="depth-range_files/figure-html/geom-flame-depth-1.png" class="r-plt" alt="" width="672"></p>
-<p><code><a href="../reference/event_line3.html">event_line3()</a></code> also gained a <code>depth</code> argument, for the classic single-pixel flame plot at one chosen level (matched to the nearest depth actually present in the climatology, here 2.6 m):</p>
+<p><code><a href="../reference/event_line3.html">event_line3()</a></code> also gained a <code>depth</code> argument,
+for the classic single-pixel flame plot at one chosen level (matched to
+the nearest depth actually present in the climatology, here 2.6 m):</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/event_line3.html">event_line3</a></span><span class="op">(</span><span class="va">temp_file</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span>
 <span>            lon <span class="op">=</span> <span class="fl">25.16667</span>, lat <span class="op">=</span> <span class="op">-</span><span class="fl">34.91667</span>, depth <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>            event_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_events.nc"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="depth-range_files/figure-html/event-line-depth-1.png" class="r-plt" alt="" width="672"></p>
-<p><code><a href="../reference/geom_lolli3.html">geom_lolli3()</a></code> needs no special handling for depth: each lollipop is drawn from its own row independently of any grouping, so map <code>depth</code> to colour (or facet) like any other column:</p>
+<p><code><a href="../reference/geom_lolli3.html">geom_lolli3()</a></code> needs no special handling for depth: each
+lollipop is drawn from its own row independently of any grouping, so map
+<code>depth</code> to colour (or facet) like any other column:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">event_df_1px</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hw3_export.html">hw3_export</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_events.nc"</span><span class="op">)</span>,</span>
 <span>                           lon_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">25.16</span>, <span class="fl">25.17</span><span class="op">)</span>, lat_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34.92</span>, <span class="op">-</span><span class="fl">34.91</span><span class="op">)</span><span class="op">)</span></span>

@@ -1,20 +1,12 @@
-<div id="main" class="col-md-9" role="main">
-
 # Authors and Citation
-
-<div class="section level2">
 
 ## Authors
 
--   **Robert W. Schlegel**. Author, copyright holder.
-    [](https://orcid.org/0000-0002-0705-1287)
+- **Robert W. Schlegel**. Author, copyright holder.
+  [](https://orcid.org/0000-0002-0705-1287)
 
--   **Albertus J. Smit**. Author, maintainer.
-    [](https://orcid.org/0000-0002-3799-6126)
-
-</div>
-
-<div class="section level2">
+- **Albertus J. Smit**. Author, maintainer.
+  [](https://orcid.org/0000-0002-3799-6126)
 
 ## Citation
 
@@ -32,7 +24,3 @@ in Gridded Data*. R package version 1.3.0,
       note = {R package version 1.3.0},
       url = {https://robwschlegel.github.io/heatwave3/index.html},
     }
-
-</div>
-
-</div>

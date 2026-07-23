@@ -1,23 +1,16 @@
-<div id="main" class="col-md-9" role="main">
-
 # Convenience wrapper for marine heatwave event categories
-
-<div class="ref-description section level2">
 
 `category3()` is a convenience wrapper for adding or reading Hobday et
 al. (2018) categories (I Moderate, II Strong, III Severe, IV Extreme)
 for an event NetCDF file. New analyses should usually set
-`category = TRUE` in `detect_event3` or `detect3`, which computes the
-same categories during event detection and avoids a second pass over the
-files.
-
-</div>
-
-<div class="section level2">
+`category = TRUE` in
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+or
+[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md),
+which computes the same categories during event detection and avoids a
+second pass over the files.
 
 ## Usage
-
-<div class="sourceCode">
 
 ``` r
 category3(
@@ -29,49 +22,38 @@ category3(
 )
 ```
 
-</div>
-
-</div>
-
-<div class="section level2">
-
 ## Arguments
 
--   event\_file:
+- event_file:
 
-    Path to the event NetCDF file from `detect_event3`.
+  Path to the event NetCDF file from
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
 
--   clim\_file:
+- clim_file:
 
-    Path to the climatology NetCDF from `ts2clm3`. Only required when
-    the event file does not contain pre-computed categories.
+  Path to the climatology NetCDF from
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+  Only required when the event file does not contain pre-computed
+  categories.
 
--   hemisphere:
+- hemisphere:
 
-    Character. Either `"south"` (default, austral: DJF = Summer) or
-    `"north"` (boreal: DJF = Winter).
+  Character. Either `"south"` (default, austral: DJF = Summer) or
+  `"north"` (boreal: DJF = Winter).
 
--   roundVal:
+- roundVal:
 
-    Decimal places for rounding. Default `4`.
+  Decimal places for rounding. Default `4`.
 
--   S:
+- S:
 
-    Deprecated. Use `hemisphere` instead.
-
-</div>
-
-<div class="section level2">
+  Deprecated. Use `hemisphere` instead.
 
 ## Value
 
-A data.frame with columns: event\_no, lon, lat, peak\_date, category,
-intensity\_max, duration, p\_moderate, p\_strong, p\_severe, p\_extreme,
+A data.frame with columns: event_no, lon, lat, peak_date, category,
+intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme,
 season.
-
-</div>
-
-<div class="section level2">
 
 ## Details
 
@@ -84,13 +66,7 @@ Works for both marine heatwaves and cold-spells: the category width is
 `|seas - thresh|`, which is always positive regardless of whether the
 threshold is above (heatwave) or below (cold-spell) the seasonal mean.
 
-</div>
-
-<div class="section level2">
-
 ## Examples
-
-<div class="sourceCode">
 
 ``` r
 # \donttest{
@@ -99,21 +75,15 @@ stem <- file.path(tempdir(), "demo")
 
 detect3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
-#> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)
-#> Writing climatology to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
+#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
+#> Writing climatology to /tmp/RtmpzRFSE7/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc
+#> Climatology written to: /tmp/RtmpzRFSE7/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -137,26 +107,20 @@ detect3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_clim.nc...
-#> Reading SST data from /private/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T/RtmpJTNWgE/temp_libpathdc173c3ec90c/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /tmp/RtmpzRFSE7/demo_clim.nc...
+#> Reading SST data from /tmp/RtmpfIs2Yx/temp_libpath2ce33150b58c88/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#> 
-  1/6 pixels (16%)
-  2/6 pixels (33%)
-  3/6 pixels (50%)
-  4/6 pixels (66%)
-  5/6 pixels (83%)
-  6/6 pixels (100%)
+#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc...
+#> Writing events to /tmp/RtmpzRFSE7/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc
+#> Events written to: /tmp/RtmpzRFSE7/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -229,8 +193,8 @@ detect3(sst_file, name = stem,
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", n = 20)
-#> or export with hw3_export("/var/folders/3w/nmplbnm109b9903rx8z9q0kc0000gn/T//RtmpjfaV6N/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpzRFSE7/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 cats <- category3(paste0(stem, "_events.nc"), paste0(stem, "_clim.nc"))
@@ -240,9 +204,3 @@ table(cats$category)
 #>        478        130          2 
 # }
 ```
-
-</div>
-
-</div>
-
-</div>

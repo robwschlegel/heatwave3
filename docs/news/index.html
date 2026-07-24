@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,6 +55,14 @@
       <small>Source: <a href="https://github.com/robwschlegel/heatwave3/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.3.1" id="heatwave3-131-2026-07-24">heatwave3 1.3.1 (2026-07-24)<a class="anchor" aria-label="anchor" href="#heatwave3-131-2026-07-24"></a></h2>
+<div class="section level3">
+<h3 id="bug-fixes-1-3-1">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-3-1"></a></h3>
+<ul><li>
+<strong><code><a href="../reference/hw3_export.html">hw3_export()</a></code> crashed on event files containing <code>category = 0</code>.</strong> <code>.event_df_from_indices()</code> mapped category codes to labels with <code>cat_labels[ev$category[idx]]</code>; indexing an R vector with <code>0</code> silently drops that element instead of returning <code>NA</code>, so a file with any degenerate zero-intensity events (e.g. ice-covered pixels where the seasonal threshold has collapsed to a single constant, <code>seas == thresh</code>) produced a shorter label vector than the data.frame it was assigned into, throwing <code>replacement has fewer rows than data</code>. Fixed by offsetting the lookup so out-of-range codes map to <code>NA_character_</code> instead of being dropped, which now holds row count regardless of what category codes appear in the file.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.3.0" id="heatwave3-130-2026-07-16">heatwave3 1.3.0 (2026-07-16)<a class="anchor" aria-label="anchor" href="#heatwave3-130-2026-07-16"></a></h2>
 <div class="section level3">

@@ -1,5 +1,22 @@
 # Changelog
 
+## heatwave3 1.3.1 (2026-07-24)
+
+### Bug fixes
+
+- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+  crashed on event files containing `category = 0`.**
+  `.event_df_from_indices()` mapped category codes to labels with
+  `cat_labels[ev$category[idx]]`; indexing an R vector with `0` silently
+  drops that element instead of returning `NA`, so a file with any
+  degenerate zero-intensity events (e.g. ice-covered pixels where the
+  seasonal threshold has collapsed to a single constant,
+  `seas == thresh`) produced a shorter label vector than the data.frame
+  it was assigned into, throwing `replacement has fewer rows than data`.
+  Fixed by offsetting the lookup so out-of-range codes map to
+  `NA_character_` instead of being dropped, which now holds row count
+  regardless of what category codes appear in the file.
+
 ## heatwave3 1.3.0 (2026-07-16)
 
 ### New features

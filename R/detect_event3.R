@@ -282,7 +282,8 @@ detect_event3 <- function(
   }
 
   if (length(ev$category) > 0 && any(ev$category > 0)) {
-    df$category <- cat_labels[ev$category[idx]]
+    cat_lookup <- c(NA_character_, cat_labels)
+    df$category <- cat_lookup[ev$category[idx] + 1L]
     df$p_moderate <- ev$p_moderate[idx]
     df$p_strong <- ev$p_strong[idx]
     df$p_severe <- ev$p_severe[idx]

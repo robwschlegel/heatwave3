@@ -132,3 +132,35 @@ test_that("hw3_export round-trips every product to CSV and previews", {
     expect_equal(nrow(utils::read.csv(csv)), nrow(df_whole))
   }
 })
+
+test_that(".event_df_from_indices keeps row count when category codes include 0", {
+  # Degenerate zero-intensity events (e.g. ice-covered pixels where seas ==
+  # thresh at the peak day) leave `category` at its initialised 0, which is
+  # outside the 1:4 label range. Indexing cat_labels[0] used to silently drop
+  # the row instead of producing NA, shortening the vector and crashing the
+  # data.frame assignment.
+  n <- 5
+  ev <- list(
+    lon = rep(1, n), lat = rep(1, n), pixel_index = seq_len(n),
+    event_no = seq_len(n),
+    date_start = rep(0, n), date_peak = rep(0, n), date_end = rep(0, n),
+    duration = rep(5, n),
+    intensity_mean = rep(0, n), intensity_max = rep(0, n),
+    intensity_var = rep(0, n), intensity_cumulative = rep(0, n),
+    intensity_mean_relThresh = rep(0, n), intensity_max_relThresh = rep(0, n),
+    intensity_var_relThresh = rep(0, n), intensity_cumulative_relThresh = rep(0, n),
+    intensity_mean_abs = rep(0, n), intensity_max_abs = rep(0, n),
+    intensity_var_abs = rep(0, n), intensity_cumulative_abs = rep(0, n),
+    rate_onset = rep(0, n), rate_decline = rep(0, n),
+    depth = numeric(0),
+    category = c(0L, 1L, 0L, 2L, 4L),
+    p_moderate = rep(0, n), p_strong = rep(0, n),
+    p_severe = rep(0, n), p_extreme = rep(0, n),
+    season = c(1L, 2L, 3L, 4L, 1L),
+    ref_date_jd = 2440588L
+  )
+
+  df <- heatwave3:::.event_df_from_indices(ev, seq_len(n))
+  expect_equal(nrow(df), n)
+  expect_equal(df$category, c(NA, "I Moderate", NA, "II Strong", "IV Extreme"))
+})

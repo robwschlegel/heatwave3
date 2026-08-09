@@ -10,6 +10,7 @@
 ^data-raw$
 ^logo.png
 ^package_development.R
+^hex_sticker.R
 ^heatwave3\.code-workspace$
 ^configure\.win$
 ^src/Makevars$

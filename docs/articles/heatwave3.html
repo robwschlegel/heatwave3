@@ -176,15 +176,15 @@ SST).</p>
 <span>        name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span>,</span>
 <span>        n_threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/sst_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
-<span><span class="co">#&gt;   6/6 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /tmp/Rtmp2z30OU/demo_clim.nc...</span></span>
+<span><span class="co">#&gt;   4/6 pixels (66%)  6/6 pixels (100%)</span></span>
+<span><span class="co">#&gt; Writing climatology to /tmp/RtmpfbvQjH/demo_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /tmp/Rtmp2z30OU/demo_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /tmp/RtmpfbvQjH/demo_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 2,196   grid: 2 lon x 3 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -208,20 +208,20 @@ SST).</p>
 <span><span class="co">#&gt;   seas:   291.1 to 295.6</span></span>
 <span><span class="co">#&gt;   thresh: 292.4 to 297.6</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp2z30OU/demo_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp2z30OU/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/RtmpfbvQjH/demo_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/RtmpfbvQjH/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Reading climatology from /tmp/Rtmp2z30OU/demo_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/sst_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /tmp/RtmpfbvQjH/demo_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   6/6 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 610 events across 6 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /tmp/Rtmp2z30OU/demo_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /tmp/RtmpfbvQjH/demo_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Events written to: /tmp/Rtmp2z30OU/demo_events.nc</span></span>
+<span><span class="co">#&gt; Events written to: /tmp/RtmpfbvQjH/demo_events.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 610</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -294,8 +294,8 @@ SST).</p>
 <span><span class="co">#&gt;   duration (days):     5 to    38</span></span>
 <span><span class="co">#&gt;   intensity_max:   1.314 to 4.911</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/tmp/Rtmp2z30OU/demo_events.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/tmp/Rtmp2z30OU/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/tmp/RtmpfbvQjH/demo_events.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/tmp/RtmpfbvQjH/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
 <span></span>
 <span><span class="co"># The two products follow the naming convention &lt;name&gt;_clim.nc / &lt;name&gt;_events.nc</span></span>
@@ -664,7 +664,7 @@ overhead)</li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

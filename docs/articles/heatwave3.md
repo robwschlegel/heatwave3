@@ -35,7 +35,6 @@ ERA5, CMIP6, and other datasets without needing to specify dimension
 names.
 
 ``` r
-
 library(heatwave3)
 
 # Single multi-timestep file. 'name' is a path stem; ts2clm3() writes
@@ -68,7 +67,6 @@ Here we show the full pipeline using the bundled OSTIA test dataset (3×2
 pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 
 ``` r
-
 library(heatwave3)
 
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
@@ -80,15 +78,15 @@ detect3(file_in = sst_file,
         name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
         n_threads = 2)
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 2 thread(s)...
-#>   6/6 pixels (100%)
-#> Writing climatology to /tmp/Rtmp2z30OU/demo_clim.nc...
+#>   4/6 pixels (66%)  6/6 pixels (100%)
+#> Writing climatology to /tmp/RtmpfbvQjH/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/Rtmp2z30OU/demo_clim.nc
+#> Climatology written to: /tmp/RtmpfbvQjH/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -112,20 +110,20 @@ detect3(file_in = sst_file,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp2z30OU/demo_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp2z30OU/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpfbvQjH/demo_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpfbvQjH/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /tmp/Rtmp2z30OU/demo_clim.nc...
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /tmp/RtmpfbvQjH/demo_clim.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 2 thread(s)...
 #>   6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /tmp/Rtmp2z30OU/demo_events.nc...
+#> Writing events to /tmp/RtmpfbvQjH/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/Rtmp2z30OU/demo_events.nc
+#> Events written to: /tmp/RtmpfbvQjH/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -198,8 +196,8 @@ detect3(file_in = sst_file,
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp2z30OU/demo_events.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp2z30OU/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpfbvQjH/demo_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpfbvQjH/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 # The two products follow the naming convention <name>_clim.nc / <name>_events.nc
@@ -213,7 +211,6 @@ Extract a single pixel and produce a heatwaveR-style event line plot
 with flame polygons showing events above the threshold.
 
 ``` r
-
 event_line3(sst_file = sst_file,
             clim_file = clim_file,
             lon = 26.525, lat = -34.125,
@@ -228,7 +225,6 @@ event_line3(sst_file = sst_file,
 Visualise the spatial distribution of any event metric across the grid.
 
 ``` r
-
 plot_metric3(event_file, metric = "intensity_max", summary = "mean")
 ```
 
@@ -237,7 +233,6 @@ plot_metric3(event_file, metric = "intensity_max", summary = "mean")
 ## Event categories and yearly aggregation
 
 ``` r
-
 cats <- category3(event_file, clim_file)
 head(cats)
 #>   event_no    lon     lat  peak_date   category intensity_max duration
@@ -261,7 +256,6 @@ table(cats$category)
 ```
 
 ``` r
-
 ba <- block_average3(event_file)
 head(ba)
 #>      lon     lat year count duration_mean duration_max intensity_mean
@@ -296,7 +290,6 @@ long-term warming trend before computing the climatology (following
 Jacox et al. 2020), set `detrend = TRUE`:
 
 ``` r
-
 ts2clm3(file_in = sst_file,
         name = "benguela_detrended",
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
@@ -311,7 +304,6 @@ product into R, or export it to CSV/RDS/Parquet, use
 which auto-detects the product type:
 
 ``` r
-
 # Read the events back as a data.frame (whole, or a quick preview with n =)
 events <- hw3_export("benguela_events.nc")
 head(hw3_export("benguela_events.nc", n = 20))
@@ -327,7 +319,6 @@ Detect marine cold-spells by setting `pctile = 10` for the climatology
 and `coldSpells = TRUE` for detection.
 
 ``` r
-
 ts2clm3(file_in = sst_file,
         name = "benguela_cold",
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
@@ -351,7 +342,6 @@ All six figure types correspond to the example outputs in
 ### Setup: climatology and blob detection
 
 ``` r
-
 library(heatwave3)
 library(ggplot2)
 
@@ -383,7 +373,6 @@ land_clip <- sf::st_crop(land, xmin = xlim[1], xmax = xlim[2],
 ### Figure 1: Top 6 blob peak-day footprints
 
 ``` r
-
 top6 <- blobs$event[1:6, ]
 top6$blob_lbl <- paste0("#", top6$rank, " | ", top6$date_peak)
 vox6 <- blobs$voxel[blobs$voxel$blob %in% top6$blob, ]
@@ -412,7 +401,6 @@ ggplot() +
 ### Figure 2: Daily area of top 6 blobs
 
 ``` r
-
 daily6 <- blobs$daily[blobs$daily$blob %in% top6$blob, ]
 daily6$blob_lbl <- factor(top6$blob_lbl[match(daily6$blob, top6$blob)],
                           levels = top6$blob_lbl)
@@ -428,7 +416,6 @@ ggplot(daily6, aes(date, area_km2 / 1000, colour = blob_lbl)) +
 ### Figure 3: Centroid trajectories of top 3 blobs
 
 ``` r
-
 top3 <- blobs$event[1:3, ]
 top3$blob_lbl <- paste0("#", top3$rank, " (", top3$date_peak, ")")
 daily3 <- blobs$daily[blobs$daily$blob %in% top3$blob, ]
@@ -462,7 +449,6 @@ ggplot() +
 ### Figure 4: Persistence, days under heatwave per pixel
 
 ``` r
-
 vox3 <- blobs$voxel[blobs$voxel$blob %in% top3$blob, ]
 vox3$blob_lbl <- factor(top3$blob_lbl[match(vox3$blob, top3$blob)],
                         levels = top3$blob_lbl)
@@ -486,7 +472,6 @@ ggplot() +
 ### Figure 5: Cold-spell blob footprints
 
 ``` r
-
 clim_cold <- ts2clm3(file_in = sst_file,
         name = file.path(tempdir(), "swio_cold"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
@@ -505,7 +490,6 @@ mcs_blobs <- detect_blob3(file_in = sst_file,
 ```
 
 ``` r
-
 mcs6 <- mcs_blobs$event[1:6, ]
 mcs6$blob_lbl <- paste0("#", mcs6$rank, " | ", mcs6$date_peak)
 mvox6 <- mcs_blobs$voxel[mcs_blobs$voxel$blob %in% mcs6$blob, ]
@@ -534,7 +518,6 @@ ggplot() +
 ### Figure 6: Cold-spell daily area
 
 ``` r
-
 mdaily6 <- mcs_blobs$daily[mcs_blobs$daily$blob %in% mcs6$blob, ]
 mdaily6$blob_lbl <- factor(mcs6$blob_lbl[match(mdaily6$blob, mcs6$blob)],
                            levels = mcs6$blob_lbl)

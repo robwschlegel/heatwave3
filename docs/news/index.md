@@ -120,7 +120,9 @@
   signature this let a tempfile path silently land in the `var_name`
   parameter slot, causing a `NetCDF: Variable not found` error – failing
   the `\donttest{}` examples in GitHub Actions CI without failing
-  locally (`devtools::run_examples()` skips `\donttest{}` by default).
+  locally
+  ([`devtools::run_examples()`](https://devtools.r-lib.org/reference/run_examples.html)
+  skips `\donttest{}` by default).
 - **`category3(event_file, clim_file)` silently returned `NA` for every
   category instead of computing them.**
   [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)

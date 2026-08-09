@@ -39,7 +39,6 @@ reports the default thread count (roughly half your cores). `n_threads`
 is honoured on every platform; there is no build-time switch to miss.
 
 ``` r
-
 library(heatwave3)
 getHW3threads()
 #> [1] 9        # default: 50% of 18 cores
@@ -61,7 +60,6 @@ east coast: a 400 × 200 grid at 0.05° resolution (15–35°E, 38–28°S),
 ocean. The climatological baseline is 1982–2011.
 
 ``` r
-
 sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
 var_name <- "analysed_sst"
 clim_period <- c("1982-01-01", "2011-12-31")
@@ -77,7 +75,6 @@ The baseline. `n_threads = 1` forces one core regardless of the package
 default.
 
 ``` r
-
 library(heatwave3)
 
 run_once <- function(nthreads, lon_range = NULL) {
@@ -105,7 +102,6 @@ Identical call, more threads. Because pixels are independent, each
 thread takes a share of them, with no locking and no coordination.
 
 ``` r
-
 system.time(ev12 <- run_once(12L))
 
 # Results are independent of thread count:
@@ -116,7 +112,6 @@ nrow(ev1) == nrow(ev12)
 Sweeping the thread count maps the scaling curve:
 
 ``` r
-
 for (nt in c(1, 2, 4, 8, 12, 16)) {
   t <- system.time(run_once(nt))[["elapsed"]]
   cat(sprintf("%2d threads: %5.1f s\n", nt, t))
@@ -141,7 +136,6 @@ jobs side by side. It is also the only option on Windows, where `fork()`
 does not exist.
 
 ``` r
-
 library(parallel)
 
 # Read the longitude coordinate once (cheap), to cut non-overlapping tiles.
@@ -211,7 +205,7 @@ See [Don’t oversubscribe](#dont-oversubscribe).
 | PSOCK (R workers)          |              16 |     18.4 |      6.1 |
 
 Wall-clock time to produce the full event table. Speed-up is relative to
-the single-threaded baseline. {.table}
+the single-threaded baseline.
 
 ![Speed-up versus thread or worker count for std::thread, the previous
 OpenMP build, and PSOCK, against the ideal linear line. The std::thread
@@ -376,11 +370,11 @@ as shown above.
 
 ## Summary
 
-| Approach | Enable with | Best when | Notes |
-|----|----|----|----|
-| Single-threaded | `n_threads = 1` | debugging, tiny grids | reference result |
-| Threads (`std::thread`) | `n_threads = N` | one machine | low overhead, shared memory, single output, no OpenMP needed |
-| PSOCK | [`parallel::makeCluster`](https://rdrr.io/r/parallel/makeCluster.html) | many machines, or process isolation | tile by longitude, `n_threads = 1` per worker |
+| Approach                | Enable with                                                            | Best when                           | Notes                                                        |
+|-------------------------|------------------------------------------------------------------------|-------------------------------------|--------------------------------------------------------------|
+| Single-threaded         | `n_threads = 1`                                                        | debugging, tiny grids               | reference result                                             |
+| Threads (`std::thread`) | `n_threads = N`                                                        | one machine                         | low overhead, shared memory, single output, no OpenMP needed |
+| PSOCK                   | [`parallel::makeCluster`](https://rdrr.io/r/parallel/makeCluster.html) | many machines, or process isolation | tile by longitude, `n_threads = 1` per worker                |
 
 All three give the same science. In-process threads are the efficient
 default on a single host, and R-side parallelism is the route to

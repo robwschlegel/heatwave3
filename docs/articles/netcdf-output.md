@@ -32,14 +32,14 @@ Contains the 366-day climatological cycle for each pixel.
 
 ### Variables
 
-| Variable | Dimensions | Units | Description |
-|----|----|----|----|
-| `lon` | (lon) | degrees_east | Longitude coordinate |
-| `lat` | (lat) | degrees_north | Latitude coordinate |
-| `doy` | (doy) | none | Day of year index |
-| `seas` | (lon, lat, doy) | degC | Seasonal mean climatology |
-| `thresh` | (lon, lat, doy) | degC | Threshold climatology (such as the 90th percentile) |
-| `var` | (lon, lat, doy) | degC | Variance climatology (optional, if `var = TRUE`) |
+| Variable | Dimensions      | Units         | Description                                         |
+|----------|-----------------|---------------|-----------------------------------------------------|
+| `lon`    | (lon)           | degrees_east  | Longitude coordinate                                |
+| `lat`    | (lat)           | degrees_north | Latitude coordinate                                 |
+| `doy`    | (doy)           | none          | Day of year index                                   |
+| `seas`   | (lon, lat, doy) | degC          | Seasonal mean climatology                           |
+| `thresh` | (lon, lat, doy) | degC          | Threshold climatology (such as the 90th percentile) |
+| `var`    | (lon, lat, doy) | degC          | Variance climatology (optional, if `var = TRUE`)    |
 
 ### Global attributes
 
@@ -57,7 +57,6 @@ Contains the 366-day climatological cycle for each pixel.
 ### Reading in R
 
 ``` r
-
 library(ncdf4)
 nc <- nc_open("clim_output.nc")
 
@@ -114,27 +113,27 @@ per pixel and keeps the file compact.
 
 All have dimension `(event)`:
 
-| Variable | Units | Description |
-|----|----|----|
-| `event_no` | none | Event number within the pixel |
-| `date_start` | days since ref | Start date |
-| `date_peak` | days since ref | Peak date |
-| `date_end` | days since ref | End date |
-| `duration` | days | Event duration |
-| `intensity_mean` | degC | Mean intensity (rel. to seasonal climatology) |
-| `intensity_max` | degC | Maximum (peak) intensity |
-| `intensity_var` | degC | Intensity variability (std. dev.) |
-| `intensity_cumulative` | degC days | Cumulative intensity |
-| `intensity_mean_relThresh` | degC | Mean intensity (rel. to threshold) |
-| `intensity_max_relThresh` | degC | Max intensity (rel. to threshold) |
-| `intensity_var_relThresh` | degC | Variability (rel. to threshold) |
-| `intensity_cumulative_relThresh` | degC days | Cumulative (rel. to threshold) |
-| `intensity_mean_abs` | degC | Mean absolute temperature |
-| `intensity_max_abs` | degC | Max absolute temperature |
-| `intensity_var_abs` | degC | Absolute temperature variability |
-| `intensity_cumulative_abs` | degC days | Cumulative absolute temperature |
-| `rate_onset` | degC/day | Rate of onset |
-| `rate_decline` | degC/day | Rate of decline |
+| Variable                         | Units          | Description                                   |
+|----------------------------------|----------------|-----------------------------------------------|
+| `event_no`                       | none           | Event number within the pixel                 |
+| `date_start`                     | days since ref | Start date                                    |
+| `date_peak`                      | days since ref | Peak date                                     |
+| `date_end`                       | days since ref | End date                                      |
+| `duration`                       | days           | Event duration                                |
+| `intensity_mean`                 | degC           | Mean intensity (rel. to seasonal climatology) |
+| `intensity_max`                  | degC           | Maximum (peak) intensity                      |
+| `intensity_var`                  | degC           | Intensity variability (std. dev.)             |
+| `intensity_cumulative`           | degC days      | Cumulative intensity                          |
+| `intensity_mean_relThresh`       | degC           | Mean intensity (rel. to threshold)            |
+| `intensity_max_relThresh`        | degC           | Max intensity (rel. to threshold)             |
+| `intensity_var_relThresh`        | degC           | Variability (rel. to threshold)               |
+| `intensity_cumulative_relThresh` | degC days      | Cumulative (rel. to threshold)                |
+| `intensity_mean_abs`             | degC           | Mean absolute temperature                     |
+| `intensity_max_abs`              | degC           | Max absolute temperature                      |
+| `intensity_var_abs`              | degC           | Absolute temperature variability              |
+| `intensity_cumulative_abs`       | degC days      | Cumulative absolute temperature               |
+| `rate_onset`                     | degC/day       | Rate of onset                                 |
+| `rate_decline`                   | degC/day       | Rate of decline                               |
 
 ### Date encoding
 
@@ -144,7 +143,6 @@ reference date is the first time step of the input SST file. To convert
 to actual dates:
 
 ``` r
-
 library(ncdf4)
 nc <- nc_open("event_output.nc")
 
@@ -205,7 +203,6 @@ convert it to CSV, RDS, or Parquet, use
 which auto-detects the product type and is backed by the C++ reader:
 
 ``` r
-
 # Read into R (whole, or a quick preview with n =)
 events <- hw3_export("benguela_events.nc")
 head(hw3_export("benguela_events.nc", n = 20))
@@ -217,9 +214,9 @@ hw3_export("benguela_clim.nc",   file_out = "clim.csv")
 
 **Format comparison:**
 
-| Format | Size | Speed | Interop | Notes |
-|----|----|----|----|----|
-| NetCDF | Small (compressed) | Fast (C library) | Excellent | Primary format, always produced |
-| Parquet | Small (columnar) | Fast | Good (R/Python/Spark) | Requires `arrow` package |
-| RDA | Medium | Fast (R native) | R only | Contains a list named `hw3_data` |
-| CSV | Large (text) | Slow | Universal | Not recommended for large grids |
+| Format  | Size               | Speed            | Interop               | Notes                            |
+|---------|--------------------|------------------|-----------------------|----------------------------------|
+| NetCDF  | Small (compressed) | Fast (C library) | Excellent             | Primary format, always produced  |
+| Parquet | Small (columnar)   | Fast             | Good (R/Python/Spark) | Requires `arrow` package         |
+| RDA     | Medium             | Fast (R native)  | R only                | Contains a list named `hw3_data` |
+| CSV     | Large (text)       | Slow             | Universal             | Not recommended for large grids  |

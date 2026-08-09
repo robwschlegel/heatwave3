@@ -20,7 +20,6 @@ depth levels (0.49-5.08 m, all within the mixed layer), don’t expect
 dramatic spatial or vertical structure in the figures below.
 
 ``` r
-
 library(heatwave3)
 
 temp_file <- system.file("extdata/glorys_depth_test.nc", package = "heatwave3")
@@ -39,7 +38,6 @@ and reuses the same validated 3D code path as every other heatwave3
 analysis.
 
 ``` r
-
 n_depth <- 5L  # number of depth levels in this fixture
 
 depth_indices <- seq_len(n_depth) - 1L  # depth= is a 0-based index: 0, 1, 2, 3, 4
@@ -50,75 +48,75 @@ purrr::walk(depth_indices, \(k) {
 })
 ```
 
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Computing climatology with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
-    #> Writing climatology to /tmp/Rtmp9X0FXX/mhw_z0_clim.nc...
+    #> Writing climatology to /tmp/RtmpSKzICo/mhw_z0_clim.nc...
     #> Done.
-    #> Reading climatology from /tmp/Rtmp9X0FXX/mhw_z0_clim.nc...
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading climatology from /tmp/RtmpSKzICo/mhw_z0_clim.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Detecting events with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
     #> Found 316 events across 4 pixels
-    #> Writing events to /tmp/Rtmp9X0FXX/mhw_z0_events.nc...
+    #> Writing events to /tmp/RtmpSKzICo/mhw_z0_events.nc...
     #> Done.
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Computing climatology with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
-    #> Writing climatology to /tmp/Rtmp9X0FXX/mhw_z1_clim.nc...
+    #> Writing climatology to /tmp/RtmpSKzICo/mhw_z1_clim.nc...
     #> Done.
-    #> Reading climatology from /tmp/Rtmp9X0FXX/mhw_z1_clim.nc...
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading climatology from /tmp/RtmpSKzICo/mhw_z1_clim.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Detecting events with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
     #> Found 323 events across 4 pixels
-    #> Writing events to /tmp/Rtmp9X0FXX/mhw_z1_events.nc...
+    #> Writing events to /tmp/RtmpSKzICo/mhw_z1_events.nc...
     #> Done.
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Computing climatology with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
-    #> Writing climatology to /tmp/Rtmp9X0FXX/mhw_z2_clim.nc...
+    #> Writing climatology to /tmp/RtmpSKzICo/mhw_z2_clim.nc...
     #> Done.
-    #> Reading climatology from /tmp/Rtmp9X0FXX/mhw_z2_clim.nc...
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading climatology from /tmp/RtmpSKzICo/mhw_z2_clim.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Detecting events with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
     #> Found 323 events across 4 pixels
-    #> Writing events to /tmp/Rtmp9X0FXX/mhw_z2_events.nc...
+    #> Writing events to /tmp/RtmpSKzICo/mhw_z2_events.nc...
     #> Done.
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Computing climatology with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
-    #> Writing climatology to /tmp/Rtmp9X0FXX/mhw_z3_clim.nc...
+    #> Writing climatology to /tmp/RtmpSKzICo/mhw_z3_clim.nc...
     #> Done.
-    #> Reading climatology from /tmp/Rtmp9X0FXX/mhw_z3_clim.nc...
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading climatology from /tmp/RtmpSKzICo/mhw_z3_clim.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Detecting events with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
     #> Found 326 events across 4 pixels
-    #> Writing events to /tmp/Rtmp9X0FXX/mhw_z3_events.nc...
+    #> Writing events to /tmp/RtmpSKzICo/mhw_z3_events.nc...
     #> Done.
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Computing climatology with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
-    #> Writing climatology to /tmp/Rtmp9X0FXX/mhw_z4_clim.nc...
+    #> Writing climatology to /tmp/RtmpSKzICo/mhw_z4_clim.nc...
     #> Done.
-    #> Reading climatology from /tmp/Rtmp9X0FXX/mhw_z4_clim.nc...
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading climatology from /tmp/RtmpSKzICo/mhw_z4_clim.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 11688 time = 4 pixels
     #> Detecting events with 1 thread(s)...
     #>   1/4 pixels (25%)  2/4 pixels (50%)  3/4 pixels (75%)  4/4 pixels (100%)
     #> Found 326 events across 4 pixels
-    #> Writing events to /tmp/Rtmp9X0FXX/mhw_z4_events.nc...
+    #> Writing events to /tmp/RtmpSKzICo/mhw_z4_events.nc...
     #> Done.
 
 The trade-off: this produces `n_depth` separate pairs of `_clim.nc`/
@@ -142,22 +140,21 @@ This avoids the repeated I/O and per-level file bookkeeping of Option A
 above. The fixture’s 5 levels all fall within 0-10 m:
 
 ``` r
-
 stem <- file.path(tempdir(), "mhw4d")
 clim_file <- ts2clm3(file_in = temp_file,
                      name = stem,
                      climatologyPeriod = clim_period,
                      depth_range = c(0, 10),
                      n_threads = 2)
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
 #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
 #> Computing climatology with 2 thread(s)...
-#>   20/20 pixels (100%)
-#> Writing climatology to /tmp/Rtmp9X0FXX/mhw4d_clim.nc...
+#>   4/20 pixels (20%)  8/20 pixels (40%)  12/20 pixels (60%)  18/20 pixels (90%)  20/20 pixels (100%)
+#> Writing climatology to /tmp/RtmpSKzICo/mhw4d_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/Rtmp9X0FXX/mhw4d_clim.nc
+#> Climatology written to: /tmp/RtmpSKzICo/mhw4d_clim.nc
 #> Rows (long format): 7,320   grid: 2 lon x 2 lat
 #> 
 #> Head:
@@ -181,8 +178,8 @@ clim_file <- ts2clm3(file_in = temp_file,
 #>   seas:   20.98 to 25.55
 #>   thresh:    22 to 26.92
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp9X0FXX/mhw4d_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp9X0FXX/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpSKzICo/mhw4d_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpSKzICo/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 ```
 
@@ -193,19 +190,18 @@ climatology and event detection can never end up out of sync about which
 levels they are comparing.
 
 ``` r
-
 event_file <- detect_event3(file_in = temp_file,
                             name = stem,
                             category = TRUE,
                             n_threads = 2, 
                             quiet = TRUE)
-#> Reading climatology from /tmp/Rtmp9X0FXX/mhw4d_clim.nc...
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+#> Reading climatology from /tmp/RtmpSKzICo/mhw4d_clim.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
 #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
 #> Detecting events with 2 thread(s)...
 #>   20/20 pixels (100%)
 #> Found 1614 events across 20 pixels
-#> Writing events to /tmp/Rtmp9X0FXX/mhw4d_events.nc...
+#> Writing events to /tmp/RtmpSKzICo/mhw4d_events.nc...
 #> Done.
 ```
 
@@ -213,22 +209,21 @@ Or as a single call via
 [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md):
 
 ``` r
-
 detect3(file_in = temp_file,
         name = stem,
         climatologyPeriod = clim_period,
         depth_range = c(0, 10),
         category = TRUE,
         n_threads = 2)
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
 #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
 #> Computing climatology with 2 thread(s)...
-#>   20/20 pixels (100%)
-#> Writing climatology to /tmp/Rtmp9X0FXX/mhw4d_clim.nc...
+#>   4/20 pixels (20%)  8/20 pixels (40%)  14/20 pixels (70%)  18/20 pixels (90%)  20/20 pixels (100%)
+#> Writing climatology to /tmp/RtmpSKzICo/mhw4d_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/Rtmp9X0FXX/mhw4d_clim.nc
+#> Climatology written to: /tmp/RtmpSKzICo/mhw4d_clim.nc
 #> Rows (long format): 7,320   grid: 2 lon x 2 lat
 #> 
 #> Head:
@@ -252,59 +247,59 @@ detect3(file_in = temp_file,
 #>   seas:   20.98 to 25.55
 #>   thresh:    22 to 26.92
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp9X0FXX/mhw4d_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp9X0FXX/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpSKzICo/mhw4d_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpSKzICo/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /tmp/Rtmp9X0FXX/mhw4d_clim.nc...
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+#> Reading climatology from /tmp/RtmpSKzICo/mhw4d_clim.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
 #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
 #> Detecting events with 2 thread(s)...
 #>   20/20 pixels (100%)
 #> Found 1614 events across 20 pixels
-#> Writing events to /tmp/Rtmp9X0FXX/mhw4d_events.nc...
+#> Writing events to /tmp/RtmpSKzICo/mhw4d_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/Rtmp9X0FXX/mhw4d_events.nc
+#> Events written to: /tmp/RtmpSKzICo/mhw4d_events.nc
 #> Rows (long format): 1,614
 #> 
 #> Head:
 #>        lon       lat pixel_index event_no date_start  date_peak   date_end
-#> 1 25.16667 -34.91667           0        1 1996-01-21 1996-01-24 1996-01-26
-#> 2 25.16667 -34.91667           0        2 1997-07-18 1997-07-21 1997-07-22
-#> 3 25.16667 -34.91667           0        3 1997-10-03 1997-10-10 1997-10-12
-#> 4 25.16667 -34.91667           0        4 1998-11-23 1998-11-27 1998-11-27
-#> 5 25.16667 -34.91667           0        5 1999-05-09 1999-05-12 1999-05-15
+#> 1 25.16667 -34.91667           2        1 1997-07-18 1997-07-21 1997-07-22
+#> 2 25.16667 -34.91667           2        2 1997-10-03 1997-10-10 1997-10-12
+#> 3 25.16667 -34.91667           2        3 1998-10-04 1998-10-05 1998-10-09
+#> 4 25.16667 -34.91667           2        4 1998-11-24 1998-11-27 1998-11-28
+#> 5 25.16667 -34.91667           2        5 1999-05-09 1999-05-12 1999-05-15
 #>   duration intensity_mean intensity_max intensity_var intensity_cumulative
-#> 1        6         1.5865        1.7736        0.1317               9.5189
-#> 2        5         1.2510        1.5161        0.2516               6.2549
-#> 3       10         1.2946        1.4676        0.1200              12.9463
-#> 4        5         1.2410        1.4843        0.1530               6.2048
-#> 5        7         1.4740        1.6994        0.1584              10.3179
+#> 1        5         1.2516        1.5167        0.2516               6.2579
+#> 2       10         1.3036        1.4762        0.1175              13.0364
+#> 3        6         1.2940        1.4565        0.1393               7.7642
+#> 4        5         1.2629        1.5165        0.1635               6.3146
+#> 5        7         1.4751        1.7007        0.1587              10.3257
 #>   intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh
-#> 1                   0.1453                  0.3288                  0.1244
-#> 2                   0.2992                  0.5704                  0.2586
-#> 3                   0.2006                  0.3803                  0.1188
-#> 4                   0.1795                  0.4009                  0.1383
-#> 5                   0.4610                  0.6895                  0.1601
+#> 1                   0.3001                  0.5714                  0.2586
+#> 2                   0.2025                  0.3818                  0.1166
+#> 3                   0.1895                  0.3481                  0.1413
+#> 4                   0.1915                  0.4351                  0.1617
+#> 5                   0.4619                  0.6905                  0.1602
 #>   intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs
-#> 1                         0.8717            26.6664           26.8669
-#> 2                         1.4958            22.8343           23.0860
-#> 3                         2.0058            22.8490           23.0794
-#> 4                         0.8976            24.3392           24.6432
-#> 5                         3.2267            25.3127           25.5404
+#> 1                         1.5007            22.8343           23.0860
+#> 2                         2.0253            22.8428           23.0721
+#> 3                         1.1371            22.8069           22.9498
+#> 4                         0.9575            24.3588           24.6424
+#> 5                         3.2333            25.3125           25.5404
 #>   intensity_var_abs intensity_cumulative_abs rate_onset rate_decline    depth
-#> 1            0.1634                 159.9986     0.0985       0.0729 0.494025
-#> 2            0.2383                 114.1717     0.1560       0.1805 0.494025
-#> 3            0.1284                 228.4898     0.0133       0.1407 0.494025
-#> 4            0.1960                 121.6961     0.0799       0.0000 0.494025
-#> 5            0.1680                 177.1892     0.0494       0.0851 0.494025
+#> 1            0.2383                 114.1717     0.1560       0.1805 2.645669
+#> 2            0.1292                 228.4276     0.0191       0.1401 2.645669
+#> 3            0.1616                 136.8416     0.2123       0.0171 2.645669
+#> 4            0.1772                 121.7942     0.1099       0.2721 2.645669
+#> 5            0.1682                 177.1877     0.0494       0.0851 2.645669
 #>     category p_moderate p_strong p_severe p_extreme season
-#> 1 I Moderate          1   0.2276        0         0 Summer
-#> 2 I Moderate          1   0.6032        0         0 Winter
-#> 3 I Moderate          1   0.3498        0         0 Spring
-#> 4 I Moderate          1   0.3700        0         0 Spring
-#> 5 I Moderate          1   0.6828        0         0   Fall
+#> 1 I Moderate          1   0.6045        0         0 Winter
+#> 2 I Moderate          1   0.3489        0         0 Spring
+#> 3 I Moderate          1   0.3140        0         0 Spring
+#> 4 I Moderate          1   0.4024        0         0 Spring
+#> 5 I Moderate          1   0.6835        0         0   Fall
 #> 
 #> Tail:
 #>        lon       lat pixel_index event_no date_start  date_peak   date_end
@@ -351,8 +346,8 @@ detect3(file_in = temp_file,
 #>   intensity_max:   0.9695 to 3.165
 #>   category: I Moderate=1531  II Strong=83
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp9X0FXX/mhw4d_events.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp9X0FXX/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpSKzICo/mhw4d_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpSKzICo/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 ```
 
@@ -363,7 +358,6 @@ surfaces a `depth` column automatically whenever the source file is
 depth-resolved:
 
 ``` r
-
 clim_df  <- hw3_export(paste0(stem, "_clim.nc"))
 event_df <- hw3_export(paste0(stem, "_events.nc"))
 
@@ -379,7 +373,6 @@ head(clim_df)
     #> 6 25.16667 -34.91667   6 24.6215 25.9754 0.494025
 
 ``` r
-
 table(round(event_df$depth, 2))
 ```
 
@@ -397,7 +390,6 @@ within the top 5 m; it’s more pronounced across a deeper range on a real
 file):
 
 ``` r
-
 library(ggplot2)
 
 one_pixel <- subset(clim_df, lon == clim_df$lon[1] & lat == clim_df$lat[1])
@@ -416,7 +408,6 @@ possible by building the plot directly from `event_df`, without any new
 graphics functions:
 
 ``` r
-
 one_pixel_events <- subset(event_df, lon == event_df$lon[1] & lat == event_df$lat[1])
 
 ggplot(one_pixel_events, aes(x = date_peak, y = depth, fill = intensity_max)) +
@@ -438,7 +429,6 @@ argument needed here either, for the same reason
 doesn’t need one:
 
 ``` r
-
 detect3(file_in = temp_file,
         name = stem,
         climatologyPeriod = clim_period,
@@ -446,15 +436,15 @@ detect3(file_in = temp_file,
         category = TRUE,
         daily = "also",
         n_threads = 2)
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
 #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
 #> Computing climatology with 2 thread(s)...
-#>   20/20 pixels (100%)
-#> Writing climatology to /tmp/Rtmp9X0FXX/mhw4d_clim.nc...
+#>   4/20 pixels (20%)  8/20 pixels (40%)  13/20 pixels (65%)  16/20 pixels (80%)  20/20 pixels (100%)
+#> Writing climatology to /tmp/RtmpSKzICo/mhw4d_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/Rtmp9X0FXX/mhw4d_clim.nc
+#> Climatology written to: /tmp/RtmpSKzICo/mhw4d_clim.nc
 #> Rows (long format): 7,320   grid: 2 lon x 2 lat
 #> 
 #> Head:
@@ -478,22 +468,22 @@ detect3(file_in = temp_file,
 #>   seas:   20.98 to 25.55
 #>   thresh:    22 to 26.92
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp9X0FXX/mhw4d_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp9X0FXX/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpSKzICo/mhw4d_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpSKzICo/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /tmp/Rtmp9X0FXX/mhw4d_clim.nc...
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+#> Reading climatology from /tmp/RtmpSKzICo/mhw4d_clim.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
 #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
 #> Detecting events with 2 thread(s)...
 #>   20/20 pixels (100%)
 #> Found 1614 events across 20 pixels
-#> Writing per-day series to /tmp/Rtmp9X0FXX/mhw4d_events_daily.nc...
+#> Writing per-day series to /tmp/RtmpSKzICo/mhw4d_events_daily.nc...
 #> Done.
-#> Writing events to /tmp/Rtmp9X0FXX/mhw4d_events.nc...
+#> Writing events to /tmp/RtmpSKzICo/mhw4d_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/Rtmp9X0FXX/mhw4d_events.nc
+#> Events written to: /tmp/RtmpSKzICo/mhw4d_events.nc
 #> Rows (long format): 1,614
 #> 
 #> Head:
@@ -579,12 +569,12 @@ detect3(file_in = temp_file,
 #>   intensity_max:   0.9695 to 3.165
 #>   category: I Moderate=1531  II Strong=83
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp9X0FXX/mhw4d_events.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp9X0FXX/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpSKzICo/mhw4d_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpSKzICo/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 #> 
 #> ------------------------------------------------------------------
-#> Daily series written to: /tmp/Rtmp9X0FXX/mhw4d_events_daily.nc
+#> Daily series written to: /tmp/RtmpSKzICo/mhw4d_events_daily.nc
 #> Rows (long format): 233,760   grid: 2 lon x 2 lat
 #> 
 #> Head:
@@ -620,8 +610,8 @@ detect3(file_in = temp_file,
 #>   event-days: 14739
 #>   category: 1=24861  2=148
 #> 
-#> Examine with  hw3_export("/tmp/Rtmp9X0FXX/mhw4d_events_daily.nc", n = 20)
-#> or export with hw3_export("/tmp/Rtmp9X0FXX/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpSKzICo/mhw4d_events_daily.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpSKzICo/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 ```
 
@@ -633,7 +623,6 @@ too, so a single pixel’s full depth profile over a short date window
 reads cheaply without loading the whole file:
 
 ``` r
-
 daily_df <- hw3_export(paste0(stem, "_events_daily.nc"),
                        lon_range = c(25.16, 25.17), lat_range = c(-34.92, -34.91),
                        time_range = c("1999-01-01", "2000-12-31"))
@@ -662,7 +651,6 @@ as one continuous series with depths interleaved – so one call plots
 every level:
 
 ``` r
-
 ggplot(daily_df, aes(x = t, y = temp, y2 = thresh, depth = depth)) +
   geom_flame3() +
   geom_line(linewidth = 0.3) +
@@ -680,7 +668,6 @@ at one chosen level (matched to the nearest depth actually present in
 the climatology, here 2.6 m):
 
 ``` r
-
 event_line3(temp_file, paste0(stem, "_clim.nc"),
             lon = 25.16667, lat = -34.91667, depth = 3,
             event_file = paste0(stem, "_events.nc"))
@@ -694,7 +681,6 @@ row independently of any grouping, so map `depth` to colour (or facet)
 like any other column:
 
 ``` r
-
 event_df_1px <- hw3_export(paste0(stem, "_events.nc"),
                            lon_range = c(25.16, 25.17), lat_range = c(-34.92, -34.91))
 

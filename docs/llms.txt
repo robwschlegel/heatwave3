@@ -77,7 +77,6 @@ The `dev` branch contains all of the most cutting-edge things being
 developed:
 
 ``` r
-
 # install.packages("remotes")
 remotes::install_github("robwschlegel/heatwave3@dev")
 ```
@@ -86,7 +85,6 @@ If however you feel like playing it safe, the main branch is the way to
 go:
 
 ``` r
-
 # install.packages("remotes")
 remotes::install_github("robwschlegel/heatwave3")
 ```
@@ -135,7 +133,6 @@ vignette for the full story and a performance comparison.
 function call:
 
 ``` r
-
 library(heatwave3)
 getHW3threads()       # check current default
 setHW3threads(8)      # use 8 threads for all subsequent calls
@@ -155,7 +152,6 @@ heatwave3 threads are ever alive at fork time.
 ## Quick start
 
 ``` r
-
 library(heatwave3)
 
 sst_file <- "path/to/sst.nc"  # or a directory of daily files
@@ -182,7 +178,6 @@ table(events$category)
 ### Cold-spell detection
 
 ``` r
-
 # Use pctile = 10 for the cold tail
 detect3(
   file_in           = sst_file,
@@ -201,7 +196,6 @@ table(hw3_export("benguela_cold_events.nc")$category)
 ### Per-pixel time series plot
 
 ``` r
-
 event_line3(sst_file, "benguela_clim.nc", lon = 25.0, lat = -34.0,
             start_date = "2018-01-01", end_date = "2019-12-31")
 ```
@@ -209,7 +203,6 @@ event_line3(sst_file, "benguela_clim.nc", lon = 25.0, lat = -34.0,
 ### Spatial map of peak intensity
 
 ``` r
-
 # C++-backed per-pixel aggregation, efficient even for millions of events
 plot_metric3("benguela_events.nc", metric = "intensity_max", summary = "mean")
 ```
@@ -217,7 +210,6 @@ plot_metric3("benguela_events.nc", metric = "intensity_max", summary = "mean")
 ### Event categories (standalone)
 
 ``` r
-
 # Reads pre-computed categories from event file (no clim_file needed)
 cats <- category3("benguela_events.nc")
 table(cats$category)
@@ -229,7 +221,6 @@ cats <- category3("benguela_events.nc", "benguela_clim.nc", hemisphere = "south"
 ### Using daily files
 
 ``` r
-
 # Pass a directory. All .nc/.nc4 files are read, sorted, and merged
 ts2clm3(
   file_in = "/path/to/daily_ostia/",
@@ -242,7 +233,6 @@ ts2clm3(
 ### Spatial blob detection
 
 ``` r
-
 blobs <- detect_blob3(
   sst_file  = sst_file,
   clim_file = "benguela_clim.nc",
@@ -259,7 +249,6 @@ blobs <- detect_blob3(
 ### Detrended climatology
 
 ``` r
-
 # Remove linear warming trend before computing climatology
 # (Jacox et al. 2020 approach)
 ts2clm3(sst_file, name = "benguela_detrended",
@@ -272,20 +261,20 @@ ts2clm3(sst_file, name = "benguela_detrended",
 All functions are suffixed with `3` to avoid namespace conflicts with
 **`heatwaveR`**:
 
-| Function | Purpose |
-|----|----|
-| [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md) | **Primary entry point**. Climatology, detection, and optional categories |
-| [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md) | Compute climatology (NetCDF → NetCDF) |
-| [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md) | Detect per-pixel events (with optional inline categories) |
-| [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md) | 3D spatial blob detection |
-| [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md) | Hobday et al. (2018) event categories (reads or computes) |
-| [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md) | Yearly aggregation of event metrics |
-| [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md) | Static threshold exceedance |
-| [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md) | Per-pixel time series plot |
-| [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md) | ggplot2 flame polygon geom |
-| [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md) | ggplot2 lollipop geom |
-| [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md) | Spatial map of event metrics (C++-backed aggregation) |
-| [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md) | Read any product into a data.frame, or export to CSV/RDS/Parquet |
+| Function                                                                                              | Purpose                                                                  |
+|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)               | **Primary entry point**. Climatology, detection, and optional categories |
+| [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)               | Compute climatology (NetCDF → NetCDF)                                    |
+| [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)   | Detect per-pixel events (with optional inline categories)                |
+| [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)     | 3D spatial blob detection                                                |
+| [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)           | Hobday et al. (2018) event categories (reads or computes)                |
+| [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md) | Yearly aggregation of event metrics                                      |
+| [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md)       | Static threshold exceedance                                              |
+| [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)       | Per-pixel time series plot                                               |
+| [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)       | ggplot2 flame polygon geom                                               |
+| [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md)       | ggplot2 lollipop geom                                                    |
+| [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md)     | Spatial map of event metrics (C++-backed aggregation)                    |
+| [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)         | Read any product into a data.frame, or export to CSV/RDS/Parquet         |
 
 ## Vignettes
 

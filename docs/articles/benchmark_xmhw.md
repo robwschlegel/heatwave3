@@ -24,7 +24,6 @@ and, on a larger sample of the same dataset, the speed-up `xmhw` gets
 from `dask`.
 
 ``` r
-
 # Necessary R packages
 library(reticulate)
 library(ncdf4)
@@ -35,7 +34,6 @@ library(heatwave3)
 ## Test data
 
 ``` r
-
 # Choose bounding box
 bbox <- c(
   2.5,   # °E  (just west of Cerbère)
@@ -71,7 +69,6 @@ such as `sst_file` are available in python as `r.sst_file`, and vice
 versa.
 
 ``` r
-
 use_condaenv("RiOMar", required = TRUE)
 ```
 
@@ -82,7 +79,6 @@ use_condaenv("RiOMar", required = TRUE)
 full grid.
 
 ``` r
-
 nc <- nc_open(sst_file)
 time_raw <- ncvar_get(nc, "time")
 dates <- as.Date("1970-01-01") + time_raw / 86400
@@ -153,7 +149,6 @@ print(f"Total (estimated): {round(x_clim_est + x_event_est)} sec "
 ## heatwave3: single-threaded
 
 ``` r
-
 stem <- file.path(tempdir(), "bench")
 
 t_clim <- system.time(
@@ -175,7 +170,6 @@ cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
 ## heatwave3: 12 threads
 
 ``` r
-
 t_clim_12 <- system.time(
   ts2clm3(sst_file, name = stem,
           climatologyPeriod = c("1982-01-01", "2011-12-31"),
@@ -196,12 +190,12 @@ cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
 
 Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.1.
 
-| Method | Climatology | Detection | Total | Speedup |
-|----|----|----|----|----|
-| heatwaveR (serial) | n/a | n/a | ca. 1,262 sec (21 min) | 1× |
-| xmhw (serial) | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5× |
-| heatwave3 (1 thread) | 17.5 sec | 5 sec | **22.5 sec** | **56×** |
-| heatwave3 (12 threads) | 3.7 sec | 3.7 sec | **7.4 sec** | **170×** |
+| Method                 | Climatology   | Detection   | Total                    | Speedup  |
+|------------------------|---------------|-------------|--------------------------|----------|
+| heatwaveR (serial)     | n/a           | n/a         | ca. 1,262 sec (21 min)   | 1×       |
+| xmhw (serial)          | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5×     |
+| heatwave3 (1 thread)   | 17.5 sec      | 5 sec       | **22.5 sec**             | **56×**  |
+| heatwave3 (12 threads) | 3.7 sec       | 3.7 sec     | **7.4 sec**              | **170×** |
 
 Note that the base `heatwaveR` script is already almost twice as fast as
 `xmhw` when the latter has not been optimised with `dask`. Also note
@@ -292,10 +286,10 @@ count, this extrapolation is less reliable here than for the
 single-threaded timings above and should be read as indicative rather
 than exact.
 
-| Method | Climatology | Detection | Total (1,200 px) | Total (est., 6,240 px) | Speedup |
-|----|----|----|----|----|----|
-| xmhw (serial) | 253.6 sec | 221.2 sec | **474.9 sec (7.9 min)** | ca. 2,469 sec (41.2 min) | 1× |
-| xmhw (dask, 8 workers) | 388.5 sec | 45.7 sec | **434.1 sec (7.2 min)** | ca. 2,258 sec (37.6 min) | **1.09×** |
+| Method                 | Climatology | Detection | Total (1,200 px)        | Total (est., 6,240 px)   | Speedup   |
+|------------------------|-------------|-----------|-------------------------|--------------------------|-----------|
+| xmhw (serial)          | 253.6 sec   | 221.2 sec | **474.9 sec (7.9 min)** | ca. 2,469 sec (41.2 min) | 1×        |
+| xmhw (dask, 8 workers) | 388.5 sec   | 45.7 sec  | **434.1 sec (7.2 min)** | ca. 2,258 sec (37.6 min) | **1.09×** |
 
 The result is more nuanced than “dask makes xmhw faster.” `detect()`
 benefits substantially from chunking (221.2 sec → 45.7 sec, ca. 4.8×),

@@ -107,23 +107,23 @@
 </h3>
 <p>Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 × 200 grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M5 Max:</p>
 <table class="table">
-<thead><tr>
+<thead><tr class="header">
 <th>Method</th>
 <th>Time</th>
 <th>Speedup</th>
 </tr></thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td>heatwaveR (serial)</td>
 <td>ca. 69 min</td>
 <td>1×</td>
 </tr>
-<tr>
+<tr class="even">
 <td>heatwave3 (1 thread)</td>
 <td>4.3 min</td>
 <td><strong>16×</strong></td>
 </tr>
-<tr>
+<tr class="odd">
 <td>heatwave3 (12 threads)</td>
 <td>1.9 min</td>
 <td><strong>36×</strong></td>
@@ -172,11 +172,11 @@
 <p>The <code>dev</code> branch contains all of the most cutting-edge things being developed:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3@dev"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"robwschlegel/heatwave3@dev"</span><span class="op">)</span></span></code></pre></div>
 <p>If however you feel like playing it safe, the main branch is the way to go:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
@@ -325,57 +325,57 @@
 <col width="52%">
 <col width="47%">
 </colgroup>
-<thead><tr>
+<thead><tr class="header">
 <th>Function</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/detect3.html">detect3()</a></code></td>
 <td>
 <strong>Primary entry point</strong>. Climatology, detection, and optional categories</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/ts2clm3.html">ts2clm3()</a></code></td>
 <td>Compute climatology (NetCDF → NetCDF)</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/detect_event3.html">detect_event3()</a></code></td>
 <td>Detect per-pixel events (with optional inline categories)</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/detect_blob3.html">detect_blob3()</a></code></td>
 <td>3D spatial blob detection</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/category3.html">category3()</a></code></td>
 <td>Hobday et al. (2018) event categories (reads or computes)</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/block_average3.html">block_average3()</a></code></td>
 <td>Yearly aggregation of event metrics</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/exceedance3.html">exceedance3()</a></code></td>
 <td>Static threshold exceedance</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/event_line3.html">event_line3()</a></code></td>
 <td>Per-pixel time series plot</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/geom_flame3.html">geom_flame3()</a></code></td>
 <td>ggplot2 flame polygon geom</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/geom_lolli3.html">geom_lolli3()</a></code></td>
 <td>ggplot2 lollipop geom</td>
 </tr>
-<tr>
+<tr class="odd">
 <td><code><a href="reference/plot_metric3.html">plot_metric3()</a></code></td>
 <td>Spatial map of event metrics (C++-backed aggregation)</td>
 </tr>
-<tr>
+<tr class="even">
 <td><code><a href="reference/hw3_export.html">hw3_export()</a></code></td>
 <td>Read any product into a data.frame, or export to CSV/RDS/Parquet</td>
 </tr>
@@ -469,7 +469,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

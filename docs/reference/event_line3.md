@@ -96,15 +96,15 @@ stem <- file.path(tempdir(), "demo")
 
 ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
 #>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
-#> Writing climatology to /tmp/RtmpqnMQ3l/demo_clim.nc...
+#> Writing climatology to /tmp/RtmpKE019E/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/RtmpqnMQ3l/demo_clim.nc
+#> Climatology written to: /tmp/RtmpKE019E/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -128,8 +128,8 @@ ts2clm3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/tmp/RtmpqnMQ3l/demo_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpqnMQ3l/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpKE019E/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 event_line3(sst_file, paste0(stem, "_clim.nc"),

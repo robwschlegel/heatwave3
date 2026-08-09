@@ -24,7 +24,6 @@ We compare three configurations:
 ## Test data
 
 ``` r
-
 sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
 # 400 lon × 200 lat at 0.05° resolution
 # 15–35°E, 38–28°S (Agulhas Current system)
@@ -35,7 +34,6 @@ sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
 ## heatwave3: single-threaded
 
 ``` r
-
 library(heatwave3)
 
 stem <- file.path(tempdir(), "bench")
@@ -59,7 +57,6 @@ cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
 ## heatwave3: 12 threads
 
 ``` r
-
 t_clim_12 <- system.time(
   ts2clm3(sst_file, name = stem,
           climatologyPeriod = c("1982-01-01", "2011-12-31"),
@@ -83,7 +80,6 @@ pre-loaded to isolate computation from I/O) and extrapolate to the full
 grid.
 
 ``` r
-
 library(heatwaveR)
 library(ncdf4)
 
@@ -120,11 +116,11 @@ cat("Estimated total:", round(estimated), "sec (",
 
 Benchmarked on an Apple M3 Pro (12-core), macOS 15.5, R 4.5.3.
 
-| Method | Climatology | Detection | Total | Speedup |
-|----|----|----|----|----|
-| heatwaveR (serial) | n/a | n/a | ca. 4,116 sec (68.7 min) | 1× |
-| heatwave3 (1 thread) | 174 sec | 82 sec | **257 sec (4.3 min)** | **16×** |
-| heatwave3 (12 threads) | 60 sec | 55 sec | **115 sec (1.9 min)** | **36×** |
+| Method                 | Climatology | Detection | Total                    | Speedup |
+|------------------------|-------------|-----------|--------------------------|---------|
+| heatwaveR (serial)     | n/a         | n/a       | ca. 4,116 sec (68.7 min) | 1×      |
+| heatwave3 (1 thread)   | 174 sec     | 82 sec    | **257 sec (4.3 min)**    | **16×** |
+| heatwave3 (12 threads) | 60 sec      | 55 sec    | **115 sec (1.9 min)**    | **36×** |
 
 The speedup comes from three sources:
 
@@ -159,7 +155,6 @@ lon × 360 lat = 93,600 pixels). This is a region with strong upwelling
 variability and a mix of ocean and land pixels.
 
 ``` r
-
 library(heatwave3)
 
 ostia_dir <- "/Volumes/OceanData/Tom/OSTIA"
@@ -167,7 +162,6 @@ stem <- file.path(tempdir(), "benguela")
 ```
 
 ``` r
-
 # Climatology from ca. 16,000 daily files (WMO 1991-2020 baseline)
 t_clim <- system.time(
   ts2clm3(
@@ -181,7 +175,6 @@ t_clim <- system.time(
 ```
 
 ``` r
-
 # Event detection on the same daily files
 t_event <- system.time(
   detect_event3(
@@ -195,12 +188,12 @@ t_event <- system.time(
 
 ### Benguela results
 
-| Step | Time | Detail |
-|----|----|----|
-| Read + merge 16,049 daily files | included | sorted, deduplicated, assembled into 3D cube |
-| Climatology (12 threads) | **95 sec** | 30-year WMO baseline, 93,600 pixels × 366 DOYs |
-| Event detection (12 threads) | **108 sec** | threshold exceedance, RLE, gap joining, 19 metrics |
-| **Total** | **203 sec (3.4 min)** | 8.4 million events detected |
+| Step                            | Time                  | Detail                                             |
+|---------------------------------|-----------------------|----------------------------------------------------|
+| Read + merge 16,049 daily files | included              | sorted, deduplicated, assembled into 3D cube       |
+| Climatology (12 threads)        | **95 sec**            | 30-year WMO baseline, 93,600 pixels × 366 DOYs     |
+| Event detection (12 threads)    | **108 sec**           | threshold exceedance, RLE, gap joining, 19 metrics |
+| **Total**                       | **203 sec (3.4 min)** | 8.4 million events detected                        |
 
 For comparison, processing 93,600 pixels serially with heatwaveR at ca.
 0.083 sec/pixel would take ca. **2.2 hours**. heatwave3 completes the

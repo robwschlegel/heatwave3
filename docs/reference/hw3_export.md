@@ -111,15 +111,15 @@ sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 stem <- file.path(tempdir(), "demo")
 detect3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"), daily = "also")
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
 #>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
-#> Writing climatology to /tmp/RtmpqnMQ3l/demo_clim.nc...
+#> Writing climatology to /tmp/RtmpKE019E/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/RtmpqnMQ3l/demo_clim.nc
+#> Climatology written to: /tmp/RtmpKE019E/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -143,22 +143,22 @@ detect3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/tmp/RtmpqnMQ3l/demo_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpqnMQ3l/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_clim.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpKE019E/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /tmp/RtmpqnMQ3l/demo_clim.nc...
-#> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /tmp/RtmpKE019E/demo_clim.nc...
+#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
 #>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing per-day series to /tmp/RtmpqnMQ3l/demo_events_daily.nc...
+#> Writing per-day series to /tmp/RtmpKE019E/demo_events_daily.nc...
 #> Done.
-#> Writing events to /tmp/RtmpqnMQ3l/demo_events.nc...
+#> Writing events to /tmp/RtmpKE019E/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/RtmpqnMQ3l/demo_events.nc
+#> Events written to: /tmp/RtmpKE019E/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -231,12 +231,12 @@ detect3(sst_file, name = stem,
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/tmp/RtmpqnMQ3l/demo_events.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpqnMQ3l/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpKE019E/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 #> 
 #> ------------------------------------------------------------------
-#> Daily series written to: /tmp/RtmpqnMQ3l/demo_events_daily.nc
+#> Daily series written to: /tmp/RtmpKE019E/demo_events_daily.nc
 #> Rows (long format): 85,656   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -272,8 +272,8 @@ detect3(sst_file, name = stem,
 #>   event-days: 5195
 #>   category: 1=8922  2=439  3=3
 #> 
-#> Examine with  hw3_export("/tmp/RtmpqnMQ3l/demo_events_daily.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpqnMQ3l/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events_daily.nc", n = 20)
+#> or export with hw3_export("/tmp/RtmpKE019E/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 # First rows of the events product (cheap preview)

@@ -33,10 +33,10 @@ package-level setting for that call.
 
 ``` r
 getHW3threads()
-#> [1] 8
+#> [1] 4
 old <- setHW3threads(2)
 getHW3threads()
 #> [1] 2
 setHW3threads(0)  # reset to default
-#> [1] 8
+#> [1] 4
 ```

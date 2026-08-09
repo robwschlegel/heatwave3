@@ -37,7 +37,6 @@ interesting *spatial* footprints. What it can show clearly is the
 shrinking through the water column over its lifetime.
 
 ``` r
-
 library(heatwave3)
 library(ggplot2)
 
@@ -50,7 +49,6 @@ First, a depth-resolved climatology covering all 5 levels in the fixture
 (0.49-5.08 m):
 
 ``` r
-
 stem <- file.path(tempdir(), "mhw4d")
 ts2clm3(f, name = stem,
         climatologyPeriod = c("1993-01-01", "2019-12-31"),
@@ -60,18 +58,17 @@ ts2clm3(f, name = stem,
 
 Show console output
 
-    #> Reading SST data from /tmp/RtmpxYwdBf/temp_libpath94004dd393d4/heatwave3/extdata/glorys_depth_test.nc...
+    #> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...
     #> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
     #> Computing climatology with 1 thread(s)...
     #>   1/20 pixels (5%)  2/20 pixels (10%)  3/20 pixels (15%)  4/20 pixels (20%)  5/20 pixels (25%)  6/20 pixels (30%)  7/20 pixels (35%)  8/20 pixels (40%)  9/20 pixels (45%)  10/20 pixels (50%)  11/20 pixels (55%)  12/20 pixels (60%)  13/20 pixels (65%)  14/20 pixels (70%)  15/20 pixels (75%)  16/20 pixels (80%)  17/20 pixels (85%)  18/20 pixels (90%)  19/20 pixels (95%)  20/20 pixels (100%)
-    #> Writing climatology to /tmp/RtmpPbzxzr/mhw4d_clim.nc...
+    #> Writing climatology to /tmp/RtmppMfZMu/mhw4d_clim.nc...
     #> Done.
 
 [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
 picks up the depth dimension from `stem_clim.nc` automatically:
 
 ``` r
-
 blobs <- detect_blob3(f, paste0(stem, "_clim.nc"),
                       minVoxels = 1,
                       return = c("event", "daily", "voxel"))
@@ -83,7 +80,6 @@ nrow(blobs$event)
 `depth` column:
 
 ``` r
-
 names(blobs$event)
 #>  [1] "blob"                   "duration"               "date_start"            
 #>  [4] "date_end"               "date_peak"              "cumI_km2_day"          
@@ -110,7 +106,6 @@ single most intense day of the blob’s life occurred. `rankBy` accepts
 the volume metrics too when the input is depth-resolved:
 
 ``` r
-
 top <- detect_blob3(f, paste0(stem, "_clim.nc"),
                     topN = 5, rankBy = "totalVolume_km3", return = "event")
 top$event[, c("blob", "rank", "duration", "depth_min_m", "depth_max_m",
@@ -132,7 +127,6 @@ would always be zero – every blob would be confined to the one level it
 was seeded on.
 
 ``` r
-
 spans_multiple <- blobs$event$depth_min_m != blobs$event$depth_max_m
 mean(spans_multiple)
 #> [1] 0.9660194
@@ -150,7 +144,6 @@ Pick one blob and look at how its depth range and volume evolve day by
 day, using the `daily` table:
 
 ``` r
-
 b <- top$event$blob[1]
 dd <- blobs$daily[blobs$daily$blob == b, ]
 range(dd$date)
@@ -158,7 +151,6 @@ range(dd$date)
 ```
 
 ``` r
-
 ggplot(dd, aes(x = date)) +
   geom_ribbon(aes(ymin = depth_min_m, ymax = depth_max_m, fill = mean_delta)) +
   scale_y_reverse(name = "depth (m)") +
@@ -184,7 +176,6 @@ interesting axis here – makes a genuine depth-time “Hovmoeller” view of
 one blob’s water column:
 
 ``` r
-
 vox <- blobs$voxel[blobs$voxel$blob == b, ]
 agg <- aggregate(delta ~ date + depth, data = vox, FUN = mean)
 

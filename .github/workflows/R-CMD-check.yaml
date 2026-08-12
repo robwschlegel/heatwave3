@@ -19,6 +19,7 @@ jobs:
       matrix:
         config:
           - {os: macos-latest,   r: 'release'}
+          - {os: windows-latest, r: 'release'}
           - {os: ubuntu-latest,   r: 'release'}
 
     env:
@@ -39,6 +40,11 @@ jobs:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
+
+      - name: Validate Windows NetCDF static-library order
+        if: runner.os == 'Windows'
+        shell: Rscript {0}
+        run: source("tools/check-windows-link-order.R")
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:

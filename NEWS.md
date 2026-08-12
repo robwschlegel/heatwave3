@@ -2,6 +2,12 @@
 
 ## Bug fixes
 
+* **Windows source installation failed while linking `heatwave3.dll`.**
+  The bundled UCRT NetCDF dependency set contains overlapping `pathtools.o`
+  symbols in `libxml2.a` and `libcrypto.a`. The Windows linker line now loads
+  `libxml2` before curl/OpenSSL so its superset of relocation symbols satisfies
+  both libraries without extracting the conflicting OpenSSL object. A focused
+  link-order guard and the Windows `R CMD check` job have been added to CI.
 * **`hw3_export()` crashed on event files containing `category = 0`.**
   `.event_df_from_indices()` mapped category codes to labels with
   `cat_labels[ev$category[idx]]`; indexing an R vector with `0` silently

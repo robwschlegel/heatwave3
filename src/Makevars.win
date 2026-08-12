@@ -6,9 +6,15 @@ CXX_STD = CXX17
 # rwinlib/netcdf ucrt-x86_64 build specifically -- the plain lib/x64 build
 # is compiled against the legacy MSVCRT runtime (__iob_func / _sys_nerr),
 # which is absent from UCRT and fails to link.
+#
+# Keep libxml2 before the curl/OpenSSL libraries. The rwinlib 4.9.0 bundle
+# contains a pathtools.o in both libxml2.a and libcrypto.a. libxml2's copy
+# also provides XML-specific relocation symbols, so loading it first lets
+# those shared symbols satisfy OpenSSL without extracting libcrypto's copy
+# and causing multiple-definition linker errors.
 PKG_CPPFLAGS = -I../windows/netcdf-$(VERSION)/include
 PKG_LIBS = -L../windows/netcdf-$(VERSION)/lib/x64-ucrt \
-	-lnetcdf -lhdf5_hl -lhdf5 -lcurl -lssh2 -lssl -lcrypto -lxml2 -lexpat -lintl -lz \
+	-lnetcdf -lhdf5_hl -lhdf5 -lxml2 -lcurl -lssh2 -lssl -lcrypto -lexpat -lintl -lz \
 	-lws2_32 -lcrypt32 -lwldap32 -ladvapi32 -luser32 -lnormaliz -liconv
 
 all: clean winlibs

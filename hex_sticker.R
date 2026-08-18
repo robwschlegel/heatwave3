@@ -76,7 +76,7 @@ gf3_grid
 # Place it on a sticker ---------------------------------------------------
 
 # OperatorMono download location
-# https://www.cufonfonts.com/font/operator-mono
+# https://ifonts.xyz/operator-font-family.html
 # Then put the file in the ~/.fonts folder and unzip
 # font_add(family = "OperatorMono-MediumItalic", regular = "~/.fonts/OperatorMono-MediumItalic.otf")
 

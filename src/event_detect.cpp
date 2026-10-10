@@ -7,7 +7,7 @@
 #include <cstring>
 #include <mutex>
 #include <atomic>
-#include <Rcpp.h>
+#include "hw3_log.h"
 
 namespace hw3 {
 
@@ -534,7 +534,7 @@ void detect_events_grid(
     std::vector<std::vector<PixelResult>> thread_results(nt);
 
     auto report = [&](int cur) {
-        Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+        hw3::out() << "\r  " << cur << "/" << npixels << " pixels ("
                     << (100 * cur / npixels) << "%)" << std::flush;
     };
 
@@ -592,7 +592,7 @@ void detect_events_grid(
         }
     }, report);
 
-    Rcpp::Rcout << std::endl;
+    hw3::out() << std::endl;
 
     // Merge thread results
     bool want_event_depth = (ndepth > 1) && (event_depth != nullptr) && !depth.empty();

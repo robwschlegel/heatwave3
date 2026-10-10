@@ -32,7 +32,7 @@ devtools::check()
 
 ### C++ Core (`src/`)
 
-All compute-intensive work is in C++ with Rcpp bindings:
+All compute-intensive work is in C++. The core is language-neutral (no `Rcpp.h`) so the planned Python package can share it: only `heatwave3_init.cpp`, `blob_label.cpp`, `blob_metrics.cpp` and `RcppExports.cpp` use Rcpp, and they only convert types. Core messages go through `hw3::out()`/`hw3::err()` (`hw3_log.h`, defined per binding); core errors are thrown as `std::runtime_error`.
 
 - **`netcdf_io.cpp/h`** — Direct NetCDF-C I/O with spatial/temporal subsetting, CF time parsing, scale_factor/add_offset/_FillValue handling. Supports both NC_CHAR and NC_STRING attributes. Reorders data to pixel-major layout [pixel][time] for cache-friendly per-pixel processing. Reads and writes climatology, event, and SST NetCDF files.
 
@@ -40,11 +40,11 @@ All compute-intensive work is in C++ with Rcpp bindings:
 
 - **`event_detect.cpp/h`** — Full detect_event algorithm: threshold exceedance, run-length encoding, duration filtering, gap joining, 19 event metric computations. Cold spell support (threshold inversion). Optional inline Hobday et al. (2018) category computation (I Moderate through IV Extreme) and season assignment. `std::thread` parallelism over pixels with progress reporting.
 
-- **`blob_label.cpp`** — 3D connected-component labeling (union-find, 6-connectivity, optional dateline wrap). Ported from heatwaveR.
+- **`hw3_api.cpp/h`**: language-neutral entry points (plain structs in and out) holding all orchestration: read/compute/write climatology and events, `category_daily` (daily categories for a window), `category` fallback, `block_average`, `metric_summary`, date parsing and `SubsetSpec` construction. Missing values are NaN (doubles) and `hw3::NA_INT` (= R's `NA_INTEGER`).
 
-- **`blob_metrics.cpp`** — Per-(blob, day) spatial metric reduction. Ported from heatwaveR.
+- **`blob_core.cpp/h`**: 3D/4D connected-component labelling (union-find, optional dateline wrap) and per-(blob, day) metric reduction. Ported from heatwaveR. `blob_label.cpp` / `blob_metrics.cpp` are the thin R wrappers (`label_components_cpp`, `blob_daily_summary_cpp`).
 
-- **`heatwave3_init.cpp`** — Rcpp exports bridging C++ to R. Key exports: `hw3_compute_clim`, `hw3_detect_events` (with category/hemisphere and protoEvent/write_daily params), `hw3_read_sst`, `hw3_read_event_nc`, `hw3_read_clim_nc`, `hw3_read_daily_nc`, `hw3_category`, `hw3_block_average`, `hw3_read_metric_summary`.
+- **`heatwave3_init.cpp`**: Rcpp type conversion only; each export calls `hw3_api`. Converts core NaN back to `NA_real_` where R expects NA. Key exports: `hw3_compute_clim`, `hw3_detect_events` (with category/hemisphere and protoEvent/write_daily params), `hw3_read_sst`, `hw3_read_event_nc`, `hw3_read_clim_nc`, `hw3_read_daily_nc`, `hw3_category`, `hw3_block_average`, `hw3_read_metric_summary`.
 
 - **`heatwave3_types.h`** — Core structs: `EventResult` (19 metrics + category + season), `EventData` (for reading event NetCDF), `SubsetSpec`, `ClimData`, `GridData`.
 

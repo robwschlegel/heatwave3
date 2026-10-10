@@ -30,10 +30,12 @@ inline int& hw3_threads_ref() {
 }
 
 inline int hw3_default_threads() {
-    const char* env = std::getenv("R_HEATWAVE3_NUM_THREADS");
-    if (env && std::strlen(env) > 0) {
-        int n = std::atoi(env);
-        if (n > 0) return n;
+    for (const char* var : {"R_HEATWAVE3_NUM_THREADS", "HEATWAVE3_NUM_THREADS"}) {
+        const char* env = std::getenv(var);
+        if (env && std::strlen(env) > 0) {
+            int n = std::atoi(env);
+            if (n > 0) return n;
+        }
     }
     unsigned hc = std::thread::hardware_concurrency();
     int procs = (hc > 0) ? static_cast<int>(hc) : 1;
@@ -70,7 +72,7 @@ inline void hw3_init_fork_handler() {}
 // IMPORTANT: body() runs on worker threads and must NOT touch the R API.
 // report(done_count) is invoked only on the calling (main) thread -- before,
 // during (periodically), and at the end of the run -- so it may use
-// Rcpp::Rcout for progress reporting.
+// hw3::out() (hw3_log.h) for progress reporting.
 template <class Body, class Report>
 inline void parallel_for(int n, int nthreads, Body body, Report report) {
     if (n <= 0) return;

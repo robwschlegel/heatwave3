@@ -5,7 +5,7 @@
 #include <numeric>
 #include <cstring>
 #include <atomic>
-#include <Rcpp.h>
+#include "hw3_log.h"
 
 namespace hw3 {
 
@@ -386,7 +386,7 @@ void compute_climatology_grid(
     int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
 
     auto report = [&](int cur) {
-        Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+        hw3::out() << "\r  " << cur << "/" << npixels << " pixels ("
                     << (100 * cur / npixels) << "%)" << std::flush;
     };
 
@@ -420,7 +420,7 @@ void compute_climatology_grid(
         }
     }, report);
 
-    Rcpp::Rcout << std::endl;
+    hw3::out() << std::endl;
 }
 
 } // namespace hw3

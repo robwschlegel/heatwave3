@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <Rcpp.h>
 #include "heatwave3_types.h"
 
 namespace hw3 {
@@ -74,6 +73,32 @@ struct DailyData {
     std::vector<signed char> event;
     std::vector<signed char> category;
     std::vector<int> event_no;
+};
+
+// One data variable from read_subset_netcdf(). Floating-point variables fill
+// `dbl`; integer and byte-flag variables fill `intg` (is_double == false).
+struct SubsetVar {
+    std::string name;
+    bool is_double = true;
+    std::vector<double> dbl;
+    std::vector<int> intg;
+};
+
+// Result of read_subset_netcdf(): the subset coordinates plus the requested
+// data variables, in request order.
+struct SubsetResult {
+    std::string product;
+    std::vector<double> lon;
+    std::vector<double> lat;
+    bool has_depth = false;
+    std::vector<double> depth;
+    std::vector<int> third;          // DOY (climatology) or Julian Day
+    std::string third_name;          // "doy" or "t"
+    int nlon = 0;
+    int nlat = 0;
+    int ndepth = 0;
+    int n3 = 0;
+    std::vector<SubsetVar> data;     // empty when the window has no overlap
 };
 
 // Lightweight metadata for any heatwave3 product file (reads attributes and
@@ -188,15 +213,15 @@ DailyData read_daily_netcdf(const std::string& daily_file);
 // ignored (with a warning left to the R caller) for a file with no depth
 // dimension; empty means "every depth level" for one that has it. `max_rows`
 // (>= 0) caps the number of long-table rows by limiting how many longitude
-// columns are read (<0 = no cap). Returns an Rcpp::List consumed by the R
-// builder. Throws if the file is an events product (those are filtered in R).
-Rcpp::List read_subset_netcdf(const std::string& file,
-                              const std::vector<double>& lon_range,
-                              const std::vector<double>& lat_range,
-                              const std::vector<int>& t_jd_range,
-                              const std::vector<double>& depth_range,
-                              const std::vector<std::string>& vars,
-                              int max_rows);
+// columns are read (<0 = no cap). Throws if the file is an events product
+// (those are filtered by the language layer).
+SubsetResult read_subset_netcdf(const std::string& file,
+                                const std::vector<double>& lon_range,
+                                const std::vector<double>& lat_range,
+                                const std::vector<int>& t_jd_range,
+                                const std::vector<double>& depth_range,
+                                const std::vector<std::string>& vars,
+                                int max_rows);
 
 // Read and merge multiple daily NetCDF files into a single GridData
 GridData read_sst_multi_netcdf(const std::vector<std::string>& files,

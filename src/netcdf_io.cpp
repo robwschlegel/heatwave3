@@ -1,4 +1,5 @@
 #include "netcdf_io.h"
+#include "hw3_log.h"
 #include <netcdf.h>
 #include <cstring>
 #include <algorithm>
@@ -1158,13 +1159,13 @@ void write_daily_netcdf(const std::string& file_out,
 
 // ---- Streaming hyperslab subset of a gridded product ----
 
-Rcpp::List read_subset_netcdf(const std::string& file,
-                              const std::vector<double>& lon_range,
-                              const std::vector<double>& lat_range,
-                              const std::vector<int>& t_jd_range,
-                              const std::vector<double>& depth_range,
-                              const std::vector<std::string>& vars,
-                              int max_rows) {
+SubsetResult read_subset_netcdf(const std::string& file,
+                                const std::vector<double>& lon_range,
+                                const std::vector<double>& lat_range,
+                                const std::vector<int>& t_jd_range,
+                                const std::vector<double>& depth_range,
+                                const std::vector<std::string>& vars,
+                                int max_rows) {
     int ncid;
     nc_check(nc_open(file.c_str(), NC_NOWRITE, &ncid), "open " + file);
 
@@ -1181,7 +1182,7 @@ Rcpp::List read_subset_netcdf(const std::string& file,
     }
     if (product == "events") {
         nc_close(ncid);
-        Rcpp::stop("read_subset_netcdf: events are subset in R, not via hyperslab.");
+        throw std::runtime_error("read_subset_netcdf: events are subset in R, not via hyperslab.");
     }
     bool is_clim = (product == "climatology");
     bool has_depth = has_dim("depth");
@@ -1247,8 +1248,8 @@ Rcpp::List read_subset_netcdf(const std::string& file,
         coord_window(depth, depth_range, dk0, dk1);
     } else if (!depth_range.empty()) {
         nc_close(ncid);
-        Rcpp::stop("depth_range was given but this %s file has no depth "
-                   "dimension.", product.c_str());
+        throw std::runtime_error("depth_range was given but this " + product +
+                                 " file has no depth dimension.");
     }
 
     int t0 = 0, t1 = static_cast<int>(n3) - 1;
@@ -1280,8 +1281,8 @@ Rcpp::List read_subset_netcdf(const std::string& file,
             for (size_t i = 0; i < present.size(); ++i)
                 avs += (i ? ", " : "") + present[i];
             nc_close(ncid);
-            Rcpp::stop("Variable '%s' is not in this %s file. Available: %s",
-                       w, product, avs);
+            throw std::runtime_error("Variable '" + w + "' is not in this " + product +
+                                     " file. Available: " + avs);
         }
     }
 
@@ -1308,7 +1309,7 @@ Rcpp::List read_subset_netcdf(const std::string& file,
     // variable itself, so a 3D variable only reads start/count[0..2] -- the
     // reassignment below folds the unused depth slot out of the way for that
     // case rather than needing a separate 3-vs-4-element code path.
-    Rcpp::List data;
+    SubsetResult res;
     if (!empty) {
         size_t start[4] = {static_cast<size_t>(li0), static_cast<size_t>(lj0),
                            static_cast<size_t>(dk0), static_cast<size_t>(t0)};
@@ -1321,44 +1322,39 @@ Rcpp::List read_subset_netcdf(const std::string& file,
         for (const auto& w : wanted) {
             int vid; nc_check(nc_inq_varid(ncid, w.c_str(), &vid), "inq " + w);
             nc_type vt; nc_check(nc_inq_vartype(ncid, vid, &vt), "type " + w);
+            SubsetVar sv;
+            sv.name = w;
             if (vt == NC_FLOAT || vt == NC_DOUBLE) {
-                std::vector<double> buf(slab);
-                nc_check(nc_get_vara_double(ncid, vid, start, count, buf.data()), "get " + w);
-                data[w] = buf;
+                sv.dbl.resize(slab);
+                nc_check(nc_get_vara_double(ncid, vid, start, count, sv.dbl.data()), "get " + w);
             } else if (vt == NC_INT) {
-                std::vector<int> buf(slab);
-                nc_check(nc_get_vara_int(ncid, vid, start, count, buf.data()), "get " + w);
-                data[w] = buf;
+                sv.is_double = false;
+                sv.intg.resize(slab);
+                nc_check(nc_get_vara_int(ncid, vid, start, count, sv.intg.data()), "get " + w);
             } else { // NC_BYTE flags
                 std::vector<signed char> b(slab);
                 nc_check(nc_get_vara_schar(ncid, vid, start, count, b.data()), "get " + w);
-                data[w] = std::vector<int>(b.begin(), b.end());
+                sv.is_double = false;
+                sv.intg.assign(b.begin(), b.end());
             }
+            res.data.push_back(std::move(sv));
         }
     }
     nc_close(ncid);
 
-    std::vector<double> lon_s, lat_s, depth_s;
-    std::vector<int> third_s;
-    for (int i = 0; i < nlon_read; ++i) lon_s.push_back(lon[li0 + i]);
-    for (int j = 0; j < nlat_sub; ++j)  lat_s.push_back(lat[lj0 + j]);
-    for (int d = 0; d < ndepth_sub; ++d) depth_s.push_back(depth[dk0 + d]);
-    for (int k = 0; k < n3_sub; ++k)    third_s.push_back(third_vals[t0 + k]);
+    for (int i = 0; i < nlon_read; ++i) res.lon.push_back(lon[li0 + i]);
+    for (int j = 0; j < nlat_sub; ++j)  res.lat.push_back(lat[lj0 + j]);
+    for (int d = 0; d < ndepth_sub; ++d) res.depth.push_back(depth[dk0 + d]);
+    for (int k = 0; k < n3_sub; ++k)    res.third.push_back(third_vals[t0 + k]);
 
-    return Rcpp::List::create(
-        Rcpp::Named("product") = product,
-        Rcpp::Named("lon") = lon_s,
-        Rcpp::Named("lat") = lat_s,
-        Rcpp::Named("has_depth") = has_depth,
-        Rcpp::Named("depth") = depth_s,
-        Rcpp::Named("third") = third_s,
-        Rcpp::Named("third_name") = std::string(is_clim ? "doy" : "t"),
-        Rcpp::Named("nlon") = nlon_read,
-        Rcpp::Named("nlat") = nlat_sub,
-        Rcpp::Named("ndepth") = ndepth_sub,
-        Rcpp::Named("n3") = n3_sub,
-        Rcpp::Named("data") = data
-    );
+    res.product = product;
+    res.has_depth = has_depth;
+    res.third_name = is_clim ? "doy" : "t";
+    res.nlon = nlon_read;
+    res.nlat = nlat_sub;
+    res.ndepth = ndepth_sub;
+    res.n3 = n3_sub;
+    return res;
 }
 
 // ---- Lightweight product metadata (attrs + dim lengths only) ----
@@ -1531,7 +1527,7 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
             if (!skip_bad_files) {
                 throw;
             }
-            Rcpp::Rcerr << "Warning: failed to read " << files[first_file_index]
+            hw3::err() << "Warning: failed to read " << files[first_file_index]
                         << ": " << e.what() << ", skipping" << std::endl;
         }
     }
@@ -1576,7 +1572,7 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
                     " vs " + std::to_string(nlon) + "x" + std::to_string(nlat) +
                     "x" + std::to_string(ndepth) + ")";
                 if (skip_bad_files) {
-                    Rcpp::Rcerr << "Warning: " << msg << ", skipping" << std::endl;
+                    hw3::err() << "Warning: " << msg << ", skipping" << std::endl;
                     continue;
                 }
                 throw std::runtime_error(msg);
@@ -1593,7 +1589,7 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
             }
         } catch (const std::exception& e) {
             if (skip_bad_files) {
-                Rcpp::Rcerr << "Warning: failed to read " << files[f]
+                hw3::err() << "Warning: failed to read " << files[f]
                             << ": " << e.what() << ", skipping" << std::endl;
                 continue;
             }

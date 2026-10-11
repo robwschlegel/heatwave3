@@ -1,0 +1,210 @@
+# Getting started
+
+A typical analysis has three steps:
+
+1. {func}`~heatwave3.ts2clm3` computes the seasonal climatology and the
+   percentile threshold for every pixel and day of the year.
+2. {func}`~heatwave3.detect_event3` detects the events against that
+   climatology.
+3. The results are read, summarised and plotted with
+   {func}`~heatwave3.hw3_export`, {func}`~heatwave3.category3`,
+   {func}`~heatwave3.block_average3`, {func}`~heatwave3.detect_blob3` and the
+   plotting functions.
+
+{func}`~heatwave3.detect3` runs steps 1 and 2 in one call.
+
+The examples below use the small test file in the repository
+(`inst/extdata/sst_test.nc`): daily OSTIA sea surface temperature from 1982 to
+2021 on a grid of 2 × 3 pixels off the Agulhas coast. The outputs shown were
+produced by `python/docs/generate_examples.py`.
+
+## Input data
+
+The input is daily sea surface temperature (or another variable) in NetCDF,
+given as one of:
+
+- a single NetCDF file with many time steps;
+- a directory of daily `.nc` or `.nc4` files;
+- a list of file paths.
+
+Variable and dimension names are detected from the CF conventions and common
+naming patterns, so GHRSST, OISST, OSTIA, ERA5, CMIP6 and similar products
+work without naming them. Pass `var_name` if a file holds several candidate
+variables.
+
+```python
+import heatwave3 as hw3
+
+clim = ("1982-01-01", "2011-12-31")
+
+# One multi-year file, with a spatial subset. 'name' is a path stem:
+# ts2clm3() writes benguela_clim.nc
+hw3.ts2clm3("sst_merged.nc", "benguela", clim,
+            lon_range=(15, 35), lat_range=(-38, -28), n_threads=4)
+
+# A directory of daily files
+hw3.ts2clm3("daily_sst/", "benguela", clim, n_threads=4)
+
+# An explicit list of files
+from pathlib import Path
+files = sorted(Path("daily_sst").glob("*.nc4"))
+hw3.ts2clm3(files, "benguela", clim, n_threads=4)
+```
+
+## The basic pipeline
+
+```python
+import heatwave3 as hw3
+
+sst_file = "inst/extdata/sst_test.nc"
+out = hw3.detect3(sst_file, "demo", ("1982-01-01", "2011-12-31"),
+                  category=True, n_threads=2)
+clim_file, event_file = out["clim"], out["events"]
+```
+
+The compute functions always write NetCDF and return the paths they wrote.
+After each step they print a short summary of the product (its head, tail and
+a few statistics); `quiet=True` turns this, and the progress messages, off.
+
+## Reading and exporting the results
+
+{func}`~heatwave3.hw3_export` reads any heatwave3 product into a long pandas
+DataFrame, or writes it to a `.csv` or `.parquet` file. The product type is
+detected from the file.
+
+```python
+events = hw3.hw3_export(event_file)
+events[["lon", "lat", "event_no", "date_start", "date_end",
+        "duration", "intensity_max", "category"]].head()
+```
+
+```{literalinclude} _generated/events_head.txt
+:language: text
+```
+
+Passing any of `vars`, `lon_range`, `lat_range`, `time_range`, `depth_range`
+or `n` reads only that part of the file from disk, so large products can be
+explored cheaply:
+
+```python
+hw3.hw3_export(event_file, n=20)                       # a quick look
+hw3.hw3_export("demo_events_daily.nc", vars=["temp", "category"],
+               time_range=("2015-01-01", "2015-12-31"))
+hw3.hw3_export(event_file, file_out="events.parquet")  # or .csv
+```
+
+## Plotting one pixel
+
+{func}`~heatwave3.event_line3` plots the temperature, climatology and
+threshold at one pixel, with the events filled in. Given `event_file` instead
+of dates, it centres the plot on the pixel's strongest event.
+
+```python
+hw3.event_line3(sst_file, clim_file, lon=26.525, lat=-34.125,
+                start_date="2010-01-01", end_date="2012-12-31")
+```
+
+![Temperature, climatology and threshold at one pixel, 2010 to 2012, with the
+events filled in](_generated/event_line.png)
+
+## Maps of event metrics
+
+{func}`~heatwave3.plot_metric3` maps any event metric, aggregated per pixel
+(mean, maximum, minimum, sum or count).
+
+```python
+hw3.plot_metric3(event_file, metric="intensity_max", summary="mean")
+```
+
+![Mean maximum intensity per pixel](_generated/metric_map.png)
+
+The plotting functions return the matplotlib `Axes` and accept an `ax`
+argument, so they can be combined into larger figures. The lower-level
+{func}`~heatwave3.geom_flame3` and {func}`~heatwave3.geom_lolli3` draw flames
+and lollipops onto any `Axes`.
+
+## Categories and annual summaries
+
+{func}`~heatwave3.category3` gives each event its Hobday et al. (2018)
+category (from its peak intensity relative to the threshold) and its season.
+The columns `p_moderate` to `p_extreme` are also computed from the peak
+intensity: each is the peak's position within that category's band, from 0
+to 1.
+
+```python
+cats = hw3.category3(event_file, clim_file)
+cats["category"].value_counts()
+```
+
+```{literalinclude} _generated/category_counts.txt
+:language: text
+```
+
+{func}`~heatwave3.block_average3` summarises the events per pixel and year:
+
+```python
+hw3.block_average3(event_file).head()
+```
+
+```{literalinclude} _generated/block_head.txt
+:language: text
+```
+
+{func}`~heatwave3.category_daily3` returns the daily categories for a date
+window, without re-running detection.
+
+## Detrended climatology
+
+By default the climatology follows Hobday et al. (2016) with a fixed baseline.
+To remove the long-term trend before computing it (as in Jacox et al. 2020):
+
+```python
+hw3.ts2clm3(sst_file, "demo_detrended", ("1982-01-01", "2011-12-31"), detrend=True)
+```
+
+## Cold-spells
+
+For marine cold-spells, compute the climatology with the 10th percentile and
+detect with `coldSpells=True`:
+
+```python
+hw3.ts2clm3(sst_file, "demo_cold", ("1982-01-01", "2011-12-31"), pctile=10)
+hw3.detect_event3(sst_file, "demo_cold", coldSpells=True, category=True)
+```
+
+## Spatially connected events (blobs)
+
+{func}`~heatwave3.detect_blob3` links exceedance days that touch in longitude,
+latitude and time (and depth, for a depth-resolved climatology) into spatially
+coherent events, and summarises each one overall and per day. Its `return_`
+argument chooses the outputs; the voxel table holds the full footprint.
+
+```python
+blobs = hw3.detect_blob3(sst_file, clim_file, minVoxels=20, topN=3,
+                         return_=("event", "daily"))
+blobs["event"][["blob", "duration", "date_start", "date_end",
+                "peakArea_km2", "cumI_km2_day", "rank"]]
+```
+
+```{literalinclude} _generated/blob_events.txt
+:language: text
+```
+
+![Daily area of the three highest-ranked blobs](_generated/blob_area.png)
+
+On this six-pixel grid, the peak area of each blob is the whole grid; on real
+domains, footprints, daily areas and centroid tracks show how events grow,
+move and decay.
+
+## Depth-resolved data
+
+With `depth_range=(min, max)`, {func}`~heatwave3.ts2clm3` keeps those depth
+levels as a dimension. Event detection, daily categories and blob detection
+then work on every level, and blobs connect through the water column.
+
+## Threads
+
+`n_threads` sets the number of threads for each call; the default is 1.
+With `n_threads=0`, the session default is used instead: half the available
+cores, unless changed with {func}`~heatwave3.setHW3threads` or the
+`HEATWAVE3_NUM_THREADS` environment variable.

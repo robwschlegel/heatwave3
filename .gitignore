@@ -18,3 +18,5 @@ __pycache__/
 *.egg-info/
 .venv/
 .pytest_cache/
+python/docs/_build/
+.jupyter_cache/

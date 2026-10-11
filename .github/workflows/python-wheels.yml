@@ -8,6 +8,8 @@ on:
     paths:
       - "src/**"
       - "python/**"
+      - "!python/docs/**"
+      - "!python/notebooks/**"
       - "inst/extdata/**"
       - "pyproject.toml"
       - "CMakeLists.txt"
@@ -16,6 +18,8 @@ on:
     paths:
       - "src/**"
       - "python/**"
+      - "!python/docs/**"
+      - "!python/notebooks/**"
       - "inst/extdata/**"
       - "pyproject.toml"
       - "CMakeLists.txt"

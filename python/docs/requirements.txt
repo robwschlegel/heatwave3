@@ -1,0 +1,6 @@
+# Documentation build (ReadTheDocs installs heatwave3 itself from the repo)
+sphinx>=9,<10
+pydata-sphinx-theme>=0.23
+numpydoc>=1.11
+myst-nb>=1.4
+matplotlib>=3.6

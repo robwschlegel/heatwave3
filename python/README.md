@@ -29,4 +29,6 @@ with `pip install heatwave3[plot]`, the matplotlib plots `event_line3()`,
 naming difference from R: `detect_blob3()`'s `return` argument is `return_`,
 because `return` is a Python keyword.
 
+Documentation: <https://heatwave3.readthedocs.io>
+
 This package is in early development (alpha).

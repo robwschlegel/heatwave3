@@ -1,0 +1,5 @@
+category
+I Moderate    478
+II Strong     130
+III Severe      2
+Name: count, dtype: int64

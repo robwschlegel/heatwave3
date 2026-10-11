@@ -36,6 +36,7 @@ test = ["pytest>=7", "pyarrow>=10", "matplotlib>=3.6"]
 
 [project.urls]
 Homepage = "https://github.com/robwschlegel/heatwave3"
+Documentation = "https://heatwave3.readthedocs.io"
 Source = "https://github.com/robwschlegel/heatwave3"
 "R package" = "https://robwschlegel.github.io/heatwave3/"
 

@@ -23,3 +23,4 @@
 ^pyproject\.toml$
 ^CMakeLists\.txt$
 ^build$
+^\.readthedocs\.yaml$

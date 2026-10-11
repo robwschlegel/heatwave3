@@ -201,7 +201,7 @@ clim_file <- ts2clm3(file_in = sst_file,
         n_threads = 4)
 
 # Detect spatial blobs, including voxel data for footprint maps
-blobs <- detect_blob3(file_in = sst_file,
+blobs <- detect_blob3(sst_file = sst_file,
                       clim_file = clim_file,
                       var_name = "analysed_sst",
                       minVoxels = 200L,
@@ -324,7 +324,7 @@ clim_cold <- ts2clm3(file_in = sst_file,
         var_name = "analysed_sst",
         pctile = 10, n_threads = 4)
 
-mcs_blobs <- detect_blob3(file_in = sst_file,
+mcs_blobs <- detect_blob3(sst_file = sst_file,
                           clim_file = clim_cold,
                           var_name = "analysed_sst",
                           coldSpells = TRUE,

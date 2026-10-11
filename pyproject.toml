@@ -27,10 +27,11 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Atmospheric Science",
   "Topic :: Scientific/Engineering :: Hydrology",
 ]
-dependencies = ["numpy>=1.23"]
+dependencies = ["numpy>=1.23", "pandas>=1.5"]
 
 [project.optional-dependencies]
-test = ["pytest>=7"]
+parquet = ["pyarrow>=10"]
+test = ["pytest>=7", "pyarrow>=10"]
 
 [project.urls]
 Homepage = "https://github.com/robwschlegel/heatwave3"

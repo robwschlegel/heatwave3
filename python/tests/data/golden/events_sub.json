@@ -1,0 +1,1 @@
+{"nrow":48,"columns":[{"name":"lon","type":"double","values":null},{"name":"lat","type":"double","values":null},{"name":"event_no","type":"integer","values":null},{"name":"duration","type":"integer","values":null},{"name":"intensity_max","type":"double","values":null}]}

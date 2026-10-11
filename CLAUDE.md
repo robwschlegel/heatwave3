@@ -107,6 +107,9 @@ hw3_export("X_events.nc") → data.frame  (or .csv/.rds/.parquet)
 - `src/Makevars` — Generated; links `-lnetcdf` + `-pthread` (for `std::thread`; no OpenMP runtime).
 - SystemRequirements: netcdf (>= 4.0), C++17
 - Python: `pyproject.toml` (scikit-build-core + pybind11) and `CMakeLists.txt` at the repo root, excluded from the R build via `.Rbuildignore`. CMake compiles only the language-neutral core files plus `python/src/bindings.cpp` (never the Rcpp files) and finds netCDF via `netCDFConfig.cmake`, then `nc-config`, then pkg-config. The bindings in `heatwave3._core` mirror the R exports name for name (`hw3_compute_clim`, `hw3_detect_events`, ...). The sdist is an allowlist in `[tool.scikit-build]`: add any new core source file there.
+- Python API (`python/heatwave3/`): `climatology.py` (`ts2clm3`), `events.py` (`detect_event3`, `detect3`, `exceedance3`), `category.py` (`category3`, `category_daily3`, `block_average3`), `export.py` (`hw3_export`, console summary), `threads.py`; `_frames.py` holds the vectorised ports of the R data-frame builders. Names, arguments, defaults and output columns match R; `NULL` -> `None`; R `Date` -> `datetime64`; integer columns that can be `NA` (`event_no`, `category`) are pandas `Int32`. Python-only difference: `hw3_export()` writes `.csv`/`.parquet` (no `.rds`).
+- Python tests: `test_parity_r.py` compares every output with R exactly using golden files in `python/tests/data/golden/`; `test_signatures.py` compares argument names, order and defaults with R. Regenerate both references with `Rscript python/tests/make_golden.R` after any change that alters outputs or R signatures, and update the Python side to match.
+- `python/notebooks/heatwave3_r_and_python.ipynb`: the same analysis in R (via rpy2) and Python, output figures, and R-vs-Python difference maps and per-pixel RMSE.
 
 ## Testing
 

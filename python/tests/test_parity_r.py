@@ -23,6 +23,13 @@ SST, GLO, GLO_DIR = EXT / "sst_test.nc", EXT / "glorys_depth_test.nc", EXT / "gl
 CP = ("1982-01-01", "2011-12-31")
 INT_MIN = np.iinfo(np.int32).min
 
+# detect_blob3() event columns aggregated with R's sum()/mean() (80-bit long
+# double accumulation) in R and pandas in Python. About 93% are bit-exact and
+# the rest differ by at most ~4e-16 relative (1-2 ulp), so rtol 1e-14 leaves a
+# wide margin. Everything else must match exactly.
+AGGREGATED = {"cumI_km2_day", "meanArea_km2", "centroid_lon", "centroid_lat",
+              "totalVolume_km3", "meanVolume_km3"}
+
 pytestmark = pytest.mark.skipif(not (SST.exists() and GOLDEN.exists()),
                                 reason="test data or golden files not available")
 
@@ -63,7 +70,7 @@ def as_r(series, rtype):
     raise AssertionError(rtype)
 
 
-def assert_matches_r(df, name):
+def assert_matches_r(df, name, approx=()):
     n, cols = load_golden(name)
     assert list(df.columns) == list(cols), f"{name}: columns differ"
     assert len(df) == n, f"{name}: {len(df)} rows vs {n} in R"
@@ -71,6 +78,8 @@ def assert_matches_r(df, name):
         got = as_r(df[col], rtype)
         if rtype == "character":
             assert got == ref, f"{name}.{col} differs"
+        elif rtype == "double" and col in approx:
+            np.testing.assert_allclose(got, ref, rtol=1e-14, atol=0, err_msg=f"{name}.{col}")
         elif rtype == "double":
             assert np.array_equal(got, ref, equal_nan=True), f"{name}.{col} differs"
         else:
@@ -130,11 +139,42 @@ CASES = {
     "multi_events": lambda r: hw3.hw3_export(r["m"] + "_events.nc"),
 }
 
+BLOBS = {
+    "blob": lambda r: hw3.detect_blob3(SST, r["s"] + "_clim.nc",
+                                       return_=("event", "daily", "voxel")),
+    "blob_filtered": lambda r: hw3.detect_blob3(SST, r["s"] + "_clim.nc", wrapDateline=True,
+                                                minVoxels=20, topN=5, rankBy="peakArea_km2"),
+    "blob_cold": lambda r: hw3.detect_blob3(SST, r["k"] + "_clim.nc", coldSpells=True),
+    "blob_depth": lambda r: hw3.detect_blob3(GLO, r["g"] + "_clim.nc", minVoxels=10,
+                                             rankBy="totalVolume_km3",
+                                             return_=("event", "daily", "voxel")),
+    "blob_multi": lambda r: hw3.detect_blob3(GLO_DIR, r["g"] + "_clim.nc", topN=3),
+}
+BLOB_CASES = [(b, part) for b, parts in [("blob", "event daily voxel"),
+                                         ("blob_filtered", "event daily"),
+                                         ("blob_cold", "event daily"),
+                                         ("blob_depth", "event daily voxel"),
+                                         ("blob_multi", "event daily")]
+              for part in parts.split()]
+
 
 def test_every_golden_file_has_a_case():
-    assert {p.name.removesuffix(".json") for p in GOLDEN.glob("*.json")} == set(CASES)
+    expected = set(CASES) | {f"{b}_{part}" for b, part in BLOB_CASES}
+    assert {p.name.removesuffix(".json") for p in GOLDEN.glob("*.json")} == expected
 
 
 @pytest.mark.parametrize("name", sorted(CASES))
 def test_matches_r(runs, name):
     assert_matches_r(CASES[name](runs), name)
+
+
+@pytest.fixture(scope="module")
+def blob_runs(runs):
+    return {name: f(runs) for name, f in BLOBS.items()}
+
+
+@pytest.mark.parametrize("blob, part", BLOB_CASES)
+def test_blob_matches_r(blob_runs, blob, part):
+    res = blob_runs[blob]
+    assert set(res) == {p for b, p in BLOB_CASES if b == blob}
+    assert_matches_r(res[part], f"{blob}_{part}", approx=AGGREGATED if part == "event" else ())

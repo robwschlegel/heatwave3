@@ -204,3 +204,34 @@ def test_exceedance3_quiet(tmp_path, capfd):
     assert Path(out).exists()
     hw3.exceedance3(SST, tmp_path / "f.nc", threshold=296)
     assert "Detecting events" in capfd.readouterr().out
+
+
+def test_detect_blob3_return_handling(stem):
+    clim = stem + "_clim.nc"
+    assert list(hw3.detect_blob3(SST, clim, return_="daily")) == ["daily"]
+    # Components come back in a fixed order, duplicates dropped (as in R)
+    res = hw3.detect_blob3(SST, clim, return_=["voxel", "event", "voxel"])
+    assert list(res) == ["event", "voxel"]
+    ev = res["event"]
+    assert list(ev["rank"]) == list(range(1, len(ev) + 1))
+    assert ev["cumI_km2_day"].is_monotonic_decreasing
+    assert np.issubdtype(ev["date_peak"].dtype, np.datetime64)
+
+
+@pytest.mark.parametrize("kwargs, exc, msg", [
+    (dict(return_=("event", "blobs")), ValueError, "unsupported value: blobs"),
+    (dict(rankBy="totalVolume_km3"), ValueError, "rankBy must be one of"),
+    (dict(sst_file="/no/such.nc"), FileNotFoundError, "sst_file file does not exist"),
+])
+def test_detect_blob3_errors(stem, kwargs, exc, msg):
+    args = dict(sst_file=SST, clim_file=stem + "_clim.nc") | kwargs
+    with pytest.raises(exc, match=msg):
+        hw3.detect_blob3(**args)
+
+
+def test_detect_blob3_without_blobs_returns_empty_frames(tmp_path):
+    clim = str(tmp_path / "never_clim.nc")
+    hw3._core.hw3_write_const_clim(str(SST), clim, "", 1000.0)  # nothing exceeds 1000 K
+    res = hw3.detect_blob3(SST, clim, return_=("event", "voxel"))
+    assert list(res) == ["event", "voxel"]
+    assert all(df.empty for df in res.values())

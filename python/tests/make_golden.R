@@ -103,6 +103,17 @@ q(detect3(glo_dir, name = m, climatologyPeriod = c("1993-01-01", "2019-12-31"),
           depth_range = c(0, 10), quiet = TRUE))
 save_golden(hw3_export(paste0(m, "_events.nc")), "multi_events")
 
+# Blobs: 3D (all components), wrapped + filtered + ranked, cold-spells,
+# depth-resolved (4D) and multi-file input
+save_blob <- function(res, name) for (k in names(res)) save_golden(res[[k]], paste0(name, "_", k))
+save_blob(detect_blob3(sst, paste0(s, "_clim.nc"), return = c("event", "daily", "voxel")), "blob")
+save_blob(detect_blob3(sst, paste0(s, "_clim.nc"), wrapDateline = TRUE, minVoxels = 20L,
+                       topN = 5L, rankBy = "peakArea_km2"), "blob_filtered")
+save_blob(detect_blob3(sst, paste0(k, "_clim.nc"), coldSpells = TRUE), "blob_cold")
+save_blob(detect_blob3(glo, paste0(g, "_clim.nc"), minVoxels = 10L, rankBy = "totalVolume_km3",
+                       return = c("event", "daily", "voxel")), "blob_depth")
+q(save_blob(detect_blob3(glo_dir, paste0(g, "_clim.nc"), topN = 3L), "blob_multi"))
+
 cat("Golden files written to", out, "\n")
 
 # Signatures of the exported R functions, for the API-parity test

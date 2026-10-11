@@ -22,7 +22,9 @@ hw3.hw3_export(out["events"], file_out="events.parquet")     # or .csv
 ```
 
 Also available: `ts2clm3()`, `detect_event3()`, `category3()`,
-`category_daily3()`, `block_average3()`, `exceedance3()`, `getHW3threads()`
-and `setHW3threads()`.
+`category_daily3()`, `block_average3()`, `exceedance3()`, `detect_blob3()`
+(spatially connected events), `getHW3threads()` and `setHW3threads()`. The one
+naming difference from R: `detect_blob3()`'s `return` argument is `return_`,
+because `return` is a Python keyword.
 
 This package is in early development (alpha).

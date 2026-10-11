@@ -12,7 +12,10 @@ import heatwave3 as hw3
 SIGS = Path(__file__).resolve().parent / "data" / "r_signatures.json"
 
 # Functions not yet ported (later phases).
-NOT_YET = {"detect_blob3", "event_line3", "geom_flame3", "geom_lolli3", "plot_metric3"}
+NOT_YET = {"event_line3", "geom_flame3", "geom_lolli3", "plot_metric3"}
+
+# R argument names that are Python keywords: R name -> Python name.
+RENAMED = {("detect_blob3", "return"): "return_"}
 
 # R defaults that cannot be literal in Python, and their documented Python form.
 EXCEPTIONS = {
@@ -20,6 +23,7 @@ EXCEPTIONS = {
     ("detect_event3", "maxGap2"): ("maxGap", None),
     ("detect3", "minDuration2"): ("minDuration", None),
     ("detect3", "maxGap2"): ("maxGap", None),
+    ("detect_blob3", "return_"): ('c("event", "daily")', ("event", "daily")),
 }
 
 
@@ -48,7 +52,7 @@ def test_every_r_export_is_ported_or_pending():
 
 @pytest.mark.parametrize("name", sorted(set(R_SIGS) - NOT_YET))
 def test_signature_matches_r(name):
-    r_args = R_SIGS[name] or {}
+    r_args = {RENAMED.get((name, k), k): v for k, v in (R_SIGS[name] or {}).items()}
     params = inspect.signature(getattr(hw3, name)).parameters
     assert list(params) == list(r_args), f"{name}: argument names or order differ"
     for arg, r_text in r_args.items():

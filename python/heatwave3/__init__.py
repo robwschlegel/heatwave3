@@ -7,6 +7,7 @@ same name. Function names, arguments and outputs match the R package.
 from importlib.metadata import version as _version
 
 from . import _core
+from .blob import detect_blob3
 from .category import block_average3, category3, category_daily3
 from .climatology import ts2clm3
 from .events import detect3, detect_event3, exceedance3
@@ -21,6 +22,7 @@ __all__ = [
     "category3",
     "category_daily3",
     "detect3",
+    "detect_blob3",
     "detect_event3",
     "exceedance3",
     "getHW3threads",

@@ -8,6 +8,8 @@
 #include <memory>
 #include <stdexcept>
 #include "hw3_log.h"
+#include "hw3_round.h"
+#include "hw3_omp.h"
 #include "event_detect.h"
 
 namespace hw3 {
@@ -119,7 +121,8 @@ static void compute_and_write_clim(GridData& gd,
     std::vector<double> var_clim;
     if (p.compute_var) var_clim.resize(grid_size);
 
-    out() << "Computing climatology with " << p.n_threads << " thread(s)..." << std::endl;
+    out() << "Computing climatology with "
+          << (p.n_threads > 0 ? p.n_threads : get_threads(npixels)) << " thread(s)..." << std::endl;
 
     compute_climatology_grid(
         gd.sst.data(), gd.time_days.data(),
@@ -132,16 +135,12 @@ static void compute_and_write_clim(GridData& gd,
         p.compute_var ? var_clim.data() : nullptr
     );
 
-    // Round
+    // Round, with R's round() as heatwaveR's ts2clm(roundClm = )
     if (p.roundClm > 0) {
-        double factor = std::pow(10.0, p.roundClm);
         for (size_t i = 0; i < grid_size; ++i) {
-            if (!is_na(seas[i]))
-                seas[i] = std::round(seas[i] * factor) / factor;
-            if (!is_na(thresh[i]))
-                thresh[i] = std::round(thresh[i] * factor) / factor;
-            if (p.compute_var && !is_na(var_clim[i]))
-                var_clim[i] = std::round(var_clim[i] * factor) / factor;
+            seas[i] = r_round(seas[i], p.roundClm);
+            thresh[i] = r_round(thresh[i], p.roundClm);
+            if (p.compute_var) var_clim[i] = r_round(var_clim[i], p.roundClm);
         }
     }
 
@@ -307,7 +306,8 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
         daily_grid_ptr = &daily_grid;
     }
 
-    out() << "Detecting events with " << p.n_threads << " thread(s)..." << std::endl;
+    out() << "Detecting events with "
+          << (p.n_threads > 0 ? p.n_threads : get_threads(npixels)) << " thread(s)..." << std::endl;
 
     detect_events_grid(
         gd.sst.data(),
@@ -476,8 +476,7 @@ static DailyCatResult daily_cat_core(const GridData& gd, const ClimData& cd,
                                  ed.event_no[i] });
     }
 
-    double mult = (roundRes > 0) ? std::pow(10.0, roundRes) : 0.0;
-    auto rnd = [&](double v) { return (roundRes > 0) ? std::round(v * mult) / mult : v; };
+    auto rnd = [&](double v) { return (roundRes > 0) ? r_round(v, roundRes) : v; };
 
     // Full daily grid: every pixel x every day in the window.
     size_t nrow = static_cast<size_t>(npixels) * gd.ntime;
@@ -500,6 +499,8 @@ static DailyCatResult daily_cat_core(const GridData& gd, const ClimData& cd,
         const double* temp = gd.sst.data() + static_cast<size_t>(px) * gd.ntime;
         const double* seas = cd.seas.data() + static_cast<size_t>(px) * 366;
         const double* thr  = cd.thresh.data() + static_cast<size_t>(px) * 366;
+        CategoryLevels levels;
+        category_levels(seas, thr, 4, levels);
 
         for (int t = 0; t < gd.ntime; ++t, ++r) {
             int jd = gd.time_days[t];
@@ -530,22 +531,14 @@ static DailyCatResult daily_cat_core(const GridData& gd, const ClimData& cd,
             res.event[r]    = (eno != 0);
             res.event_no[r] = (eno != 0) ? eno : NA_INT;
 
-            // Category: only on event-member days that exceed the threshold.
+            // Category on event days, as heatwaveR::category(climatology =
+            // TRUE); for cold-spells, every event day whose threshold is below
+            // ice_thresh is ice (5), as heatwaveR's MCSice.
             int cat = NA_INT;
-            if (eno != 0 && tv_ok && s_ok && th_ok) {
-                double diff = std::abs(th - s);
-                if (diff > 0.0) {
-                    bool exceeds; double ix;
-                    if (coldSpells) { exceeds = (tv < th); ix = s - tv; }
-                    else            { exceeds = (tv > th); ix = tv - s; }
-                    if (exceeds) {
-                        if (ix >= 4.0 * diff) cat = 4;
-                        else if (ix >= 3.0 * diff) cat = 3;
-                        else if (ix >= 2.0 * diff) cat = 2;
-                        else cat = 1;
-                        if (coldSpells && th < ice_thresh) cat = 5;  // sea-ice
-                    }
-                }
+            if (eno != 0) {
+                int c = daily_category(tv, doy + 1, levels, coldSpells);
+                if (c > 0) cat = c;
+                if (coldSpells && th_ok && th < ice_thresh) cat = 5;
             }
             res.category[r] = cat;
         }
@@ -592,6 +585,8 @@ DailyCatResult category_daily_multi(const std::vector<std::string>& files,
 
 CategoryResult category(const std::string& event_file,
                         const std::string& clim_file,
+                        const std::vector<std::string>& sst_files,
+                        std::string var_name, bool skip_bad_files,
                         const std::string& hemisphere, int roundVal) {
     EventData ed = read_event_netcdf(event_file);
     bool southHemisphere = (hemisphere == "south");
@@ -600,14 +595,14 @@ CategoryResult category(const std::string& event_file,
 
     CategoryResult res;
     res.category.assign(n, 0);
-    res.p_moderate.assign(n, 0.0);
-    res.p_strong.assign(n, 0.0);
-    res.p_severe.assign(n, 0.0);
-    res.p_extreme.assign(n, 0.0);
+    res.p_moderate.assign(n, NA_DOUBLE);
+    res.p_strong.assign(n, NA_DOUBLE);
+    res.p_severe.assign(n, NA_DOUBLE);
+    res.p_extreme.assign(n, NA_DOUBLE);
     res.season.assign(n, 0);
     res.peak_jd.assign(n, 0);
 
-    double round_mult = std::pow(10.0, roundVal);
+    for (int i = 0; i < n; ++i) res.peak_jd[i] = ed.ref_date_jd + ed.date_peak[i];
 
     // Check if event file already has category data. The "category" NetCDF
     // variable is always defined by write_event_netcdf() -- filled with 0
@@ -623,82 +618,83 @@ CategoryResult category(const std::string& event_file,
     if (has_precomputed) {
         // Use pre-computed category data from event file
         for (int i = 0; i < n; ++i) {
-            res.peak_jd[i] = ed.ref_date_jd + ed.date_peak[i];
-
             int cat = ed.category[i];
-            if (cat >= 1 && cat <= 4) {
-                res.category[i] = cat;
-            }
+            if (cat >= 1 && cat <= 4) res.category[i] = cat;
             res.p_moderate[i] = ed.p_moderate[i];
             res.p_strong[i] = ed.p_strong[i];
             res.p_severe[i] = ed.p_severe[i];
             res.p_extreme[i] = ed.p_extreme[i];
-
             int sea = ed.season[i];
-            if (sea >= 1 && sea <= 4) {
-                res.season[i] = sea;
-            }
+            if (sea >= 1 && sea <= 4) res.season[i] = sea;
         }
     } else {
-        if (clim_file.empty())
-            throw std::runtime_error("Event file has no pre-computed categories; clim_file is required.");
+        // Compute as heatwaveR::category(), which needs each event day's
+        // temperature: read the SST over the climatology grid.
+        if (clim_file.empty() || sst_files.empty())
+            throw std::runtime_error("Event file has no pre-computed categories; clim_file and "
+                                     "sst_file are required to compute them.");
         ClimData cd = read_clim_netcdf(clim_file);
+        SubsetSpec ss = clim_extent_subset(cd);
+        GridData gd;
+        if (sst_files.size() == 1) {
+            if (var_name.empty()) var_name = detect_sst_variable(sst_files[0]);
+            gd = read_sst_netcdf(sst_files[0], var_name, ss);
+        } else {
+            if (var_name.empty() && !skip_bad_files) var_name = detect_sst_variable(sst_files[0]);
+            gd = read_sst_multi_netcdf(sst_files, var_name, ss, skip_bad_files);
+        }
+        if (gd.nlon != cd.nlon || gd.nlat != cd.nlat || gd.ndepth != cd.ndepth) {
+            throw std::runtime_error(strf(
+                "Grid mismatch: SST is %d x %d x %d depth but climatology is %d x %d x %d depth",
+                gd.nlon, gd.nlat, gd.ndepth, cd.nlon, cd.nlat, cd.ndepth));
+        }
+        const int npixels = gd.nlon * gd.nlat * gd.ndepth;
 
-        for (int i = 0; i < n; ++i) {
-            // Convert relative date to absolute JD
-            int peak_jd = ed.ref_date_jd + ed.date_peak[i];
-            res.peak_jd[i] = peak_jd;
+        // Cold-spells, as heatwaveR: any negative maximum intensity
+        bool coldSpells = false;
+        for (double v : ed.intensity_max) if (v < 0) { coldSpells = true; break; }
 
-            // DOY in 1..366 (heatwaveR convention: non-leap skips 60)
-            int doy = jd_to_doy_366(peak_jd);
+        // Events grouped by pixel, so each pixel's levels are computed once
+        std::vector<int> order(n);
+        for (int i = 0; i < n; ++i) order[i] = i;
+        std::stable_sort(order.begin(), order.end(),
+                         [&](int x, int y) { return ed.pixel_index[x] < ed.pixel_index[y]; });
 
-            // Find nearest pixel in climatology grid
-            double ev_lon = ed.lon[i];
-            double ev_lat = ed.lat[i];
-            int lon_idx = 0, lat_idx = 0;
-            double best_lon = std::abs(cd.lon[0] - ev_lon);
-            for (int j = 1; j < cd.nlon; ++j) {
-                double d = std::abs(cd.lon[j] - ev_lon);
-                if (d < best_lon) { best_lon = d; lon_idx = j; }
+        CategoryLevels levels;
+        int levels_px = -1;
+        std::vector<double> temp;
+        std::vector<int> doy;
+        for (int i : order) {
+            int px = ed.pixel_index[i];
+            if (px < 0 || px >= npixels) continue;
+            if (px != levels_px) {
+                category_levels(cd.seas.data() + static_cast<size_t>(px) * 366,
+                                cd.thresh.data() + static_cast<size_t>(px) * 366,
+                                roundVal, levels);
+                levels_px = px;
             }
-            double best_lat = std::abs(cd.lat[0] - ev_lat);
-            for (int j = 1; j < cd.nlat; ++j) {
-                double d = std::abs(cd.lat[j] - ev_lat);
-                if (d < best_lat) { best_lat = d; lat_idx = j; }
-            }
+            // The event's days on a dense daily axis (missing days are NaN)
+            int js = ed.ref_date_jd + ed.date_start[i];
+            int je = ed.ref_date_jd + ed.date_end[i];
+            temp.assign(je - js + 1, NA_DOUBLE);
+            doy.resize(je - js + 1);
+            for (int jd = js; jd <= je; ++jd) doy[jd - js] = jd_to_doy_366(jd);
+            const double* series = gd.sst.data() + static_cast<size_t>(px) * gd.ntime;
+            auto it = std::lower_bound(gd.time_days.begin(), gd.time_days.end(), js);
+            for (; it != gd.time_days.end() && *it <= je; ++it)
+                temp[*it - js] = series[it - gd.time_days.begin()];
 
-            // Climatology layout: [pixel * 366 + doy-1] where pixel = ilon * nlat + ilat
-            int px = lon_idx * cd.nlat + lat_idx;
-            double s = cd.seas[px * 366 + (doy - 1)];
-            double th = cd.thresh[px * 366 + (doy - 1)];
-
-            // Category width: |seas - thresh|, always positive
-            double diff = std::abs(s - th);
-            if (is_na(s) || is_na(th) || diff <= 0.0) continue;
-
-            double ix = ed.intensity_max[i];
-
-            if (ix >= 4.0 * diff) {
-                res.category[i] = 4;
-            } else if (ix >= 3.0 * diff) {
-                res.category[i] = 3;
-            } else if (ix >= 2.0 * diff) {
-                res.category[i] = 2;
-            } else {
-                res.category[i] = 1;
-            }
-
-            auto rnd = [&](double v) {
-                return std::round(v * round_mult) / round_mult;
-            };
-            res.p_moderate[i] = rnd(std::min(1.0, std::max(0.0, ix / diff)));
-            res.p_strong[i]   = rnd(std::min(1.0, std::max(0.0, (ix - diff) / diff)));
-            res.p_severe[i]   = rnd(std::min(1.0, std::max(0.0, (ix - 2.0 * diff) / diff)));
-            res.p_extreme[i]  = rnd(std::min(1.0, std::max(0.0, (ix - 3.0 * diff) / diff)));
+            EventCategory ec = event_category(temp.data(), doy.data(), je - js + 1,
+                                              ed.duration[i], levels, coldSpells);
+            res.category[i] = ec.category;
+            res.p_moderate[i] = ec.p_moderate;
+            res.p_strong[i] = ec.p_strong;
+            res.p_severe[i] = ec.p_severe;
+            res.p_extreme[i] = ec.p_extreme;
 
             // Season from peak month (codes: 1 Summer, 2 Fall, 3 Winter, 4 Spring)
             int y, m, d;
-            jd_to_ymd(peak_jd, y, m, d);
+            jd_to_ymd(res.peak_jd[i], y, m, d);
             if (southHemisphere) {
                 if (m == 12 || m <= 2)      res.season[i] = 1;
                 else if (m >= 3 && m <= 5)  res.season[i] = 2;
@@ -713,14 +709,14 @@ CategoryResult category(const std::string& event_file,
         }
     }
 
-    // Round lon/lat for display
+    // Round lon/lat for display; i_max as heatwaveR (round(intensity_max, roundVal))
     res.event_no = ed.event_no;
     res.duration = ed.duration;
     res.lon.resize(n); res.lat.resize(n); res.intensity_max.resize(n);
     for (int i = 0; i < n; ++i) {
-        res.lon[i] = std::round(ed.lon[i] * round_mult) / round_mult;
-        res.lat[i] = std::round(ed.lat[i] * round_mult) / round_mult;
-        res.intensity_max[i] = std::round(ed.intensity_max[i] * round_mult) / round_mult;
+        res.lon[i] = r_round(ed.lon[i], roundVal);
+        res.lat[i] = r_round(ed.lat[i], roundVal);
+        res.intensity_max[i] = r_round(ed.intensity_max[i], roundVal);
     }
     return res;
 }

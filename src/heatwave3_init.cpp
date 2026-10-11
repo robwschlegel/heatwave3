@@ -117,7 +117,7 @@ void hw3_init_fork_safety() {
 Rcpp::List hw3_version() {
     return Rcpp::List::create(
         Rcpp::Named("package") = "heatwave3",
-        Rcpp::Named("version") = "1.3.1",
+        Rcpp::Named("version") = "1.4.0",
         Rcpp::Named("cpp_standard") = "C++17"
     );
 }
@@ -507,8 +507,12 @@ Rcpp::List hw3_read_event_nc(std::string event_file) {
 Rcpp::DataFrame hw3_category(std::string event_file,
                              std::string clim_file,
                              std::string hemisphere = "south",
-                             int roundVal = 4) {
-    hw3::CategoryResult r = hw3::category(event_file, clim_file, hemisphere, roundVal);
+                             int roundVal = 4,
+                             Rcpp::Nullable<Rcpp::CharacterVector> sst_files = R_NilValue,
+                             std::string var_name = "",
+                             bool skip_bad_files = false) {
+    hw3::CategoryResult r = hw3::category(event_file, clim_file, opt_str(sst_files), var_name,
+                                          skip_bad_files, hemisphere, roundVal);
 
     const char* cat_labels[] = {"", "I Moderate", "II Strong", "III Severe", "IV Extreme"};
     const char* season_labels[] = {"", "Summer", "Fall", "Winter", "Spring"};
@@ -532,10 +536,10 @@ Rcpp::DataFrame hw3_category(std::string event_file,
         Rcpp::Named("category") = category,
         Rcpp::Named("intensity_max") = r.intensity_max,
         Rcpp::Named("duration") = r.duration,
-        Rcpp::Named("p_moderate") = r.p_moderate,
-        Rcpp::Named("p_strong") = r.p_strong,
-        Rcpp::Named("p_severe") = r.p_severe,
-        Rcpp::Named("p_extreme") = r.p_extreme,
+        Rcpp::Named("p_moderate") = na_real(r.p_moderate),
+        Rcpp::Named("p_strong") = na_real(r.p_strong),
+        Rcpp::Named("p_severe") = na_real(r.p_severe),
+        Rcpp::Named("p_extreme") = na_real(r.p_extreme),
         Rcpp::Named("season") = season,
         Rcpp::Named("stringsAsFactors") = false
     );

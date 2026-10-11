@@ -93,8 +93,8 @@ hw3_read_event_nc <- function(event_file) {
     .Call(`_heatwave3_hw3_read_event_nc`, event_file)
 }
 
-hw3_category <- function(event_file, clim_file, hemisphere = "south", roundVal = 4L) {
-    .Call(`_heatwave3_hw3_category`, event_file, clim_file, hemisphere, roundVal)
+hw3_category <- function(event_file, clim_file, hemisphere = "south", roundVal = 4L, sst_files = NULL, var_name = "", skip_bad_files = FALSE) {
+    .Call(`_heatwave3_hw3_category`, event_file, clim_file, hemisphere, roundVal, sst_files, var_name, skip_bad_files)
 }
 
 hw3_block_average <- function(event_file) {

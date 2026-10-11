@@ -50,6 +50,7 @@ sdist.include = [
   "/pyproject.toml", "/CMakeLists.txt", "/LICENSE.md", "/python/README.md",
   "/python/heatwave3/*.py", "/python/src/*.cpp", "/python/tests/*.py",
   "/src/hw3_api.cpp", "/src/hw3_api.h", "/src/hw3_log.h", "/src/hw3_omp.h",
+  "/src/hw3_round.h",
   "/src/heatwave3_types.h", "/src/netcdf_io.cpp", "/src/netcdf_io.h",
   "/src/climatology.cpp", "/src/climatology.h", "/src/event_detect.cpp",
   "/src/event_detect.h", "/src/blob_core.cpp", "/src/blob_core.h",

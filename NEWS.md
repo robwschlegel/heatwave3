@@ -1,7 +1,61 @@
-# heatwave3 (development version)
+# heatwave3 1.4.0
+
+## Breaking changes: outputs now match heatwaveR exactly
+
+heatwaveR is the reference for every heatwave3 output. On the bundled
+`sst_test.nc` data (heatwaves and cold-spells), the climatology, all event
+metrics, the event categories with `p_moderate` to `p_extreme`, and the daily
+categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
+`category()`. Files written by earlier versions differ; regenerate them.
+
+* **`p_moderate`, `p_strong`, `p_severe`, `p_extreme`** are now, as in
+  `heatwaveR::category()`, the percentages of the event's days at or beyond
+  each category level (whole numbers, rounded half to even). The levels are
+  `thresh + k * diff` (k = 0 to 3, `diff = thresh - seas`), each rounded to 4
+  decimals. The event's category is the highest one with a non-zero
+  percentage. Days below the threshold within a joined event are not counted,
+  so the percentages can sum to less than 100. Previously they were fractions
+  of the peak intensity.
+* **`category3()` gains `sst_file` (and `var_name`).** Computing categories
+  for an event file without inline categories needs each event day's
+  temperature, so it now requires `clim_file` and `sst_file`.
+* **Daily categories** (`detect_event3(daily = )`, `category_daily3()`) use
+  the same rounded levels with strict exceedance, as
+  `heatwaveR::category(climatology = TRUE)`. In `category_daily3()`, cold-spell
+  event days with `thresh < ice_thresh` are category 5 (ice).
+* **`rate_onset` and `rate_decline`** use heatwaveR's formula: the peak
+  anomaly minus the mean anomaly of the first event day and the day before it
+  (last event day and the day after it for the decline), divided by the days
+  to (from) the peak plus 0.5. They are `NA` when the event starts on the
+  first day, or ends on the last day, of the series.
+* **Cold-spell intensities and rates are negative**, as in heatwaveR
+  (`detect_event3(coldSpells = TRUE)`, `detect3()`, and
+  `exceedance3(below = TRUE)`). The variances and the `_abs` metrics are
+  unchanged.
+* **Climatology:** 29 February in non-leap years is filled with the mean of
+  28 February and 1 March rounded to 2 decimals, and all rounding, means,
+  sums and standard deviations follow R's `round()`, `mean()`, `sum()` and
+  `sd()` (new `src/hw3_round.h`). The climatology is bit-identical to
+  heatwaveR's.
+* **Known differences from heatwaveR**, both heatwaveR issues to be fixed
+  there: the season is that of the event's peak month (December to February =
+  summer in the southern hemisphere), whereas `heatwaveR::category()` uses
+  calendar quarters; and heatwaveR joins up to `maxGap` non-exceeding days at
+  the very end of the series into the last event, whereas heatwave3 ends the
+  event on its last exceeding day.
+
+## Changes to defaults
+
+* **`n_threads` defaults to `NULL`** in `ts2clm3()`, `detect_event3()`,
+  `detect3()` and `exceedance3()`, which uses the session default: half the
+  available cores, unless changed with `setHW3threads()` or the
+  `R_HEATWAVE3_NUM_THREADS` environment variable. Previously the default was
+  one thread.
 
 ## Bug fixes
 
+* **`event_line3(coldSpells = TRUE)`** picked the event with the largest
+  intensity; it now picks the most intense cold-spell (the most negative).
 * **The per-day product gave categories to days outside events.**
   `detect_event3(daily = "also")` (and `"only"`) assigned a Hobday et al.
   (2018) category (1 to 4) to every day above the threshold, including short

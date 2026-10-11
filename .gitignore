@@ -20,3 +20,5 @@ __pycache__/
 .pytest_cache/
 python/docs/_build/
 .jupyter_cache/
+tests/testthat/_problems/
+tests/testthat/testthat-problems.rds

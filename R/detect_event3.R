@@ -54,7 +54,10 @@
 #'   \code{temp}, \code{seas}, \code{thresh}, \code{threshCriterion},
 #'   \code{durationCriterion}, \code{event}, \code{event_no}. Mutually exclusive
 #'   with \code{daily}. Default \code{FALSE}.
-#' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default
+#'   \code{NULL}: the session default, half the available cores unless
+#'   changed with \code{\link{setHW3threads}} or the
+#'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #' @param quiet Logical. Suppress all console output: the progress messages
@@ -98,7 +101,7 @@ detect_event3 <- function(
   roundRes = 4L,
   daily = c("none", "also", "only"),
   protoEvent = FALSE,
-  n_threads = 1L,
+  n_threads = NULL,
   skip_bad_files = FALSE,
   quiet = FALSE
 ) {
@@ -179,7 +182,7 @@ detect_event3 <- function(
       maxGap2 = as.integer(maxGap2),
       coldSpells = coldSpells,
       roundRes = as.integer(roundRes),
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
       category = category,
       southHemisphere = south,
       threshClim2_files = thresh2_files,
@@ -204,7 +207,7 @@ detect_event3 <- function(
       maxGap2 = as.integer(maxGap2),
       coldSpells = coldSpells,
       roundRes = as.integer(roundRes),
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
       category = category,
       southHemisphere = south,
       threshClim2_file = if (is.null(thresh2_files)) "" else thresh2_files[1],
@@ -288,6 +291,10 @@ detect_event3 <- function(
   if (length(ev$depth) > 0) {
     df$depth <- ev$depth[idx]
   }
+
+  # Missing metrics (e.g. rates for events at the edges of the series) are NA,
+  # as in heatwaveR
+  for (v in names(df)) if (is.double(df[[v]])) df[[v]][is.nan(df[[v]])] <- NA_real_
 
   if (length(ev$category) > 0 && any(ev$category > 0)) {
     cat_lookup <- c(NA_character_, cat_labels)

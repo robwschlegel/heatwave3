@@ -392,8 +392,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_category
-Rcpp::DataFrame hw3_category(std::string event_file, std::string clim_file, std::string hemisphere, int roundVal);
-RcppExport SEXP _heatwave3_hw3_category(SEXP event_fileSEXP, SEXP clim_fileSEXP, SEXP hemisphereSEXP, SEXP roundValSEXP) {
+Rcpp::DataFrame hw3_category(std::string event_file, std::string clim_file, std::string hemisphere, int roundVal, Rcpp::Nullable<Rcpp::CharacterVector> sst_files, std::string var_name, bool skip_bad_files);
+RcppExport SEXP _heatwave3_hw3_category(SEXP event_fileSEXP, SEXP clim_fileSEXP, SEXP hemisphereSEXP, SEXP roundValSEXP, SEXP sst_filesSEXP, SEXP var_nameSEXP, SEXP skip_bad_filesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -401,7 +401,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type clim_file(clim_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type hemisphere(hemisphereSEXP);
     Rcpp::traits::input_parameter< int >::type roundVal(roundValSEXP);
-    rcpp_result_gen = Rcpp::wrap(hw3_category(event_file, clim_file, hemisphere, roundVal));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type sst_files(sst_filesSEXP);
+    Rcpp::traits::input_parameter< std::string >::type var_name(var_nameSEXP);
+    Rcpp::traits::input_parameter< bool >::type skip_bad_files(skip_bad_filesSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_category(event_file, clim_file, hemisphere, roundVal, sst_files, var_name, skip_bad_files));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -454,7 +457,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_hw3_detect_events", (DL_FUNC) &_heatwave3_hw3_detect_events, 18},
     {"_heatwave3_hw3_detect_events_multi", (DL_FUNC) &_heatwave3_hw3_detect_events_multi, 19},
     {"_heatwave3_hw3_read_event_nc", (DL_FUNC) &_heatwave3_hw3_read_event_nc, 1},
-    {"_heatwave3_hw3_category", (DL_FUNC) &_heatwave3_hw3_category, 4},
+    {"_heatwave3_hw3_category", (DL_FUNC) &_heatwave3_hw3_category, 7},
     {"_heatwave3_hw3_block_average", (DL_FUNC) &_heatwave3_hw3_block_average, 1},
     {"_heatwave3_hw3_read_metric_summary", (DL_FUNC) &_heatwave3_hw3_read_metric_summary, 3},
     {NULL, NULL, 0}

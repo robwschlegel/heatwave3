@@ -71,7 +71,8 @@ q(detect_event3(sst, name = p, protoEvent = TRUE, quiet = TRUE))
 save_golden(hw3_export(paste0(p, "_protoevents.nc"), time_range = c("2016-01-01", "2016-12-31")),
             "proto_sub")
 q(detect_event3(sst, name = p, quiet = TRUE))
-save_golden(category3(paste0(p, "_events.nc"), paste0(p, "_clim.nc"), hemisphere = "north"),
+save_golden(category3(paste0(p, "_events.nc"), paste0(p, "_clim.nc"), hemisphere = "north",
+                      sst_file = sst),
             "category3_fallback")
 
 # Cold-spells via detect3()

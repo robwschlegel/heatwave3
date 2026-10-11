@@ -12,15 +12,27 @@ import pandas as pd
 from . import _core
 from ._frames import CAT_LABELS
 from ._utils import choose, jd_to_datetime, nullable_int, resolve_input, to_jd
+from .events import _resolve_nc_input
 
 _SEASONS = np.array(["", "Summer", "Fall", "Winter", "Spring"], dtype=object)
 
 
-def category3(event_file, clim_file=None, hemisphere="south", roundVal=4, S=None):
+def category3(event_file, clim_file=None, hemisphere="south", roundVal=4, S=None, sst_file=None,
+              var_name=None):
     """Hobday et al. (2018) categories for each event.
 
-    Reads the categories computed inline by ``detect_event3(category=True)``,
-    or computes them from ``clim_file`` for event files without them.
+    Categories follow ``heatwaveR::category()``. For each event day the
+    category limits are the threshold and ``thresh + k * diff`` (k = 1, 2, 3),
+    with ``diff = thresh - seas`` and each limit rounded to ``roundVal``
+    decimals. ``p_moderate`` to ``p_extreme`` are the percentages of the
+    event's duration (days, rounded to whole numbers) spent in each category,
+    and the event's category is the highest one with a non-zero percentage.
+    Cold-spells are recognised, as in heatwaveR, by their negative
+    intensities. The season is that of the event's peak month.
+
+    Reads the categories computed inline by ``detect_event3(category=True)``;
+    for event files without them, computes them from ``clim_file`` and
+    ``sst_file`` (the day counts need each event day's temperature).
 
     Parameters
     ----------
@@ -34,13 +46,18 @@ def category3(event_file, clim_file=None, hemisphere="south", roundVal=4, S=None
         Decimal places for the rounded outputs.
     S : bool, optional
         Deprecated; use ``hemisphere``.
+    sst_file : str, path-like, or list of these, optional
+        The SST used for detection (a file, a directory of daily files or a
+        list of files); required when the event file has no categories.
+    var_name : str, optional
+        SST variable name; auto-detected when ``None``.
 
     Returns
     -------
     pandas.DataFrame
         One row per event: event_no, lon, lat, peak_date, category,
-        intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme,
-        season.
+        intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme
+        (whole percentages), season.
     """
     if S is not None:
         warnings.warn("S is deprecated; use hemisphere instead.", DeprecationWarning,
@@ -54,14 +71,16 @@ def category3(event_file, clim_file=None, hemisphere="south", roundVal=4, S=None
     if clim_file is None:
         ev = _core.hw3_read_event_nc(event_file)
         if len(ev["category"]) == 0 or not (ev["category"] > 0).any():
-            raise ValueError("clim_file is required because the event file does not "
-                             "contain pre-computed categories.")
+            raise ValueError("clim_file and sst_file are required because the event file "
+                             "does not contain pre-computed categories.")
         clim_file = ""
     elif not os.path.exists(clim_file):
         raise FileNotFoundError(f"Climatology file does not exist: {clim_file}")
 
+    sst_files = None if sst_file is None else _resolve_nc_input(sst_file, "sst_file")
     r = _core.hw3_category(event_file, os.fspath(clim_file), hemisphere=hemisphere,
-                           roundVal=int(roundVal))
+                           roundVal=int(roundVal), sst_files=sst_files,
+                           var_name="" if var_name is None else var_name)
     return pd.DataFrame({
         "event_no": r["event_no"],
         "lon": r["lon"],

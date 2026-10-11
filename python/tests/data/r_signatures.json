@@ -25,7 +25,9 @@
     "clim_file": "NULL",
     "hemisphere": "\"south\"",
     "roundVal": "4L",
-    "S": "NULL"
+    "S": "NULL",
+    "sst_file": "NULL",
+    "var_name": "NULL"
   },
   "setHW3threads": {
     "threads": "0L"
@@ -48,7 +50,7 @@
     "var": "FALSE",
     "detrend": "FALSE",
     "roundClm": "4L",
-    "n_threads": "1L",
+    "n_threads": "NULL",
     "skip_bad_files": "FALSE",
     "quiet": "FALSE"
   },
@@ -105,7 +107,7 @@
     "roundRes": "4L",
     "daily": "c(\"none\", \"also\", \"only\")",
     "protoEvent": "FALSE",
-    "n_threads": "1L",
+    "n_threads": "NULL",
     "skip_bad_files": "FALSE",
     "quiet": "FALSE"
   },
@@ -138,7 +140,7 @@
     "time_range": "NULL",
     "depth": "NULL",
     "roundRes": "4L",
-    "n_threads": "1L",
+    "n_threads": "NULL",
     "quiet": "FALSE"
   },
   "detect3": {
@@ -171,7 +173,7 @@
     "roundRes": "4L",
     "daily": "c(\"none\", \"also\", \"only\")",
     "protoEvent": "FALSE",
-    "n_threads": "1L",
+    "n_threads": "NULL",
     "skip_bad_files": "FALSE",
     "quiet": "FALSE"
   },

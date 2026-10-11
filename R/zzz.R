@@ -33,3 +33,9 @@ getHW3threads <- function() {
 setHW3threads <- function(threads = 0L) {
   hw3_set_threads(as.integer(threads))
 }
+
+# n_threads argument -> C++: NULL means the session default (0 tells the C++
+# core to use getHW3threads()).
+.hw3_nthreads <- function(n_threads) {
+  if (is.null(n_threads)) 0L else as.integer(n_threads)
+}

@@ -121,6 +121,12 @@ def int_or_zero(x) -> int:
     return int(x)
 
 
+def nthreads(n_threads) -> int:
+    """n_threads argument -> C++: None means the session default (0 tells the
+    core to use getHW3threads())."""
+    return 0 if n_threads is None else int(n_threads)
+
+
 def choose(value: str, choices: tuple[str, ...], what: str) -> str:
     if value not in choices:
         raise ValueError(f"'{what}' must be one of: {', '.join(choices)}.")

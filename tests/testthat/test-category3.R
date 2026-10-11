@@ -15,13 +15,15 @@ test_that("category3 reads inline categories and validates missing climatology",
   expect_gt(nrow(cats), 0)
   expect_false(anyNA(cats$category))
 
-  # plain events (no inline categories) require a climatology file
+  # plain events (no inline categories) need the climatology and the SST:
+  # heatwaveR's p_* are counts of days, which need each day's temperature
   stem2 <- tempfile()
   ts2clm3(sst_file, name = stem2, climatologyPeriod = cp, quiet = TRUE)
   detect_event3(sst_file, name = stem2, quiet = TRUE)
   ev2 <- paste0(stem2, "_events.nc")
 
-  expect_error(category3(ev2), "clim_file is required")
+  expect_error(category3(ev2), "clim_file and sst_file are required")
+  expect_error(category3(ev2, paste0(stem2, "_clim.nc")), "sst_file are required")
 
   # Regression test: category3(event_file, clim_file) must actually compute
   # categories from the climatology rather than silently returning NA. The
@@ -29,7 +31,7 @@ test_that("category3 reads inline categories and validates missing climatology",
   # with 0 when category = FALSE), so has_precomputed can't rely on mere
   # presence -- it previously did, and always took the "already computed"
   # branch, returning NA for every event no matter what.
-  cats2 <- category3(ev2, paste0(stem2, "_clim.nc"))
+  cats2 <- category3(ev2, paste0(stem2, "_clim.nc"), sst_file = sst_file)
   expect_s3_class(cats2, "data.frame")
   expect_false(anyNA(cats2$category))
   expect_true(all(cats2$category %in% c("I Moderate", "II Strong", "III Severe", "IV Extreme")))
@@ -39,6 +41,8 @@ test_that("category3 reads inline categories and validates missing climatology",
   ord <- order(cats$lon, cats$lat, cats$peak_date)
   ord2 <- order(cats2$lon, cats2$lat, cats2$peak_date)
   expect_equal(cats$category[ord], cats2$category[ord2])
+  for (v in c("p_moderate", "p_strong", "p_severe", "p_extreme"))
+    expect_identical(cats[[v]][ord], cats2[[v]][ord2])
 })
 
 test_that("category3 validates its file arguments", {

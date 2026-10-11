@@ -83,7 +83,16 @@ hw3.detect3("sst.nc", name="run1", climatologyPeriod=("1982-01-01", "2011-12-31"
 
 ## Numerical agreement
 
-For the same input, the two packages give identical results, with two
+Both packages reproduce heatwaveR: the climatology, the event metrics, the
+event and daily categories are identical to `heatwaveR::ts2clm()`,
+`detect_event()` and `category()` (including heatwaveR's rounding and its
+sign convention for cold-spells, whose intensities are negative). heatwave3
+differs from heatwaveR in two places, where heatwaveR has known issues: the
+season is that of the event's peak month (December to February = summer in
+the southern hemisphere), and an event is never extended over non-exceeding
+days at the very end of the series.
+
+For the same input, the R and Python packages give identical results, with two
 exceptions in {func}`~heatwave3.detect_blob3`:
 
 - The per-blob totals and means (`cumI_km2_day`, `meanArea_km2`, the

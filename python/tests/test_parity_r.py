@@ -133,7 +133,7 @@ CASES = {
     "proto_sub": lambda r: hw3.hw3_export(r["p"] + "_protoevents.nc",
                                           time_range=("2016-01-01", "2016-12-31")),
     "category3_fallback": lambda r: hw3.category3(r["p"] + "_events.nc", r["p"] + "_clim.nc",
-                                                  hemisphere="north"),
+                                                  hemisphere="north", sst_file=SST),
     "cold_events": lambda r: hw3.hw3_export(r["k"] + "_events.nc"),
     "category_daily3_cold": lambda r: hw3.category_daily3(SST, r["k"] + "_clim.nc",
                                                           r["k"] + "_events.nc",

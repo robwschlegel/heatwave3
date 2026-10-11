@@ -235,3 +235,18 @@ def test_detect_blob3_without_blobs_returns_empty_frames(tmp_path):
     res = hw3.detect_blob3(SST, clim, return_=("event", "voxel"))
     assert list(res) == ["event", "voxel"]
     assert all(df.empty for df in res.values())
+
+
+def test_category3_needs_sst_without_inline_categories(tmp_path):
+    hw3.detect3(SST, tmp_path / "nc", CP, quiet=True)
+    ev, clim = str(tmp_path / "nc_events.nc"), str(tmp_path / "nc_clim.nc")
+    with pytest.raises(ValueError, match="clim_file and sst_file are required"):
+        hw3.category3(ev)
+    with pytest.raises(RuntimeError, match="sst_file are required"):
+        hw3.category3(ev, clim)
+    cats = hw3.category3(ev, clim, sst_file=SST)
+    assert cats["category"].notna().all()
+    # whole percentages of the duration; gap days below the threshold are not
+    # counted, so (as in heatwaveR) they may add up to less than 100
+    p = cats[["p_moderate", "p_strong", "p_severe", "p_extreme"]]
+    assert ((p % 1 == 0) & (p >= 0)).all().all() and (p.sum(axis=1) <= 101).all()

@@ -22,7 +22,7 @@ ts2clm3(
   var = FALSE,
   detrend = FALSE,
   roundClm = 4L,
-  n_threads = 1L,
+  n_threads = NULL,
   skip_bad_files = FALSE,
   quiet = FALSE
 )
@@ -91,7 +91,10 @@ approach (Jacox et al. 2020).}
 \item{roundClm}{Number of decimal places for rounding. Default \code{4}.
 Set to \code{FALSE} to disable.}
 
-\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default
+\code{NULL}: the session default, half the available cores unless
+changed with \code{\link{setHW3threads}} or the
+\code{R_HEATWAVE3_NUM_THREADS} environment variable.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}

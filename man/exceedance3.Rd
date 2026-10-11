@@ -18,7 +18,7 @@ exceedance3(
   time_range = NULL,
   depth = NULL,
   roundRes = 4L,
-  n_threads = 1L,
+  n_threads = NULL,
   quiet = FALSE
 )
 }
@@ -50,7 +50,10 @@ Default \code{FALSE}.}
 
 \item{roundRes}{Decimal places for rounding. Default \code{4}.}
 
-\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default
+\code{NULL}: the session default, half the available cores unless
+changed with \code{\link{setHW3threads}} or the
+\code{R_HEATWAVE3_NUM_THREADS} environment variable.}
 
 \item{quiet}{Logical. Suppress the progress messages from the computation?
 Warnings are still shown. Default \code{FALSE}.}

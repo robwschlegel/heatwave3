@@ -549,11 +549,13 @@ PYBIND11_MODULE(_core, m) {
 
     m.def("hw3_category",
           [](const std::string& event_file, const std::string& clim_file,
-             const std::string& hemisphere, int roundVal) {
+             const std::string& hemisphere, int roundVal, const OptStr& sst_files,
+             const std::string& var_name, bool skip_bad_files) {
               hw3::CategoryResult r;
               {
                   py::gil_scoped_release nogil;
-                  r = hw3::category(event_file, clim_file, hemisphere, roundVal);
+                  r = hw3::category(event_file, clim_file, val(sst_files), var_name,
+                                    skip_bad_files, hemisphere, roundVal);
               }
               py::dict d;
               d["event_no"] = np(std::move(r.event_no));
@@ -561,6 +563,7 @@ PYBIND11_MODULE(_core, m) {
               d["lat"] = np(std::move(r.lat));
               d["peak_jd"] = np(std::move(r.peak_jd));
               d["category"] = np(std::move(r.category));   // 0 = NA, 1..4
+              // p_*: integer percentages of the duration (NaN = NA)
               d["intensity_max"] = np(std::move(r.intensity_max));
               d["duration"] = np(std::move(r.duration));
               d["p_moderate"] = np(std::move(r.p_moderate));
@@ -571,7 +574,8 @@ PYBIND11_MODULE(_core, m) {
               return d;
           },
           py::arg("event_file"), py::arg("clim_file") = "", py::arg("hemisphere") = "south",
-          py::arg("roundVal") = 4);
+          py::arg("roundVal") = 4, py::arg("sst_files") = py::none(), py::arg("var_name") = "",
+          py::arg("skip_bad_files") = false);
 
     m.def("hw3_block_average", [](const std::string& event_file) {
         hw3::BlockAverageResult r;

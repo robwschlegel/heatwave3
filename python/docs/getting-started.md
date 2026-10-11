@@ -126,10 +126,11 @@ and lollipops onto any `Axes`.
 ## Categories and annual summaries
 
 {func}`~heatwave3.category3` gives each event its Hobday et al. (2018)
-category (from its peak intensity relative to the threshold) and its season.
-The columns `p_moderate` to `p_extreme` are also computed from the peak
-intensity: each is the peak's position within that category's band, from 0
-to 1.
+category and season, exactly as `heatwaveR::category()`. The columns
+`p_moderate` to `p_extreme` are the percentages of the event's days spent in
+each category (whole numbers; days below the threshold within an event are not
+counted, so they can add up to less than 100), and the category is the highest
+one reached on at least one day.
 
 ```python
 cats = hw3.category3(event_file, clim_file)
@@ -204,7 +205,6 @@ then work on every level, and blobs connect through the water column.
 
 ## Threads
 
-`n_threads` sets the number of threads for each call; the default is 1.
-With `n_threads=0`, the session default is used instead: half the available
-cores, unless changed with {func}`~heatwave3.setHW3threads` or the
-`HEATWAVE3_NUM_THREADS` environment variable.
+By default each call uses half the available cores. Change this for the
+session with {func}`~heatwave3.setHW3threads` or the `HEATWAVE3_NUM_THREADS`
+environment variable, or for one call with `n_threads`.

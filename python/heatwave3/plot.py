@@ -252,7 +252,9 @@ def event_line3(sst_file, clim_file, lon, lat, depth=None, var_name=None, start_
         if resolved_depth is not None and len(ev["depth"]) > 0:
             mask &= np.abs(ev["depth"] - resolved_depth) < 1e-3
         if mask.any():
-            best = np.flatnonzero(mask)[np.argmax(ev[metric][mask])]
+            # Cold-spell intensities are negative: the strongest is the minimum
+            pick = np.argmin if coldSpells else np.argmax
+            best = np.flatnonzero(mask)[pick(ev[metric][mask])]
             centre, span = peaks[best], np.timedelta64(int(spread), "D")
             df = df[(df["t"] >= centre - span) & (df["t"] <= centre + span)]
     if len(df) == 0:

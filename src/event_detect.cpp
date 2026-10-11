@@ -1,4 +1,5 @@
 #include "event_detect.h"
+#include "hw3_round.h"
 #include "climatology.h"
 #include "hw3_omp.h"
 #include <algorithm>
@@ -84,32 +85,68 @@ static std::vector<ProtoEvent> proto_event(
 
 // ---- Compute event metrics ----
 
+// R's round(), as heatwaveR (see hw3_round.h)
 static double round_to(double val, int decimals) {
-    if (is_na(val)) return val;
-    double factor = std::pow(10.0, decimals);
-    return std::round(val * factor) / factor;
+    return r_round(val, decimals);
 }
 
 // ---- Per-day Hobday (2018) category ----
 // 0 = no exceedance (or undefined), 1 = I Moderate ... 4 = IV Extreme.
 // Mirrors the inline event-category thresholds: exceedance measured in
 // multiples of |thresh - seas| above (heatwave) or below (cold-spell) seas.
-static int daily_category(double temp, double seas, double thr, bool coldSpells) {
-    if (is_na(temp) || is_na(seas) || is_na(thr)) return 0;
-    double diff = std::abs(thr - seas);
-    if (diff <= 0.0) return 0;
-    double ix;
-    if (coldSpells) {
-        if (temp >= thr) return 0;   // not below threshold
-        ix = seas - temp;
-    } else {
-        if (temp <= thr) return 0;   // not above threshold
-        ix = temp - seas;
+void category_levels(const double* seas, const double* thresh, int digits,
+                     CategoryLevels& out) {
+    for (int d = 0; d < 366; ++d) {
+        double s = seas[d], th = thresh[d];
+        if (is_na(s) || is_na(th)) {
+            for (int k = 0; k < 4; ++k) out.level[k][d] = NA_DOUBLE;
+            continue;
+        }
+        double diff = round_to(th - s, digits);
+        out.level[0][d] = th;
+        for (int k = 1; k < 4; ++k)
+            out.level[k][d] = round_to(out.level[k - 1][d] + diff, digits);
     }
-    if (ix >= 4.0 * diff) return 4;
-    if (ix >= 3.0 * diff) return 3;
-    if (ix >= 2.0 * diff) return 2;
-    return 1;
+}
+
+int daily_category(double temp, int doy, const CategoryLevels& L, bool coldSpells) {
+    int d = doy - 1;
+    if (is_na(temp) || d < 0 || d >= 366) return 0;
+    for (int k = 0; k < 4; ++k)
+        if (is_na(L.level[k][d])) return 0;
+    for (int k = 3; k >= 0; --k) {
+        double lv = L.level[k][d];
+        if (coldSpells ? (temp < lv) : (temp > lv)) return k + 1;
+    }
+    return 0;
+}
+
+EventCategory event_category(const double* temp, const int* doy, int n, int duration,
+                             const CategoryLevels& L, bool coldSpells) {
+    int count[4] = {0, 0, 0, 0};
+    for (int i = 0; i < n; ++i) {
+        double t = temp[i];
+        int d = doy[i] - 1;
+        if (is_na(t) || d < 0 || d >= 366) continue;
+        for (int k = 0; k < 4; ++k) {
+            double lv = L.level[k][d];
+            if (!is_na(lv) && (coldSpells ? (t <= lv) : (t >= lv))) ++count[k];
+        }
+    }
+    EventCategory ec;
+    if (count[0] == 0) {
+        ec.p_moderate = ec.p_strong = ec.p_severe = ec.p_extreme = NA_DOUBLE;
+        return ec;
+    }
+    // R: round((moderate - strong) / duration * 100); nearbyint rounds half
+    // to even, as R does.
+    auto pct = [&](int c) { return std::nearbyint(static_cast<double>(c) / duration * 100.0); };
+    ec.p_moderate = pct(count[0] - count[1]);
+    ec.p_strong   = pct(count[1] - count[2]);
+    ec.p_severe   = pct(count[2] - count[3]);
+    ec.p_extreme  = pct(count[3]);
+    ec.category = ec.p_extreme > 0 ? 4 : ec.p_severe > 0 ? 3 : ec.p_strong > 0 ? 2 : 1;
+    return ec;
 }
 
 PixelEvents detect_pixel_events(
@@ -209,6 +246,12 @@ PixelEvents detect_pixel_events(
         }
     }
 
+    // heatwaveR category levels for this pixel (per day of year), when any
+    // category output is wanted
+    const bool want_levels = category || (daily != nullptr && daily->category != nullptr);
+    CategoryLevels levels;
+    if (want_levels) category_levels(seas, thresh, 4, levels);
+
     // Convert to bool array for proto_event
     std::vector<bool> thresh_criterion(dntime);
     for (int t = 0; t < dntime; ++t) thresh_criterion[t] = (thresh_raw[t] != 0);
@@ -277,8 +320,10 @@ PixelEvents detect_pixel_events(
                     if (roundRes > 0) intens = round_to(intens, roundRes);
                 }
                 // Hobday (2018) categories describe events: only event days
-                // are categorised, matching category_daily3().
-                if (ev) cat = static_cast<signed char>(daily_category(temp[t], s, th, coldSpells));
+                // are categorised, by heatwaveR's rule (category_daily3() too).
+                if (ev && daily->category)
+                    cat = static_cast<signed char>(daily_category(temp[t], dense_doy[di], levels,
+                                                                  coldSpells));
             }
             if (daily->seas) daily->seas[t] = s;
             if (daily->thresh) daily->thresh[t] = th;
@@ -309,96 +354,87 @@ PixelEvents detect_pixel_events(
         er.jd_end   = dense_jd[pe.end];
         er.duration = pe.end - pe.start + 1;
 
-        // Intensity relative to seas
-        double sum_rel_seas = 0.0, max_rel_seas = -1e30;
-        double sum_sq_rel_seas = 0.0;
+        // Event days' intensities relative to seas and thresh, and absolute
+        // (sign-flipped for cold-spells, as heatwaveR), summarised with R's
+        // mean(), sum() and sd() so the rounded metrics match heatwaveR.
+        int nd = pe.end - pe.start + 1;
+        std::vector<double> rel_seas_v(nd), rel_thresh_v(nd), abs_v(nd);
+        double max_rel_seas = -1e30, max_rel_thresh = -1e30, max_abs = -1e30;
         int peak_idx = pe.start;
-
-        // Intensity relative to thresh
-        double sum_rel_thresh = 0.0, max_rel_thresh = -1e30;
-        double sum_sq_rel_thresh = 0.0;
-
-        // Absolute intensity
-        double sum_abs = 0.0, max_abs = -1e30;
-        double sum_sq_abs = 0.0;
-
-        int n_valid = 0;
-
         for (int t = pe.start; t <= pe.end; ++t) {
             double rel_seas = temp_filled[t] - daily_seas[t];
             double rel_thresh = temp_filled[t] - daily_thresh[t];
             double abs_val = temp_filled[t];
-
             if (coldSpells) {
                 rel_seas = -rel_seas;
                 rel_thresh = -rel_thresh;
             }
-
-            sum_rel_seas += rel_seas;
-            sum_sq_rel_seas += rel_seas * rel_seas;
+            rel_seas_v[t - pe.start] = rel_seas;
+            rel_thresh_v[t - pe.start] = rel_thresh;
+            abs_v[t - pe.start] = abs_val;
             if (rel_seas > max_rel_seas) {
                 max_rel_seas = rel_seas;
                 peak_idx = t;
             }
-
-            sum_rel_thresh += rel_thresh;
-            sum_sq_rel_thresh += rel_thresh * rel_thresh;
             if (rel_thresh > max_rel_thresh) max_rel_thresh = rel_thresh;
-
-            sum_abs += abs_val;
-            sum_sq_abs += abs_val * abs_val;
             if (coldSpells) {
                 if (abs_val < max_abs || max_abs < -1e29) max_abs = abs_val;
             } else {
                 if (abs_val > max_abs) max_abs = abs_val;
             }
-
-            ++n_valid;
         }
+        int n_valid = nd;
 
         er.index_peak = peak_idx;
         er.jd_peak    = dense_jd[peak_idx];
 
         if (n_valid > 0) {
-            er.intensity_mean = sum_rel_seas / n_valid;
+            er.intensity_mean = r_mean(rel_seas_v.data(), nd);
             er.intensity_max = max_rel_seas;
-            er.intensity_cumulative = sum_rel_seas;
+            er.intensity_cumulative = r_sum(rel_seas_v.data(), nd);
+            er.intensity_var = r_sd(rel_seas_v.data(), nd);
 
-            double var_seas = (n_valid > 1) ?
-                (sum_sq_rel_seas - sum_rel_seas * sum_rel_seas / n_valid) / (n_valid - 1) : 0.0;
-            er.intensity_var = std::sqrt(std::max(0.0, var_seas));
-
-            er.intensity_mean_relThresh = sum_rel_thresh / n_valid;
+            er.intensity_mean_relThresh = r_mean(rel_thresh_v.data(), nd);
             er.intensity_max_relThresh = max_rel_thresh;
-            er.intensity_cumulative_relThresh = sum_rel_thresh;
-            double var_thresh = (n_valid > 1) ?
-                (sum_sq_rel_thresh - sum_rel_thresh * sum_rel_thresh / n_valid) / (n_valid - 1) : 0.0;
-            er.intensity_var_relThresh = std::sqrt(std::max(0.0, var_thresh));
+            er.intensity_cumulative_relThresh = r_sum(rel_thresh_v.data(), nd);
+            er.intensity_var_relThresh = r_sd(rel_thresh_v.data(), nd);
 
-            er.intensity_mean_abs = sum_abs / n_valid;
+            er.intensity_mean_abs = r_mean(abs_v.data(), nd);
             er.intensity_max_abs = max_abs;
-            er.intensity_cumulative_abs = sum_abs;
-            double var_abs = (n_valid > 1) ?
-                (sum_sq_abs - sum_abs * sum_abs / n_valid) / (n_valid - 1) : 0.0;
-            er.intensity_var_abs = std::sqrt(std::max(0.0, var_abs));
+            er.intensity_cumulative_abs = r_sum(abs_v.data(), nd);
+            er.intensity_var_abs = r_sd(abs_v.data(), nd);
 
-            // Rate of onset and decline (half-day interpolation)
-            double start_rel = temp_filled[pe.start] - daily_seas[pe.start];
-            double end_rel = temp_filled[pe.end] - daily_seas[pe.end];
-            if (coldSpells) {
-                start_rel = -start_rel;
-                end_rel = -end_rel;
-            }
-
+            // Rates of onset and decline, as heatwaveR (and Hobday et al.
+            // 2016): from the midpoint between the first day and the day
+            // before it, and to the midpoint between the last day and the day
+            // after it; NA when that day is outside the series or missing.
+            // Computed on the sign-flipped series for cold-spells, as heatwaveR.
+            const double sgn = coldSpells ? -1.0 : 1.0;
+            auto rel = [&](int t) { return sgn * temp_filled[t] - sgn * daily_seas[t]; };
+            auto mid = [&](int edge, int outside) {
+                // 0.5 * (A + B - C), in heatwaveR's order of operations
+                return 0.5 * (rel(edge) + sgn * dense_temp[outside] - sgn * daily_seas[outside]);
+            };
             int days_to_peak = peak_idx - pe.start;
             int days_from_peak = pe.end - peak_idx;
-            er.rate_onset = (days_to_peak > 0) ?
-                (max_rel_seas - start_rel) / (days_to_peak + 0.5) : 0.0;
-            er.rate_decline = (days_from_peak > 0) ?
-                (max_rel_seas - end_rel) / (days_from_peak + 0.5) : 0.0;
-        }
+            er.rate_onset = (pe.start > 0) ?
+                (max_rel_seas - mid(pe.start, pe.start - 1)) / (days_to_peak + 0.5) : NA_DOUBLE;
+            er.rate_decline = (pe.end < dntime - 1) ?
+                (max_rel_seas - mid(pe.end, pe.end + 1)) / (days_from_peak + 0.5) : NA_DOUBLE;
 
-        double category_intensity_max = er.intensity_max;
+            // Cold-spells: intensities and rates are reported negative, as
+            // heatwaveR (the variances and the _abs metrics are unchanged).
+            if (coldSpells) {
+                er.intensity_mean = -er.intensity_mean;
+                er.intensity_max = -er.intensity_max;
+                er.intensity_cumulative = -er.intensity_cumulative;
+                er.intensity_mean_relThresh = -er.intensity_mean_relThresh;
+                er.intensity_max_relThresh = -er.intensity_max_relThresh;
+                er.intensity_cumulative_relThresh = -er.intensity_cumulative_relThresh;
+                er.rate_onset = -er.rate_onset;
+                er.rate_decline = -er.rate_decline;
+            }
+        }
 
         // Round
         if (roundRes > 0) {
@@ -420,25 +456,17 @@ PixelEvents detect_pixel_events(
 
         // Category computation (inline, zero extra I/O)
         if (category) {
-            int peak_doy_idx = dense_doy[er.index_peak] - 1;
-            double s = seas[peak_doy_idx];
-            double th = thresh[peak_doy_idx];
-            double diff = std::abs(s - th);
-
-            if (!is_na(s) && !is_na(th) && diff > 0.0) {
-                double ix = category_intensity_max;
-                if (ix >= 4.0 * diff) er.category = 4;
-                else if (ix >= 3.0 * diff) er.category = 3;
-                else if (ix >= 2.0 * diff) er.category = 2;
-                else er.category = 1;
-
-                double round_mult = std::pow(10.0, roundRes > 0 ? roundRes : 4);
-                auto rnd = [&](double v) { return std::round(v * round_mult) / round_mult; };
-                er.p_moderate = rnd(std::min(1.0, std::max(0.0, ix / diff)));
-                er.p_strong   = rnd(std::min(1.0, std::max(0.0, (ix - diff) / diff)));
-                er.p_severe   = rnd(std::min(1.0, std::max(0.0, (ix - 2.0 * diff) / diff)));
-                er.p_extreme  = rnd(std::min(1.0, std::max(0.0, (ix - 3.0 * diff) / diff)));
-            }
+            // heatwaveR::category(): days at or beyond each level, over the
+            // event's days, against the original (unfilled) temperatures
+            EventCategory ec = event_category(dense_temp.data() + pe.start,
+                                              dense_doy.data() + pe.start,
+                                              pe.end - pe.start + 1, er.duration,
+                                              levels, coldSpells);
+            er.category = ec.category;
+            er.p_moderate = ec.p_moderate;
+            er.p_strong = ec.p_strong;
+            er.p_severe = ec.p_severe;
+            er.p_extreme = ec.p_extreme;
 
             // Season from peak date (use dense JD; the original `time_jd[]`
             // is the caller's sparse array and would index the wrong day

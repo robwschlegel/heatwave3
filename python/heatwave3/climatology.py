@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from . import _core
-from ._utils import (check_out_dir, clim_path, date_strings, int_or_zero, pair, quiet_core,
-                     resolve_input)
+from ._utils import (check_out_dir, clim_path, date_strings, int_or_zero, nthreads, pair,
+                     quiet_core, resolve_input)
 from .export import console_summary
 
 
@@ -12,7 +12,7 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
             time_range=None, depth=None, depth_range=None, var_name=None,
             maxPadLength=False, windowHalfWidth=5, pctile=90, smoothPercentile=True,
             smoothPercentileWidth=31, var=False, detrend=False, roundClm=4,
-            n_threads=1, skip_bad_files=False, quiet=False):
+            n_threads=None, skip_bad_files=False, quiet=False):
     """Compute a gridded climatology and write it to ``<name>_clim.nc``.
 
     The gridded equivalent of ``heatwaveR::ts2clm()``: for every pixel, the
@@ -56,8 +56,11 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
         Remove a linear trend before computing the climatology.
     roundClm : int or False
         Decimal places for rounding; ``False`` means no rounding.
-    n_threads : int
-        Threads for the per-pixel computation.
+    n_threads : int, optional
+        Threads for the per-pixel computation. ``None`` (the default) uses
+        the session default: half the available cores, unless changed with
+        :func:`setHW3threads` or the ``HEATWAVE3_NUM_THREADS`` environment
+        variable.
     skip_bad_files : bool
         For multi-file input, skip unreadable or mismatched files.
     quiet : bool
@@ -95,7 +98,7 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
         smoothPercentileWidth=int(smoothPercentileWidth),
         compute_var=bool(var),
         roundClm=int_or_zero(roundClm),
-        n_threads=int(n_threads),
+        n_threads=nthreads(n_threads),
         detrend=bool(detrend),
     )
     with quiet_core(quiet):

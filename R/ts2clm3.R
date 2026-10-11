@@ -50,7 +50,10 @@
 #'   approach (Jacox et al. 2020).
 #' @param roundClm Number of decimal places for rounding. Default \code{4}.
 #'   Set to \code{FALSE} to disable.
-#' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default
+#'   \code{NULL}: the session default, half the available cores unless
+#'   changed with \code{\link{setHW3threads}} or the
+#'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #' @param quiet Logical. Suppress all console output: the progress messages
@@ -87,7 +90,7 @@ ts2clm3 <- function(file_in, name,
                     var = FALSE,
                     detrend = FALSE,
                     roundClm = 4L,
-                    n_threads = 1L,
+                    n_threads = NULL,
                     skip_bad_files = FALSE,
                     quiet = FALSE) {
 
@@ -148,7 +151,7 @@ ts2clm3 <- function(file_in, name,
       smoothPercentileWidth = as.integer(smoothPercentileWidth),
       compute_var = var,
       roundClm = rnd,
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
       detrend = detrend,
       skip_bad_files = skip_bad_files
     )
@@ -170,7 +173,7 @@ ts2clm3 <- function(file_in, name,
       smoothPercentileWidth = as.integer(smoothPercentileWidth),
       compute_var = var,
       roundClm = rnd,
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
       detrend = detrend
     )
   }

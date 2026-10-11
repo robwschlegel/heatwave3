@@ -17,7 +17,10 @@
 #' @param time_range Optional \code{c("start", "end")} date range.
 #' @param depth Optional depth index.
 #' @param roundRes Decimal places for rounding. Default \code{4}.
-#' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default
+#'   \code{NULL}: the session default, half the available cores unless
+#'   changed with \code{\link{setHW3threads}} or the
+#'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
 #' @param quiet Logical. Suppress the progress messages from the computation?
 #'   Warnings are still shown. Default \code{FALSE}.
 #'
@@ -42,7 +45,7 @@ exceedance3 <- function(file_in, file_out, threshold,
                         lon_range = NULL, lat_range = NULL,
                         time_range = NULL, depth = NULL,
                         roundRes = 4L,
-                        n_threads = 1L,
+                        n_threads = NULL,
                         quiet = FALSE) {
 
   if (missing(threshold))
@@ -86,7 +89,7 @@ exceedance3 <- function(file_in, file_out, threshold,
     maxGap2 = as.integer(maxGap),
     coldSpells = below,
     roundRes = as.integer(roundRes),
-    n_threads = as.integer(n_threads),
+    n_threads = .hw3_nthreads(n_threads),
     category = FALSE,
     southHemisphere = TRUE,
     threshClim2_file = "",

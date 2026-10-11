@@ -50,6 +50,8 @@ All compute-intensive work is in C++. The core is language-neutral (no `Rcpp.h`)
 
 - **`hw3_api.cpp/h`**: language-neutral entry points (plain structs in and out) holding all orchestration: read/compute/write climatology and events, `category_daily` (daily categories for a window), `category` fallback, `block_average`, `metric_summary`, date parsing and `SubsetSpec` construction. Missing values are NaN (doubles) and `hw3::NA_INT` (= R's `NA_INTEGER`).
 
+- **`hw3_round.h`**: ports of R's `round()`, `mean()`, `sum()` and `sd()` (long double accumulation, mean refinement pass), used wherever heatwaveR rounds or summarises, so results are bit-identical to heatwaveR.
+
 - **`blob_core.cpp/h`**: 3D/4D connected-component labelling (union-find, optional dateline wrap) and per-(blob, day) metric reduction. Ported from heatwaveR. `blob_label.cpp` / `blob_metrics.cpp` are the thin R wrappers (`label_components_cpp`, `blob_daily_summary_cpp`).
 
 - **`heatwave3_init.cpp`**: Rcpp type conversion only; each export calls `hw3_api`. Converts core NaN back to `NA_real_` where R expects NA. Key exports: `hw3_compute_clim`, `hw3_detect_events` (with category/hemisphere and protoEvent/write_daily params), `hw3_read_sst`, `hw3_read_event_nc`, `hw3_read_clim_nc`, `hw3_read_daily_nc`, `hw3_category`, `hw3_block_average`, `hw3_read_metric_summary`.
@@ -66,8 +68,8 @@ Function names are suffixed with `3` to avoid conflicts with heatwaveR:
 - **`ts2clm3()`** — NetCDF → climatology NetCDF (seas + thresh per DOY per pixel) at `<name>_clim.nc`.
 - **`detect_event3()`** — SST + climatology → event NetCDF. `clim_file` defaults to `<name>_clim.nc`. Supports `category = TRUE` (inline categories) and `hemisphere = "south"/"north"`. Per-day output via `daily = c("none","also","only")` (writes `<name>_events_daily.nc` with temp/seas/thresh/intensity/event/event_no + daily category on event days only) and `protoEvent = TRUE` (writes `<name>_protoevents.nc` with the heatwaveR proto flags, instead of the event table). All per-day products are gridded `[lon, lat, time]`.
 - **`hw3_export()`** — Read/export hub: auto-detects the product (via `hw3_file_meta`), returns a long data.frame (whole or first `n` rows) or writes a flat `.csv`/`.rds`/`.parquet`. Reading is C++-backed.
-- **`category3()`** — Reads pre-computed categories from event file, or computes from climatology file for older events. `hemisphere` parameter replaces deprecated `S`.
-- **`category_daily3()`** — Per-pixel daily MHW/MCS series for a date window, built in C++ from SST + clim + events (windowed SST hyperslab, no re-detection; event membership read from the events file). Returns the full daily grid with the same columns as the `daily="also"` product (`lon, lat, t, temp, seas, thresh, intensity, event, event_no, category`); `category` is set on event-member exceedance days and `NA` elsewhere, with `ice_thresh` for the cold-spell ice category. The MHW Tracker's `load_sub_cat_clim()` event-day subset is `subset(x, !is.na(category))`.
+- **`category3()`** — Reads pre-computed categories from event file, or computes them (as `heatwaveR::category()`) from `clim_file` + `sst_file` for event files without them. `hemisphere` parameter replaces deprecated `S`.
+- **`category_daily3()`** — Per-pixel daily MHW/MCS series for a date window, built in C++ from SST + clim + events (windowed SST hyperslab, no re-detection; event membership read from the events file). Returns the full daily grid with the same columns as the `daily="also"` product (`lon, lat, t, temp, seas, thresh, intensity, event, event_no, category`); `category` is set on event-member exceedance days and `NA` elsewhere, with `ice_thresh` for the cold-spell ice category (event days with `thresh < ice_thresh`). The MHW Tracker's `load_sub_cat_clim()` event-day subset is `subset(x, !is.na(category))`.
 - **`block_average3()`** — Yearly event metric aggregation (pure C++)
 - **`exceedance3()`** — Static threshold exceedance
 - **`detect_blob3()`** — 4D spatially-connected blob detection
@@ -102,6 +104,8 @@ hw3_export("X_events.nc") → data.frame  (or .csv/.rds/.parquet)
 
 7. **Results are not bit-identical across CPU types (decided 2026-10-11)**: compilers fuse multiply-adds (FMA) by default on ARM (including Apple Silicon) but not on baseline x86-64, so C++ accumulations (notably detect_blob3's per-day metrics) differ in the last bit (<= ~4e-16 relative). Rounded outputs (climatology, event metrics) are unaffected in practice, but exactly tied blobs can be ranked differently and `topN` can select differently at a tie. `-ffp-contract=off` would make every platform bit-identical (x86 results unchanged); it was considered and not adopted. The R reference files are generated on x86-64; on other CPUs `test_parity_r.py` matches blobs by id with rtol 1e-14 and ignores `rank`.
 
+8. **heatwaveR is the source of truth (decided 2026-10-11, v1.4.0)**: every output (climatology, event metrics, `p_*` and event/daily categories, rates, negative cold-spell intensities and rates) must equal heatwaveR's. Two deliberate exceptions, both heatwaveR bugs to be fixed there: seasons (heatwave3 uses the peak month, Dec-Feb = Summer in the south; `heatwaveR::category()` intends this but its `$mo`/`$day` assignments are ignored, giving calendar quarters) and the series end (heatwaveR joins up to `maxGap` trailing non-exceeding days into the last event; heatwave3 ends it on the last exceeding day). Any other difference is a heatwave3 bug.
+
 ## Build System
 
 - `configure` — Finds libnetcdf via nc-config, pkg-config, or common paths. Adds rpath on macOS. No OpenMP probe (parallelism is `std::thread`).
@@ -117,10 +121,7 @@ hw3_export("X_events.nc") → data.frame  (or .csv/.rds/.parquet)
 
 ## Testing
 
-Tests compare heatwave3 output pixel-by-pixel against heatwaveR on real OSTIA SST data from `/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc`. Tests verify:
-- Climatology seas/thresh match to 1e-4 (rounding precision)
-- Event count, duration exact match
-- Event intensity metrics match to 2e-4
+`tests/testthat/test-heatwaveR-parity.R` compares heatwave3 with heatwaveR (when installed) on the bundled `inst/extdata/sst_test.nc`, heatwaves and cold-spells, with exact equality: climatology, every event metric, `category3()` (inline and from SST) and daily categories. Series-end events and seasons are excluded (decision 8). Older tests compare against heatwaveR on OSTIA data from `/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc` and skip when it is absent.
 
 ## Performance
 

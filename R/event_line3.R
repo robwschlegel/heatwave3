@@ -134,7 +134,9 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
       px_mask <- px_mask & abs(ev$depth - resolved_depth) < 1e-3
     }
     if (any(px_mask)) {
-      best <- which(px_mask)[which.max(ev_metric[px_mask])]
+      # Cold-spell intensities are negative: the strongest is the minimum
+      pick <- if (coldSpells) which.min else which.max
+      best <- which(px_mask)[pick(ev_metric[px_mask])]
       center <- peak_dates[best]
       df <- df[df$t >= (center - spread) & df$t <= (center + spread), ]
     }

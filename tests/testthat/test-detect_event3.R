@@ -10,22 +10,22 @@ make_clim <- function() {
   list(sst = sst_file, stem = stem)
 }
 
-test_that("detect_event3 cold-spell intensities are positive (heatwaveR convention)", {
-  skip_if_not(file.exists("/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"),
-              "SWIO test data not available")
-
-  sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
+test_that("detect_event3 cold-spell intensities are negative (heatwaveR convention)", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
   stem <- tempfile()
-  on.exit(unlink(paste0(stem, c("_clim.nc", "_events.nc"))))
 
-  ts2clm3(file_in = sst_file, name = stem, climatologyPeriod = cp,
-          lon_range = c(25.025, 25.075), lat_range = c(-33.975, -33.925),
-          var_name = "analysed_sst", pctile = 10, quiet = TRUE)
-  detect_event3(file_in = sst_file, name = stem, var_name = "analysed_sst",
-                coldSpells = TRUE, quiet = TRUE)
+  ts2clm3(sst_file, name = stem, climatologyPeriod = cp, pctile = 10, quiet = TRUE)
+  detect_event3(sst_file, name = stem, coldSpells = TRUE, quiet = TRUE)
 
+  # As heatwaveR::detect_event(coldSpells = TRUE): intensities and rates are
+  # negative; the variances and the absolute (_abs) temperatures are not
   ev <- hw3_export(paste0(stem, "_events.nc"))
-  expect_true(all(ev$intensity_mean > 0, na.rm = TRUE))
+  expect_true(all(ev$intensity_mean < 0))
+  expect_true(all(ev$intensity_max < 0))
+  expect_true(all(ev$intensity_cumulative_relThresh < 0))
+  expect_true(all(ev$intensity_var >= 0, na.rm = TRUE))
+  expect_true(all(ev$intensity_max_abs > 0))
 })
 
 test_that("daily = 'none' (default) writes only the events file", {

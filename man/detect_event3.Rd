@@ -22,7 +22,7 @@ detect_event3(
   roundRes = 4L,
   daily = c("none", "also", "only"),
   protoEvent = FALSE,
-  n_threads = 1L,
+  n_threads = NULL,
   skip_bad_files = FALSE,
   quiet = FALSE
 )
@@ -95,7 +95,10 @@ mirroring \code{heatwaveR::detect_event(protoEvents = TRUE)}. Variables:
 \code{durationCriterion}, \code{event}, \code{event_no}. Mutually exclusive
 with \code{daily}. Default \code{FALSE}.}
 
-\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default
+\code{NULL}: the session default, half the available cores unless
+changed with \code{\link{setHW3threads}} or the
+\code{R_HEATWAVE3_NUM_THREADS} environment variable.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}

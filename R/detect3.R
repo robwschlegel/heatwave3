@@ -53,7 +53,10 @@
 #' @param protoEvent Logical. Write the per-day proto-event series
 #'   (\code{paste0(name, "_protoevents.nc")}) instead of the event table. See
 #'   \code{\link{detect_event3}}. Default \code{FALSE}.
-#' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default
+#'   \code{NULL}: the session default, half the available cores unless
+#'   changed with \code{\link{setHW3threads}} or the
+#'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #' @param quiet Logical. Suppress all console output: the progress messages
@@ -100,7 +103,7 @@ detect3 <- function(file_in, name,
                     roundRes = 4L,
                     daily = c("none", "also", "only"),
                     protoEvent = FALSE,
-                    n_threads = 1L,
+                    n_threads = NULL,
                     skip_bad_files = FALSE,
                     quiet = FALSE) {
 

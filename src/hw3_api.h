@@ -138,6 +138,7 @@ DailyCatResult category_daily_multi(const std::vector<std::string>& files,
 // ---- Event-file summaries ----
 
 // One row per event. category: 0 = NA, 1..4 = I Moderate..IV Extreme;
+// p_*: integer percentages of the duration (NaN = NA);
 // season: 0 = unset, 1..4 = Summer, Fall, Winter, Spring.
 struct CategoryResult {
     std::vector<int> event_no, peak_jd, category, duration, season;
@@ -145,8 +146,13 @@ struct CategoryResult {
     std::vector<double> p_moderate, p_strong, p_severe, p_extreme;
 };
 
+// Categories precomputed in the events file are returned as stored;
+// otherwise they are computed as heatwaveR::category() from the climatology
+// and the SST (sst_files: one file or several daily files).
 CategoryResult category(const std::string& event_file,
                         const std::string& clim_file,
+                        const std::vector<std::string>& sst_files,
+                        std::string var_name, bool skip_bad_files,
                         const std::string& hemisphere, int roundVal);
 
 // One row per (pixel, year), ordered by (pixel_index, year).

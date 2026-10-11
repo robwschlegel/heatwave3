@@ -80,6 +80,14 @@
 #' @return A named list containing the requested components (\code{event},
 #'   \code{daily}, and/or \code{voxel} data.frames).
 #'
+#' @section Ties and CPU type:
+#' Blobs with exactly equal values of \code{rankBy} (common for small blobs) are
+#' ranked in blob order. On CPUs whose compilers fuse multiply-adds by default
+#' (e.g. ARM, including Apple Silicon) the accumulated metrics can differ from
+#' x86-64 in the last bit, so tied blobs can be ordered and ranked differently,
+#' and \code{topN} can select a different blob at a tie. Values agree to about
+#' 1e-15 relative.
+#'
 #' @seealso \code{\link{ts2clm3}} for computing the climatology,
 #'   \code{\link{detect_event3}} for per-pixel event detection (different from
 #'   spatial blob detection).

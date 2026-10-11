@@ -113,6 +113,16 @@ For an ordinary 3D \code{clim_file}, none of this changes: connectivity
 stays 3-axis (lon, lat, time) and no depth columns are added.
 }
 
+\section{Ties and CPU type}{
+
+Blobs with exactly equal values of \code{rankBy} (common for small blobs) are
+ranked in blob order. On CPUs whose compilers fuse multiply-adds by default
+(e.g. ARM, including Apple Silicon) the accumulated metrics can differ from
+x86-64 in the last bit, so tied blobs can be ordered and ranked differently,
+and \code{topN} can select a different blob at a tie. Values agree to about
+1e-15 relative.
+}
+
 \examples{
 \dontrun{
 sst_file <- "/path/to/sst.nc"

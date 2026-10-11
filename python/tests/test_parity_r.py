@@ -7,6 +7,7 @@ after any change that alters outputs.
 
 import gzip
 import json
+import platform
 import shutil
 from pathlib import Path
 
@@ -29,6 +30,14 @@ INT_MIN = np.iinfo(np.int32).min
 # wide margin. Everything else must match exactly.
 AGGREGATED = {"cumI_km2_day", "meanArea_km2", "centroid_lon", "centroid_lat",
               "totalVolume_km3", "meanVolume_km3"}
+
+# The R references come from x86-64. Elsewhere (e.g. ARM) compilers fuse
+# multiply-adds (FMA) by default, so blob metrics accumulated in C++ differ in
+# the last bit (<= ~4e-16 relative) and exactly tied blobs can be ranked in a
+# different order. This is accepted (decision 2026-10-11): on such platforms
+# blobs are matched by id and compared to rtol 1e-14, without their rank.
+EXACT_FP = platform.machine().lower() in ("x86_64", "amd64")
+BLOB_KEYS = {"event": ["blob"], "daily": ["blob", "t_idx"], "voxel": ["blob", "t_idx", "lon", "lat"]}
 
 pytestmark = pytest.mark.skipif(not (SST.exists() and GOLDEN.exists()),
                                 reason="test data or golden files not available")
@@ -174,8 +183,28 @@ def blob_runs(runs):
     return {name: f(runs) for name, f in BLOBS.items()}
 
 
+def assert_blob_matches_r_unordered(df, name, keys):
+    """Blob output against R, matched on `keys`, ignoring order and rank."""
+    n, cols = load_golden(name)
+    assert list(df.columns) == list(cols) and len(df) == n, name
+    ref = pd.DataFrame({c: (v if t == "character" else np.asarray(v)) for c, (t, v) in cols.items()})
+    got = pd.DataFrame({c: as_r(df[c], cols[c][0]) for c in df.columns})
+    keys = keys + (["depth"] if "depth" in ref and "voxel" in name else [])
+    ref, got = (x.sort_values(keys, kind="stable").reset_index(drop=True) for x in (ref, got))
+    for c, (rtype, _) in cols.items():
+        if c == "rank":
+            continue
+        if rtype == "double":
+            np.testing.assert_allclose(got[c], ref[c], rtol=1e-14, atol=0, err_msg=f"{name}.{c}")
+        else:
+            assert np.array_equal(got[c].to_numpy(), ref[c].to_numpy()), f"{name}.{c} differs"
+
+
 @pytest.mark.parametrize("blob, part", BLOB_CASES)
 def test_blob_matches_r(blob_runs, blob, part):
     res = blob_runs[blob]
     assert set(res) == {p for b, p in BLOB_CASES if b == blob}
-    assert_matches_r(res[part], f"{blob}_{part}", approx=AGGREGATED if part == "event" else ())
+    if EXACT_FP:
+        assert_matches_r(res[part], f"{blob}_{part}", approx=AGGREGATED if part == "event" else ())
+    else:
+        assert_blob_matches_r_unordered(res[part], f"{blob}_{part}", BLOB_KEYS[part])

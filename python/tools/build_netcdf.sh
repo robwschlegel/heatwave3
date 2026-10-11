@@ -5,8 +5,9 @@
 #
 #   python/tools/build_netcdf.sh PREFIX
 #
-# Features are kept to what heatwave3 needs (local NetCDF-3/4 files):
-# DAP/byte-range (curl), NCZarr, plugins and SZIP are off. Checksums match
+# Features are kept to what heatwave3 needs (local NetCDF-3/4 files, deflate
+# compression via HDF5): DAP/byte-range (curl), NCZarr, plugins, SZIP and the
+# optional bzip2/blosc/zstd filters are off, so nothing else is linked. Checksums match
 # the conda-forge recipes for the same versions. Re-running with the same
 # versions already installed in PREFIX is a no-op.
 
@@ -52,6 +53,11 @@ COMMON=(
   -DCMAKE_INSTALL_NAME_DIR="$PREFIX/lib"
   -DBUILD_SHARED_LIBS=ON
 )
+# On macOS never pick up Homebrew libraries: they target the runner's own
+# macOS version, which breaks the wheel's deployment target.
+if [[ "$(uname)" == "Darwin" ]]; then
+  COMMON+=(-DCMAKE_IGNORE_PREFIX_PATH="/opt/homebrew;/usr/local")
+fi
 
 fetch "https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VERSION}/hdf5-${HDF5_VERSION}.tar.gz" "$HDF5_SHA256"
 cmake -S "$WORK/hdf5-$HDF5_VERSION" -B "$WORK/build-hdf5" "${COMMON[@]}" \
@@ -68,6 +74,8 @@ cmake -S "$WORK/netcdf-c-$NETCDF_VERSION" -B "$WORK/build-netcdf" "${COMMON[@]}"
   -DNETCDF_ENABLE_NETCDF_4=ON -DNETCDF_ENABLE_HDF5=ON \
   -DNETCDF_ENABLE_DAP=OFF -DNETCDF_ENABLE_BYTERANGE=OFF -DNETCDF_ENABLE_NCZARR=OFF \
   -DNETCDF_ENABLE_PLUGINS=OFF -DNETCDF_ENABLE_FILTER_TESTING=OFF \
+  -DNETCDF_ENABLE_FILTER_SZIP=OFF -DNETCDF_ENABLE_FILTER_BZ2=OFF \
+  -DNETCDF_ENABLE_FILTER_BLOSC=OFF -DNETCDF_ENABLE_FILTER_ZSTD=OFF \
   -DNETCDF_ENABLE_LIBXML2=OFF -DNETCDF_ENABLE_HDF4=OFF \
   -DNETCDF_ENABLE_TESTS=OFF -DNETCDF_BUILD_UTILITIES=OFF -DNETCDF_ENABLE_EXAMPLES=OFF
 cmake --build "$WORK/build-netcdf" --parallel "$JOBS"

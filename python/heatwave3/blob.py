@@ -60,6 +60,15 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
         The requested components: ``"event"`` (one row per blob),
         ``"daily"`` (one row per blob and day) and ``"voxel"`` (one row per
         voxel, the full footprint).
+
+    Notes
+    -----
+    Blobs with exactly equal values of ``rankBy`` (common for small blobs)
+    are ranked in blob order. On CPUs whose compilers fuse multiply-adds by
+    default (e.g. ARM, including Apple Silicon) the accumulated metrics can
+    differ from x86-64 in the last bit, so tied blobs can be ordered and
+    ranked differently, and ``topN`` can select a different blob at a tie.
+    Values agree to about 1e-15 relative.
     """
     if sst_file is None or clim_file is None:
         raise ValueError("sst_file and clim_file must both be provided.")

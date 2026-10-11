@@ -214,44 +214,22 @@ detect_blob3 <- function(sst_file, clim_file,
   sst <- gd$sst
 
   # Map DOY for each time step
-  doy_arr <- vapply(gd$time_days, function(jd) {
-    # Use the C++ function if available
-    hw3_jd_to_doy(jd)
-  }, integer(1))
+  doy_arr <- vapply(gd$time_days, hw3_jd_to_doy, integer(1))
 
-  # Build the event mask: 1 = above threshold, 0 = not. pixel = (ilon*nlat +
-  # ilat)*ndepth + idepth (0-based), matching gd$sst/cd$seas's pixel-major
-  # layout -- see .clim_df_from_pixels() in export.R. Reduces to the plain
-  # ilon*nlat+ilat decode when ndepth == 1.
-  mask <- integer(nlon * nlat * ndepth * ntime)
-  for (px in seq_len(nlon * nlat * ndepth)) {
-    px_offset <- (px - 1L) * ntime
-    p0 <- px - 1L
-    idepth <- p0 %% ndepth
-    lonlat0 <- p0 %/% ndepth
-    ilon <- (lonlat0 %/% nlat) + 1L
-    ilat <- (lonlat0 %% nlat) + 1L
-    px_clim_offset <- (px - 1L) * 366
-
-    for (t in seq_len(ntime)) {
-      d <- doy_arr[t]
-      s_val <- cd$seas[px_clim_offset + d]
-      th_val <- cd$thresh[px_clim_offset + d]
-      temp_val <- sst[px_offset + t]
-
-      if (is.na(temp_val) || is.na(th_val)) next
-
-      exceed <- if (coldSpells) temp_val < th_val else temp_val > th_val
-      if (exceed) {
-        # Column-major index for R 4D array [ilon, ilat, idepth+1, t]
-        idx <- ilon + (ilat - 1L) * nlon + idepth * nlon * nlat +
-          (t - 1L) * nlon * nlat * ndepth
-        mask[idx] <- 1L
-      }
-    }
-  }
-
-  dim(mask) <- c(nlon, nlat, ndepth, ntime)
+  # Build the event mask: 1 = above threshold, 0 = not. gd$sst and cd$thresh
+  # are pixel-major, pixel = (ilon*nlat + ilat)*ndepth + idepth (0-based), with
+  # time (or day-of-year) varying fastest -- see .clim_df_from_pixels() in
+  # export.R -- so as R arrays they are [time, depth, lat, lon]. A comparison
+  # with NA (missing SST or threshold) is not an exceedance.
+  sst4 <- array(sst, c(ntime, ndepth, nlat, nlon))
+  thresh4 <- array(cd$thresh, c(366L, ndepth, nlat, nlon))[doy_arr, , , , drop = FALSE]
+  exceed <- if (coldSpells) sst4 < thresh4 else sst4 > thresh4
+  exceed[is.na(exceed)] <- FALSE
+  rm(sst4, thresh4)
+  # Reorder to the [lon, lat, depth, time] layout the labelling expects
+  mask <- aperm(exceed, c(4L, 3L, 2L, 1L))
+  storage.mode(mask) <- "integer"
+  rm(exceed)
 
   # Connected-component labelling: 6-connectivity (lon/lat/time) for
   # ordinary 3D input, 8-connectivity (lon/lat/depth/time) when
@@ -278,17 +256,11 @@ detect_blob3 <- function(sst_file, clim_file,
   iz <- ((w0 %/% (nlon * nlat)) %% ndepth) + 1L
   it <- (w0 %/% (nlon * nlat * ndepth)) + 1L
 
-  # Compute anomaly (delta)
-  delta <- numeric(length(which_labeled))
-  for (v in seq_along(which_labeled)) {
-    px <- ((ix[v] - 1L) * nlat + (iy[v] - 1L)) * ndepth + (iz[v] - 1L)
-    t_idx <- it[v]
-    d <- doy_arr[t_idx]
-    temp_val <- sst[px * ntime + t_idx]
-    seas_val <- cd$seas[px * 366 + d]
-    delta[v] <- temp_val - seas_val
-    if (coldSpells) delta[v] <- -delta[v]
-  }
+  # Compute anomaly (delta). Pixel offsets are doubles so that large grids
+  # (more than 2^31 voxels) cannot overflow integer arithmetic.
+  px <- ((ix - 1) * nlat + (iy - 1)) * ndepth + (iz - 1)
+  delta <- sst[px * ntime + it] - cd$seas[px * 366 + doy_arr[it]]
+  if (coldSpells) delta <- -delta
 
   # Cell area by latitude (km^2)
   cell_width_km <- 111.32 * cos(cd$lat * pi / 180) * abs(diff(cd$lon[1:2]))
@@ -320,34 +292,36 @@ detect_blob3 <- function(sst_file, clim_file,
   # Convert time indices to dates
   daily_df$date <- as.Date("1970-01-01") + (gd$time_days[daily_df$t_idx] - 2440588L)
 
-  # Aggregate to event-level summaries
-  blobs <- unique(daily_df$blob)
-  event_list <- lapply(blobs, function(b) {
-    sub <- daily_df[daily_df$blob == b, , drop = FALSE]
-    ev <- data.frame(
-      blob = b,
-      duration = nrow(sub),
-      date_start = min(sub$date),
-      date_end = max(sub$date),
-      date_peak = sub$date[which.max(sub$area_km2)],
-      cumI_km2_day = sum(sub$mean_delta * sub$area_km2),
-      peakArea_km2 = max(sub$area_km2),
-      meanArea_km2 = mean(sub$area_km2),
-      centroid_lon = stats::weighted.mean(sub$centroid_lon, sub$area_km2),
-      centroid_lat = stats::weighted.mean(sub$centroid_lat, sub$area_km2),
-      stringsAsFactors = FALSE
-    )
-    if (has_depth) {
-      ev$depth_min_m <- min(sub$depth_min_m)
-      ev$depth_max_m <- max(sub$depth_max_m)
-      ev$totalVolume_km3 <- sum(sub$volume_km3)
-      ev$peakVolume_km3 <- max(sub$volume_km3)
-      ev$meanVolume_km3 <- mean(sub$volume_km3)
-      ev$depthOfPeakIntensity_m <- sub$depth_at_max_delta_m[which.max(sub$max_delta)]
-    }
-    ev
-  })
-  event_df <- do.call(rbind, event_list)
+  # Aggregate to event-level summaries. daily_df is sorted by (blob, t_idx),
+  # so split() gives each blob's rows in date order, in ascending blob order,
+  # visiting every row once.
+  rows <- unname(split(seq_len(nrow(daily_df)), daily_df$blob))
+  per_blob <- function(f) vapply(rows, f, numeric(1))
+  date_of <- function(x) structure(x, class = "Date")
+  area <- daily_df$area_km2
+  date <- as.numeric(daily_df$date)
+  event_df <- data.frame(
+    blob = daily_df$blob[vapply(rows, `[`, integer(1), 1L)],
+    duration = lengths(rows),
+    date_start = date_of(per_blob(function(i) min(date[i]))),
+    date_end = date_of(per_blob(function(i) max(date[i]))),
+    date_peak = date_of(per_blob(function(i) date[i][which.max(area[i])])),
+    cumI_km2_day = per_blob(function(i) sum(daily_df$mean_delta[i] * area[i])),
+    peakArea_km2 = per_blob(function(i) max(area[i])),
+    meanArea_km2 = per_blob(function(i) mean(area[i])),
+    centroid_lon = per_blob(function(i) stats::weighted.mean(daily_df$centroid_lon[i], area[i])),
+    centroid_lat = per_blob(function(i) stats::weighted.mean(daily_df$centroid_lat[i], area[i])),
+    stringsAsFactors = FALSE
+  )
+  if (has_depth) {
+    event_df$depth_min_m <- per_blob(function(i) min(daily_df$depth_min_m[i]))
+    event_df$depth_max_m <- per_blob(function(i) max(daily_df$depth_max_m[i]))
+    event_df$totalVolume_km3 <- per_blob(function(i) sum(daily_df$volume_km3[i]))
+    event_df$peakVolume_km3 <- per_blob(function(i) max(daily_df$volume_km3[i]))
+    event_df$meanVolume_km3 <- per_blob(function(i) mean(daily_df$volume_km3[i]))
+    event_df$depthOfPeakIntensity_m <- per_blob(function(i)
+      daily_df$depth_at_max_delta_m[i][which.max(daily_df$max_delta[i])])
+  }
 
   # Build voxel data if requested
   voxel_df <- NULL

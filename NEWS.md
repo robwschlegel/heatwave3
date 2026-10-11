@@ -22,6 +22,12 @@
   are still shown.
 * **`exceedance3()` gains `quiet`**, which suppresses its progress messages
   in the same way (warnings are still shown).
+* **`detect_blob3()` is about 25 times faster.** The exceedance mask, the
+  anomalies and the per-blob summaries are now vectorised instead of looping
+  over every pixel and day in R; outputs are identical. On 42 years of daily
+  OSTIA SST on a 31 x 21 grid it takes 2.3 s instead of 61 s. Voxel offsets
+  are now computed in double precision, so they no longer overflow 32-bit
+  integers on grids with more than 2^31 voxels.
 
 ## Internal
 

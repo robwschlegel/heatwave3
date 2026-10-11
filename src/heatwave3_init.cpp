@@ -108,7 +108,7 @@ void hw3_init_fork_safety() {
 Rcpp::List hw3_version() {
     return Rcpp::List::create(
         Rcpp::Named("package") = "heatwave3",
-        Rcpp::Named("version") = "1.0.0",
+        Rcpp::Named("version") = "1.3.1",
         Rcpp::Named("cpp_standard") = "C++17"
     );
 }

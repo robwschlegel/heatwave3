@@ -296,7 +296,7 @@ PixelEvents detect_pixel_events(
 
     // Step 3: Compute metrics for each event
     for (auto& pe : events) {
-        EventResult er;
+        EventResult er{};
         er.event_no = pe.event_no;
         er.category = 0;
         er.p_moderate = er.p_strong = er.p_severe = er.p_extreme = 0.0;

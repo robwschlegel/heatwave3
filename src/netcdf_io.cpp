@@ -1259,7 +1259,8 @@ SubsetResult read_subset_netcdf(const std::string& file,
         t0 = static_cast<int>(n3); t1 = -1;
         for (int k = 0; k < static_cast<int>(n3); ++k) {
             if (third_vals[k] >= lo && third_vals[k] <= hi) {
-                if (k < t0) t0 = k; if (k > t1) t1 = k;
+                if (k < t0) t0 = k;
+                if (k > t1) t1 = k;
             }
         }
     }

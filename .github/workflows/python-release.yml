@@ -1,0 +1,60 @@
+# Publish the Python package with PyPI Trusted Publishing (no API tokens).
+#
+#   - Manual run ("Run workflow"): build and publish to TestPyPI (rehearsal).
+#   - Tag py-vX.Y.Z pushed to a commit on main: build and publish to PyPI.
+#
+# Each target uses a GitHub environment ("testpypi", "pypi"); add a required
+# reviewer to "pypi" so every real release needs an explicit approval.
+name: Python release
+
+on:
+  push:
+    tags: ["py-v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check the release tag
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Tag matches the package version and is on main
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+          test "${GITHUB_REF_NAME}" = "py-v${version}" || {
+            echo "Tag ${GITHUB_REF_NAME} does not match pyproject.toml version ${version}"; exit 1; }
+          git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
+            echo "Tagged commit is not on main"; exit 1; }
+
+  build:
+    needs: check
+    if: always() && (needs.check.result == 'success' || needs.check.result == 'skipped')
+    uses: ./.github/workflows/python-wheels.yml
+
+  publish:
+    name: Publish to ${{ github.event_name == 'push' && 'PyPI' || 'TestPyPI' }}
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: ${{ github.event_name == 'push' && 'pypi' || 'testpypi' }}
+      url: ${{ github.event_name == 'push' && 'https://pypi.org/p/heatwave3' || 'https://test.pypi.org/p/heatwave3' }}
+    permissions:
+      id-token: write  # Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@v1.14.2
+        with:
+          repository-url: ${{ github.event_name == 'push' && 'https://upload.pypi.org/legacy/' || 'https://test.pypi.org/legacy/' }}
+          # TestPyPI rehearsals may re-run the same version
+          skip-existing: ${{ github.event_name != 'push' }}

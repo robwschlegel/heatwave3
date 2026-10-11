@@ -54,5 +54,29 @@ sdist.include = [
   "/src/event_detect.h", "/src/blob_core.cpp", "/src/blob_core.h",
 ]
 
+[tool.cibuildwheel]
+# CPython 3.10-3.14. CPython 3.15 and free-threaded builds can be added once
+# numpy and pandas publish wheels for them; musllinux (Alpine) users install
+# from the sdist for now.
+build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+skip = "cp31?t-* *-musllinux_*"
+build-verbosity = 1
+# Tests run against the installed wheel, from copies of these folders.
+test-sources = ["python/tests", "inst/extdata"]
+test-requires = ["pytest", "matplotlib"]
+test-command = "pytest python/tests -p no:cacheprovider"
+
+[tool.cibuildwheel.linux]
+# Pinned HDF5 + netcdf-c built from source; auditwheel bundles them.
+before-all = "dnf install -y zlib-devel && bash python/tools/build_netcdf.sh /opt/hw3-netcdf"
+environment = { CMAKE_PREFIX_PATH = "/opt/hw3-netcdf" }
+
+[tool.cibuildwheel.macos]
+# One architecture per runner (arm64 and x86_64 runners); delocate bundles
+# the libraries. MACOSX_DEPLOYMENT_TARGET is set inline for before-all.
+archs = ["native"]
+before-all = "MACOSX_DEPLOYMENT_TARGET=11.0 bash python/tools/build_netcdf.sh /tmp/hw3-netcdf"
+environment = { CMAKE_PREFIX_PATH = "/tmp/hw3-netcdf", MACOSX_DEPLOYMENT_TARGET = "11.0" }
+
 [tool.pytest.ini_options]
 testpaths = ["python/tests"]

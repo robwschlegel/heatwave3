@@ -23,6 +23,9 @@ pybind11_add_module(_core
 target_include_directories(_core PRIVATE src)
 target_compile_definitions(_core PRIVATE HW3_VERSION="${SKBUILD_PROJECT_VERSION_FULL}")
 target_link_libraries(_core PRIVATE Threads::Threads)
+# Keep the path to libnetcdf in the installed module's rpath, so the wheel
+# repair tools (auditwheel, delocate) can find the library to bundle.
+set_target_properties(_core PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # libnetcdf: netCDFConfig.cmake first, then nc-config, then pkg-config
 # (mirrors the R package's configure script).

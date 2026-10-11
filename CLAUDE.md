@@ -28,6 +28,14 @@ testthat::test_file("tests/testthat/test-ts2clm3.R")
 devtools::check()
 ```
 
+Python package (in development on the `python-port` branch; same C++ core):
+
+```bash
+pip install .            # builds python/src/bindings.cpp + the shared src/ core
+python -m pytest         # runs python/tests
+python -m build --sdist  # sdist is an explicit allowlist (pyproject.toml)
+```
+
 ## Architecture
 
 ### C++ Core (`src/`)
@@ -98,6 +106,7 @@ hw3_export("X_events.nc") → data.frame  (or .csv/.rds/.parquet)
 - `src/Makevars.in` — Template substituted by configure.
 - `src/Makevars` — Generated; links `-lnetcdf` + `-pthread` (for `std::thread`; no OpenMP runtime).
 - SystemRequirements: netcdf (>= 4.0), C++17
+- Python: `pyproject.toml` (scikit-build-core + pybind11) and `CMakeLists.txt` at the repo root, excluded from the R build via `.Rbuildignore`. CMake compiles only the language-neutral core files plus `python/src/bindings.cpp` (never the Rcpp files) and finds netCDF via `netCDFConfig.cmake`, then `nc-config`, then pkg-config. The bindings in `heatwave3._core` mirror the R exports name for name (`hw3_compute_clim`, `hw3_detect_events`, ...). The sdist is an allowlist in `[tool.scikit-build]`: add any new core source file there.
 
 ## Testing
 

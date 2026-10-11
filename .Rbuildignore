@@ -19,3 +19,7 @@
 ^dev$
 ^vignettes/.*_files$
 ^vignettes/\.quarto$
+^python$
+^pyproject\.toml$
+^CMakeLists\.txt$
+^build$

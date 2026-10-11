@@ -12,6 +12,11 @@
   carried a category) lose their category. Category-day counts from daily
   products written by earlier versions are overstated; regenerate them.
 * **`hw3_version()`** reported `"1.0.0"`; it now reports the package version.
+* **`geom_flame3()` crashed on series with missing values** when no point
+  exceeded the threshold, or when `n_gap` bridging met a missing value
+  ("missing value where TRUE/FALSE needed"). A missing value is now treated
+  as not exceeding the threshold. `event_line3()` was not affected (it drops
+  incomplete days first).
 
 ## Changes
 

@@ -31,7 +31,8 @@ dependencies = ["numpy>=1.23", "pandas>=1.5"]
 
 [project.optional-dependencies]
 parquet = ["pyarrow>=10"]
-test = ["pytest>=7", "pyarrow>=10"]
+plot = ["matplotlib>=3.6"]
+test = ["pytest>=7", "pyarrow>=10", "matplotlib>=3.6"]
 
 [project.urls]
 Homepage = "https://github.com/robwschlegel/heatwave3"

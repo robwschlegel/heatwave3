@@ -160,7 +160,8 @@ BLOB_CASES = [(b, part) for b, parts in [("blob", "event daily voxel"),
 
 def test_every_golden_file_has_a_case():
     expected = set(CASES) | {f"{b}_{part}" for b, part in BLOB_CASES}
-    assert {p.name.removesuffix(".json") for p in GOLDEN.glob("*.json")} == expected
+    from test_plot import PLOT_GOLDEN  # plot references are tested in test_plot.py
+    assert {p.name.removesuffix(".json") for p in GOLDEN.glob("*.json")} == expected | PLOT_GOLDEN
 
 
 @pytest.mark.parametrize("name", sorted(CASES))

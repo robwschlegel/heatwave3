@@ -23,7 +23,9 @@ hw3.hw3_export(out["events"], file_out="events.parquet")     # or .csv
 
 Also available: `ts2clm3()`, `detect_event3()`, `category3()`,
 `category_daily3()`, `block_average3()`, `exceedance3()`, `detect_blob3()`
-(spatially connected events), `getHW3threads()` and `setHW3threads()`. The one
+(spatially connected events), `getHW3threads()` and `setHW3threads()`, and,
+with `pip install heatwave3[plot]`, the matplotlib plots `event_line3()`,
+`plot_metric3()`, `geom_flame3()` and `geom_lolli3()`. The one
 naming difference from R: `detect_blob3()`'s `return` argument is `return_`,
 because `return` is a Python keyword.
 

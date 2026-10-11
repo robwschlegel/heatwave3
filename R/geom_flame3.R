@@ -97,6 +97,9 @@ GeomFlame3 <- ggplot2::ggproto("GeomFlame3", ggplot2::Geom,
     } else {
       exceed <- data$y > data$y2
     }
+    # A missing value is not an exceedance (an NA in rle() would otherwise
+    # break the if()/&& tests below)
+    exceed[is.na(exceed)] <- FALSE
 
     rle_exc <- rle(exceed)
     ends <- cumsum(rle_exc$lengths)

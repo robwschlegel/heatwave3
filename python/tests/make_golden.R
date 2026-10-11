@@ -114,6 +114,41 @@ save_blob(detect_blob3(glo, paste0(g, "_clim.nc"), minVoxels = 10L, rankBy = "to
                        return = c("event", "daily", "voxel")), "blob_depth")
 q(save_blob(detect_blob3(glo_dir, paste0(g, "_clim.nc"), topN = 3L), "blob_multi"))
 
+# Plotting: the data each R plot draws. Flame polygons come straight from
+# GeomFlame3$draw_group() with an identity coordinate transform.
+flame_poly <- function(d, ...) {
+  d <- cbind(d, colour = NA, fill = "salmon", linewidth = 0.5, linetype = 1, alpha = NA, group = 1)
+  g <- GeomFlame3$draw_group(d, NULL, list(transform = function(data, panel_params) data), ...)
+  if (inherits(g, "null")) return(data.frame(x = numeric(0), y = numeric(0), id = integer(0)))
+  data.frame(x = as.numeric(g$x), y = as.numeric(g$y), id = as.integer(g$id))
+}
+set.seed(1)
+fx <- seq(0, 30, length.out = 400)
+flame_in <- data.frame(x = fx, y = sin(fx) + rnorm(400, sd = 0.3), y2 = 0.4 + 0.1 * cos(fx / 3))
+flame_in$y[c(57, 200:203)] <- NA
+save_golden(flame_in, "flame_input")
+save_golden(flame_poly(flame_in), "flame_default")
+save_golden(flame_poly(flame_in, n = 3), "flame_n3")
+save_golden(flame_poly(flame_in, n = 1, n_gap = 2), "flame_gap")
+save_golden(flame_poly(flame_in, reverse = TRUE), "flame_reverse")
+
+save_line <- function(p, name) {
+  save_golden(p$data, name)
+  save_golden(data.frame(title = p$labels$title), paste0(name, "_title"))
+}
+q(save_line(event_line3(sst, paste0(s, "_clim.nc"), lon = 26.525, lat = -34.125,
+                        event_file = paste0(s, "_events.nc")), "line_event"))
+q(save_line(event_line3(sst, paste0(s, "_clim.nc"), lon = 26.575, lat = -34.025,
+                        start_date = "2015-01-01", end_date = "2016-06-30"), "line_window"))
+q(save_line(event_line3(sst, paste0(k, "_clim.nc"), lon = 26.525, lat = -34.075,
+                        event_file = paste0(k, "_events.nc"), coldSpells = TRUE,
+                        metric = "intensity_max", spread = 60), "line_cold"))
+q(save_line(event_line3(glo, paste0(g, "_clim.nc"), lon = 25.16667, lat = -34.91667, depth = 5,
+                        start_date = "2010-01-01", end_date = "2010-12-31"), "line_depth"))
+save_golden(plot_metric3(paste0(s, "_events.nc"), coastline = FALSE)$data, "metric_default")
+save_golden(plot_metric3(paste0(g, "_events.nc"), metric = "duration", summary = "max",
+                         coastline = FALSE)$data, "metric_duration_max")
+
 cat("Golden files written to", out, "\n")
 
 # Signatures of the exported R functions, for the API-parity test

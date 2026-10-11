@@ -12,7 +12,13 @@ import heatwave3 as hw3
 SIGS = Path(__file__).resolve().parent / "data" / "r_signatures.json"
 
 # Functions not yet ported (later phases).
-NOT_YET = {"event_line3", "geom_flame3", "geom_lolli3", "plot_metric3"}
+NOT_YET = set()
+
+# ggplot2 layers in R, matplotlib functions in Python: Python-native signatures.
+PYTHON_NATIVE = {"geom_flame3", "geom_lolli3"}
+
+# Python-only trailing arguments (the matplotlib Axes to draw on).
+PYTHON_ONLY = {"event_line3": {"ax"}, "plot_metric3": {"ax"}}
 
 # R argument names that are Python keywords: R name -> Python name.
 RENAMED = {("detect_blob3", "return"): "return_"}
@@ -50,10 +56,13 @@ def test_every_r_export_is_ported_or_pending():
     assert set(R_SIGS) - set(hw3.__all__) == NOT_YET
 
 
-@pytest.mark.parametrize("name", sorted(set(R_SIGS) - NOT_YET))
+@pytest.mark.parametrize("name", sorted(set(R_SIGS) - NOT_YET - PYTHON_NATIVE))
 def test_signature_matches_r(name):
     r_args = {RENAMED.get((name, k), k): v for k, v in (R_SIGS[name] or {}).items()}
-    params = inspect.signature(getattr(hw3, name)).parameters
+    # R's ... corresponds to Python's **kwargs
+    params = {("..." if p.kind is p.VAR_KEYWORD else k): p
+              for k, p in inspect.signature(getattr(hw3, name)).parameters.items()
+              if k not in PYTHON_ONLY.get(name, ())}
     assert list(params) == list(r_args), f"{name}: argument names or order differ"
     for arg, r_text in r_args.items():
         py_default = params[arg].default

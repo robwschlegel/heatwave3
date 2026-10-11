@@ -138,7 +138,8 @@
     "time_range": "NULL",
     "depth": "NULL",
     "roundRes": "4L",
-    "n_threads": "1L"
+    "n_threads": "1L",
+    "quiet": "FALSE"
   },
   "detect3": {
     "file_in": "<required>",

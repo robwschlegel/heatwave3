@@ -40,3 +40,14 @@ test_that("quiet is restored even when the call fails", {
                              quiet = TRUE))
   expect_false(hw3_set_quiet(FALSE))
 })
+
+test_that("exceedance3(quiet = TRUE) silences the C++ messages", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+  f <- tempfile(fileext = ".nc")
+  expect_identical(capture.output(exceedance3(sst_file, f, threshold = 296, quiet = TRUE)),
+                   character(0))
+  expect_true(file.exists(f))
+  out <- capture.output(exceedance3(sst_file, tempfile(fileext = ".nc"), threshold = 296))
+  expect_true(any(grepl("Detecting events", out)))
+})

@@ -195,3 +195,12 @@ def test_daily_categories_only_on_event_days(stem):
     a, b = dw.sort_values(key).reset_index(drop=True), cd.sort_values(key).reset_index(drop=True)
     pd.testing.assert_series_equal(a["category"], b["category"])
     pd.testing.assert_series_equal(a["event"], b["event"])
+
+
+def test_exceedance3_quiet(tmp_path, capfd):
+    capfd.readouterr()
+    out = hw3.exceedance3(SST, tmp_path / "e.nc", threshold=296, quiet=True)
+    assert capfd.readouterr().out == ""
+    assert Path(out).exists()
+    hw3.exceedance3(SST, tmp_path / "f.nc", threshold=296)
+    assert "Detecting events" in capfd.readouterr().out

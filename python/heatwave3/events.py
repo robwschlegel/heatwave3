@@ -181,7 +181,7 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
 
 def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDuration=5,
                 joinAcrossGaps=True, maxGap=2, lon_range=None, lat_range=None,
-                time_range=None, depth=None, roundRes=4, n_threads=1):
+                time_range=None, depth=None, roundRes=4, n_threads=1, quiet=False):
     """Detect exceedances of a static threshold in gridded data.
 
     Parameters
@@ -198,6 +198,9 @@ def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDur
         As in :func:`detect_event3`.
     var_name, lon_range, lat_range, time_range, depth
         As in :func:`ts2clm3`.
+    quiet : bool
+        Suppress the progress messages from the computation. Warnings are
+        still shown.
 
     Returns
     -------
@@ -211,19 +214,20 @@ def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDur
     fd, clim_file = tempfile.mkstemp(suffix=".nc")
     os.close(fd)
     try:
-        # A constant-value climatology (seas = thresh = threshold) reuses the
-        # event detection machinery.
-        _core.hw3_write_const_clim(
-            file_in, clim_file, vn, float(threshold),
-            lon_range=pair(lon_range, "lon_range"), lat_range=pair(lat_range, "lat_range"),
-            time_range=None if time_range is None else date_strings(time_range),
-            depth=-1 if depth is None else int(depth))
-        _core.hw3_detect_events(
-            file_in, clim_file, file_out, vn, minDuration=int(minDuration),
-            minDuration2=int(minDuration), joinAcrossGaps=bool(joinAcrossGaps),
-            maxGap=int(maxGap), maxGap2=int(maxGap), coldSpells=bool(below),
-            roundRes=int(roundRes), n_threads=int(n_threads), category=False,
-            southHemisphere=True)
+        with quiet_core(quiet):
+            # A constant-value climatology (seas = thresh = threshold) reuses
+            # the event detection machinery.
+            _core.hw3_write_const_clim(
+                file_in, clim_file, vn, float(threshold),
+                lon_range=pair(lon_range, "lon_range"), lat_range=pair(lat_range, "lat_range"),
+                time_range=None if time_range is None else date_strings(time_range),
+                depth=-1 if depth is None else int(depth))
+            _core.hw3_detect_events(
+                file_in, clim_file, file_out, vn, minDuration=int(minDuration),
+                minDuration2=int(minDuration), joinAcrossGaps=bool(joinAcrossGaps),
+                maxGap=int(maxGap), maxGap2=int(maxGap), coldSpells=bool(below),
+                roundRes=int(roundRes), n_threads=int(n_threads), category=False,
+                southHemisphere=True)
     finally:
         os.remove(clim_file)
     return file_out

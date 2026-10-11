@@ -18,7 +18,8 @@ exceedance3(
   time_range = NULL,
   depth = NULL,
   roundRes = 4L,
-  n_threads = 1L
+  n_threads = 1L,
+  quiet = FALSE
 )
 }
 \arguments{
@@ -50,6 +51,9 @@ Default \code{FALSE}.}
 \item{roundRes}{Decimal places for rounding. Default \code{4}.}
 
 \item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
+
+\item{quiet}{Logical. Suppress the progress messages from the computation?
+Warnings are still shown. Default \code{FALSE}.}
 }
 \value{
 Invisibly returns the output file path.

@@ -18,6 +18,8 @@
 #' @param depth Optional depth index.
 #' @param roundRes Decimal places for rounding. Default \code{4}.
 #' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param quiet Logical. Suppress the progress messages from the computation?
+#'   Warnings are still shown. Default \code{FALSE}.
 #'
 #' @return Invisibly returns the output file path.
 #'
@@ -40,7 +42,8 @@ exceedance3 <- function(file_in, file_out, threshold,
                         lon_range = NULL, lat_range = NULL,
                         time_range = NULL, depth = NULL,
                         roundRes = 4L,
-                        n_threads = 1L) {
+                        n_threads = 1L,
+                        quiet = FALSE) {
 
   if (missing(threshold))
     stop("A threshold value must be provided.", call. = FALSE)
@@ -54,6 +57,10 @@ exceedance3 <- function(file_in, file_out, threshold,
   # then overwrite seas/thresh with the static threshold value.
   # For simplicity, run ts2clm3 first then modify the output.
   vn <- if (is.null(var_name)) "" else var_name
+
+  # quiet silences the C++ progress messages (warnings still show)
+  old_quiet <- hw3_set_quiet(isTRUE(quiet))
+  on.exit(hw3_set_quiet(old_quiet), add = TRUE)
 
   # Write a constant-value climatology NetCDF via the C++ helper
   hw3_write_const_clim(

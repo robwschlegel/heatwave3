@@ -20,6 +20,8 @@
   post-computation summary, while the progress messages from the C++ core
   still printed. Warnings, such as files skipped with `skip_bad_files = TRUE`,
   are still shown.
+* **`exceedance3()` gains `quiet`**, which suppresses its progress messages
+  in the same way (warnings are still shown).
 
 ## Internal
 

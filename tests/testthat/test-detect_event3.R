@@ -50,10 +50,11 @@ test_that("daily = 'also' writes events + a self-consistent per-day file", {
   dd <- hw3_export(out[["daily"]])
   expect_named(dd, c("lon", "lat", "t", "temp", "seas", "thresh",
                      "intensity", "event", "event_no", "category"))
-  # daily category is NA off-threshold and 1-4 on-threshold
+  # daily category is 1-4 on event days above the threshold and NA elsewhere
+  # (short exceedances that are not events get no category)
   expect_true(all(is.na(dd$category) | dd$category %in% 1:4))
   exceed <- !is.na(dd$temp) & !is.na(dd$thresh) & dd$temp > dd$thresh
-  expect_equal(!is.na(dd$category), exceed)
+  expect_equal(!is.na(dd$category), exceed & dd$event)
   # event-days equal the total event duration
   expect_equal(sum(!is.na(dd$event_no)), sum(ev$duration))
 })

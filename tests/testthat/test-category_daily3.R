@@ -70,3 +70,25 @@ test_that("category_daily3 validates inputs", {
                     time_range = c("2005-01-01", "2005-02-01")),
     "does not exist")
 })
+
+test_that("the daily product categorises event days only, matching category_daily3", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, climatologyPeriod = c("1982-01-01", "2011-12-31"), quiet = TRUE)
+  detect_event3(sst_file, name = stem, daily = "also", quiet = TRUE)
+
+  d <- hw3_export(paste0(stem, "_events_daily.nc"))
+  # Hobday (2018) categories describe events: no category outside an event,
+  # including short threshold exceedances that are not events.
+  expect_true(all(is.na(d$category[!d$event])))
+  expect_true(any(!is.na(d$category[d$event])))
+
+  win <- c("2015-01-01", "2016-12-31")
+  cd <- category_daily3(sst_file, paste0(stem, "_clim.nc"), paste0(stem, "_events.nc"),
+                        time_range = win)
+  dw <- d[d$t >= as.Date(win[1]) & d$t <= as.Date(win[2]), ]
+  key <- function(x) x[order(x$lon, x$lat, x$t), ]
+  expect_identical(key(dw)$category, key(cd)$category)
+  expect_identical(key(dw)$event, key(cd)$event)
+})

@@ -45,7 +45,9 @@
 #'   written to \code{paste0(name, "_events_daily.nc")} and contains \code{temp},
 #'   \code{seas}, \code{thresh}, \code{intensity} (\code{temp - seas}),
 #'   \code{event}, \code{event_no}, and the daily Hobday (2018) \code{category}
-#'   (0 = none, 1 = I Moderate ... 4 = IV Extreme).
+#'   (1 = I Moderate ... 4 = IV Extreme) on event days above the threshold;
+#'   other days, including short exceedances that are not events, have no
+#'   category (stored as 0, read as \code{NA}).
 #' @param protoEvent Logical. Write the per-day proto-event series to
 #'   \code{paste0(name, "_protoevents.nc")} instead of the event table,
 #'   mirroring \code{heatwaveR::detect_event(protoEvents = TRUE)}. Variables:
@@ -55,8 +57,10 @@
 #' @param n_threads Number of threads for parallel computation. Default \code{1}.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
-#' @param quiet Logical. Suppress the post-computation console summary (head,
-#'   tail, and summary statistics of each product written)? Default \code{FALSE}.
+#' @param quiet Logical. Suppress all console output: the progress messages
+#'   from the computation and the post-computation summary (head, tail, and
+#'   summary statistics of each product written)? Warnings, such as skipped
+#'   files, are still shown. Default \code{FALSE}.
 #'
 #' @return Invisibly returns a named character vector of the NetCDF files
 #'   written (a subset of \code{events}, \code{daily}, \code{protoevents}). Use
@@ -127,6 +131,10 @@ detect_event3 <- function(
   south <- hemisphere == "south"
   vn <- if (is.null(var_name)) "" else var_name
   t2_vn <- if (is.null(threshClim2_var_name)) "" else threshClim2_var_name
+
+  # quiet also silences the C++ progress messages (warnings still show)
+  old_quiet <- hw3_set_quiet(isTRUE(quiet))
+  on.exit(hw3_set_quiet(old_quiet), add = TRUE)
 
   multi_file <- FALSE
   if (length(file_in) == 1 && dir.exists(file_in)) {

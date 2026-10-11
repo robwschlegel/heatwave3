@@ -51,6 +51,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// hw3_set_quiet
+bool hw3_set_quiet(bool quiet);
+RcppExport SEXP _heatwave3_hw3_set_quiet(SEXP quietSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type quiet(quietSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_set_quiet(quiet));
+    return rcpp_result_gen;
+END_RCPP
+}
 // hw3_get_threads
 int hw3_get_threads();
 RcppExport SEXP _heatwave3_hw3_get_threads() {
@@ -422,6 +433,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_label_components_cpp", (DL_FUNC) &_heatwave3_label_components_cpp, 6},
     {"_heatwave3_blob_daily_summary_cpp", (DL_FUNC) &_heatwave3_blob_daily_summary_cpp, 13},
+    {"_heatwave3_hw3_set_quiet", (DL_FUNC) &_heatwave3_hw3_set_quiet, 1},
     {"_heatwave3_hw3_get_threads", (DL_FUNC) &_heatwave3_hw3_get_threads, 0},
     {"_heatwave3_hw3_set_threads", (DL_FUNC) &_heatwave3_hw3_set_threads, 1},
     {"_heatwave3_hw3_init_fork_safety", (DL_FUNC) &_heatwave3_hw3_init_fork_safety, 0},

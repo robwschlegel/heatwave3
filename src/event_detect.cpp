@@ -276,7 +276,9 @@ PixelEvents detect_pixel_events(
                     intens = tv - s;
                     if (roundRes > 0) intens = round_to(intens, roundRes);
                 }
-                cat = static_cast<signed char>(daily_category(temp[t], s, th, coldSpells));
+                // Hobday (2018) categories describe events: only event days
+                // are categorised, matching category_daily3().
+                if (ev) cat = static_cast<signed char>(daily_category(temp[t], s, th, coldSpells));
             }
             if (daily->seas) daily->seas[t] = s;
             if (daily->thresh) daily->thresh[t] = th;

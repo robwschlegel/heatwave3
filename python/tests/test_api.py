@@ -155,3 +155,43 @@ def test_threads():
 def test_quiet_false_prints_summary(stem, capsys):
     hw3.ts2clm3(SST, stem + "q", CP)
     assert "Climatology written to" in capsys.readouterr().out
+
+
+def test_quiet_silences_core_messages(tmp_path, capfd):
+    capfd.readouterr()
+    hw3.detect3(SST, tmp_path / "q", CP, daily="also", quiet=True)
+    out, err = capfd.readouterr()
+    assert out == "" and err == ""
+    hw3.detect_event3(SST, tmp_path / "q", quiet=False)
+    out, _ = capfd.readouterr()
+    assert "Detecting events" in out and "Events written to" in out
+
+
+def test_quiet_still_reports_warnings(tmp_path, capfd):
+    files = [SST, tmp_path / "missing.nc", SST]
+    capfd.readouterr()
+    hw3.ts2clm3(files, tmp_path / "w", CP, skip_bad_files=True, quiet=True)
+    out, err = capfd.readouterr()
+    assert out == ""
+    assert "failed to read" in err and "missing.nc" in err
+
+
+def test_quiet_is_restored_after_an_error(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        hw3.detect_event3(SST, tmp_path / "x", clim_file=tmp_path / "none.nc", quiet=True)
+    with pytest.raises(RuntimeError):
+        hw3.ts2clm3(SST, tmp_path / "y", CP, var_name="nope", quiet=True)
+    assert hw3._core.hw3_set_quiet(False) is False
+
+
+def test_daily_categories_only_on_event_days(stem):
+    d = hw3.hw3_export(stem + "_events_daily.nc")
+    assert d.loc[~d["event"], "category"].isna().all()
+    assert d.loc[d["event"], "category"].notna().any()
+    win = ("2015-01-01", "2016-12-31")
+    cd = hw3.category_daily3(SST, stem + "_clim.nc", stem + "_events.nc", win)
+    dw = d[(d["t"] >= win[0]) & (d["t"] <= win[1])]
+    key = ["lon", "lat", "t"]
+    a, b = dw.sort_values(key).reset_index(drop=True), cd.sort_values(key).reset_index(drop=True)
+    pd.testing.assert_series_equal(a["category"], b["category"])
+    pd.testing.assert_series_equal(a["event"], b["event"])

@@ -123,8 +123,9 @@ or \code{"only"}. See \code{\link{detect_event3}}.}
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}
 
-\item{quiet}{Logical. Suppress the post-computation console summaries?
-Default \code{FALSE}.}
+\item{quiet}{Logical. Suppress all console output: the progress messages
+and the post-computation summaries? Warnings, such as skipped files, are
+still shown. Default \code{FALSE}.}
 }
 \value{
 Invisibly returns a named character vector of the NetCDF files

@@ -7,7 +7,8 @@ import tempfile
 
 from . import _core
 from ._utils import (check_out_dir, choose, clim_path, daily_path, date_strings,
-                     events_path, is_multi, list_nc, pair, proto_path, resolve_input)
+                     events_path, is_multi, list_nc, pair, proto_path, quiet_core,
+                     resolve_input)
 from .climatology import ts2clm3
 from .export import console_summary
 
@@ -57,7 +58,9 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
     roundRes : int
         Decimal places for event metrics.
     daily : {"none", "also", "only"}
-        Also (or only) write the per-day series with daily categories.
+        Also (or only) write the per-day series: temp, seas, thresh,
+        intensity, event, event_no, and the daily Hobday (2018) category on
+        event days above the threshold (missing on all other days).
     protoEvent : bool
         Write the per-day proto-event series instead of the event table.
         Mutually exclusive with ``daily``.
@@ -66,7 +69,9 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
     skip_bad_files : bool
         For multi-file input, skip unreadable or mismatched files.
     quiet : bool
-        Suppress the post-computation console summary.
+        Suppress all console output: the progress messages from the
+        computation and the post-computation summary. Warnings, such as
+        skipped files, are still shown.
 
     Returns
     -------
@@ -116,15 +121,16 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
                 maxGap2=int(maxGap2), coldSpells=bool(coldSpells), roundRes=int(roundRes),
                 n_threads=int(n_threads), category=bool(category), southHemisphere=south,
                 threshClim2_var_name=t2_vn, daily_file=d_file, proto_file=p_file)
-    if multi:
-        _core.hw3_detect_events_multi(files, threshClim2_files=thresh2,
-                                      skip_bad_files=bool(skip_bad_files), **args)
-    else:
-        sst = os.fspath(file_in)
-        if not os.path.exists(sst):
-            raise FileNotFoundError(f"SST file does not exist: {sst}")
-        _core.hw3_detect_events(sst, threshClim2_file="" if thresh2 is None else thresh2[0],
-                                **args)
+    if not multi and not os.path.exists(os.fspath(file_in)):
+        raise FileNotFoundError(f"SST file does not exist: {os.fspath(file_in)}")
+    with quiet_core(quiet):
+        if multi:
+            _core.hw3_detect_events_multi(files, threshClim2_files=thresh2,
+                                          skip_bad_files=bool(skip_bad_files), **args)
+        else:
+            _core.hw3_detect_events(os.fspath(file_in),
+                                    threshClim2_file="" if thresh2 is None else thresh2[0],
+                                    **args)
 
     # Report the products actually written (no events file when no events).
     written = {k: v for k, v in (("events", ev_file), ("daily", d_file),

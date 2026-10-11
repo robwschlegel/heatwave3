@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import os
 import warnings
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from . import _core
 
 # Julian Day Number of 1970-01-01.
 JD_UNIX_EPOCH = 2440588
@@ -129,3 +132,13 @@ def nullable_int(values, na_values=(0,)) -> pd.arrays.IntegerArray:
     v = np.asarray(values, dtype=np.int64)
     mask = np.isin(v, na_values)
     return pd.arrays.IntegerArray(v.astype(np.int32), mask)
+
+
+@contextmanager
+def quiet_core(quiet: bool):
+    """Silence the C++ core's messages (not warnings) on this thread while active."""
+    old = _core.hw3_set_quiet(bool(quiet))
+    try:
+        yield
+    finally:
+        _core.hw3_set_quiet(old)

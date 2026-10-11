@@ -9,6 +9,10 @@ blob_daily_summary_cpp <- function(labels, ix, iy, it, delta, cell_area_lat, lon
     .Call(`_heatwave3_blob_daily_summary_cpp`, labels, ix, iy, it, delta, cell_area_lat, lons, lats, nt, iz, depths, layer_thickness_km, has_depth)
 }
 
+hw3_set_quiet <- function(quiet) {
+    .Call(`_heatwave3_hw3_set_quiet`, quiet)
+}
+
 hw3_get_threads <- function() {
     .Call(`_heatwave3_hw3_get_threads`)
 }

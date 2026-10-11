@@ -13,8 +13,17 @@
 // ---- Message sinks for the shared core (hw3_log.h) ----
 
 namespace hw3 {
-std::ostream& out() { return Rcpp::Rcout; }
-std::ostream& err() { return Rcpp::Rcerr; }
+std::ostream& out_sink() { return Rcpp::Rcout; }
+std::ostream& err_sink() { return Rcpp::Rcerr; }
+}
+
+// Silence core messages (not warnings) on this thread; returns the previous
+// setting so callers can restore it.
+// [[Rcpp::export]]
+bool hw3_set_quiet(bool quiet) {
+    bool old = hw3::quiet_flag();
+    hw3::quiet_flag() = quiet;
+    return old;
 }
 
 // ---- Conversion helpers ----

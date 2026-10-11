@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from . import _core
-from ._utils import check_out_dir, clim_path, date_strings, int_or_zero, pair, resolve_input
+from ._utils import (check_out_dir, clim_path, date_strings, int_or_zero, pair, quiet_core,
+                     resolve_input)
 from .export import console_summary
 
 
@@ -60,7 +61,9 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
     skip_bad_files : bool
         For multi-file input, skip unreadable or mismatched files.
     quiet : bool
-        Suppress the post-computation console summary.
+        Suppress all console output: the progress messages from the
+        computation and the post-computation summary. Warnings, such as
+        skipped files, are still shown.
 
     Returns
     -------
@@ -95,11 +98,12 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
         n_threads=int(n_threads),
         detrend=bool(detrend),
     )
-    if multi:
-        _core.hw3_compute_clim_multi(files, skip_bad_files=bool(skip_bad_files), **common)
-    else:
-        time_range = None if time_range is None else date_strings(time_range)
-        _core.hw3_compute_clim(files[0], time_range=time_range, **common)
+    with quiet_core(quiet):
+        if multi:
+            _core.hw3_compute_clim_multi(files, skip_bad_files=bool(skip_bad_files), **common)
+        else:
+            time_range = None if time_range is None else date_strings(time_range)
+            _core.hw3_compute_clim(files[0], time_range=time_range, **common)
 
     console_summary(file_out, quiet=quiet)
     return file_out

@@ -96,8 +96,10 @@ Set to \code{FALSE} to disable.}
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}
 
-\item{quiet}{Logical. Suppress the post-computation console summary (head,
-tail, and summary statistics of the climatology)? Default \code{FALSE}.}
+\item{quiet}{Logical. Suppress all console output: the progress messages
+from the computation and the post-computation summary (head, tail, and
+summary statistics of the climatology)? Warnings, such as skipped files,
+are still shown. Default \code{FALSE}.}
 }
 \value{
 Invisibly returns the path to the climatology NetCDF

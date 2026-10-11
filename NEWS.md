@@ -1,3 +1,33 @@
+# heatwave3 (development version)
+
+## Bug fixes
+
+* **The per-day product gave categories to days outside events.**
+  `detect_event3(daily = "also")` (and `"only"`) assigned a Hobday et al.
+  (2018) category (1 to 4) to every day above the threshold, including short
+  exceedances that are not events (runs shorter than `minDuration`). The
+  categories describe events, so these days are now `NA`, matching
+  `category_daily3()`. Categories on event days are unchanged. On the bundled
+  `sst_test.nc` data, 4,217 non-event days (45% of the days that previously
+  carried a category) lose their category. Category-day counts from daily
+  products written by earlier versions are overstated; regenerate them.
+* **`hw3_version()`** reported `"1.0.0"`; it now reports the package version.
+
+## Changes
+
+* **`quiet = TRUE` now silences all console output.** In `ts2clm3()`,
+  `detect_event3()` and `detect3()` it previously suppressed only the
+  post-computation summary, while the progress messages from the C++ core
+  still printed. Warnings, such as files skipped with `skip_bad_files = TRUE`,
+  are still shown.
+
+## Internal
+
+* The C++ core no longer depends on Rcpp: the computation and orchestration
+  code (`src/hw3_api.cpp`, `src/blob_core.cpp`) is shared with the Python
+  package in development, and only the binding files use Rcpp. Outputs are
+  unchanged.
+
 # heatwave3 1.3.1 (2026-07-24)
 
 ## Bug fixes

@@ -53,8 +53,10 @@
 #' @param n_threads Number of threads for parallel computation. Default \code{1}.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
-#' @param quiet Logical. Suppress the post-computation console summary (head,
-#'   tail, and summary statistics of the climatology)? Default \code{FALSE}.
+#' @param quiet Logical. Suppress all console output: the progress messages
+#'   from the computation and the post-computation summary (head, tail, and
+#'   summary statistics of the climatology)? Warnings, such as skipped files,
+#'   are still shown. Default \code{FALSE}.
 #'
 #' @return Invisibly returns the path to the climatology NetCDF
 #'   (\code{paste0(name, "_clim.nc")}). Use \code{\link{hw3_export}} to read it
@@ -108,6 +110,10 @@ ts2clm3 <- function(file_in, name,
   rnd <- if (is.numeric(roundClm)) as.integer(roundClm) else 0L
   vn <- if (is.null(var_name)) "" else var_name
   dp <- if (is.null(depth)) -1L else as.integer(depth)
+
+  # quiet also silences the C++ progress messages (warnings still show)
+  old_quiet <- hw3_set_quiet(isTRUE(quiet))
+  on.exit(hw3_set_quiet(old_quiet), add = TRUE)
 
   # Determine input mode: single file, vector of files, or directory
   multi_file <- FALSE

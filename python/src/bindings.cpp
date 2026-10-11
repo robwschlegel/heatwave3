@@ -58,12 +58,12 @@ private:
 } // namespace
 
 namespace hw3 {
-std::ostream& out() {
+std::ostream& out_sink() {
     static PyStreamBuf buf("stdout");
     static std::ostream os(&buf);
     return os;
 }
-std::ostream& err() {
+std::ostream& err_sink() {
     static PyStreamBuf buf("stderr");
     static std::ostream os(&buf);
     return os;
@@ -174,6 +174,12 @@ PYBIND11_MODULE(_core, m) {
         d["cpp_standard"] = "C++17";
         return d;
     });
+    m.def("hw3_set_quiet", [](bool quiet) {
+        bool old = hw3::quiet_flag();
+        hw3::quiet_flag() = quiet;
+        return old;
+    }, "Silence core messages (not warnings) on this thread; returns the previous setting.",
+       py::arg("quiet"));
     m.def("hw3_jd_to_doy", [](int jd) { return hw3::jd_to_doy_366(jd); }, py::arg("jd"));
 
     // SST reading

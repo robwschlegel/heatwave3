@@ -24,6 +24,17 @@ static std::string strf(const char* fmt, ...) {
     return std::string(buf);
 }
 
+// Writer options for one call; the zlib level must be 0 (none) to 9
+static WriteOpts write_opts(int compression, int n_threads) {
+    if (compression < 0 || compression > 9)
+        throw std::runtime_error(strf("compression must be an integer from 0 to 9, not %d",
+                                      compression));
+    WriteOpts wo;
+    wo.compression = compression;
+    wo.n_threads = n_threads;
+    return wo;
+}
+
 int parse_date_to_jd(const std::string& s) {
     int y = std::atoi(s.substr(0, 4).c_str());
     int m = std::atoi(s.substr(5, 2).c_str());
@@ -107,6 +118,7 @@ static void compute_and_write_clim(GridData& gd,
                                    const std::string& source_label,
                                    const std::string& cp0, const std::string& cp1,
                                    const ClimParams& p) {
+    WriteOpts wo = write_opts(p.compression, p.n_threads);
     int clim_start_jd = parse_date_to_jd(cp0);
     int clim_end_jd = parse_date_to_jd(cp1);
     int npixels = gd.nlon * gd.nlat * gd.ndepth;
@@ -151,7 +163,7 @@ static void compute_and_write_clim(GridData& gd,
         seas, thresh, var_clim, p.compute_var,
         source_label, cp0, cp1,
         p.pctile, p.windowHalfWidth, p.smoothPercentileWidth,
-        gd.temp_units, gd.ndepth, gd.depth
+        gd.temp_units, gd.ndepth, gd.depth, wo
     );
 
     out() << "Done." << std::endl;
@@ -263,6 +275,7 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
         }
     }
 
+    WriteOpts wo = write_opts(p.compression, p.n_threads);
     int npixels = gd.nlon * gd.nlat * gd.ndepth;
     out() << "Grid: " << gd.nlon << " lon x " << gd.nlat << " lat";
     if (gd.ndepth > 1) out() << " x " << gd.ndepth << " depth";
@@ -339,7 +352,7 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
             nullptr, nullptr,
             "protoevents", source_label, clim_file, p.minDuration, p.maxGap,
             p.coldSpells, p.southHemisphere, gd.temp_units,
-            gd.ndepth, gd.depth);
+            gd.ndepth, gd.depth, wo);
         out() << "Done." << std::endl;
     }
 
@@ -353,7 +366,7 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
             b_int.data(), b_cat.data(),
             "daily", source_label, clim_file, p.minDuration, p.maxGap,
             p.coldSpells, p.southHemisphere, gd.temp_units,
-            gd.ndepth, gd.depth);
+            gd.ndepth, gd.depth, wo);
         out() << "Done." << std::endl;
     }
 
@@ -375,7 +388,7 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
                 ds_rel, dp_rel, de_rel, ref_jd,
                 source_label, clim_file,
                 p.minDuration, p.maxGap, p.coldSpells,
-                p.southHemisphere, gd.temp_units, event_depth
+                p.southHemisphere, gd.temp_units, event_depth, wo
             );
             out() << "Done." << std::endl;
         }

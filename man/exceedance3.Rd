@@ -19,6 +19,7 @@ exceedance3(
   depth = NULL,
   roundRes = 4L,
   n_threads = NULL,
+  compression = 1L,
   quiet = FALSE
 )
 }
@@ -54,6 +55,12 @@ Default \code{FALSE}.}
 \code{NULL}: the session default, half the available cores unless
 changed with \code{\link{setHW3threads}} or the
 \code{R_HEATWAVE3_NUM_THREADS} environment variable.}
+
+\item{compression}{Integer from 0 to 9. zlib compression level of the
+NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+(a few percent smaller), and 0 writes uncompressed files, which are
+several times larger but much quicker to write. Gridded outputs are
+compressed on \code{n_threads} threads when heatwave3 was built with HDF5.}
 
 \item{quiet}{Logical. Suppress the progress messages from the computation?
 Warnings are still shown. Default \code{FALSE}.}

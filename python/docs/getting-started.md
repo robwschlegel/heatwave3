@@ -207,4 +207,13 @@ then work on every level, and blobs connect through the water column.
 
 By default each call uses half the available cores. Change this for the
 session with {func}`~heatwave3.setHW3threads` or the `HEATWAVE3_NUM_THREADS`
-environment variable, or for one call with `n_threads`.
+environment variable, or for one call with `n_threads`. The same threads
+compress the gridded output files.
+
+## Compression
+
+Output files are compressed with zlib at level 1 by default. `compression=0`
+to `9` sets the level for one call: higher levels give files a few percent
+smaller, and `compression=0` writes uncompressed files, several times larger
+but much quicker to write. Per-day products (`daily=`, `protoEvent=True`) are
+the largest files, so they gain most from this choice.

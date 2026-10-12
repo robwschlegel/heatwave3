@@ -126,6 +126,14 @@ void parse_cf_time(const std::string& units,
                    const std::vector<double>& time_raw,
                    std::vector<int>& julian_days);
 
+// Output options shared by the writers: the zlib level of every data
+// variable (0 = uncompressed, 1-9) and the threads used to compress gridded
+// variables (0 = session default; see hw3_h5chunk.h).
+struct WriteOpts {
+    int compression = 1;
+    int n_threads = 0;
+};
+
 // ndepth/depth: pass ndepth <= 1 (depth may be empty) for an ordinary 3D
 // climatology file (unchanged schema). Pass ndepth > 1 with a matching
 // `depth` coordinate (metres) to write a depth-resolved 4D climatology
@@ -146,7 +154,8 @@ void write_clim_netcdf(const std::string& file_out,
                        int smoothPercentileWidth,
                        const std::string& temp_units,
                        int ndepth = 1,
-                       const std::vector<double>& depth = {});
+                       const std::vector<double>& depth = {},
+                       const WriteOpts& wo = WriteOpts());
 
 // event_depth: either empty (ordinary 3D events file, unchanged schema) or
 // one value per event (metres), written as an optional "depth" variable on
@@ -167,7 +176,8 @@ void write_event_netcdf(const std::string& file_out,
                         bool coldSpells,
                         bool southHemisphere,
                         const std::string& temp_units,
-                        const std::vector<double>& event_depth = {});
+                        const std::vector<double>& event_depth = {},
+                        const WriteOpts& wo = WriteOpts());
 
 ClimData read_clim_netcdf(const std::string& clim_file);
 
@@ -202,7 +212,8 @@ void write_daily_netcdf(const std::string& file_out,
                         bool southHemisphere,
                         const std::string& temp_units,
                         int ndepth = 1,
-                        const std::vector<double>& depth = {});
+                        const std::vector<double>& depth = {},
+                        const WriteOpts& wo = WriteOpts());
 
 DailyData read_daily_netcdf(const std::string& daily_file);
 

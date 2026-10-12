@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from . import _core
-from ._utils import (check_out_dir, clim_path, date_strings, int_or_zero, nthreads, pair,
+from ._utils import (check_out_dir, clim_path, compression_level, date_strings, int_or_zero, nthreads, pair,
                      quiet_core, resolve_input)
 from .export import console_summary
 
@@ -12,7 +12,7 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
             time_range=None, depth=None, depth_range=None, var_name=None,
             maxPadLength=False, windowHalfWidth=5, pctile=90, smoothPercentile=True,
             smoothPercentileWidth=31, var=False, detrend=False, roundClm=4,
-            n_threads=None, skip_bad_files=False, quiet=False):
+            n_threads=None, compression=1, skip_bad_files=False, quiet=False):
     """Compute a gridded climatology and write it to ``<name>_clim.nc``.
 
     The gridded equivalent of ``heatwaveR::ts2clm()``: for every pixel, the
@@ -61,6 +61,12 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
         the session default: half the available cores, unless changed with
         :func:`setHW3threads` or the ``HEATWAVE3_NUM_THREADS`` environment
         variable.
+    compression : int
+        zlib compression level of the NetCDF output, 0 to 9: 1 (the default)
+        compresses fastest, 9 gives the smallest files (a few percent
+        smaller), and 0 writes uncompressed files, which are several times
+        larger but much quicker to write. Gridded outputs are compressed on
+        ``n_threads`` threads when heatwave3 was built with HDF5.
     skip_bad_files : bool
         For multi-file input, skip unreadable or mismatched files.
     quiet : bool
@@ -99,6 +105,7 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
         compute_var=bool(var),
         roundClm=int_or_zero(roundClm),
         n_threads=nthreads(n_threads),
+        compression=compression_level(compression),
         detrend=bool(detrend),
     )
     with quiet_core(quiet):

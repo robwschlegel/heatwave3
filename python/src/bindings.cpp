@@ -107,7 +107,7 @@ py::dict grid_dict(hw3::GridData&& gd) {
 hw3::ClimParams clim_params(int maxPadLength, int windowHalfWidth, double pctile,
                             bool smoothPercentile, int smoothPercentileWidth,
                             bool compute_var, int roundClm, int n_threads,
-                            bool detrend) {
+                            bool detrend, int compression) {
     hw3::ClimParams p;
     p.maxPadLength = maxPadLength;
     p.windowHalfWidth = windowHalfWidth;
@@ -118,12 +118,14 @@ hw3::ClimParams clim_params(int maxPadLength, int windowHalfWidth, double pctile
     p.roundClm = roundClm;
     p.n_threads = n_threads;
     p.detrend = detrend;
+    p.compression = compression;
     return p;
 }
 
 hw3::DetectParams detect_params(int minDuration, int minDuration2, bool joinAcrossGaps,
                                 int maxGap, int maxGap2, bool coldSpells, int roundRes,
-                                int n_threads, bool category, bool southHemisphere) {
+                                int n_threads, bool category, bool southHemisphere,
+                                int compression) {
     hw3::DetectParams p;
     p.minDuration = minDuration;
     p.minDuration2 = minDuration2;
@@ -135,6 +137,7 @@ hw3::DetectParams detect_params(int minDuration, int minDuration2, bool joinAcro
     p.n_threads = n_threads;
     p.category = category;
     p.southHemisphere = southHemisphere;
+    p.compression = compression;
     return p;
 }
 
@@ -232,7 +235,7 @@ PYBIND11_MODULE(_core, m) {
               std::vector<int> jd(time_jd.data(), time_jd.data() + time_jd.size());
               hw3::ClimParams p = clim_params(maxPadLength, windowHalfWidth, pctile,
                                               smoothPercentile, smoothPercentileWidth,
-                                              false, 0, 1, detrend);
+                                              false, 0, 1, detrend, 0);
               hw3::PixelClimResult cr;
               {
                   py::gil_scoped_release nogil;
@@ -255,7 +258,8 @@ PYBIND11_MODULE(_core, m) {
              const OptDbl& lon_range, const OptDbl& lat_range, const OptStr& time_range,
              int depth, int maxPadLength, int windowHalfWidth, double pctile,
              bool smoothPercentile, int smoothPercentileWidth, bool compute_var,
-             int roundClm, int n_threads, bool detrend, const OptDbl& depth_range) {
+             int roundClm, int n_threads, bool detrend, const OptDbl& depth_range,
+             int compression) {
               if (climatologyPeriod.size() != 2)
                   throw std::invalid_argument("climatologyPeriod must have two dates.");
               py::gil_scoped_release nogil;
@@ -265,7 +269,8 @@ PYBIND11_MODULE(_core, m) {
                                 climatologyPeriod[0], climatologyPeriod[1], ss,
                                 clim_params(maxPadLength, windowHalfWidth, pctile,
                                             smoothPercentile, smoothPercentileWidth,
-                                            compute_var, roundClm, n_threads, detrend));
+                                            compute_var, roundClm, n_threads, detrend,
+                                            compression));
           },
           py::arg("file_in"), py::arg("file_out"), py::arg("var_name"),
           py::arg("climatologyPeriod"), py::arg("lon_range") = py::none(),
@@ -274,7 +279,7 @@ PYBIND11_MODULE(_core, m) {
           py::arg("pctile") = 90.0, py::arg("smoothPercentile") = true,
           py::arg("smoothPercentileWidth") = 31, py::arg("compute_var") = false,
           py::arg("roundClm") = 4, py::arg("n_threads") = 1, py::arg("detrend") = false,
-          py::arg("depth_range") = py::none());
+          py::arg("depth_range") = py::none(), py::arg("compression") = 1);
 
     m.def("hw3_compute_clim_multi",
           [](const std::vector<std::string>& files, const std::string& file_out,
@@ -282,7 +287,8 @@ PYBIND11_MODULE(_core, m) {
              const OptDbl& lon_range, const OptDbl& lat_range, int depth, int maxPadLength,
              int windowHalfWidth, double pctile, bool smoothPercentile,
              int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads,
-             bool detrend, bool skip_bad_files, const OptDbl& depth_range) {
+             bool detrend, bool skip_bad_files, const OptDbl& depth_range,
+             int compression) {
               if (climatologyPeriod.size() != 2)
                   throw std::invalid_argument("climatologyPeriod must have two dates.");
               py::gil_scoped_release nogil;
@@ -292,7 +298,8 @@ PYBIND11_MODULE(_core, m) {
                                       climatologyPeriod[0], climatologyPeriod[1], ss,
                                       clim_params(maxPadLength, windowHalfWidth, pctile,
                                                   smoothPercentile, smoothPercentileWidth,
-                                                  compute_var, roundClm, n_threads, detrend),
+                                                  compute_var, roundClm, n_threads, detrend,
+                                            compression),
                                       skip_bad_files);
           },
           py::arg("files"), py::arg("file_out"), py::arg("var_name"),
@@ -302,7 +309,8 @@ PYBIND11_MODULE(_core, m) {
           py::arg("pctile") = 90.0, py::arg("smoothPercentile") = true,
           py::arg("smoothPercentileWidth") = 31, py::arg("compute_var") = false,
           py::arg("roundClm") = 4, py::arg("n_threads") = 1, py::arg("detrend") = false,
-          py::arg("skip_bad_files") = false, py::arg("depth_range") = py::none());
+          py::arg("skip_bad_files") = false, py::arg("depth_range") = py::none(),
+          py::arg("compression") = 1);
 
     m.def("hw3_write_const_clim",
           [](const std::string& file_in, const std::string& clim_file,
@@ -326,12 +334,13 @@ PYBIND11_MODULE(_core, m) {
              bool coldSpells, int roundRes, int n_threads, bool category,
              bool southHemisphere, const std::string& threshClim2_file,
              const std::string& threshClim2_var_name, const std::string& daily_file,
-             const std::string& proto_file) {
+             const std::string& proto_file, int compression) {
               py::gil_scoped_release nogil;
               hw3::detect_events(file_in, clim_file, events_file, var_name,
                                  detect_params(minDuration, minDuration2, joinAcrossGaps,
                                                maxGap, maxGap2, coldSpells, roundRes,
-                                               n_threads, category, southHemisphere),
+                                               n_threads, category, southHemisphere,
+                                               compression),
                                  threshClim2_file, threshClim2_var_name, daily_file,
                                  proto_file);
           },
@@ -341,7 +350,8 @@ PYBIND11_MODULE(_core, m) {
           py::arg("coldSpells") = false, py::arg("roundRes") = 4, py::arg("n_threads") = 1,
           py::arg("category") = false, py::arg("southHemisphere") = true,
           py::arg("threshClim2_file") = "", py::arg("threshClim2_var_name") = "",
-          py::arg("daily_file") = "", py::arg("proto_file") = "");
+          py::arg("daily_file") = "", py::arg("proto_file") = "",
+          py::arg("compression") = 1);
 
     m.def("hw3_detect_events_multi",
           [](const std::vector<std::string>& files, const std::string& clim_file,
@@ -350,13 +360,14 @@ PYBIND11_MODULE(_core, m) {
              bool coldSpells, int roundRes, int n_threads, bool category,
              bool southHemisphere, const OptStr& threshClim2_files,
              const std::string& threshClim2_var_name, bool skip_bad_files,
-             const std::string& daily_file, const std::string& proto_file) {
+             const std::string& daily_file, const std::string& proto_file,
+             int compression) {
               py::gil_scoped_release nogil;
               hw3::detect_events_multi(files, clim_file, events_file, var_name,
                                        detect_params(minDuration, minDuration2,
                                                      joinAcrossGaps, maxGap, maxGap2,
                                                      coldSpells, roundRes, n_threads,
-                                                     category, southHemisphere),
+                                                     category, southHemisphere, compression),
                                        val(threshClim2_files), threshClim2_var_name,
                                        skip_bad_files, daily_file, proto_file);
           },
@@ -367,7 +378,7 @@ PYBIND11_MODULE(_core, m) {
           py::arg("category") = false, py::arg("southHemisphere") = true,
           py::arg("threshClim2_files") = py::none(), py::arg("threshClim2_var_name") = "",
           py::arg("skip_bad_files") = false, py::arg("daily_file") = "",
-          py::arg("proto_file") = "");
+          py::arg("proto_file") = "", py::arg("compression") = 1);
 
     // Product readers
 

@@ -51,6 +51,7 @@
     "detrend": "FALSE",
     "roundClm": "4L",
     "n_threads": "NULL",
+    "compression": "1L",
     "skip_bad_files": "FALSE",
     "quiet": "FALSE"
   },
@@ -108,6 +109,7 @@
     "daily": "c(\"none\", \"also\", \"only\")",
     "protoEvent": "FALSE",
     "n_threads": "NULL",
+    "compression": "1L",
     "skip_bad_files": "FALSE",
     "quiet": "FALSE"
   },
@@ -141,6 +143,7 @@
     "depth": "NULL",
     "roundRes": "4L",
     "n_threads": "NULL",
+    "compression": "1L",
     "quiet": "FALSE"
   },
   "detect3": {
@@ -174,6 +177,7 @@
     "daily": "c(\"none\", \"also\", \"only\")",
     "protoEvent": "FALSE",
     "n_threads": "NULL",
+    "compression": "1L",
     "skip_bad_files": "FALSE",
     "quiet": "FALSE"
   },

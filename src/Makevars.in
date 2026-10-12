@@ -3,6 +3,6 @@ CXX_STD = CXX17
 # Parallelism uses C++ std::thread (src/hw3_omp.h), not OpenMP, so no OpenMP
 # runtime is linked. -pthread is required for std::thread on Linux and is a
 # harmless no-op on macOS.
-PKG_CPPFLAGS = @NETCDF_CPPFLAGS@
-PKG_LIBS = @NETCDF_LIBS@ -pthread
+PKG_CPPFLAGS = @NETCDF_CPPFLAGS@ @HDF5_CPPFLAGS@
+PKG_LIBS = @NETCDF_LIBS@ @HDF5_LIBS@ -pthread
 PKG_CXXFLAGS = -pthread

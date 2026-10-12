@@ -52,6 +52,7 @@ struct ClimParams {
     int roundClm = 4;
     int n_threads = 1;
     bool detrend = false;
+    int compression = 1;  // zlib level of the output (0 = none)
 };
 
 PixelClimResult pixel_clim(const std::vector<double>& temp,
@@ -88,6 +89,7 @@ struct DetectParams {
     int n_threads = 1;
     bool category = false;
     bool southHemisphere = true;
+    int compression = 1;  // zlib level of the outputs (0 = none)
 };
 
 // Output is selected by which paths are non-empty (events_file, daily_file,

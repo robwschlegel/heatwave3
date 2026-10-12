@@ -57,6 +57,11 @@
 #'   \code{NULL}: the session default, half the available cores unless
 #'   changed with \code{\link{setHW3threads}} or the
 #'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
+#' @param compression Integer from 0 to 9. zlib compression level of the
+#'   NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+#'   (a few percent smaller), and 0 writes uncompressed files, which are
+#'   several times larger but much quicker to write. Gridded outputs are
+#'   compressed on \code{n_threads} threads when heatwave3 was built with HDF5.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
 #' @param quiet Logical. Suppress all console output: the progress messages
@@ -104,6 +109,7 @@ detect3 <- function(file_in, name,
                     daily = c("none", "also", "only"),
                     protoEvent = FALSE,
                     n_threads = NULL,
+                    compression = 1L,
                     skip_bad_files = FALSE,
                     quiet = FALSE) {
 
@@ -123,6 +129,7 @@ detect3 <- function(file_in, name,
           detrend = detrend,
           roundClm = roundClm,
           n_threads = n_threads,
+          compression = compression,
           skip_bad_files = skip_bad_files,
           quiet = quiet)
 
@@ -143,6 +150,7 @@ detect3 <- function(file_in, name,
     daily = daily,
     protoEvent = protoEvent,
     n_threads = n_threads,
+    compression = compression,
     skip_bad_files = skip_bad_files,
     quiet = quiet
   )

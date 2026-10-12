@@ -127,6 +127,14 @@ def nthreads(n_threads) -> int:
     return 0 if n_threads is None else int(n_threads)
 
 
+def compression_level(compression) -> int:
+    """compression argument -> C++: one whole number from 0 to 9."""
+    if (isinstance(compression, bool) or not isinstance(compression, (int, float))
+            or compression != int(compression) or not 0 <= compression <= 9):
+        raise ValueError("compression must be a whole number from 0 to 9.")
+    return int(compression)
+
+
 def choose(value: str, choices: tuple[str, ...], what: str) -> str:
     if value not in choices:
         raise ValueError(f"'{what}' must be one of: {', '.join(choices)}.")

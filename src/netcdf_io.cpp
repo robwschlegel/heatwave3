@@ -1,5 +1,6 @@
 #include "netcdf_io.h"
 #include "hw3_log.h"
+#include "hw3_h5chunk.h"
 #include <netcdf.h>
 #include <cstring>
 #include <algorithm>
@@ -531,6 +532,52 @@ GridData read_sst_netcdf(const std::string& file_in,
 
 // ---- Write climatology NetCDF ----
 
+// zlib compression (with the shuffle filter) at the requested level; none at 0
+static void def_deflate(int ncid, int varid, const WriteOpts& wo) {
+    if (wo.compression > 0) nc_def_var_deflate(ncid, varid, 1, 1, wo.compression);
+}
+
+// A gridded data variable to store: its netCDF id and its source array
+struct GridPut {
+    int varid;
+    ChunkSrc src;
+};
+
+// Stores the gridded variables of a file whose definitions and coordinates
+// are complete, then closes it. Compressed variables are compressed on all
+// threads and stored through HDF5 (hw3_h5chunk.h) when the build allows it;
+// the rest are written with netCDF.
+static void put_gridded_and_close(int ncid, const std::string& file,
+                                  const std::vector<GridPut>& vars,
+                                  const WriteOpts& wo) {
+    std::vector<bool> done(vars.size(), false);
+    if (wo.compression > 0 && h5_direct_available()) {
+        nc_check(nc_close(ncid), "close " + file);
+        std::vector<ChunkSrc> srcs;
+        for (const auto& v : vars) srcs.push_back(v.src);
+        done = h5_write_chunks(file, srcs, wo.n_threads);
+        if (std::all_of(done.begin(), done.end(), [](bool d) { return d; })) return;
+        nc_check(nc_open(file.c_str(), NC_WRITE, &ncid), "reopen " + file);
+    }
+    for (size_t i = 0; i < vars.size(); ++i) {
+        if (done[i]) continue;
+        const ChunkSrc& c = vars[i].src;
+        std::string what = "put " + c.name;
+        switch (c.kind) {
+        case ChunkSrc::DOUBLE:
+            nc_check(nc_put_var_double(ncid, vars[i].varid, static_cast<const double*>(c.data)), what);
+            break;
+        case ChunkSrc::SCHAR:
+            nc_check(nc_put_var_schar(ncid, vars[i].varid, static_cast<const signed char*>(c.data)), what);
+            break;
+        case ChunkSrc::INT:
+            nc_check(nc_put_var_int(ncid, vars[i].varid, static_cast<const int*>(c.data)), what);
+            break;
+        }
+    }
+    nc_check(nc_close(ncid), "close " + file);
+}
+
 void write_clim_netcdf(const std::string& file_out,
                        const std::vector<double>& lon,
                        const std::vector<double>& lat,
@@ -547,7 +594,8 @@ void write_clim_netcdf(const std::string& file_out,
                        int smoothPercentileWidth,
                        const std::string& temp_units,
                        int ndepth,
-                       const std::vector<double>& depth) {
+                       const std::vector<double>& depth,
+                       const WriteOpts& wo) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -603,13 +651,13 @@ void write_clim_netcdf(const std::string& file_out,
     nc_put_att_text(ncid, thresh_varid, "units", temp_units.size(), temp_units.c_str());
 
     // Enable compression
-    nc_def_var_deflate(ncid, seas_varid, 1, 1, 4);
-    nc_def_var_deflate(ncid, thresh_varid, 1, 1, 4);
+    def_deflate(ncid, seas_varid, wo);
+    def_deflate(ncid, thresh_varid, wo);
 
     if (has_var) {
         nc_check(nc_def_var(ncid, "var", NC_DOUBLE, ndims_data, dims_data, &var_varid), "def var var");
         nc_put_att_text(ncid, var_varid, "long_name", 21, "variance climatology");
-        nc_def_var_deflate(ncid, var_varid, 1, 1, 4);
+        def_deflate(ncid, var_varid, wo);
     }
 
     // Global attributes
@@ -647,13 +695,11 @@ void write_clim_netcdf(const std::string& file_out,
     // pixel = (ilon*nlat + ilat)*ndepth + idepth, matching NetCDF layout
     // [lon][lat][doy] (3D) or [lon][lat][depth][doy] (4D). Same order in
     // both cases, so write directly with no reordering.
-    nc_check(nc_put_var_double(ncid, seas_varid, seas.data()), "put seas");
-    nc_check(nc_put_var_double(ncid, thresh_varid, thresh.data()), "put thresh");
-    if (has_var) {
-        nc_check(nc_put_var_double(ncid, var_varid, var.data()), "put var");
-    }
-
-    nc_check(nc_close(ncid), "close " + file_out);
+    std::vector<GridPut> grid = {
+        {seas_varid, {"seas", seas.data(), ChunkSrc::DOUBLE}},
+        {thresh_varid, {"thresh", thresh.data(), ChunkSrc::DOUBLE}}};
+    if (has_var) grid.push_back({var_varid, {"var", var.data(), ChunkSrc::DOUBLE}});
+    put_gridded_and_close(ncid, file_out, grid, wo);
 }
 
 // ---- Read climatology NetCDF ----
@@ -839,7 +885,8 @@ void write_event_netcdf(const std::string& file_out,
                         bool coldSpells,
                         bool southHemisphere,
                         const std::string& temp_units,
-                        const std::vector<double>& event_depth) {
+                        const std::vector<double>& event_depth,
+                        const WriteOpts& wo) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -857,7 +904,7 @@ void write_event_netcdf(const std::string& file_out,
         nc_check(nc_def_var(ncid, name, NC_DOUBLE, 1, &event_dimid, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
         if (units) nc_put_att_text(ncid, vid, "units", strlen(units), units);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
     auto def_ivar = [&](const char* name, const char* long_name, const char* units) -> int {
@@ -865,7 +912,7 @@ void write_event_netcdf(const std::string& file_out,
         nc_check(nc_def_var(ncid, name, NC_INT, 1, &event_dimid, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
         if (units) nc_put_att_text(ncid, vid, "units", strlen(units), units);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
 
@@ -1027,7 +1074,8 @@ void write_daily_netcdf(const std::string& file_out,
                         bool southHemisphere,
                         const std::string& temp_units,
                         int ndepth,
-                        const std::vector<double>& depth) {
+                        const std::vector<double>& depth,
+                        const WriteOpts& wo) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -1078,21 +1126,21 @@ void write_daily_netcdf(const std::string& file_out,
         nc_check(nc_def_var(ncid, name, NC_FLOAT, ndims_data, dims_data, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
         if (units) nc_put_att_text(ncid, vid, "units", strlen(units), units);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
     auto def_bvar = [&](const char* name, const char* long_name) -> int {
         int vid;
         nc_check(nc_def_var(ncid, name, NC_BYTE, ndims_data, dims_data, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
     auto def_ivar = [&](const char* name, const char* long_name) -> int {
         int vid;
         nc_check(nc_def_var(ncid, name, NC_INT, ndims_data, dims_data, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
 
@@ -1142,19 +1190,19 @@ void write_daily_netcdf(const std::string& file_out,
     // (or [lon][lat][time] when ndepth == 1), which is
     // exactly the declared dimension order, so write directly. Real-valued
     // variables are NC_FLOAT; nc_put_var_double converts (NaN stays NaN -> NA).
-    if (temp)   nc_check(nc_put_var_double(ncid, v_temp, temp), "put temp");
-    if (seas)   nc_check(nc_put_var_double(ncid, v_seas, seas), "put seas");
-    if (thresh) nc_check(nc_put_var_double(ncid, v_thresh, thresh), "put thresh");
+    std::vector<GridPut> grid;
+    if (temp)   grid.push_back({v_temp, {"temp", temp, ChunkSrc::DOUBLE}});
+    if (seas)   grid.push_back({v_seas, {"seas", seas, ChunkSrc::DOUBLE}});
+    if (thresh) grid.push_back({v_thresh, {"thresh", thresh, ChunkSrc::DOUBLE}});
     if (threshCriterion)
-        nc_check(nc_put_var_schar(ncid, v_tc, threshCriterion), "put threshCriterion");
+        grid.push_back({v_tc, {"threshCriterion", threshCriterion, ChunkSrc::SCHAR}});
     if (durationCriterion)
-        nc_check(nc_put_var_schar(ncid, v_dc, durationCriterion), "put durationCriterion");
-    if (event)  nc_check(nc_put_var_schar(ncid, v_ev, event), "put event");
-    if (event_no) nc_check(nc_put_var_int(ncid, v_eno, event_no), "put event_no");
-    if (intensity) nc_check(nc_put_var_double(ncid, v_int, intensity), "put intensity");
-    if (category) nc_check(nc_put_var_schar(ncid, v_cat, category), "put category");
-
-    nc_check(nc_close(ncid), "close " + file_out);
+        grid.push_back({v_dc, {"durationCriterion", durationCriterion, ChunkSrc::SCHAR}});
+    if (event)  grid.push_back({v_ev, {"event", event, ChunkSrc::SCHAR}});
+    if (event_no) grid.push_back({v_eno, {"event_no", event_no, ChunkSrc::INT}});
+    if (intensity) grid.push_back({v_int, {"intensity", intensity, ChunkSrc::DOUBLE}});
+    if (category) grid.push_back({v_cat, {"category", category, ChunkSrc::SCHAR}});
+    put_gridded_and_close(ncid, file_out, grid, wo);
 }
 
 // ---- Streaming hyperslab subset of a gridded product ----

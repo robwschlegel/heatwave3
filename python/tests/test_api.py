@@ -3,6 +3,7 @@ export formats and return values. Numerical parity with R is covered by
 test_parity_r.py."""
 
 import datetime as dt
+import os
 import warnings
 from pathlib import Path
 
@@ -250,3 +251,46 @@ def test_category3_needs_sst_without_inline_categories(tmp_path):
     # counted, so (as in heatwaveR) they may add up to less than 100
     p = cats[["p_moderate", "p_strong", "p_severe", "p_extreme"]]
     assert ((p % 1 == 0) & (p >= 0)).all().all() and (p.sum(axis=1) <= 101).all()
+
+
+def test_compression_must_be_0_to_9(tmp_path):
+    for bad in (-1, 10, 1.5, "1", True, None):
+        with pytest.raises(ValueError, match="compression must be a whole number from 0 to 9"):
+            hw3.ts2clm3(SST, tmp_path / "x", CP, compression=bad, quiet=True)
+
+
+def _products(stem):
+    out = {k: hw3.hw3_export(f"{stem}{x}") for k, x in
+           (("clim", "_clim.nc"), ("events", "_events.nc"), ("daily", "_events_daily.nc"))}
+    out["events"] = out["events"].sort_values(["lon", "lat", "event_no"], ignore_index=True)
+    return out
+
+
+def test_compression_levels_give_same_values(tmp_path):
+    stems = {lv: tmp_path / f"l{lv}" for lv in (0, 1, 9)}
+    for lv, stem in stems.items():
+        hw3.detect3(SST, stem, CP, category=True, daily="also", n_threads=1,
+                    compression=lv, quiet=True)
+    ref = _products(stems[1])
+    for lv in (0, 9):
+        for k, df in _products(stems[lv]).items():
+            pd.testing.assert_frame_equal(df, ref[k])
+    size = {lv: os.path.getsize(f"{s}_events_daily.nc") for lv, s in stems.items()}
+    assert size[0] > 2 * size[1] and size[9] <= size[1]
+
+
+def test_parallel_writer_matches_serial_writer(tmp_path, monkeypatch):
+    def run(serial, stem, lv):
+        monkeypatch.setenv("HEATWAVE3_SERIAL_WRITE", "1" if serial else "0")
+        hw3.detect3(SST, stem, CP, category=True, daily="also", n_threads=4,
+                    compression=lv, quiet=True)
+        hw3.detect_event3(SST, f"{stem}p", clim_file=f"{stem}_clim.nc", protoEvent=True,
+                          n_threads=4, compression=lv, quiet=True)
+        out = _products(stem)
+        out["proto"] = hw3.hw3_export(f"{stem}p_protoevents.nc")
+        return out
+    for lv in (1, 6):
+        par = run(False, tmp_path / f"par{lv}", lv)
+        ser = run(True, tmp_path / f"ser{lv}", lv)
+        for k in par:
+            pd.testing.assert_frame_equal(par[k], ser[k])

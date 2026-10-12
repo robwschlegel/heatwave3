@@ -59,6 +59,85 @@ case "$(uname -s)" in
     ;;
 esac
 
+# ---- HDF5 (optional): compress gridded outputs on all threads --------------
+# heatwave3 can store compressed NetCDF-4 chunks itself (src/hw3_h5chunk.cpp),
+# which needs HDF5 >= 1.10.3 and zlib. It links the libhdf5 that libnetcdf
+# already loads, so the process holds one HDF5, and checks with a test
+# program that the headers match that library. Without it (or with
+# HW3_NO_HDF5=1), outputs are written by netCDF on one thread, as before.
+
+HDF5_CPPFLAGS=""
+HDF5_LIBS=""
+HDF5_NOTE="not used (gridded outputs are compressed on one thread)"
+
+if [ "${HW3_NO_HDF5:-0}" != "1" ]; then
+  NC_SO=""
+  for d in $(echo "${NETCDF_LIBS}" | tr ' ' '\n' | sed -n 's/^-L//p') "${NETCDF_LIBDIR}" \
+           /usr/lib/x86_64-linux-gnu /usr/lib/aarch64-linux-gnu /usr/lib64 /usr/lib \
+           /usr/local/lib /opt/homebrew/lib; do
+    for f in "$d/libnetcdf.so" "$d/libnetcdf.dylib"; do
+      if [ -z "${NC_SO}" ] && [ -f "$f" ]; then NC_SO="$f"; fi
+    done
+  done
+
+  H5_LIB=""
+  if [ -n "${NC_SO}" ]; then
+    case "$(uname -s)" in
+      Darwin*)
+        H5_LIB=$(otool -L "${NC_SO}" 2>/dev/null | awk '{print $1}' | \
+                 grep 'libhdf5[._]' | grep -v '_hl\.' | head -n 1)
+        case "${H5_LIB}" in
+          @rpath/*|@loader_path/*)
+            H5_LIB="$(dirname "${NC_SO}")/$(basename "${H5_LIB}")" ;;
+        esac
+        ;;
+      *)
+        H5_LIB=$(ldd "${NC_SO}" 2>/dev/null | awk '/libhdf5/ && !/_hl\./ {print $3}' | head -n 1)
+        ;;
+    esac
+  fi
+
+  if [ -n "${H5_LIB}" ] && [ -f "${H5_LIB}" ] && [ -n "${R_HOME}" ]; then
+    H5_LIBDIR=$(dirname "${H5_LIB}")
+    CC=$("${R_HOME}/bin/R" CMD config CC)
+    TMPD=$(mktemp -d 2>/dev/null || echo "/tmp/hw3conf$$")
+    mkdir -p "${TMPD}"
+    cat > "${TMPD}/h5test.c" <<'EOT'
+#include <hdf5.h>
+#include <zlib.h>
+int main(void) {
+  unsigned a, b, c;
+  herr_t (*wc)(hid_t, hid_t, uint32_t, const hsize_t *, size_t, const void *) = H5Dwrite_chunk;
+  int (*cz)(Bytef *, uLongf *, const Bytef *, uLong, int) = compress2;
+  if (!wc || !cz || H5get_libversion(&a, &b, &c) < 0) return 1;
+  return (a == H5_VERS_MAJOR && b == H5_VERS_MINOR && c == H5_VERS_RELEASE) ? 0 : 2;
+}
+EOT
+    INC_CANDIDATES=""
+    if command -v pkg-config > /dev/null 2>&1; then
+      for pc in hdf5 hdf5-serial; do
+        if pkg-config --exists "$pc" 2>/dev/null; then
+          INC_CANDIDATES="${INC_CANDIDATES} $(pkg-config --cflags-only-I "$pc" | sed 's/-I//g')"
+        fi
+      done
+    fi
+    INC_CANDIDATES="${INC_CANDIDATES} ${H5_LIBDIR}/../include $(echo "${NETCDF_CPPFLAGS}" | tr ' ' '\n' | sed -n 's/^-I//p')"
+    INC_CANDIDATES="${INC_CANDIDATES} /usr/include/hdf5/serial /usr/local/include /opt/homebrew/include /usr/include"
+    for inc in ${INC_CANDIDATES}; do
+      if [ -f "${inc}/hdf5.h" ] && \
+         ${CC} -I"${inc}" "${TMPD}/h5test.c" -o "${TMPD}/h5test" "${H5_LIB}" -lz \
+           -Wl,-rpath,"${H5_LIBDIR}" > /dev/null 2>&1 && \
+         "${TMPD}/h5test" > /dev/null 2>&1; then
+        HDF5_CPPFLAGS="-DHW3_HAVE_HDF5 -I${inc}"
+        HDF5_LIBS="${H5_LIB} -lz -Wl,-rpath,${H5_LIBDIR}"
+        HDF5_NOTE="${H5_LIB} (headers in ${inc})"
+        break
+      fi
+    done
+    rm -rf "${TMPD}"
+  fi
+fi
+
 # ---- Parallelism -------------------------------------------------------------
 # heatwave3 parallelises with C++ std::thread (see src/hw3_omp.h), not OpenMP,
 # so no OpenMP runtime is detected or linked. -pthread (in src/Makevars.in)
@@ -70,12 +149,15 @@ echo ""
 echo "Using netcdf:"
 echo "  CPPFLAGS: ${NETCDF_CPPFLAGS}"
 echo "  LIBS:     ${NETCDF_LIBS}"
+echo "HDF5 for parallel compression: ${HDF5_NOTE}"
 echo "Parallelism: C++ std::thread (no OpenMP runtime required)"
 
 sed -e "s|@NETCDF_CPPFLAGS@|${NETCDF_CPPFLAGS}|" \
     -e "s|@NETCDF_LIBS@|${NETCDF_LIBS}|" \
     -e "s|@OPENMP_CXXFLAGS@|${OPENMP_CXXFLAGS}|" \
     -e "s|@OPENMP_LIBS@|${OPENMP_LIBS}|" \
+    -e "s|@HDF5_CPPFLAGS@|${HDF5_CPPFLAGS}|" \
+    -e "s|@HDF5_LIBS@|${HDF5_LIBS}|" \
     src/Makevars.in > src/Makevars
 
 exit 0

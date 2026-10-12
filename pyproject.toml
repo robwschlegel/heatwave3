@@ -50,7 +50,7 @@ sdist.include = [
   "/pyproject.toml", "/CMakeLists.txt", "/LICENSE.md", "/python/README.md",
   "/python/heatwave3/*.py", "/python/src/*.cpp", "/python/tests/*.py",
   "/src/hw3_api.cpp", "/src/hw3_api.h", "/src/hw3_log.h", "/src/hw3_omp.h",
-  "/src/hw3_round.h",
+  "/src/hw3_round.h", "/src/hw3_h5chunk.cpp", "/src/hw3_h5chunk.h",
   "/src/heatwave3_types.h", "/src/netcdf_io.cpp", "/src/netcdf_io.h",
   "/src/climatology.cpp", "/src/climatology.h", "/src/event_detect.cpp",
   "/src/event_detect.h", "/src/blob_core.cpp", "/src/blob_core.h",
@@ -71,14 +71,14 @@ test-command = "pytest python/tests -p no:cacheprovider"
 [tool.cibuildwheel.linux]
 # Pinned HDF5 + netcdf-c built from source; auditwheel bundles them.
 before-all = "dnf install -y zlib-devel && bash python/tools/build_netcdf.sh /opt/hw3-netcdf"
-environment = { CMAKE_PREFIX_PATH = "/opt/hw3-netcdf" }
+environment = { CMAKE_PREFIX_PATH = "/opt/hw3-netcdf", HDF5_ROOT = "/opt/hw3-netcdf" }
 
 [tool.cibuildwheel.macos]
 # One architecture per runner (arm64 and x86_64 runners); delocate bundles
 # the libraries. MACOSX_DEPLOYMENT_TARGET is set inline for before-all.
 archs = ["native"]
 before-all = "MACOSX_DEPLOYMENT_TARGET=11.0 bash python/tools/build_netcdf.sh /tmp/hw3-netcdf"
-environment = { CMAKE_PREFIX_PATH = "/tmp/hw3-netcdf", MACOSX_DEPLOYMENT_TARGET = "11.0" }
+environment = { CMAKE_PREFIX_PATH = "/tmp/hw3-netcdf", HDF5_ROOT = "/tmp/hw3-netcdf", MACOSX_DEPLOYMENT_TARGET = "11.0" }
 
 [tool.pytest.ini_options]
 testpaths = ["python/tests"]

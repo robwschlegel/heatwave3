@@ -46,6 +46,20 @@ categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
 
 ## Changes
 
+* **New `compression` argument** (0 to 9) in `ts2clm3()`, `detect_event3()`,
+  `detect3()` and `exceedance3()` sets the zlib level of the NetCDF output.
+  The default is now level 1 (previously fixed at 4): files are about 3%
+  larger and are written faster. `compression = 0` writes uncompressed files,
+  several times larger but quickest to write.
+* **Gridded outputs are compressed on all threads.** HDF5 compresses on one
+  thread, which made writing the per-day products (`daily = "also"/"only"`,
+  `protoEvent = TRUE`) the slowest step. heatwave3 now compresses the chunks
+  of the climatology, daily and proto-event files on `n_threads` threads and
+  stores them through HDF5; the files are byte-identical to before. Writing a
+  daily file for 1,525 pixels x 11,688 days takes 1.0 s with 4 threads
+  (level 1), against 4.5 s before (level 4, one thread). This needs HDF5 >=
+  1.10.3 and zlib at build time, which `configure` finds next to libnetcdf;
+  otherwise files are written on one thread as before (also on Windows).
 * **`library(heatwave3)` loads in 0.1 s instead of 0.9 s.** ggplot2, scales and
   rlang moved from Imports to Suggests: they are loaded only when a plotting
   function (`event_line3()`, `plot_metric3()`, `geom_flame3()`,

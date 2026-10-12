@@ -207,12 +207,14 @@ void hw3_compute_clim(std::string file_in,
                       int roundClm = 4,
                       int n_threads = 1,
                       bool detrend = false,
-                      Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue) {
+                      Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue,
+                      int compression = 1) {
     hw3::SubsetSpec ss = hw3::make_subset(opt_dbl(lon_range), opt_dbl(lat_range),
                                           opt_str(time_range), depth, opt_dbl(depth_range));
     hw3::ClimParams p = clim_params(maxPadLength, windowHalfWidth, pctile,
                                     smoothPercentile, smoothPercentileWidth,
                                     compute_var, roundClm, n_threads, detrend);
+    p.compression = compression;
     hw3::compute_clim(file_in, file_out, var_name,
                       Rcpp::as<std::string>(climatologyPeriod[0]),
                       Rcpp::as<std::string>(climatologyPeriod[1]), ss, p);
@@ -237,12 +239,14 @@ void hw3_compute_clim_multi(Rcpp::CharacterVector files,
                             int n_threads = 1,
                             bool detrend = false,
                             bool skip_bad_files = false,
-                            Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue) {
+                            Rcpp::Nullable<Rcpp::NumericVector> depth_range = R_NilValue,
+                            int compression = 1) {
     hw3::SubsetSpec ss = hw3::make_subset(opt_dbl(lon_range), opt_dbl(lat_range),
                                           {}, depth, opt_dbl(depth_range));
     hw3::ClimParams p = clim_params(maxPadLength, windowHalfWidth, pctile,
                                     smoothPercentile, smoothPercentileWidth,
                                     compute_var, roundClm, n_threads, detrend);
+    p.compression = compression;
     hw3::compute_clim_multi(Rcpp::as<std::vector<std::string>>(files), file_out, var_name,
                             Rcpp::as<std::string>(climatologyPeriod[0]),
                             Rcpp::as<std::string>(climatologyPeriod[1]),
@@ -428,10 +432,12 @@ void hw3_detect_events(std::string file_in,
                        std::string threshClim2_file = "",
                        std::string threshClim2_var_name = "",
                        std::string daily_file = "",
-                       std::string proto_file = "") {
+                       std::string proto_file = "",
+                       int compression = 1) {
     hw3::DetectParams p = detect_params(minDuration, minDuration2, joinAcrossGaps,
                                         maxGap, maxGap2, coldSpells, roundRes,
                                         n_threads, category, southHemisphere);
+    p.compression = compression;
     hw3::detect_events(file_in, clim_file, events_file, var_name, p,
                        threshClim2_file, threshClim2_var_name, daily_file, proto_file);
 }
@@ -456,10 +462,12 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              std::string threshClim2_var_name = "",
                              bool skip_bad_files = false,
                              std::string daily_file = "",
-                             std::string proto_file = "") {
+                             std::string proto_file = "",
+                             int compression = 1) {
     hw3::DetectParams p = detect_params(minDuration, minDuration2, joinAcrossGaps,
                                         maxGap, maxGap2, coldSpells, roundRes,
                                         n_threads, category, southHemisphere);
+    p.compression = compression;
     hw3::detect_events_multi(Rcpp::as<std::vector<std::string>>(files), clim_file,
                              events_file, var_name, p, opt_str(threshClim2_files),
                              threshClim2_var_name, skip_bad_files, daily_file, proto_file);

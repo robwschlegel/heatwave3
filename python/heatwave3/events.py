@@ -6,7 +6,7 @@ import os
 import tempfile
 
 from . import _core
-from ._utils import (check_out_dir, choose, clim_path, daily_path, date_strings,
+from ._utils import (check_out_dir, choose, clim_path, compression_level, daily_path, date_strings,
                      events_path, is_multi, list_nc, nthreads, pair, proto_path, quiet_core,
                      resolve_input)
 from .climatology import ts2clm3
@@ -17,7 +17,8 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
                   minDuration2=None, joinAcrossGaps=True, maxGap=2, maxGap2=None,
                   threshClim2=None, threshClim2_var_name=None, coldSpells=False,
                   category=False, hemisphere="south", roundRes=4, daily="none",
-                  protoEvent=False, n_threads=None, skip_bad_files=False, quiet=False):
+                  protoEvent=False, n_threads=None, compression=1, skip_bad_files=False,
+                  quiet=False):
     """Detect marine heatwaves (or cold-spells) in gridded data.
 
     The gridded equivalent of ``heatwaveR::detect_event()``, using a
@@ -69,6 +70,12 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
         the session default: half the available cores, unless changed with
         :func:`setHW3threads` or the ``HEATWAVE3_NUM_THREADS`` environment
         variable.
+    compression : int
+        zlib compression level of the NetCDF output, 0 to 9: 1 (the default)
+        compresses fastest, 9 gives the smallest files (a few percent
+        smaller), and 0 writes uncompressed files, which are several times
+        larger but much quicker to write. Gridded outputs are compressed on
+        ``n_threads`` threads when heatwave3 was built with HDF5.
     skip_bad_files : bool
         For multi-file input, skip unreadable or mismatched files.
     quiet : bool
@@ -122,7 +129,8 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
                 minDuration=int(minDuration), minDuration2=int(minDuration2),
                 joinAcrossGaps=bool(joinAcrossGaps), maxGap=int(maxGap),
                 maxGap2=int(maxGap2), coldSpells=bool(coldSpells), roundRes=int(roundRes),
-                n_threads=nthreads(n_threads), category=bool(category), southHemisphere=south,
+                n_threads=nthreads(n_threads), compression=compression_level(compression),
+                category=bool(category), southHemisphere=south,
                 threshClim2_var_name=t2_vn, daily_file=d_file, proto_file=p_file)
     if not multi and not os.path.exists(os.fspath(file_in)):
         raise FileNotFoundError(f"SST file does not exist: {os.fspath(file_in)}")
@@ -150,7 +158,7 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
             joinAcrossGaps=True, maxGap=2, maxGap2=None, threshClim2=None,
             threshClim2_var_name=None, coldSpells=False, category=False,
             hemisphere="south", roundClm=4, roundRes=4, daily="none", protoEvent=False,
-            n_threads=None, skip_bad_files=False, quiet=False):
+            n_threads=None, compression=1, skip_bad_files=False, quiet=False):
     """Climatology and event detection in one call (the primary entry point).
 
     Runs :func:`ts2clm3` then :func:`detect_event3` with the same ``name``
@@ -168,7 +176,7 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
                         maxPadLength=maxPadLength, windowHalfWidth=windowHalfWidth,
                         pctile=pctile, smoothPercentile=smoothPercentile,
                         smoothPercentileWidth=smoothPercentileWidth, detrend=detrend,
-                        roundClm=roundClm, n_threads=n_threads,
+                        roundClm=roundClm, n_threads=n_threads, compression=compression,
                         skip_bad_files=skip_bad_files, quiet=quiet)
     written = detect_event3(file_in, name, clim_file=clim_file, var_name=var_name,
                             minDuration=minDuration, minDuration2=minDuration2,
@@ -178,13 +186,15 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
                             coldSpells=coldSpells, category=category,
                             hemisphere=hemisphere, roundRes=roundRes, daily=daily,
                             protoEvent=protoEvent, n_threads=n_threads,
+                            compression=compression,
                             skip_bad_files=skip_bad_files, quiet=quiet)
     return {"clim": clim_file, **written}
 
 
 def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDuration=5,
                 joinAcrossGaps=True, maxGap=2, lon_range=None, lat_range=None,
-                time_range=None, depth=None, roundRes=4, n_threads=None, quiet=False):
+                time_range=None, depth=None, roundRes=4, n_threads=None, compression=1,
+                quiet=False):
     """Detect exceedances of a static threshold in gridded data.
 
     Parameters
@@ -197,7 +207,7 @@ def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDur
         Static threshold (same units as the data).
     below : bool
         Detect runs below the threshold instead of above.
-    minDuration, joinAcrossGaps, maxGap, roundRes, n_threads
+    minDuration, joinAcrossGaps, maxGap, roundRes, n_threads, compression
         As in :func:`detect_event3`.
     var_name, lon_range, lat_range, time_range, depth
         As in :func:`ts2clm3`.
@@ -212,6 +222,7 @@ def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDur
     """
     if threshold is None:
         raise ValueError("A threshold value must be provided.")
+    level = compression_level(compression)
     file_in, file_out = os.fspath(file_in), os.fspath(file_out)
     vn = "" if var_name is None else var_name
     fd, clim_file = tempfile.mkstemp(suffix=".nc")
@@ -229,7 +240,8 @@ def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDur
                 file_in, clim_file, file_out, vn, minDuration=int(minDuration),
                 minDuration2=int(minDuration), joinAcrossGaps=bool(joinAcrossGaps),
                 maxGap=int(maxGap), maxGap2=int(maxGap), coldSpells=bool(below),
-                roundRes=int(roundRes), n_threads=nthreads(n_threads), category=False,
+                roundRes=int(roundRes), n_threads=nthreads(n_threads),
+                compression=level, category=False,
                 southHemisphere=True)
     finally:
         os.remove(clim_file)

@@ -21,6 +21,11 @@
 #'   \code{NULL}: the session default, half the available cores unless
 #'   changed with \code{\link{setHW3threads}} or the
 #'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
+#' @param compression Integer from 0 to 9. zlib compression level of the
+#'   NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+#'   (a few percent smaller), and 0 writes uncompressed files, which are
+#'   several times larger but much quicker to write. Gridded outputs are
+#'   compressed on \code{n_threads} threads when heatwave3 was built with HDF5.
 #' @param quiet Logical. Suppress the progress messages from the computation?
 #'   Warnings are still shown. Default \code{FALSE}.
 #'
@@ -46,10 +51,12 @@ exceedance3 <- function(file_in, file_out, threshold,
                         time_range = NULL, depth = NULL,
                         roundRes = 4L,
                         n_threads = NULL,
+                        compression = 1L,
                         quiet = FALSE) {
 
   if (missing(threshold))
     stop("A threshold value must be provided.", call. = FALSE)
+  compression <- .hw3_compression(compression)
 
   # Create a dummy climatology where seas = threshold and thresh = threshold
   # This reuses the event detection machinery
@@ -90,6 +97,7 @@ exceedance3 <- function(file_in, file_out, threshold,
     coldSpells = below,
     roundRes = as.integer(roundRes),
     n_threads = .hw3_nthreads(n_threads),
+    compression = compression,
     category = FALSE,
     southHemisphere = TRUE,
     threshClim2_file = "",

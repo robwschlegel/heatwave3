@@ -54,6 +54,11 @@ categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
 
 ## Bug fixes
 
+* **Multi-threaded calls no longer wait out a progress interval.** With more
+  than one thread, the main thread checked for completion every 80 ms, so
+  each climatology or detection step took at least 80 ms longer than its
+  work. It is now woken as soon as the last pixel finishes; on the bundled
+  test file `detect3(n_threads = 4)` drops from 0.19 s to 0.04 s.
 * **`event_line3(coldSpells = TRUE)`** picked the event with the largest
   intensity; it now picks the most intense cold-spell (the most negative).
 * **The per-day product gave categories to days outside events.**

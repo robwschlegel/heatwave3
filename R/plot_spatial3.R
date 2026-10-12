@@ -38,6 +38,7 @@ plot_metric3 <- function(event_file,
                          summary = "mean",
                          coastline = TRUE,
                          ...) {
+  .need_ggplot2()
 
   agg <- hw3_read_metric_summary(event_file, metric = metric, summary = summary)
 

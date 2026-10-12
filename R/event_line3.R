@@ -54,6 +54,7 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
                         metric = "intensity_cumulative",
                         event_file = NULL,
                         coldSpells = FALSE) {
+  .need_ggplot2()
 
   eps <- 0.01
   vn <- if (is.null(var_name)) "" else var_name

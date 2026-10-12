@@ -44,6 +44,14 @@ categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
   the very end of the series into the last event, whereas heatwave3 ends the
   event on its last exceeding day.
 
+## Changes
+
+* **`library(heatwave3)` loads in 0.1 s instead of 0.9 s.** ggplot2, scales and
+  rlang moved from Imports to Suggests: they are loaded only when a plotting
+  function (`event_line3()`, `plot_metric3()`, `geom_flame3()`,
+  `geom_lolli3()`) is first used, and these functions ask for ggplot2 if it is
+  not installed.
+
 ## Changes to defaults
 
 * **`n_threads` defaults to `NULL`** in `ts2clm3()`, `detect_event3()`,

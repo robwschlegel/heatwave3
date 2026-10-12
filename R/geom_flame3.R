@@ -52,6 +52,7 @@ geom_flame3 <- function(mapping = NULL, data = NULL, stat = "identity",
                         reverse = FALSE,
                         na.rm = FALSE, show.legend = NA,
                         inherit.aes = TRUE) {
+  .need_ggplot2()
   ggplot2::layer(
     data = data, mapping = mapping, stat = stat,
     geom = GeomFlame3, position = position,
@@ -64,7 +65,11 @@ geom_flame3 <- function(mapping = NULL, data = NULL, stat = "identity",
 #' @format NULL
 #' @usage NULL
 #' @export
-GeomFlame3 <- ggplot2::ggproto("GeomFlame3", ggplot2::Geom,
+GeomFlame3 <- NULL
+
+# Built on first access (see .onLoad), so loading heatwave3 does not load
+# ggplot2.
+.make_geom_flame3 <- function() ggplot2::ggproto("GeomFlame3", ggplot2::Geom,
 
   required_aes = c("x", "y", "y2"),
 

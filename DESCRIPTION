@@ -19,14 +19,13 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports:
-    Rcpp (>= 1.0.0),
-    ggplot2,
-    rlang,
-    scales
+    Rcpp (>= 1.0.0)
 LinkingTo:
     Rcpp,
     RcppArmadillo
 Suggests:
+    ggplot2,
+    scales,
     testthat (>= 3.0.0),
     ncdf4,
     heatwaveR,

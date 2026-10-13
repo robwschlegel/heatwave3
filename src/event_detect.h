@@ -15,14 +15,16 @@ struct PixelEvents {
 // length == ntime (the caller's input time grid) into a grid-wide buffer; the
 // caller offsets the pointers per pixel before the call. detect_pixel_events
 // fills only the non-null arrays. Used for protoEvent and per-day output.
+// Real-valued fields are float: the per-day files store them as NC_FLOAT, so
+// holding them in double only doubled the memory and the conversion work.
 struct DailyBuffers {
-    double* seas = nullptr;              // daily seasonal climatology
-    double* thresh = nullptr;            // daily threshold climatology
+    float* seas = nullptr;               // daily seasonal climatology
+    float* thresh = nullptr;             // daily threshold climatology
     signed char* threshCriterion = nullptr;   // temp exceeds threshold (0/1)
     signed char* durationCriterion = nullptr; // in a >= minDuration run (0/1)
     signed char* event = nullptr;        // in a final, gap-joined event (0/1)
     int* event_no = nullptr;             // event number (0 = none)
-    double* intensity = nullptr;         // temp - seas (rounded to roundRes)
+    float* intensity = nullptr;          // temp - seas (rounded to roundRes)
     signed char* category = nullptr;     // daily Hobday category (0 = none, 1-4)
 };
 

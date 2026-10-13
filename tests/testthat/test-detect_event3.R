@@ -69,6 +69,34 @@ test_that("daily = 'only' writes the per-day file and no events table", {
   expect_equal(hw3_file_meta(out[["daily"]])$product, "daily")
 })
 
+test_that("slim = TRUE writes only intensity and category to the per-day file", {
+  fx <- make_clim()
+  full <- detect_event3(fx$sst, name = fx$stem, category = TRUE,
+                        daily = "also", quiet = TRUE)
+  slim_stem <- tempfile()
+  slim <- detect_event3(fx$sst, name = slim_stem,
+                        clim_file = paste0(fx$stem, "_clim.nc"), category = TRUE,
+                        daily = "also", slim = TRUE, quiet = TRUE)
+
+  dd_full <- hw3_export(full[["daily"]])
+  dd_slim <- hw3_export(slim[["daily"]])
+  expect_named(dd_slim, c("lon", "lat", "t", "intensity", "category"))
+  expect_equal(dd_slim, dd_full[names(dd_slim)])
+  expect_lt(file.size(slim[["daily"]]), 0.7 * file.size(full[["daily"]]))
+  # the events table does not depend on slim
+  key <- function(ev) ev[order(ev$lon, ev$lat, ev$event_no), ]
+  ev_full <- key(hw3_export(full[["events"]]))
+  ev_slim <- key(hw3_export(slim[["events"]]))
+  rownames(ev_full) <- rownames(ev_slim) <- NULL
+  expect_equal(ev_slim, ev_full)
+
+  expect_error(detect_event3(fx$sst, name = fx$stem, slim = TRUE, quiet = TRUE),
+               "'slim' applies")
+  expect_error(detect3(fx$sst, name = tempfile(), climatologyPeriod = cp,
+                       slim = TRUE, quiet = TRUE),
+               "'slim' applies")
+})
+
 test_that("protoEvent writes the heatwaveR-style proto series only", {
   fx <- make_clim()
   out <- detect_event3(fx$sst, name = fx$stem, protoEvent = TRUE, quiet = TRUE)

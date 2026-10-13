@@ -60,6 +60,19 @@ categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
   (level 1), against 4.5 s before (level 4, one thread). This needs HDF5 >=
   1.10.3 and zlib at build time, which `configure` finds next to libnetcdf;
   otherwise files are written on one thread as before (also on Windows).
+* **New `slim` argument** in `detect_event3()` and `detect3()`: with
+  `daily = "also"` or `"only"`, `slim = TRUE` writes only `intensity` and
+  `category` to the per-day file (no `temp`, `seas`, `thresh`, `event` or
+  `event_no`), and the dropped buffers are not allocated. On 5,569 pixels x
+  12,053 days the per-day file is 222 MB instead of 422 MB, and the run takes
+  2.7 s instead of 3.8 s on 8 threads. `hw3_export()` reads slim files.
+* **Faster per-day output and event tables.** The per-day buffers are no longer
+  zero-filled and then filled again on one thread before detection: each
+  worker sets its own pixels. `seas`, `thresh` and `intensity` are held in
+  float, as the files store them. Event tables are now also compressed on
+  `n_threads` threads. On 5,569 pixels x 12,053 days with 8 threads,
+  `detect_event3()` takes 1.6 s instead of 2.2 s for the event table and 3.8 s
+  instead of 5.1 s with `daily = "also"`. All outputs are unchanged.
 * **`library(heatwave3)` loads in 0.1 s instead of 0.9 s.** ggplot2, scales and
   rlang moved from Imports to Suggests: they are loaded only when a plotting
   function (`event_line3()`, `plot_metric3()`, `geom_flame3()`,

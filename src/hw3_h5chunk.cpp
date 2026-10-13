@@ -72,6 +72,8 @@ bool make_plan(hid_t fid, const ChunkSrc& v, Plan& p) {
         if (v.kind == ChunkSrc::DOUBLE) {
             if (cls != H5T_FLOAT || (p.esz != 4 && p.esz != 8)) break;
             p.to_float = (p.esz == 4);
+        } else if (v.kind == ChunkSrc::FLOAT) {
+            if (cls != H5T_FLOAT || p.esz != 4) break;
         } else {
             size_t want = (v.kind == ChunkSrc::SCHAR) ? 1 : 4;
             if (cls != H5T_INTEGER || p.esz != want || H5Tget_sign(type) != H5T_SGN_2) break;
@@ -139,6 +141,10 @@ void fill_chunk(const Plan& p, const hsize_t* off, unsigned char* out) {
             }
             break;
         }
+        case ChunkSrc::FLOAT:
+            std::memcpy(reinterpret_cast<float*>(out) + d, static_cast<const float*>(p.src->data) + s,
+                        run * sizeof(float));
+            break;
         case ChunkSrc::SCHAR:
             std::memcpy(out + d, static_cast<const signed char*>(p.src->data) + s, run);
             break;

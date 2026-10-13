@@ -21,6 +21,7 @@ detect_event3(
   hemisphere = "south",
   roundRes = 4L,
   daily = c("none", "also", "only"),
+  slim = FALSE,
   protoEvent = FALSE,
   n_threads = NULL,
   compression = 1L,
@@ -88,6 +89,13 @@ written to \code{paste0(name, "_events_daily.nc")} and contains \code{temp},
 (1 = I Moderate ... 4 = IV Extreme) on event days above the threshold;
 other days, including short exceedances that are not events, have no
 category (stored as 0, read as \code{NA}).}
+
+\item{slim}{Logical. With \code{daily = "also"} or \code{"only"}, write
+only \code{intensity} and \code{category} to the per-day file (no
+\code{temp}, \code{seas}, \code{thresh}, \code{event} or
+\code{event_no}): about half the size, and quicker to write. The
+dropped variables can be rebuilt from the SST and climatology files.
+Default \code{FALSE}.}
 
 \item{protoEvent}{Logical. Write the per-day proto-event series to
 \code{paste0(name, "_protoevents.nc")} instead of the event table,

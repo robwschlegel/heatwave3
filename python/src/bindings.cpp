@@ -125,7 +125,7 @@ hw3::ClimParams clim_params(int maxPadLength, int windowHalfWidth, double pctile
 hw3::DetectParams detect_params(int minDuration, int minDuration2, bool joinAcrossGaps,
                                 int maxGap, int maxGap2, bool coldSpells, int roundRes,
                                 int n_threads, bool category, bool southHemisphere,
-                                int compression) {
+                                int compression, bool slim = false) {
     hw3::DetectParams p;
     p.minDuration = minDuration;
     p.minDuration2 = minDuration2;
@@ -138,6 +138,7 @@ hw3::DetectParams detect_params(int minDuration, int minDuration2, bool joinAcro
     p.category = category;
     p.southHemisphere = southHemisphere;
     p.compression = compression;
+    p.slim = slim;
     return p;
 }
 
@@ -334,13 +335,13 @@ PYBIND11_MODULE(_core, m) {
              bool coldSpells, int roundRes, int n_threads, bool category,
              bool southHemisphere, const std::string& threshClim2_file,
              const std::string& threshClim2_var_name, const std::string& daily_file,
-             const std::string& proto_file, int compression) {
+             const std::string& proto_file, int compression, bool slim) {
               py::gil_scoped_release nogil;
               hw3::detect_events(file_in, clim_file, events_file, var_name,
                                  detect_params(minDuration, minDuration2, joinAcrossGaps,
                                                maxGap, maxGap2, coldSpells, roundRes,
                                                n_threads, category, southHemisphere,
-                                               compression),
+                                               compression, slim),
                                  threshClim2_file, threshClim2_var_name, daily_file,
                                  proto_file);
           },
@@ -351,7 +352,7 @@ PYBIND11_MODULE(_core, m) {
           py::arg("category") = false, py::arg("southHemisphere") = true,
           py::arg("threshClim2_file") = "", py::arg("threshClim2_var_name") = "",
           py::arg("daily_file") = "", py::arg("proto_file") = "",
-          py::arg("compression") = 1);
+          py::arg("compression") = 1, py::arg("slim") = false);
 
     m.def("hw3_detect_events_multi",
           [](const std::vector<std::string>& files, const std::string& clim_file,
@@ -361,13 +362,14 @@ PYBIND11_MODULE(_core, m) {
              bool southHemisphere, const OptStr& threshClim2_files,
              const std::string& threshClim2_var_name, bool skip_bad_files,
              const std::string& daily_file, const std::string& proto_file,
-             int compression) {
+             int compression, bool slim) {
               py::gil_scoped_release nogil;
               hw3::detect_events_multi(files, clim_file, events_file, var_name,
                                        detect_params(minDuration, minDuration2,
                                                      joinAcrossGaps, maxGap, maxGap2,
                                                      coldSpells, roundRes, n_threads,
-                                                     category, southHemisphere, compression),
+                                                     category, southHemisphere, compression,
+                                                     slim),
                                        val(threshClim2_files), threshClim2_var_name,
                                        skip_bad_files, daily_file, proto_file);
           },
@@ -378,7 +380,7 @@ PYBIND11_MODULE(_core, m) {
           py::arg("category") = false, py::arg("southHemisphere") = true,
           py::arg("threshClim2_files") = py::none(), py::arg("threshClim2_var_name") = "",
           py::arg("skip_bad_files") = false, py::arg("daily_file") = "",
-          py::arg("proto_file") = "", py::arg("compression") = 1);
+          py::arg("proto_file") = "", py::arg("compression") = 1, py::arg("slim") = false);
 
     // Product readers
 

@@ -433,11 +433,13 @@ void hw3_detect_events(std::string file_in,
                        std::string threshClim2_var_name = "",
                        std::string daily_file = "",
                        std::string proto_file = "",
-                       int compression = 1) {
+                       int compression = 1,
+                       bool slim = false) {
     hw3::DetectParams p = detect_params(minDuration, minDuration2, joinAcrossGaps,
                                         maxGap, maxGap2, coldSpells, roundRes,
                                         n_threads, category, southHemisphere);
     p.compression = compression;
+    p.slim = slim;
     hw3::detect_events(file_in, clim_file, events_file, var_name, p,
                        threshClim2_file, threshClim2_var_name, daily_file, proto_file);
 }
@@ -463,11 +465,13 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              bool skip_bad_files = false,
                              std::string daily_file = "",
                              std::string proto_file = "",
-                             int compression = 1) {
+                             int compression = 1,
+                             bool slim = false) {
     hw3::DetectParams p = detect_params(minDuration, minDuration2, joinAcrossGaps,
                                         maxGap, maxGap2, coldSpells, roundRes,
                                         n_threads, category, southHemisphere);
     p.compression = compression;
+    p.slim = slim;
     hw3::detect_events_multi(Rcpp::as<std::vector<std::string>>(files), clim_file,
                              events_file, var_name, p, opt_str(threshClim2_files),
                              threshClim2_var_name, skip_bad_files, daily_file, proto_file);

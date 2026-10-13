@@ -50,6 +50,8 @@
 #' @param roundRes Decimal places for event metric rounding. Default \code{4}.
 #' @param daily Per-day output control: \code{"none"} (default), \code{"also"},
 #'   or \code{"only"}. See \code{\link{detect_event3}}.
+#' @param slim Logical. Per-day file with only \code{intensity} and
+#'   \code{category}; see \code{\link{detect_event3}}. Default \code{FALSE}.
 #' @param protoEvent Logical. Write the per-day proto-event series
 #'   (\code{paste0(name, "_protoevents.nc")}) instead of the event table. See
 #'   \code{\link{detect_event3}}. Default \code{FALSE}.
@@ -107,6 +109,7 @@ detect3 <- function(file_in, name,
                     roundClm = 4L,
                     roundRes = 4L,
                     daily = c("none", "also", "only"),
+                    slim = FALSE,
                     protoEvent = FALSE,
                     n_threads = NULL,
                     compression = 1L,
@@ -114,6 +117,10 @@ detect3 <- function(file_in, name,
                     quiet = FALSE) {
 
   daily <- match.arg(daily)
+  if (isTRUE(slim) && daily == "none") {
+    stop("'slim' applies to the per-day file: set daily = \"also\" or \"only\".",
+         call. = FALSE)
+  }
 
   clim_file <- ts2clm3(file_in = file_in, name = name,
           climatologyPeriod = climatologyPeriod,
@@ -148,6 +155,7 @@ detect3 <- function(file_in, name,
     hemisphere = hemisphere,
     roundRes = roundRes,
     daily = daily,
+    slim = slim,
     protoEvent = protoEvent,
     n_threads = n_threads,
     compression = compression,

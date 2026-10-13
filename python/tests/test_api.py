@@ -89,6 +89,8 @@ def test_column_dtypes(stem):
     (lambda s: hw3.ts2clm3("/no/such.nc", s, CP), FileNotFoundError, "Input file does not exist"),
     (lambda s: hw3.detect_event3(SST, s, daily="sometimes"), ValueError, "'daily' must be"),
     (lambda s: hw3.detect_event3(SST, s, daily="also", protoEvent=True), ValueError, "mutually"),
+    (lambda s: hw3.detect_event3(SST, s, slim=True), ValueError, "'slim' applies"),
+    (lambda s: hw3.detect3(SST, s + "slim", CP, slim=True), ValueError, "'slim' applies"),
     (lambda s: hw3.detect_event3(SST, s + "nope"), FileNotFoundError, "Climatology file"),
     (lambda s: hw3.detect_event3(SST, s, hemisphere="east"), ValueError, "'hemisphere'"),
     (lambda s: hw3.category3(s + "_events.nc", hemisphere="up"), ValueError, "'hemisphere'"),
@@ -294,3 +296,25 @@ def test_parallel_writer_matches_serial_writer(tmp_path, monkeypatch):
         ser = run(True, tmp_path / f"ser{lv}", lv)
         for k in par:
             pd.testing.assert_frame_equal(par[k], ser[k])
+
+
+def test_slim_daily_has_only_intensity_and_category(stem, tmp_path):
+    full = hw3.hw3_export(stem + "_events_daily.nc")
+    for daily in ("also", "only"):
+        out = hw3.detect_event3(SST, tmp_path / daily, clim_file=stem + "_clim.nc",
+                                category=True, daily=daily, slim=True, quiet=True)
+        slim = hw3.hw3_export(out["daily"])
+        assert list(slim.columns) == ["lon", "lat", "t", "intensity", "category"]
+        pd.testing.assert_frame_equal(slim, full[list(slim.columns)])
+    assert "events" not in out  # daily="only"
+    assert os.path.getsize(tmp_path / "also_events_daily.nc") < 0.7 * os.path.getsize(
+        stem + "_events_daily.nc")
+
+
+def test_slim_leaves_the_events_table_unchanged(stem, tmp_path):
+    hw3.detect_event3(SST, tmp_path / "s", clim_file=stem + "_clim.nc", category=True,
+                      daily="also", slim=True, quiet=True)
+    srt = ["lon", "lat", "event_no"]
+    pd.testing.assert_frame_equal(
+        hw3.hw3_export(tmp_path / "s_events.nc").sort_values(srt, ignore_index=True),
+        hw3.hw3_export(stem + "_events.nc").sort_values(srt, ignore_index=True))

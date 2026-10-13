@@ -48,6 +48,12 @@
 #'   (1 = I Moderate ... 4 = IV Extreme) on event days above the threshold;
 #'   other days, including short exceedances that are not events, have no
 #'   category (stored as 0, read as \code{NA}).
+#' @param slim Logical. With \code{daily = "also"} or \code{"only"}, write
+#'   only \code{intensity} and \code{category} to the per-day file (no
+#'   \code{temp}, \code{seas}, \code{thresh}, \code{event} or
+#'   \code{event_no}): about half the size, and quicker to write. The
+#'   dropped variables can be rebuilt from the SST and climatology files.
+#'   Default \code{FALSE}.
 #' @param protoEvent Logical. Write the per-day proto-event series to
 #'   \code{paste0(name, "_protoevents.nc")} instead of the event table,
 #'   mirroring \code{heatwaveR::detect_event(protoEvents = TRUE)}. Variables:
@@ -105,6 +111,7 @@ detect_event3 <- function(
   hemisphere = "south",
   roundRes = 4L,
   daily = c("none", "also", "only"),
+  slim = FALSE,
   protoEvent = FALSE,
   n_threads = NULL,
   compression = 1L,
@@ -115,6 +122,10 @@ detect_event3 <- function(
     stop("file_in and name must both be provided.", call. = FALSE)
   }
   daily <- match.arg(daily)
+  if (isTRUE(slim) && daily == "none") {
+    stop("'slim' applies to the per-day file: set daily = \"also\" or \"only\".",
+         call. = FALSE)
+  }
   if (protoEvent && daily != "none") {
     stop("Set only one of 'protoEvent' or 'daily' (\"also\"/\"only\"); ",
          "they are mutually exclusive.", call. = FALSE)
@@ -196,7 +207,8 @@ detect_event3 <- function(
       threshClim2_var_name = t2_vn,
       skip_bad_files = skip_bad_files,
       daily_file = daily_path,
-      proto_file = proto_path
+      proto_file = proto_path,
+      slim = isTRUE(slim)
     )
   } else {
     if (!file.exists(file_in)) {
@@ -221,7 +233,8 @@ detect_event3 <- function(
       threshClim2_file = if (is.null(thresh2_files)) "" else thresh2_files[1],
       threshClim2_var_name = t2_vn,
       daily_file = daily_path,
-      proto_file = proto_path
+      proto_file = proto_path,
+      slim = isTRUE(slim)
     )
   }
 

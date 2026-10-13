@@ -90,6 +90,7 @@ struct DetectParams {
     bool category = false;
     bool southHemisphere = true;
     int compression = 1;  // zlib level of the outputs (0 = none)
+    bool slim = false;    // daily file: only intensity + category
 };
 
 // Output is selected by which paths are non-empty (events_file, daily_file,

@@ -71,10 +71,11 @@ def daily_df(dd: dict, start: int = 0, stop: int | None = None) -> pd.DataFrame:
         "lon": np.repeat(dd["lon"][ilon], ntime),
         "lat": np.repeat(dd["lat"][ilat], ntime),
         "t": np.tile(jd_to_datetime(dd["time_jd"]), len(pixels)),
-        "temp": dd["temp"][sl],
-        "seas": dd["seas"][sl],
-        "thresh": dd["thresh"][sl],
     })
+    # temp / seas / thresh are absent from slim daily files (intensity + category)
+    for k in ("temp", "seas", "thresh"):
+        if has(k):
+            df[k] = dd[k][sl]
     if has("threshCriterion"):
         df["threshCriterion"] = dd["threshCriterion"][sl] != 0
     if has("durationCriterion"):

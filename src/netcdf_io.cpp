@@ -567,6 +567,9 @@ static void put_gridded_and_close(int ncid, const std::string& file,
         case ChunkSrc::DOUBLE:
             nc_check(nc_put_var_double(ncid, vars[i].varid, static_cast<const double*>(c.data)), what);
             break;
+        case ChunkSrc::FLOAT:
+            nc_check(nc_put_var_float(ncid, vars[i].varid, static_cast<const float*>(c.data)), what);
+            break;
         case ChunkSrc::SCHAR:
             nc_check(nc_put_var_schar(ncid, vars[i].varid, static_cast<const signed char*>(c.data)), what);
             break;
@@ -977,11 +980,6 @@ void write_event_netcdf(const std::string& file_out,
 
     nc_check(nc_enddef(ncid), "enddef");
 
-    // Write data
-    nc_check(nc_put_var_double(ncid, v_lon, event_lon.data()), "put lon");
-    nc_check(nc_put_var_double(ncid, v_lat, event_lat.data()), "put lat");
-    nc_check(nc_put_var_int(ncid, v_pixel, pixel_index.data()), "put pixel");
-
     // Extract fields into contiguous arrays
     std::vector<int> eno(nevents), dur(nevents);
     std::vector<double> im(nevents), ix(nevents), iv(nevents), ic(nevents);
@@ -1017,36 +1015,42 @@ void write_event_netcdf(const std::string& file_out,
         sea[i] = e.season;
     }
 
-    nc_check(nc_put_var_int(ncid, v_eno, eno.data()), "put event_no");
-    nc_check(nc_put_var_int(ncid, v_ds, date_start.data()), "put date_start");
-    nc_check(nc_put_var_int(ncid, v_dp, date_peak.data()), "put date_peak");
-    nc_check(nc_put_var_int(ncid, v_de, date_end.data()), "put date_end");
-    nc_check(nc_put_var_int(ncid, v_dur, dur.data()), "put duration");
-    nc_check(nc_put_var_double(ncid, v_im, im.data()), "put intensity_mean");
-    nc_check(nc_put_var_double(ncid, v_ix, ix.data()), "put intensity_max");
-    nc_check(nc_put_var_double(ncid, v_iv, iv.data()), "put intensity_var");
-    nc_check(nc_put_var_double(ncid, v_ic, ic.data()), "put intensity_cumulative");
-    nc_check(nc_put_var_double(ncid, v_imrt, imrt.data()), "put imrt");
-    nc_check(nc_put_var_double(ncid, v_ixrt, ixrt.data()), "put ixrt");
-    nc_check(nc_put_var_double(ncid, v_ivrt, ivrt.data()), "put ivrt");
-    nc_check(nc_put_var_double(ncid, v_icrt, icrt.data()), "put icrt");
-    nc_check(nc_put_var_double(ncid, v_ima, ima.data()), "put ima");
-    nc_check(nc_put_var_double(ncid, v_ixa, ixa.data()), "put ixa");
-    nc_check(nc_put_var_double(ncid, v_iva, iva.data()), "put iva");
-    nc_check(nc_put_var_double(ncid, v_ica, ica.data()), "put ica");
-    nc_check(nc_put_var_double(ncid, v_ro, ro.data()), "put rate_onset");
-    nc_check(nc_put_var_double(ncid, v_rd, rd.data()), "put rate_decline");
-    nc_check(nc_put_var_int(ncid, v_cat, cat.data()), "put category");
-    nc_check(nc_put_var_double(ncid, v_pm, pm.data()), "put p_moderate");
-    nc_check(nc_put_var_double(ncid, v_ps, ps.data()), "put p_strong");
-    nc_check(nc_put_var_double(ncid, v_pv, pv2.data()), "put p_severe");
-    nc_check(nc_put_var_double(ncid, v_pe, pex.data()), "put p_extreme");
-    nc_check(nc_put_var_int(ncid, v_sea, sea.data()), "put season");
-    if (has_depth) {
-        nc_check(nc_put_var_double(ncid, v_depth, event_depth.data()), "put depth");
-    }
-
-    nc_check(nc_close(ncid), "close " + file_out);
+    // Store every column; compressed columns are compressed on all threads
+    // (put_gridded_and_close), which was the single-threaded part of writing
+    // large event tables.
+    using K = ChunkSrc;
+    std::vector<GridPut> cols = {
+        {v_lon, {"lon", event_lon.data(), K::DOUBLE}},
+        {v_lat, {"lat", event_lat.data(), K::DOUBLE}},
+        {v_pixel, {"pixel_index", pixel_index.data(), K::INT}},
+        {v_eno, {"event_no", eno.data(), K::INT}},
+        {v_ds, {"date_start", date_start.data(), K::INT}},
+        {v_dp, {"date_peak", date_peak.data(), K::INT}},
+        {v_de, {"date_end", date_end.data(), K::INT}},
+        {v_dur, {"duration", dur.data(), K::INT}},
+        {v_im, {"intensity_mean", im.data(), K::DOUBLE}},
+        {v_ix, {"intensity_max", ix.data(), K::DOUBLE}},
+        {v_iv, {"intensity_var", iv.data(), K::DOUBLE}},
+        {v_ic, {"intensity_cumulative", ic.data(), K::DOUBLE}},
+        {v_imrt, {"intensity_mean_relThresh", imrt.data(), K::DOUBLE}},
+        {v_ixrt, {"intensity_max_relThresh", ixrt.data(), K::DOUBLE}},
+        {v_ivrt, {"intensity_var_relThresh", ivrt.data(), K::DOUBLE}},
+        {v_icrt, {"intensity_cumulative_relThresh", icrt.data(), K::DOUBLE}},
+        {v_ima, {"intensity_mean_abs", ima.data(), K::DOUBLE}},
+        {v_ixa, {"intensity_max_abs", ixa.data(), K::DOUBLE}},
+        {v_iva, {"intensity_var_abs", iva.data(), K::DOUBLE}},
+        {v_ica, {"intensity_cumulative_abs", ica.data(), K::DOUBLE}},
+        {v_ro, {"rate_onset", ro.data(), K::DOUBLE}},
+        {v_rd, {"rate_decline", rd.data(), K::DOUBLE}},
+        {v_cat, {"category", cat.data(), K::INT}},
+        {v_pm, {"p_moderate", pm.data(), K::DOUBLE}},
+        {v_ps, {"p_strong", ps.data(), K::DOUBLE}},
+        {v_pv, {"p_severe", pv2.data(), K::DOUBLE}},
+        {v_pe, {"p_extreme", pex.data(), K::DOUBLE}},
+        {v_sea, {"season", sea.data(), K::INT}},
+    };
+    if (has_depth) cols.push_back({v_depth, {"depth", event_depth.data(), K::DOUBLE}});
+    put_gridded_and_close(ncid, file_out, cols, wo);
 }
 
 // ---- Write per-day NetCDF ([lon, lat, time]) ----
@@ -1057,13 +1061,13 @@ void write_daily_netcdf(const std::string& file_out,
                         int nlon, int nlat, int ntime,
                         const std::vector<int>& time_days,
                         const double* temp,
-                        const double* seas,
-                        const double* thresh,
+                        const float* seas,
+                        const float* thresh,
                         const signed char* threshCriterion,
                         const signed char* durationCriterion,
                         const signed char* event,
                         const int* event_no,
-                        const double* intensity,
+                        const float* intensity,
                         const signed char* category,
                         const std::string& product,
                         const std::string& source_file,
@@ -1192,15 +1196,15 @@ void write_daily_netcdf(const std::string& file_out,
     // variables are NC_FLOAT; nc_put_var_double converts (NaN stays NaN -> NA).
     std::vector<GridPut> grid;
     if (temp)   grid.push_back({v_temp, {"temp", temp, ChunkSrc::DOUBLE}});
-    if (seas)   grid.push_back({v_seas, {"seas", seas, ChunkSrc::DOUBLE}});
-    if (thresh) grid.push_back({v_thresh, {"thresh", thresh, ChunkSrc::DOUBLE}});
+    if (seas)   grid.push_back({v_seas, {"seas", seas, ChunkSrc::FLOAT}});
+    if (thresh) grid.push_back({v_thresh, {"thresh", thresh, ChunkSrc::FLOAT}});
     if (threshCriterion)
         grid.push_back({v_tc, {"threshCriterion", threshCriterion, ChunkSrc::SCHAR}});
     if (durationCriterion)
         grid.push_back({v_dc, {"durationCriterion", durationCriterion, ChunkSrc::SCHAR}});
     if (event)  grid.push_back({v_ev, {"event", event, ChunkSrc::SCHAR}});
     if (event_no) grid.push_back({v_eno, {"event_no", event_no, ChunkSrc::INT}});
-    if (intensity) grid.push_back({v_int, {"intensity", intensity, ChunkSrc::DOUBLE}});
+    if (intensity) grid.push_back({v_int, {"intensity", intensity, ChunkSrc::FLOAT}});
     if (category) grid.push_back({v_cat, {"category", category, ChunkSrc::SCHAR}});
     put_gridded_and_close(ncid, file_out, grid, wo);
 }

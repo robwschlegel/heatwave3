@@ -288,33 +288,41 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
 
     // Optional per-day output buffers. The proto set carries the
     // threshold/duration flags; the daily set carries intensity and the daily
-    // category. Both share temp/seas/thresh and the event flag/number. temp is
-    // written directly from gd.sst.
+    // category. Both share temp/seas/thresh and the event flag/number (not in
+    // a slim daily file, which has intensity + category only). temp is written
+    // directly from gd.sst.
+    //
+    // Buffers are allocated uninitialised: detect_events_grid() sets every
+    // pixel's slice on its worker thread (std::vector would first zero-fill
+    // them on this thread, ~0.4 s for 80M cells).
     const bool want_proto = !proto_file.empty();
     const bool want_daily_series = !daily_file.empty();
     const bool want_daily = want_proto || want_daily_series;
+    const bool full_daily = want_daily_series && !p.slim;
     size_t gs = static_cast<size_t>(npixels) * gd.ntime;
-    std::vector<double> b_seas, b_thresh, b_int;
-    std::vector<signed char> b_tc, b_dc, b_ev, b_cat;
-    std::vector<int> b_eno;
+    std::unique_ptr<float[]> b_seas, b_thresh, b_int;
+    std::unique_ptr<signed char[]> b_tc, b_dc, b_ev, b_cat;
+    std::unique_ptr<int[]> b_eno;
     DailyBuffers daily_grid;
     DailyBuffers* daily_grid_ptr = nullptr;
     if (want_daily) {
-        b_seas.resize(gs); b_thresh.resize(gs);
-        b_ev.resize(gs); b_eno.resize(gs);
-        daily_grid.seas = b_seas.data();
-        daily_grid.thresh = b_thresh.data();
-        daily_grid.event = b_ev.data();
-        daily_grid.event_no = b_eno.data();
+        if (want_proto || full_daily) {
+            b_seas.reset(new float[gs]); b_thresh.reset(new float[gs]);
+            b_ev.reset(new signed char[gs]); b_eno.reset(new int[gs]);
+            daily_grid.seas = b_seas.get();
+            daily_grid.thresh = b_thresh.get();
+            daily_grid.event = b_ev.get();
+            daily_grid.event_no = b_eno.get();
+        }
         if (want_proto) {
-            b_tc.resize(gs); b_dc.resize(gs);
-            daily_grid.threshCriterion = b_tc.data();
-            daily_grid.durationCriterion = b_dc.data();
+            b_tc.reset(new signed char[gs]); b_dc.reset(new signed char[gs]);
+            daily_grid.threshCriterion = b_tc.get();
+            daily_grid.durationCriterion = b_dc.get();
         }
         if (want_daily_series) {
-            b_int.resize(gs); b_cat.resize(gs);
-            daily_grid.intensity = b_int.data();
-            daily_grid.category = b_cat.data();
+            b_int.reset(new float[gs]); b_cat.reset(new signed char[gs]);
+            daily_grid.intensity = b_int.get();
+            daily_grid.category = b_cat.get();
         }
         daily_grid_ptr = &daily_grid;
     }
@@ -347,8 +355,8 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
         out() << "Writing per-day proto-event series to " << proto_file << "..." << std::endl;
         write_daily_netcdf(
             proto_file, gd.lon, gd.lat, gd.nlon, gd.nlat, gd.ntime, gd.time_days,
-            gd.sst.data(), b_seas.data(), b_thresh.data(),
-            b_tc.data(), b_dc.data(), b_ev.data(), b_eno.data(),
+            gd.sst.data(), b_seas.get(), b_thresh.get(),
+            b_tc.get(), b_dc.get(), b_ev.get(), b_eno.get(),
             nullptr, nullptr,
             "protoevents", source_label, clim_file, p.minDuration, p.maxGap,
             p.coldSpells, p.southHemisphere, gd.temp_units,
@@ -356,14 +364,18 @@ static void detect_and_write_events(GridData& gd, ClimData& cd,
         out() << "Done." << std::endl;
     }
 
-    // Per-day series with intensity + daily category.
+    // Per-day series with intensity + daily category (and, unless slim, temp,
+    // seas, thresh and the event flag/number).
     if (want_daily_series) {
-        out() << "Writing per-day series to " << daily_file << "..." << std::endl;
+        out() << "Writing per-day series" << (p.slim ? " (slim)" : "") << " to "
+              << daily_file << "..." << std::endl;
         write_daily_netcdf(
             daily_file, gd.lon, gd.lat, gd.nlon, gd.nlat, gd.ntime, gd.time_days,
-            gd.sst.data(), b_seas.data(), b_thresh.data(),
-            nullptr, nullptr, b_ev.data(), b_eno.data(),
-            b_int.data(), b_cat.data(),
+            p.slim ? nullptr : gd.sst.data(),
+            p.slim ? nullptr : b_seas.get(), p.slim ? nullptr : b_thresh.get(),
+            nullptr, nullptr,
+            p.slim ? nullptr : b_ev.get(), p.slim ? nullptr : b_eno.get(),
+            b_int.get(), b_cat.get(),
             "daily", source_label, clim_file, p.minDuration, p.maxGap,
             p.coldSpells, p.southHemisphere, gd.temp_units,
             gd.ndepth, gd.depth, wo);

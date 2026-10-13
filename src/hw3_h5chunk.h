@@ -22,7 +22,7 @@
 namespace hw3 {
 
 struct ChunkSrc {
-    enum Kind { DOUBLE, SCHAR, INT };
+    enum Kind { DOUBLE, FLOAT, SCHAR, INT };
     std::string name;   // variable name in the file
     const void* data;   // full array, row-major in the variable's dimension order
     Kind kind;

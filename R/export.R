@@ -393,11 +393,12 @@ hw3_export <- function(file, file_out = NULL, vars = NULL,
       lon = dd$lon[ilon],
       lat = dd$lat[ilat],
       t = date,
-      temp = dd$temp[idx],
-      seas = dd$seas[idx],
-      thresh = dd$thresh[idx],
       stringsAsFactors = FALSE
     )
+    # temp / seas / thresh are absent from slim daily files (intensity + category)
+    for (v in c("temp", "seas", "thresh")) {
+      if (has(v)) df[[v]] <- dd[[v]][idx]
+    }
     if (has("threshCriterion")) df$threshCriterion <- dd$threshCriterion[idx] != 0L
     if (has("durationCriterion")) df$durationCriterion <- dd$durationCriterion[idx] != 0L
     if (has("intensity")) df$intensity <- dd$intensity[idx]

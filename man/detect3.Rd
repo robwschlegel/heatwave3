@@ -33,6 +33,7 @@ detect3(
   roundClm = 4L,
   roundRes = 4L,
   daily = c("none", "also", "only"),
+  slim = FALSE,
   protoEvent = FALSE,
   n_threads = NULL,
   compression = 1L,
@@ -114,6 +115,9 @@ inline? Default \code{FALSE}.}
 
 \item{daily}{Per-day output control: \code{"none"} (default), \code{"also"},
 or \code{"only"}. See \code{\link{detect_event3}}.}
+
+\item{slim}{Logical. Per-day file with only \code{intensity} and
+\code{category}; see \code{\link{detect_event3}}. Default \code{FALSE}.}
 
 \item{protoEvent}{Logical. Write the per-day proto-event series
 (\code{paste0(name, "_protoevents.nc")}) instead of the event table. See

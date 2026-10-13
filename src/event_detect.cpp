@@ -4,6 +4,7 @@
 #include "hw3_omp.h"
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 #include <cstring>
 #include <mutex>
@@ -325,13 +326,13 @@ PixelEvents detect_pixel_events(
                     cat = static_cast<signed char>(daily_category(temp[t], dense_doy[di], levels,
                                                                   coldSpells));
             }
-            if (daily->seas) daily->seas[t] = s;
-            if (daily->thresh) daily->thresh[t] = th;
+            if (daily->seas) daily->seas[t] = static_cast<float>(s);
+            if (daily->thresh) daily->thresh[t] = static_cast<float>(th);
             if (daily->threshCriterion) daily->threshCriterion[t] = tc;
             if (daily->durationCriterion) daily->durationCriterion[t] = dc;
             if (daily->event) daily->event[t] = ev;
             if (daily->event_no) daily->event_no[t] = eno;
-            if (daily->intensity) daily->intensity[t] = intens;
+            if (daily->intensity) daily->intensity[t] = static_cast<float>(intens);
             if (daily->category) daily->category[t] = cat;
         }
     }
@@ -535,21 +536,13 @@ void detect_events_grid(
         doy_arr[t] = jd_to_doy_366(time_jd[t]);
     }
 
-    // Initialise per-day output buffers: NA for the real-valued fields, 0 for
-    // the flag/integer fields. Skipped (land / no-climatology) pixels keep
-    // these defaults; valid pixels overwrite their slice in detect_pixel_events.
+    // Per-day output buffers arrive uninitialised. Each worker first sets its
+    // pixel's slice to the defaults (NA for the real-valued fields, 0 for the
+    // flag/integer fields), so skipped (land / no-climatology) pixels keep them
+    // and valid pixels overwrite them in detect_pixel_events. Done per pixel on
+    // the worker threads: a serial fill of the whole grid took ~0.3 s on 80M cells.
     const bool want_daily = (daily_grid != nullptr);
-    if (want_daily) {
-        size_t gs = static_cast<size_t>(npixels) * ntime;
-        if (daily_grid->seas)      std::fill(daily_grid->seas, daily_grid->seas + gs, NA_DOUBLE);
-        if (daily_grid->thresh)    std::fill(daily_grid->thresh, daily_grid->thresh + gs, NA_DOUBLE);
-        if (daily_grid->intensity) std::fill(daily_grid->intensity, daily_grid->intensity + gs, NA_DOUBLE);
-        if (daily_grid->threshCriterion)   std::fill(daily_grid->threshCriterion, daily_grid->threshCriterion + gs, 0);
-        if (daily_grid->durationCriterion) std::fill(daily_grid->durationCriterion, daily_grid->durationCriterion + gs, 0);
-        if (daily_grid->event)     std::fill(daily_grid->event, daily_grid->event + gs, 0);
-        if (daily_grid->category)  std::fill(daily_grid->category, daily_grid->category + gs, 0);
-        if (daily_grid->event_no)  std::fill(daily_grid->event_no, daily_grid->event_no + gs, 0);
-    }
+    const float NA_F = std::numeric_limits<float>::quiet_NaN();
 
     // Per-pixel results (collected thread-safely)
     struct PixelResult {
@@ -573,6 +566,19 @@ void detect_events_grid(
         const double* pixel_thresh2 = thresh2 ? thresh2 + static_cast<size_t>(px) * ntime : nullptr;
         const double* pixel_seas = seas_clim + static_cast<size_t>(px) * 366;
         const double* pixel_thresh = thresh_clim + static_cast<size_t>(px) * 366;
+
+        if (want_daily) {
+            size_t off = static_cast<size_t>(px) * ntime;
+            auto fill = [&](auto* buf, auto v) { if (buf) std::fill(buf + off, buf + off + ntime, v); };
+            fill(daily_grid->seas, NA_F);
+            fill(daily_grid->thresh, NA_F);
+            fill(daily_grid->intensity, NA_F);
+            fill(daily_grid->threshCriterion, static_cast<signed char>(0));
+            fill(daily_grid->durationCriterion, static_cast<signed char>(0));
+            fill(daily_grid->event, static_cast<signed char>(0));
+            fill(daily_grid->category, static_cast<signed char>(0));
+            fill(daily_grid->event_no, 0);
+        }
 
         // Skip all-NA pixels
         bool has_data = false;

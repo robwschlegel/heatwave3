@@ -17,8 +17,8 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
                   minDuration2=None, joinAcrossGaps=True, maxGap=2, maxGap2=None,
                   threshClim2=None, threshClim2_var_name=None, coldSpells=False,
                   category=False, hemisphere="south", roundRes=4, daily="none",
-                  protoEvent=False, n_threads=None, compression=1, skip_bad_files=False,
-                  quiet=False):
+                  slim=False, protoEvent=False, n_threads=None, compression=1,
+                  skip_bad_files=False, quiet=False):
     """Detect marine heatwaves (or cold-spells) in gridded data.
 
     The gridded equivalent of ``heatwaveR::detect_event()``, using a
@@ -62,6 +62,11 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
         Also (or only) write the per-day series: temp, seas, thresh,
         intensity, event, event_no, and the daily Hobday (2018) category on
         event days above the threshold (missing on all other days).
+    slim : bool
+        With ``daily`` = ``"also"`` or ``"only"``, write only ``intensity`` and
+        ``category`` to the per-day file (no temp, seas, thresh, event or
+        event_no): about half the size, and quicker to write. The
+        dropped variables can be rebuilt from the SST and climatology files.
     protoEvent : bool
         Write the per-day proto-event series instead of the event table.
         Mutually exclusive with ``daily``.
@@ -93,6 +98,8 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
     minDuration2 = minDuration if minDuration2 is None else minDuration2
     maxGap2 = maxGap if maxGap2 is None else maxGap2
     daily = choose(daily, ("none", "also", "only"), "daily")
+    if slim and daily == "none":
+        raise ValueError("'slim' applies to the per-day file: set daily = \"also\" or \"only\".")
     if protoEvent and daily != "none":
         raise ValueError("Set only one of 'protoEvent' or 'daily' (\"also\"/\"only\"); "
                          "they are mutually exclusive.")
@@ -131,7 +138,8 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, minDuration=5,
                 maxGap2=int(maxGap2), coldSpells=bool(coldSpells), roundRes=int(roundRes),
                 n_threads=nthreads(n_threads), compression=compression_level(compression),
                 category=bool(category), southHemisphere=south,
-                threshClim2_var_name=t2_vn, daily_file=d_file, proto_file=p_file)
+                threshClim2_var_name=t2_vn, daily_file=d_file, proto_file=p_file,
+                slim=bool(slim))
     if not multi and not os.path.exists(os.fspath(file_in)):
         raise FileNotFoundError(f"SST file does not exist: {os.fspath(file_in)}")
     with quiet_core(quiet):
@@ -157,8 +165,9 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
             smoothPercentileWidth=31, detrend=False, minDuration=5, minDuration2=None,
             joinAcrossGaps=True, maxGap=2, maxGap2=None, threshClim2=None,
             threshClim2_var_name=None, coldSpells=False, category=False,
-            hemisphere="south", roundClm=4, roundRes=4, daily="none", protoEvent=False,
-            n_threads=None, compression=1, skip_bad_files=False, quiet=False):
+            hemisphere="south", roundClm=4, roundRes=4, daily="none", slim=False,
+            protoEvent=False, n_threads=None, compression=1, skip_bad_files=False,
+            quiet=False):
     """Climatology and event detection in one call (the primary entry point).
 
     Runs :func:`ts2clm3` then :func:`detect_event3` with the same ``name``
@@ -170,6 +179,8 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
         Paths written: ``"clim"`` plus those returned by :func:`detect_event3`.
     """
     daily = choose(daily, ("none", "also", "only"), "daily")
+    if slim and daily == "none":
+        raise ValueError("'slim' applies to the per-day file: set daily = \"also\" or \"only\".")
     clim_file = ts2clm3(file_in, name, climatologyPeriod, lon_range=lon_range,
                         lat_range=lat_range, time_range=time_range, depth=depth,
                         depth_range=depth_range, var_name=var_name,
@@ -185,7 +196,7 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
                             threshClim2_var_name=threshClim2_var_name,
                             coldSpells=coldSpells, category=category,
                             hemisphere=hemisphere, roundRes=roundRes, daily=daily,
-                            protoEvent=protoEvent, n_threads=n_threads,
+                            slim=slim, protoEvent=protoEvent, n_threads=n_threads,
                             compression=compression,
                             skip_bad_files=skip_bad_files, quiet=quiet)
     return {"clim": clim_file, **written}

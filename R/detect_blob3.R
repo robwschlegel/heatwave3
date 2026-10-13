@@ -13,8 +13,7 @@
 #' then labelled as coherent spatial (or spatio-vertical) events using a
 #' union-find algorithm.
 #'
-#' This is the same approach used by \code{heatwaveR::detect_blob3()}. The
-#' reason an event file from \code{\link{detect_event3}} cannot be used
+#' The reason an event file from \code{\link{detect_event3}} cannot be used
 #' directly is that the event file stores per-pixel event \emph{summaries}
 #' (start/end dates, intensity metrics), not the daily per-pixel boolean mask
 #' needed for spatial connectivity analysis.

@@ -89,6 +89,13 @@ categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
 
 ## Bug fixes
 
+* **The climatology file's `thresh` `long_name` contained stray bytes.**
+  `ts2clm3()` wrote the attribute with a hard-coded length of 30 for the
+  21-character text, so 9 bytes beyond the string were stored with it (read as
+  `"threshold climatology\000var\000def "`, or `"threshold climatologyvardef "`
+  in tools that drop the nulls; the exact bytes depend on the compiler). The
+  `seas` and `var` long names carried a trailing null. All three lengths are
+  now taken from the text. Values in the file were never affected.
 * **Multi-threaded calls no longer wait out a progress interval.** With more
   than one thread, the main thread checked for completion every 80 ms, so
   each climatology or detection step took at least 80 ms longer than its

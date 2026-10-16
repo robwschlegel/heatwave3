@@ -40,6 +40,11 @@ static bool nc_get_att_str(int ncid, int varid, const char* name, std::string& o
     return true;
 }
 
+// Write a text attribute, taking its length from the text (no trailing null)
+static void nc_put_att_str(int ncid, int varid, const char* name, const char* value) {
+    nc_put_att_text(ncid, varid, name, std::strlen(value), value);
+}
+
 // ---- CF time parsing ----
 
 static int date_to_jd(int y, int m, int d) {
@@ -648,9 +653,9 @@ void write_clim_netcdf(const std::string& file_out,
     nc_check(nc_def_var(ncid, "seas", NC_DOUBLE, ndims_data, dims_data, &seas_varid), "def var seas");
     nc_check(nc_def_var(ncid, "thresh", NC_DOUBLE, ndims_data, dims_data, &thresh_varid), "def var thresh");
 
-    nc_put_att_text(ncid, seas_varid, "long_name", 21, "seasonal climatology");
+    nc_put_att_str(ncid, seas_varid, "long_name", "seasonal climatology");
     nc_put_att_text(ncid, seas_varid, "units", temp_units.size(), temp_units.c_str());
-    nc_put_att_text(ncid, thresh_varid, "long_name", 30, "threshold climatology");
+    nc_put_att_str(ncid, thresh_varid, "long_name", "threshold climatology");
     nc_put_att_text(ncid, thresh_varid, "units", temp_units.size(), temp_units.c_str());
 
     // Enable compression
@@ -659,7 +664,7 @@ void write_clim_netcdf(const std::string& file_out,
 
     if (has_var) {
         nc_check(nc_def_var(ncid, "var", NC_DOUBLE, ndims_data, dims_data, &var_varid), "def var var");
-        nc_put_att_text(ncid, var_varid, "long_name", 21, "variance climatology");
+        nc_put_att_str(ncid, var_varid, "long_name", "variance climatology");
         def_deflate(ncid, var_varid, wo);
     }
 

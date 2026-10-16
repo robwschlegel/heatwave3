@@ -23,41 +23,39 @@ We compare four configurations on this dataset:
 and, on a larger sample of the same dataset, the speed-up `xmhw` gets
 from `dask`.
 
-``` r
-# Necessary R packages
-library(reticulate)
-library(ncdf4)
-library(heatwaveR)
-library(heatwave3)
-```
+\
+`# Necessary R packages`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`reticulate`](https://rstudio.github.io/reticulate/)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`ncdf4`](https://cirrus.ucsd.edu/~pierce/ncdf/)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwaveR`](https://robwschlegel.github.io/heatwaveR/)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`
 
 ## Test data
 
-``` r
-# Choose bounding box
-bbox <- c(
-  2.5,   # °E  (just west of Cerbère)
-  41.0,  # °N  (south of Corsica, open sea)
-  7.7,   # °E  (Menton / Ligurian coast)
-  44.0   # °N  (northern fringe, pre-Alps shelf)
-)
-
-# Select daterange
-time_range <- c(
-  "1982-01-01",
-  "2024-12-31"
-)
-
-# Simply download the data proscribed here via the UI
-# https://data.marine.copernicus.eu/product/SST_GLO_SST_L4_REP_OBSERVATIONS_010_011/download?dataset=METOFFICE-GLO-SST-L4-REP-OBS-SST_202003
-
-# The NetCDF file for further use
-sst_file <- "/home/calanus/data/OSTIA/METOFFICE-GLO-SST-L4-REP-OBS-SST_French_Med.nc"
-# 104 lon × 60 lat at 0.05° resolution
-# 2.5–7.7°E, 41–44°N (French Mediterranean coastline)
-# 15,706 daily time steps (1982-01-01 to 2024-12-31)
-# 6,240 ocean pixels (remainder is land)
-```
+\
+`# Choose bounding box`\
+`bbox`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(`\
+`  ``2.5``,   ``# °E  (just west of Cerbère)`\
+`  ``41.0``,  ``# °N  (south of Corsica, open sea)`\
+`  ``7.7``,   ``# °E  (Menton / Ligurian coast)`\
+`  ``44.0``   ``# °N  (northern fringe, pre-Alps shelf)`\
+`)`\
+\
+`# Select daterange`\
+`time_range`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(`\
+`  ``"1982-01-01"``,`\
+`  ``"2024-12-31"`\
+`)`\
+\
+`# Simply download the data proscribed here via the UI`\
+`# https://data.marine.copernicus.eu/product/SST_GLO_SST_L4_REP_OBSERVATIONS_010_011/download?dataset=METOFFICE-GLO-SST-L4-REP-OBS-SST_202003`\
+\
+`# The NetCDF file for further use`\
+`sst_file`` ``<-`` ``"/home/calanus/data/OSTIA/METOFFICE-GLO-SST-L4-REP-OBS-SST_French_Med.nc"`\
+`# 104 lon × 60 lat at 0.05° resolution`\
+`# 2.5–7.7°E, 41–44°N (French Mediterranean coastline)`\
+`# 15,706 daily time steps (1982-01-01 to 2024-12-31)`\
+`# 6,240 ocean pixels (remainder is land)`
 
 ## Python environment
 
@@ -68,9 +66,8 @@ environment once, and every `python` chunk below runs in it — R objects
 such as `sst_file` are available in python as `r.sst_file`, and vice
 versa.
 
-``` r
-use_condaenv("RiOMar", required = TRUE)
-```
+\
+[`use_condaenv`](https://rstudio.github.io/reticulate/reference/use_python.html)`(``"RiOMar"``, required ``=`` ``TRUE``)`
 
 ## heatwaveR: serial baseline
 
@@ -78,36 +75,35 @@ use_condaenv("RiOMar", required = TRUE)
 (data pre-loaded to isolate computation from I/O) and extrapolate to the
 full grid.
 
-``` r
-nc <- nc_open(sst_file)
-time_raw <- ncvar_get(nc, "time")
-dates <- as.Date("1970-01-01") + time_raw / 86400
-
-# Pre-load one longitude column (20 lat pixels)
-sst_col <- ncvar_get(nc, "analysed_sst",
-                     start = c(1, 1, 1),
-                     count = c(1, 20, -1))
-nc_close(nc)
-
-ocean_idx <- which(!is.na(sst_col[, 1]))
-n_test <- 20L
-
-t_hwr <- system.time({
-  for (j in ocean_idx[1:n_test]) {
-    clm <- ts2clm(data.frame(t = dates, temp = as.numeric(sst_col[j, ])),
-                  climatologyPeriod = c("1982-01-01", "2011-12-31"))
-    ev <- detect_event(clm)
-  }
-})
-
-per_pixel <- t_hwr[3] / n_test
-n_ocean <- 6240  # pre-counted
-estimated <- per_pixel * n_ocean
-
-cat("Per pixel:      ", round(per_pixel, 3), "sec\n")
-cat("Estimated total:", round(estimated), "sec (",
-    round(estimated / 60, 1), "min)\n")
-```
+\
+`nc`` ``<-`` `[`nc_open`](https://rdrr.io/pkg/ncdf4/man/nc_open.html)`(``sst_file``)`\
+`time_raw`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"time"``)`\
+`dates`` ``<-`` `[`as.Date`](https://rdrr.io/r/base/as.Date.html)`(``"1970-01-01"``)`` ``+`` ``time_raw`` ``/`` ``86400`\
+\
+`# Pre-load one longitude column (20 lat pixels)`\
+`sst_col`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"analysed_sst"``,`\
+`                     start ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``1``, ``1``)``,`\
+`                     count ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``20``, ``-``1``)``)`\
+[`nc_close`](https://rdrr.io/pkg/ncdf4/man/nc_close.html)`(``nc``)`\
+\
+`ocean_idx`` ``<-`` `[`which`](https://rdrr.io/r/base/which.html)`(``!`[`is.na`](https://rdrr.io/r/base/NA.html)`(``sst_col``[``, ``1``]``)``)`\
+`n_test`` ``<-`` ``20L`\
+\
+`t_hwr`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(``{`\
+`  ``for`` ``(``j`` ``in`` ``ocean_idx``[``1``:``n_test``]``)`` ``{`\
+`    ``clm`` ``<-`` `[`ts2clm`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``t ``=`` ``dates``, temp ``=`` `[`as.numeric`](https://rdrr.io/r/base/numeric.html)`(``sst_col``[``j``, ``]``)``)``,`\
+`                  climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``)`\
+`    ``ev`` ``<-`` `[`detect_event`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)`(``clm``)`\
+`  ``}`\
+`}``)`\
+\
+`per_pixel`` ``<-`` ``t_hwr``[``3``]`` ``/`` ``n_test`\
+`n_ocean`` ``<-`` ``6240``  ``# pre-counted`\
+`estimated`` ``<-`` ``per_pixel`` ``*`` ``n_ocean`\
+\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Per pixel:      "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``per_pixel``, ``3``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Estimated total:"``, `[`round`](https://rdrr.io/r/base/Round.html)`(``estimated``)``, ``"sec ("``,`\
+`    `[`round`](https://rdrr.io/r/base/Round.html)`(``estimated`` ``/`` ``60``, ``1``)``, ``"min)\n"``)`
 
 ## xmhw: out-of-the-box
 
@@ -148,54 +144,52 @@ print(f"Total (estimated): {round(x_clim_est + x_event_est)} sec "
 
 ## heatwave3: single-threaded
 
-``` r
-stem <- file.path(tempdir(), "bench")
-
-t_clim <- system.time(
-  ts2clm3(sst_file, name = stem,
-          climatologyPeriod = c("1982-01-01", "2011-12-31"),
-          var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
-)
-
-t_event <- system.time(
-  detect_event3(sst_file, name = stem,
-                var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
-)
-
-cat("Climatology:", round(t_clim[3], 1), "sec\n")
-cat("Detection:  ", round(t_event[3], 1), "sec\n")
-cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
-```
+\
+`stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"bench"``)`\
+\
+`t_clim`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
+`          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+`t_event`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Climatology:"``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Detection:  "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_event``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Total:      "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim``[``3``]`` ``+`` ``t_event``[``3``]``, ``1``)``, ``"sec\n"``)`
 
 ## heatwave3: 12 threads
 
-``` r
-t_clim_12 <- system.time(
-  ts2clm3(sst_file, name = stem,
-          climatologyPeriod = c("1982-01-01", "2011-12-31"),
-          var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
-)
-
-t_event_12 <- system.time(
-  detect_event3(sst_file, name = stem,
-                var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
-)
-
-cat("Climatology:", round(t_clim_12[3], 1), "sec\n")
-cat("Detection:  ", round(t_event_12[3], 1), "sec\n")
-cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
-```
+\
+`t_clim_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
+`          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+`t_event_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Climatology:"``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim_12``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Detection:  "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_event_12``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Total:      "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim_12``[``3``]`` ``+`` ``t_event_12``[``3``]``, ``1``)``, ``"sec\n"``)`
 
 ## Results
 
 Benchmarked on Ubuntu 24.04, 16 cores, R 4.6.1.
 
-| Method                 | Climatology   | Detection   | Total                    | Speedup  |
-|------------------------|---------------|-------------|--------------------------|----------|
-| heatwaveR (serial)     | n/a           | n/a         | ca. 1,262 sec (21 min)   | 1×       |
-| xmhw (serial)          | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5×     |
-| heatwave3 (1 thread)   | 17.5 sec      | 5 sec       | **22.5 sec**             | **56×**  |
-| heatwave3 (12 threads) | 3.7 sec       | 3.7 sec     | **7.4 sec**              | **170×** |
+| Method | Climatology | Detection | Total | Speedup |
+|----|----|----|----|----|
+| heatwaveR (serial) | n/a | n/a | ca. 1,262 sec (21 min) | 1× |
+| xmhw (serial) | ca. 2,115 sec | ca. 300 sec | ca. 2,415 sec (40.2 min) | 0.5× |
+| heatwave3 (1 thread) | 17.5 sec | 5 sec | **22.5 sec** | **56×** |
+| heatwave3 (12 threads) | 3.7 sec | 3.7 sec | **7.4 sec** | **170×** |
 
 Note that the base `heatwaveR` script is already almost twice as fast as
 `xmhw` when the latter has not been optimised with `dask`. Also note
@@ -286,10 +280,10 @@ count, this extrapolation is less reliable here than for the
 single-threaded timings above and should be read as indicative rather
 than exact.
 
-| Method                 | Climatology | Detection | Total (1,200 px)        | Total (est., 6,240 px)   | Speedup   |
-|------------------------|-------------|-----------|-------------------------|--------------------------|-----------|
-| xmhw (serial)          | 253.6 sec   | 221.2 sec | **474.9 sec (7.9 min)** | ca. 2,469 sec (41.2 min) | 1×        |
-| xmhw (dask, 8 workers) | 388.5 sec   | 45.7 sec  | **434.1 sec (7.2 min)** | ca. 2,258 sec (37.6 min) | **1.09×** |
+| Method | Climatology | Detection | Total (1,200 px) | Total (est., 6,240 px) | Speedup |
+|----|----|----|----|----|----|
+| xmhw (serial) | 253.6 sec | 221.2 sec | **474.9 sec (7.9 min)** | ca. 2,469 sec (41.2 min) | 1× |
+| xmhw (dask, 8 workers) | 388.5 sec | 45.7 sec | **434.1 sec (7.2 min)** | ca. 2,258 sec (37.6 min) | **1.09×** |
 
 The result is more nuanced than “dask makes xmhw faster.” `detect()`
 benefits substantially from chunking (221.2 sec → 45.7 sec, ca. 4.8×),

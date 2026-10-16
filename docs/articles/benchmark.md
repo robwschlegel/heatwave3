@@ -23,55 +23,52 @@ We compare three configurations:
 
 ## Test data
 
-``` r
-sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
-# 400 lon × 200 lat at 0.05° resolution
-# 15–35°E, 38–28°S (Agulhas Current system)
-# 14,276 daily time steps (1982-01-01 to 2021-12-31)
-# ca. 49,796 ocean pixels (remainder is land)
-```
+\
+`sst_file`` ``<-`` ``"/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"`\
+`# 400 lon × 200 lat at 0.05° resolution`\
+`# 15–35°E, 38–28°S (Agulhas Current system)`\
+`# 14,276 daily time steps (1982-01-01 to 2021-12-31)`\
+`# ca. 49,796 ocean pixels (remainder is land)`
 
 ## heatwave3: single-threaded
 
-``` r
-library(heatwave3)
-
-stem <- file.path(tempdir(), "bench")
-
-t_clim <- system.time(
-  ts2clm3(sst_file, name = stem,
-          climatologyPeriod = c("1982-01-01", "2011-12-31"),
-          var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
-)
-
-t_event <- system.time(
-  detect_event3(sst_file, name = stem,
-                var_name = "analysed_sst", n_threads = 1L, quiet = TRUE)
-)
-
-cat("Climatology:", round(t_clim[3], 1), "sec\n")
-cat("Detection:  ", round(t_event[3], 1), "sec\n")
-cat("Total:      ", round(t_clim[3] + t_event[3], 1), "sec\n")
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+\
+`stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"bench"``)`\
+\
+`t_clim`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
+`          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+`t_event`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Climatology:"``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Detection:  "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_event``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Total:      "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim``[``3``]`` ``+`` ``t_event``[``3``]``, ``1``)``, ``"sec\n"``)`
 
 ## heatwave3: 12 threads
 
-``` r
-t_clim_12 <- system.time(
-  ts2clm3(sst_file, name = stem,
-          climatologyPeriod = c("1982-01-01", "2011-12-31"),
-          var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
-)
-
-t_event_12 <- system.time(
-  detect_event3(sst_file, name = stem,
-                var_name = "analysed_sst", n_threads = 12L, quiet = TRUE)
-)
-
-cat("Climatology:", round(t_clim_12[3], 1), "sec\n")
-cat("Detection:  ", round(t_event_12[3], 1), "sec\n")
-cat("Total:      ", round(t_clim_12[3] + t_event_12[3], 1), "sec\n")
-```
+\
+`t_clim_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
+`          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+`t_event_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
+`)`\
+\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Climatology:"``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim_12``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Detection:  "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_event_12``[``3``]``, ``1``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Total:      "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``t_clim_12``[``3``]`` ``+`` ``t_event_12``[``3``]``, ``1``)``, ``"sec\n"``)`
 
 ## heatwaveR: serial baseline
 
@@ -79,48 +76,47 @@ heatwaveR processes one pixel at a time. We time a 20-pixel sample (data
 pre-loaded to isolate computation from I/O) and extrapolate to the full
 grid.
 
-``` r
-library(heatwaveR)
-library(ncdf4)
-
-nc <- nc_open(sst_file)
-time_raw <- ncvar_get(nc, "time")
-dates <- as.Date("1981-01-01") + time_raw / 86400
-
-# Pre-load one longitude column (200 lat pixels)
-sst_col <- ncvar_get(nc, "analysed_sst",
-                     start = c(200, 1, 1), count = c(1, 200, -1))
-nc_close(nc)
-
-ocean_idx <- which(!is.na(sst_col[, 1]))
-n_test <- 20L
-
-t_hwr <- system.time({
-  for (j in ocean_idx[1:n_test]) {
-    clm <- ts2clm(data.frame(t = dates, temp = as.numeric(sst_col[j, ])),
-                  climatologyPeriod = c("1982-01-01", "2011-12-31"))
-    ev <- detect_event(clm)
-  }
-})
-
-per_pixel <- t_hwr[3] / n_test
-n_ocean <- 49796  # pre-counted
-estimated <- per_pixel * n_ocean
-
-cat("Per pixel:      ", round(per_pixel, 3), "sec\n")
-cat("Estimated total:", round(estimated), "sec (",
-    round(estimated / 60, 1), "min)\n")
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwaveR`](https://robwschlegel.github.io/heatwaveR/)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`ncdf4`](https://cirrus.ucsd.edu/~pierce/ncdf/)`)`\
+\
+`nc`` ``<-`` `[`nc_open`](https://rdrr.io/pkg/ncdf4/man/nc_open.html)`(``sst_file``)`\
+`time_raw`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"time"``)`\
+`dates`` ``<-`` `[`as.Date`](https://rdrr.io/r/base/as.Date.html)`(``"1981-01-01"``)`` ``+`` ``time_raw`` ``/`` ``86400`\
+\
+`# Pre-load one longitude column (200 lat pixels)`\
+`sst_col`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"analysed_sst"``,`\
+`                     start ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``200``, ``1``, ``1``)``, count ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``200``, ``-``1``)``)`\
+[`nc_close`](https://rdrr.io/pkg/ncdf4/man/nc_close.html)`(``nc``)`\
+\
+`ocean_idx`` ``<-`` `[`which`](https://rdrr.io/r/base/which.html)`(``!`[`is.na`](https://rdrr.io/r/base/NA.html)`(``sst_col``[``, ``1``]``)``)`\
+`n_test`` ``<-`` ``20L`\
+\
+`t_hwr`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(``{`\
+`  ``for`` ``(``j`` ``in`` ``ocean_idx``[``1``:``n_test``]``)`` ``{`\
+`    ``clm`` ``<-`` `[`ts2clm`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``t ``=`` ``dates``, temp ``=`` `[`as.numeric`](https://rdrr.io/r/base/numeric.html)`(``sst_col``[``j``, ``]``)``)``,`\
+`                  climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``)`\
+`    ``ev`` ``<-`` `[`detect_event`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)`(``clm``)`\
+`  ``}`\
+`}``)`\
+\
+`per_pixel`` ``<-`` ``t_hwr``[``3``]`` ``/`` ``n_test`\
+`n_ocean`` ``<-`` ``49796``  ``# pre-counted`\
+`estimated`` ``<-`` ``per_pixel`` ``*`` ``n_ocean`\
+\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Per pixel:      "``, `[`round`](https://rdrr.io/r/base/Round.html)`(``per_pixel``, ``3``)``, ``"sec\n"``)`\
+[`cat`](https://rdrr.io/r/base/cat.html)`(``"Estimated total:"``, `[`round`](https://rdrr.io/r/base/Round.html)`(``estimated``)``, ``"sec ("``,`\
+`    `[`round`](https://rdrr.io/r/base/Round.html)`(``estimated`` ``/`` ``60``, ``1``)``, ``"min)\n"``)`
 
 ## Results
 
 Benchmarked on an Apple M3 Pro (12-core), macOS 15.5, R 4.5.3.
 
-| Method                 | Climatology | Detection | Total                    | Speedup |
-|------------------------|-------------|-----------|--------------------------|---------|
-| heatwaveR (serial)     | n/a         | n/a       | ca. 4,116 sec (68.7 min) | 1×      |
-| heatwave3 (1 thread)   | 174 sec     | 82 sec    | **257 sec (4.3 min)**    | **16×** |
-| heatwave3 (12 threads) | 60 sec      | 55 sec    | **115 sec (1.9 min)**    | **36×** |
+| Method | Climatology | Detection | Total | Speedup |
+|----|----|----|----|----|
+| heatwaveR (serial) | n/a | n/a | ca. 4,116 sec (68.7 min) | 1× |
+| heatwave3 (1 thread) | 174 sec | 82 sec | **257 sec (4.3 min)** | **16×** |
+| heatwave3 (12 threads) | 60 sec | 55 sec | **115 sec (1.9 min)** | **36×** |
 
 The speedup comes from three sources:
 
@@ -154,46 +150,43 @@ The subsetted OSTIA files cover 7–20°E, 35–17°S at 0.05° resolution (260
 lon × 360 lat = 93,600 pixels). This is a region with strong upwelling
 variability and a mix of ocean and land pixels.
 
-``` r
-library(heatwave3)
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+\
+`ostia_dir`` ``<-`` ``"/Volumes/OceanData/Tom/OSTIA"`\
+`stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"benguela"``)`
 
-ostia_dir <- "/Volumes/OceanData/Tom/OSTIA"
-stem <- file.path(tempdir(), "benguela")
-```
+\
+`# Climatology from ca. 16,000 daily files (WMO 1991-2020 baseline)`\
+`t_clim`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(`\
+`    file_in  ``=`` ``ostia_dir``,`\
+`    name     ``=`` ``stem``,`\
+`    climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1991-01-01"``, ``"2020-12-31"``)``,`\
+`    var_name ``=`` ``"analysed_sst"``,`\
+`    n_threads ``=`` ``12L`\
+`  ``)`\
+`)`
 
-``` r
-# Climatology from ca. 16,000 daily files (WMO 1991-2020 baseline)
-t_clim <- system.time(
-  ts2clm3(
-    file_in  = ostia_dir,
-    name     = stem,
-    climatologyPeriod = c("1991-01-01", "2020-12-31"),
-    var_name = "analysed_sst",
-    n_threads = 12L
-  )
-)
-```
-
-``` r
-# Event detection on the same daily files
-t_event <- system.time(
-  detect_event3(
-    file_in   = ostia_dir,
-    name      = stem,
-    var_name  = "analysed_sst",
-    n_threads = 12L
-  )
-)
-```
+\
+`# Event detection on the same daily files`\
+`t_event`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(`\
+`    file_in   ``=`` ``ostia_dir``,`\
+`    name      ``=`` ``stem``,`\
+`    var_name  ``=`` ``"analysed_sst"``,`\
+`    n_threads ``=`` ``12L`\
+`  ``)`\
+`)`
 
 ### Benguela results
 
-| Step                            | Time                  | Detail                                             |
-|---------------------------------|-----------------------|----------------------------------------------------|
-| Read + merge 16,049 daily files | included              | sorted, deduplicated, assembled into 3D cube       |
-| Climatology (12 threads)        | **95 sec**            | 30-year WMO baseline, 93,600 pixels × 366 DOYs     |
-| Event detection (12 threads)    | **108 sec**           | threshold exceedance, RLE, gap joining, 19 metrics |
-| **Total**                       | **203 sec (3.4 min)** | 8.4 million events detected                        |
+| Step | Time | Detail |
+|----|----|----|
+| Read + merge 16,049 daily files | included | sorted, deduplicated, assembled into 3D cube |
+| Climatology (12 threads) | **95 sec** | 30-year WMO baseline, 93,600 pixels × 366 DOYs |
+| Event detection (12 threads) | **108 sec** | threshold exceedance, RLE, gap joining, 19 metrics |
+| **Total** | **203 sec (3.4 min)** | 8.4 million events detected |
 
 For comparison, processing 93,600 pixels serially with heatwaveR at ca.
 0.083 sec/pixel would take ca. **2.2 hours**. heatwave3 completes the

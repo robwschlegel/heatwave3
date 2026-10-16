@@ -18,7 +18,9 @@ category3(
   clim_file = NULL,
   hemisphere = "south",
   roundVal = 4L,
-  S = NULL
+  S = NULL,
+  sst_file = NULL,
+  var_name = NULL
 )
 ```
 
@@ -49,22 +51,39 @@ category3(
 
   Deprecated. Use `hemisphere` instead.
 
+- sst_file:
+
+  The SST used for detection (a file, a directory of daily files or a
+  vector of files). Only required when the event file does not contain
+  pre-computed categories.
+
+- var_name:
+
+  Name of the SST variable in `sst_file`; auto-detected when `NULL`.
+
 ## Value
 
 A data.frame with columns: event_no, lon, lat, peak_date, category,
-intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme,
-season.
+intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme
+(whole percentages), season.
 
 ## Details
 
-If the event file already contains categories, `category3()` reads those
-values directly and `clim_file` may be omitted. If the event file does
-not contain categories, `clim_file` is required so the category width
-can be computed from the seasonal and threshold climatologies.
+Categories follow
+[`heatwaveR::category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html).
+For each event day the category limits are the threshold and
+`thresh + k * diff` (k = 1, 2, 3), with `diff = thresh - seas` and each
+limit rounded to `roundVal` decimals. `p_moderate` to `p_extreme` are
+the percentages of the event's duration (days, rounded to whole numbers)
+spent in each category, and the event's category is the highest one with
+a non-zero percentage. Works for both marine heatwaves and cold-spells
+(cold-spells are recognised, as in heatwaveR, by their negative
+intensities). The season is that of the event's peak month.
 
-Works for both marine heatwaves and cold-spells: the category width is
-`|seas - thresh|`, which is always positive regardless of whether the
-threshold is above (heatwave) or below (cold-spell) the seasonal mean.
+If the event file already contains categories, `category3()` reads those
+values directly, and `clim_file` and `sst_file` may be omitted.
+Otherwise both are required, because the percentages are counts of days,
+which need each event day's temperature.
 
 ## Examples
 
@@ -75,15 +94,21 @@ stem <- file.path(tempdir(), "demo")
 
 detect3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
-#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
-#> Writing climatology to /tmp/RtmpKE019E/demo_clim.nc...
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/RtmpKE019E/demo_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -107,20 +132,26 @@ detect3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpKE019E/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /tmp/RtmpKE019E/demo_clim.nc...
-#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...
+#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /tmp/RtmpKE019E/demo_events.nc...
+#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/RtmpKE019E/demo_events.nc
+#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -149,11 +180,11 @@ detect3(sst_file, name = stem,
 #> 4                         3.8969           294.7100            295.27
 #> 5                         1.5575           294.0717            294.29
 #>   intensity_var_abs intensity_cumulative_abs rate_onset rate_decline
-#> 1            0.5886                  5610.30     0.1840       0.1471
-#> 2            0.1573                  1489.82     0.1007       0.0349
-#> 3            0.0677                  1773.69     0.0303       0.0282
-#> 4            0.3945                  2062.97     0.2077       0.1885
-#> 5            0.1824                  1764.43     0.1363       0.1270
+#> 1            0.5886                  5610.30     0.2375       0.1539
+#> 2            0.1573                  1489.82     0.7084       0.3201
+#> 3            0.0677                  1773.69     0.0579       0.0985
+#> 4            0.3945                  2062.97     0.7383       0.2044
+#> 5            0.1824                  1764.43     0.2438       0.1360
 #> 
 #> Tail:
 #>        lon     lat pixel_index event_no date_start  date_peak   date_end
@@ -181,11 +212,11 @@ detect3(sst_file, name = stem,
 #> 609                         2.5966           293.8140            294.37
 #> 610                         2.4402           292.9757            293.17
 #>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline
-#> 606            0.3438                  2350.18     0.2090       0.1836
-#> 607            0.6214                  2057.12     0.2155       0.5020
-#> 608            0.9940                  3531.97     0.5195       0.4084
-#> 609            0.4723                  1469.07     0.3247       0.2915
-#> 610            0.1695                  2050.83     0.2322       0.0693
+#> 606            0.3438                  2350.18     0.3962       0.3769
+#> 607            0.6214                  2057.12     0.4158       0.6025
+#> 608            0.9940                  3531.97     0.5238       0.4265
+#> 609            0.4723                  1469.07     0.6940       0.4588
+#> 610            0.1695                  2050.83     0.4821       0.1454
 #> 
 #> Summary:
 #>   events: 610   pixels with events: 6
@@ -193,14 +224,15 @@ detect3(sst_file, name = stem,
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpKE019E/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
-cats <- category3(paste0(stem, "_events.nc"), paste0(stem, "_clim.nc"))
+cats <- category3(paste0(stem, "_events.nc"), paste0(stem, "_clim.nc"),
+                  sst_file = sst_file)
 table(cats$category)
 #> 
 #> I Moderate  II Strong III Severe 
-#>        478        130          2 
+#>        477        131          2 
 # }
 ```

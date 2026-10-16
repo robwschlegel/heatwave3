@@ -32,14 +32,14 @@ Contains the 366-day climatological cycle for each pixel.
 
 ### Variables
 
-| Variable | Dimensions      | Units         | Description                                         |
-|----------|-----------------|---------------|-----------------------------------------------------|
-| `lon`    | (lon)           | degrees_east  | Longitude coordinate                                |
-| `lat`    | (lat)           | degrees_north | Latitude coordinate                                 |
-| `doy`    | (doy)           | none          | Day of year index                                   |
-| `seas`   | (lon, lat, doy) | degC          | Seasonal mean climatology                           |
-| `thresh` | (lon, lat, doy) | degC          | Threshold climatology (such as the 90th percentile) |
-| `var`    | (lon, lat, doy) | degC          | Variance climatology (optional, if `var = TRUE`)    |
+| Variable | Dimensions | Units | Description |
+|----|----|----|----|
+| `lon` | (lon) | degrees_east | Longitude coordinate |
+| `lat` | (lat) | degrees_north | Latitude coordinate |
+| `doy` | (doy) | none | Day of year index |
+| `seas` | (lon, lat, doy) | degC | Seasonal mean climatology |
+| `thresh` | (lon, lat, doy) | degC | Threshold climatology (such as the 90th percentile) |
+| `var` | (lon, lat, doy) | degC | Variance climatology (optional, if `var = TRUE`) |
 
 ### Global attributes
 
@@ -56,20 +56,19 @@ Contains the 366-day climatological cycle for each pixel.
 
 ### Reading in R
 
-``` r
-library(ncdf4)
-nc <- nc_open("clim_output.nc")
-
-lon <- ncvar_get(nc, "lon")
-lat <- ncvar_get(nc, "lat")
-seas <- ncvar_get(nc, "seas")    # [doy, lat, lon] in R
-thresh <- ncvar_get(nc, "thresh")
-
-# Extract DOY 1 map
-seas_jan1 <- seas[1, , ]
-
-nc_close(nc)
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`ncdf4`](https://cirrus.ucsd.edu/~pierce/ncdf/)`)`\
+`nc`` ``<-`` `[`nc_open`](https://rdrr.io/pkg/ncdf4/man/nc_open.html)`(``"clim_output.nc"``)`\
+\
+`lon`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"lon"``)`\
+`lat`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"lat"``)`\
+`seas`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"seas"``)``    ``# [doy, lat, lon] in R`\
+`thresh`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"thresh"``)`\
+\
+`# Extract DOY 1 map`\
+`seas_jan1`` ``<-`` ``seas``[``1``, , ``]`\
+\
+[`nc_close`](https://rdrr.io/pkg/ncdf4/man/nc_close.html)`(``nc``)`
 
 ### Reading in Python
 
@@ -113,27 +112,27 @@ per pixel and keeps the file compact.
 
 All have dimension `(event)`:
 
-| Variable                         | Units          | Description                                   |
-|----------------------------------|----------------|-----------------------------------------------|
-| `event_no`                       | none           | Event number within the pixel                 |
-| `date_start`                     | days since ref | Start date                                    |
-| `date_peak`                      | days since ref | Peak date                                     |
-| `date_end`                       | days since ref | End date                                      |
-| `duration`                       | days           | Event duration                                |
-| `intensity_mean`                 | degC           | Mean intensity (rel. to seasonal climatology) |
-| `intensity_max`                  | degC           | Maximum (peak) intensity                      |
-| `intensity_var`                  | degC           | Intensity variability (std. dev.)             |
-| `intensity_cumulative`           | degC days      | Cumulative intensity                          |
-| `intensity_mean_relThresh`       | degC           | Mean intensity (rel. to threshold)            |
-| `intensity_max_relThresh`        | degC           | Max intensity (rel. to threshold)             |
-| `intensity_var_relThresh`        | degC           | Variability (rel. to threshold)               |
-| `intensity_cumulative_relThresh` | degC days      | Cumulative (rel. to threshold)                |
-| `intensity_mean_abs`             | degC           | Mean absolute temperature                     |
-| `intensity_max_abs`              | degC           | Max absolute temperature                      |
-| `intensity_var_abs`              | degC           | Absolute temperature variability              |
-| `intensity_cumulative_abs`       | degC days      | Cumulative absolute temperature               |
-| `rate_onset`                     | degC/day       | Rate of onset                                 |
-| `rate_decline`                   | degC/day       | Rate of decline                               |
+| Variable | Units | Description |
+|----|----|----|
+| `event_no` | none | Event number within the pixel |
+| `date_start` | days since ref | Start date |
+| `date_peak` | days since ref | Peak date |
+| `date_end` | days since ref | End date |
+| `duration` | days | Event duration |
+| `intensity_mean` | degC | Mean intensity (rel. to seasonal climatology) |
+| `intensity_max` | degC | Maximum (peak) intensity |
+| `intensity_var` | degC | Intensity variability (std. dev.) |
+| `intensity_cumulative` | degC days | Cumulative intensity |
+| `intensity_mean_relThresh` | degC | Mean intensity (rel. to threshold) |
+| `intensity_max_relThresh` | degC | Max intensity (rel. to threshold) |
+| `intensity_var_relThresh` | degC | Variability (rel. to threshold) |
+| `intensity_cumulative_relThresh` | degC days | Cumulative (rel. to threshold) |
+| `intensity_mean_abs` | degC | Mean absolute temperature |
+| `intensity_max_abs` | degC | Max absolute temperature |
+| `intensity_var_abs` | degC | Absolute temperature variability |
+| `intensity_cumulative_abs` | degC days | Cumulative absolute temperature |
+| `rate_onset` | degC/day | Rate of onset |
+| `rate_decline` | degC/day | Rate of decline |
 
 ### Date encoding
 
@@ -142,24 +141,23 @@ integer offsets in units of `"days since YYYY-MM-DD"`, where the
 reference date is the first time step of the input SST file. To convert
 to actual dates:
 
-``` r
-library(ncdf4)
-nc <- nc_open("event_output.nc")
-
-# Read date_start and convert to Date
-ds <- ncvar_get(nc, "date_start")
-ds_units <- ncatt_get(nc, "date_start", "units")$value
-ref_date <- as.Date(sub("days since ", "", ds_units))
-start_dates <- ref_date + ds
-
-# Read event metrics
-i_max <- ncvar_get(nc, "intensity_max")
-duration <- ncvar_get(nc, "duration")
-event_lon <- ncvar_get(nc, "lon")
-event_lat <- ncvar_get(nc, "lat")
-
-nc_close(nc)
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`ncdf4`](https://cirrus.ucsd.edu/~pierce/ncdf/)`)`\
+`nc`` ``<-`` `[`nc_open`](https://rdrr.io/pkg/ncdf4/man/nc_open.html)`(``"event_output.nc"``)`\
+\
+`# Read date_start and convert to Date`\
+`ds`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"date_start"``)`\
+`ds_units`` ``<-`` `[`ncatt_get`](https://rdrr.io/pkg/ncdf4/man/ncatt_get.html)`(``nc``, ``"date_start"``, ``"units"``)``$``value`\
+`ref_date`` ``<-`` `[`as.Date`](https://rdrr.io/r/base/as.Date.html)`(`[`sub`](https://rdrr.io/r/base/grep.html)`(``"days since "``, ``""``, ``ds_units``)``)`\
+`start_dates`` ``<-`` ``ref_date`` ``+`` ``ds`\
+\
+`# Read event metrics`\
+`i_max`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"intensity_max"``)`\
+`duration`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"duration"``)`\
+`event_lon`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"lon"``)`\
+`event_lat`` ``<-`` `[`ncvar_get`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)`(``nc``, ``"lat"``)`\
+\
+[`nc_close`](https://rdrr.io/pkg/ncdf4/man/nc_close.html)`(``nc``)`
 
 ### Global attributes
 
@@ -202,21 +200,20 @@ convert it to CSV, RDS, or Parquet, use
 [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md),
 which auto-detects the product type and is backed by the C++ reader:
 
-``` r
-# Read into R (whole, or a quick preview with n =)
-events <- hw3_export("benguela_events.nc")
-head(hw3_export("benguela_events.nc", n = 20))
-
-# Convert to a flat file (format chosen by the extension)
-hw3_export("benguela_events.nc", file_out = "events.parquet")
-hw3_export("benguela_clim.nc",   file_out = "clim.csv")
-```
+\
+`# Read into R (whole, or a quick preview with n =)`\
+`events`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``)`\
+[`head`](https://rdrr.io/r/utils/head.html)`(`[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``, n ``=`` ``20``)``)`\
+\
+`# Convert to a flat file (format chosen by the extension)`\
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``, file_out ``=`` ``"events.parquet"``)`\
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_clim.nc"``,   file_out ``=`` ``"clim.csv"``)`
 
 **Format comparison:**
 
-| Format  | Size               | Speed            | Interop               | Notes                            |
-|---------|--------------------|------------------|-----------------------|----------------------------------|
-| NetCDF  | Small (compressed) | Fast (C library) | Excellent             | Primary format, always produced  |
-| Parquet | Small (columnar)   | Fast             | Good (R/Python/Spark) | Requires `arrow` package         |
-| RDA     | Medium             | Fast (R native)  | R only                | Contains a list named `hw3_data` |
-| CSV     | Large (text)       | Slow             | Universal             | Not recommended for large grids  |
+| Format | Size | Speed | Interop | Notes |
+|----|----|----|----|----|
+| NetCDF | Small (compressed) | Fast (C library) | Excellent | Primary format, always produced |
+| Parquet | Small (columnar) | Fast | Good (R/Python/Spark) | Requires `arrow` package |
+| RDA | Medium | Fast (R native) | R only | Contains a list named `hw3_data` |
+| CSV | Large (text) | Slow | Universal | Not recommended for large grids |

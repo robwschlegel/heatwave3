@@ -4,7 +4,7 @@ Detects marine heatwave (or cold-spell) events for each pixel in a
 gridded dataset, using climatologies computed by
 [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
 This is the gridded equivalent of
-[`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html).
+[`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html).
 
 ## Usage
 
@@ -26,8 +26,10 @@ detect_event3(
   hemisphere = "south",
   roundRes = 4L,
   daily = c("none", "also", "only"),
+  slim = FALSE,
   protoEvent = FALSE,
-  n_threads = 1L,
+  n_threads = NULL,
+  compression = 1L,
   skip_bad_files = FALSE,
   quiet = FALSE
 )
@@ -84,7 +86,7 @@ detect_event3(
 
   Optional gridded NetCDF logical criterion for the secondary event
   pass, equivalent to
-  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html)'s
+  [`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)'s
   `threshClim2`. The file must align with `file_in`; non-zero and
   non-missing values are treated as `TRUE`. May be a single NetCDF file,
   a vector of files, or a directory of daily `.nc`/`.nc4` files.
@@ -121,8 +123,18 @@ detect_event3(
   (per-day NetCDF, no event table). The per-day product is written to
   `paste0(name, "_events_daily.nc")` and contains `temp`, `seas`,
   `thresh`, `intensity` (`temp - seas`), `event`, `event_no`, and the
-  daily Hobday (2018) `category` (0 = none, 1 = I Moderate ... 4 = IV
-  Extreme).
+  daily Hobday (2018) `category` (1 = I Moderate ... 4 = IV Extreme) on
+  event days above the threshold; other days, including short
+  exceedances that are not events, have no category (stored as 0, read
+  as `NA`).
+
+- slim:
+
+  Logical. With `daily = "also"` or `"only"`, write only `intensity` and
+  `category` to the per-day file (no `temp`, `seas`, `thresh`, `event`
+  or `event_no`): about half the size, and quicker to write. The dropped
+  variables can be rebuilt from the SST and climatology files. Default
+  `FALSE`.
 
 - protoEvent:
 
@@ -134,7 +146,18 @@ detect_event3(
 
 - n_threads:
 
-  Number of threads for parallel computation. Default `1`.
+  Number of threads for parallel computation. Default `NULL`: the
+  session default, half the available cores unless changed with
+  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+  or the `R_HEATWAVE3_NUM_THREADS` environment variable.
+
+- compression:
+
+  Integer from 0 to 9. zlib compression level of the NetCDF output: 1
+  (the default) compresses fastest, 9 gives the smallest files (a few
+  percent smaller), and 0 writes uncompressed files, which are several
+  times larger but much quicker to write. Gridded outputs are compressed
+  on `n_threads` threads when heatwave3 was built with HDF5.
 
 - skip_bad_files:
 
@@ -143,8 +166,10 @@ detect_event3(
 
 - quiet:
 
-  Logical. Suppress the post-computation console summary (head, tail,
-  and summary statistics of each product written)? Default `FALSE`.
+  Logical. Suppress all console output: the progress messages from the
+  computation and the post-computation summary (head, tail, and summary
+  statistics of each product written)? Warnings, such as skipped files,
+  are still shown. Default `FALSE`.
 
 ## Value
 
@@ -162,15 +187,21 @@ stem <- file.path(tempdir(), "demo")
 
 ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
-#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
-#> Writing climatology to /tmp/RtmpKE019E/demo_clim.nc...
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /tmp/RtmpKE019E/demo_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -194,22 +225,28 @@ ts2clm3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_clim.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpKE019E/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 detect_event3(sst_file, name = stem)                 # demo_events.nc
-#> Reading climatology from /tmp/RtmpKE019E/demo_clim.nc...
-#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...
+#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /tmp/RtmpKE019E/demo_events.nc...
+#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/RtmpKE019E/demo_events.nc
+#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -238,11 +275,11 @@ detect_event3(sst_file, name = stem)                 # demo_events.nc
 #> 4                         3.8969           294.7100            295.27
 #> 5                         1.5575           294.0717            294.29
 #>   intensity_var_abs intensity_cumulative_abs rate_onset rate_decline
-#> 1            0.5886                  5610.30     0.1840       0.1471
-#> 2            0.1573                  1489.82     0.1007       0.0349
-#> 3            0.0677                  1773.69     0.0303       0.0282
-#> 4            0.3945                  2062.97     0.2077       0.1885
-#> 5            0.1824                  1764.43     0.1363       0.1270
+#> 1            0.5886                  5610.30     0.2375       0.1539
+#> 2            0.1573                  1489.82     0.7084       0.3201
+#> 3            0.0677                  1773.69     0.0579       0.0985
+#> 4            0.3945                  2062.97     0.7383       0.2044
+#> 5            0.1824                  1764.43     0.2438       0.1360
 #> 
 #> Tail:
 #>        lon     lat pixel_index event_no date_start  date_peak   date_end
@@ -270,11 +307,11 @@ detect_event3(sst_file, name = stem)                 # demo_events.nc
 #> 609                         2.5966           293.8140            294.37
 #> 610                         2.4402           292.9757            293.17
 #>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline
-#> 606            0.3438                  2350.18     0.2090       0.1836
-#> 607            0.6214                  2057.12     0.2155       0.5020
-#> 608            0.9940                  3531.97     0.5195       0.4084
-#> 609            0.4723                  1469.07     0.3247       0.2915
-#> 610            0.1695                  2050.83     0.2322       0.0693
+#> 606            0.3438                  2350.18     0.3962       0.3769
+#> 607            0.6214                  2057.12     0.4158       0.6025
+#> 608            0.9940                  3531.97     0.5238       0.4265
+#> 609            0.4723                  1469.07     0.6940       0.4588
+#> 610            0.1695                  2050.83     0.4821       0.1454
 #> 
 #> Summary:
 #>   events: 610   pixels with events: 6
@@ -282,23 +319,29 @@ detect_event3(sst_file, name = stem)                 # demo_events.nc
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpKE019E/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
-#> Reading climatology from /tmp/RtmpKE019E/demo_clim.nc...
-#> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...
+#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
-#>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing per-day series to /tmp/RtmpKE019E/demo_events_daily.nc...
+#> Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc...
 #> Done.
-#> Writing events to /tmp/RtmpKE019E/demo_events.nc...
+#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /tmp/RtmpKE019E/demo_events.nc
+#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -327,11 +370,11 @@ detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
 #> 4                         3.8969           294.7100            295.27
 #> 5                         1.5575           294.0717            294.29
 #>   intensity_var_abs intensity_cumulative_abs rate_onset rate_decline
-#> 1            0.5886                  5610.30     0.1840       0.1471
-#> 2            0.1573                  1489.82     0.1007       0.0349
-#> 3            0.0677                  1773.69     0.0303       0.0282
-#> 4            0.3945                  2062.97     0.2077       0.1885
-#> 5            0.1824                  1764.43     0.1363       0.1270
+#> 1            0.5886                  5610.30     0.2375       0.1539
+#> 2            0.1573                  1489.82     0.7084       0.3201
+#> 3            0.0677                  1773.69     0.0579       0.0985
+#> 4            0.3945                  2062.97     0.7383       0.2044
+#> 5            0.1824                  1764.43     0.2438       0.1360
 #> 
 #> Tail:
 #>        lon     lat pixel_index event_no date_start  date_peak   date_end
@@ -359,11 +402,11 @@ detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
 #> 609                         2.5966           293.8140            294.37
 #> 610                         2.4402           292.9757            293.17
 #>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline
-#> 606            0.3438                  2350.18     0.2090       0.1836
-#> 607            0.6214                  2057.12     0.2155       0.5020
-#> 608            0.9940                  3531.97     0.5195       0.4084
-#> 609            0.4723                  1469.07     0.3247       0.2915
-#> 610            0.1695                  2050.83     0.2322       0.0693
+#> 606            0.3438                  2350.18     0.3962       0.3769
+#> 607            0.6214                  2057.12     0.4158       0.6025
+#> 608            0.9940                  3531.97     0.5238       0.4265
+#> 609            0.4723                  1469.07     0.6940       0.4588
+#> 610            0.1695                  2050.83     0.4821       0.1454
 #> 
 #> Summary:
 #>   events: 610   pixels with events: 6
@@ -371,12 +414,12 @@ detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpKE019E/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 #> 
 #> ------------------------------------------------------------------
-#> Daily series written to: /tmp/RtmpKE019E/demo_events_daily.nc
+#> Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc
 #> Rows (long format): 85,656   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -410,10 +453,10 @@ detect_event3(sst_file, name = stem, daily = "also")  # + demo_events_daily.nc
 #> Summary:
 #>   dates: 1982-01-01 to 2021-01-31
 #>   event-days: 5195
-#>   category: 1=8922  2=439  3=3
+#>   category: 1=4799  2=345  3=3
 #> 
-#> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events_daily.nc", n = 20)
-#> or export with hw3_export("/tmp/RtmpKE019E/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 # }
 ```

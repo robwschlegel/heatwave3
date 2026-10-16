@@ -38,11 +38,10 @@ reach for each.
 reports the default thread count (roughly half your cores). `n_threads`
 is honoured on every platform; there is no build-time switch to miss.
 
-``` r
-library(heatwave3)
-getHW3threads()
-#> [1] 9        # default: 50% of 18 cores
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`getHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)`(``)`\
+`#> [1] 9        # default: 50% of 18 cores`
 
 The shared library links no OpenMP runtime; it uses `std::thread`
 (pthreads):
@@ -59,11 +58,10 @@ east coast: a 400 × 200 grid at 0.05° resolution (15–35°E, 38–28°S),
 14,276 daily time steps (1982–2021), of which roughly 50,000 pixels are
 ocean. The climatological baseline is 1982–2011.
 
-``` r
-sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
-var_name <- "analysed_sst"
-clim_period <- c("1982-01-01", "2011-12-31")
-```
+\
+`sst_file`` ``<-`` ``"/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"`\
+`var_name`` ``<-`` ``"analysed_sst"`\
+`clim_period`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)`
 
 All three methods produce the **same deliverable**, the full event table
 as an in-memory `data.frame`, so their wall-clock times are directly
@@ -74,49 +72,46 @@ comparable.
 The baseline. `n_threads = 1` forces one core regardless of the package
 default.
 
-``` r
-library(heatwave3)
-
-run_once <- function(nthreads, lon_range = NULL) {
-  stem <- tempfile()
-  on.exit(unlink(paste0(stem, c("_clim.nc", "_events.nc"))))
-  out <- detect3(
-    sst_file,
-    name = stem,
-    climatologyPeriod = clim_period,
-    var_name = var_name,
-    lon_range = lon_range,
-    category = TRUE,
-    n_threads = nthreads,
-    quiet = TRUE
-  )
-  hw3_export(out[["events"]])
-}
-
-system.time(ev1 <- run_once(1L))
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+\
+`run_once`` ``<-`` ``function``(``nthreads``, ``lon_range`` ``=`` ``NULL``)`` ``{`\
+`  ``stem`` ``<-`` `[`tempfile`](https://rdrr.io/r/base/tempfile.html)`(``)`\
+`  `[`on.exit`](https://rdrr.io/r/base/on.exit.html)`(`[`unlink`](https://rdrr.io/r/base/unlink.html)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, `[`c`](https://rdrr.io/r/base/c.html)`(``"_clim.nc"``, ``"_events.nc"``)``)``)``)`\
+`  ``out`` ``<-`` `[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(`\
+`    ``sst_file``,`\
+`    name ``=`` ``stem``,`\
+`    climatologyPeriod ``=`` ``clim_period``,`\
+`    var_name ``=`` ``var_name``,`\
+`    lon_range ``=`` ``lon_range``,`\
+`    category ``=`` ``TRUE``,`\
+`    n_threads ``=`` ``nthreads``,`\
+`    quiet ``=`` ``TRUE`\
+`  ``)`\
+`  `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``out``[[``"events"``]``]``)`\
+`}`\
+\
+[`system.time`](https://rdrr.io/r/base/system.time.html)`(``ev1`` ``<-`` ``run_once``(``1L``)``)`
 
 ## Method 2: in-process multithreading
 
 Identical call, more threads. Because pixels are independent, each
 thread takes a share of them, with no locking and no coordination.
 
-``` r
-system.time(ev12 <- run_once(12L))
-
-# Results are independent of thread count:
-nrow(ev1) == nrow(ev12)
-#> [1] TRUE
-```
+\
+[`system.time`](https://rdrr.io/r/base/system.time.html)`(``ev12`` ``<-`` ``run_once``(``12L``)``)`\
+\
+`# Results are independent of thread count:`\
+[`nrow`](https://rdrr.io/r/base/nrow.html)`(``ev1``)`` ``==`` `[`nrow`](https://rdrr.io/r/base/nrow.html)`(``ev12``)`\
+`#> [1] TRUE`
 
 Sweeping the thread count maps the scaling curve:
 
-``` r
-for (nt in c(1, 2, 4, 8, 12, 16)) {
-  t <- system.time(run_once(nt))[["elapsed"]]
-  cat(sprintf("%2d threads: %5.1f s\n", nt, t))
-}
-```
+\
+`for`` ``(``nt`` ``in`` `[`c`](https://rdrr.io/r/base/c.html)`(``1``, ``2``, ``4``, ``8``, ``12``, ``16``)``)`` ``{`\
+`  ``t`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(``run_once``(``nt``)``)``[[``"elapsed"``]``]`\
+`  `[`cat`](https://rdrr.io/r/base/cat.html)`(`[`sprintf`](https://rdrr.io/r/base/sprintf.html)`(``"%2d threads: %5.1f s\n"``, ``nt``, ``t``)``)`\
+`}`
 
 ## Method 3: R-side parallelism (PSOCK)
 
@@ -135,49 +130,48 @@ processes that each open their own files, like running several `Rscript`
 jobs side by side. It is also the only option on Windows, where `fork()`
 does not exist.
 
-``` r
-library(parallel)
-
-# Read the longitude coordinate once (cheap), to cut non-overlapping tiles.
-g <- heatwave3:::hw3_read_sst(
-  sst_file,
-  var_name,
-  time_range = c("1982-01-01", "1982-01-02")
-)
-lon <- sort(unique(g$lon))
-
-make_tiles <- function(n) {
-  pad <- 0.45 * min(diff(lon)) # < half the grid spacing
-  grp <- cut(seq_along(lon), breaks = n, labels = FALSE)
-  unname(lapply(split(lon, grp), function(L) c(min(L) - pad, max(L) + pad)))
-}
-
-run_psock <- function(n_workers) {
-  cl <- makeCluster(n_workers, setup_strategy = "sequential")
-  on.exit(stopCluster(cl))
-  clusterEvalQ(cl, suppressPackageStartupMessages(library(heatwave3)))
-  clusterExport(cl, c("sst_file", "var_name", "clim_period"))
-  tiles <- make_tiles(n_workers)
-  parts <- parLapply(cl, tiles, function(lr) {
-    stem <- tempfile()
-    on.exit(unlink(paste0(stem, c("_clim.nc", "_events.nc"))))
-    out <- detect3(
-      sst_file,
-      name = stem,
-      climatologyPeriod = clim_period,
-      var_name = var_name,
-      lon_range = lr,
-      category = TRUE,
-      n_threads = 1L,  # 1 thread per worker!
-      quiet = TRUE
-    )
-    hw3_export(out[["events"]])
-  })
-  do.call(rbind, parts)
-}
-
-system.time(evp <- run_psock(16L))
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(``parallel``)`\
+\
+`# Read the longitude coordinate once (cheap), to cut non-overlapping tiles.`\
+`g`` ``<-`` ``heatwave3``:::``hw3_read_sst``(`\
+`  ``sst_file``,`\
+`  ``var_name``,`\
+`  time_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"1982-01-02"``)`\
+`)`\
+`lon`` ``<-`` `[`sort`](https://rdrr.io/r/base/sort.html)`(`[`unique`](https://rdrr.io/r/base/unique.html)`(``g``$``lon``)``)`\
+\
+`make_tiles`` ``<-`` ``function``(``n``)`` ``{`\
+`  ``pad`` ``<-`` ``0.45`` ``*`` `[`min`](https://rdrr.io/r/base/Extremes.html)`(`[`diff`](https://rdrr.io/r/base/diff.html)`(``lon``)``)`` ``# < half the grid spacing`\
+`  ``grp`` ``<-`` `[`cut`](https://rdrr.io/r/base/cut.html)`(`[`seq_along`](https://rdrr.io/r/base/seq.html)`(``lon``)``, breaks ``=`` ``n``, labels ``=`` ``FALSE``)`\
+`  `[`unname`](https://rdrr.io/r/base/unname.html)`(`[`lapply`](https://rdrr.io/r/base/lapply.html)`(`[`split`](https://rdrr.io/r/base/split.html)`(``lon``, ``grp``)``, ``function``(``L``)`` `[`c`](https://rdrr.io/r/base/c.html)`(`[`min`](https://rdrr.io/r/base/Extremes.html)`(``L``)`` ``-`` ``pad``, `[`max`](https://rdrr.io/r/base/Extremes.html)`(``L``)`` ``+`` ``pad``)``)``)`\
+`}`\
+\
+`run_psock`` ``<-`` ``function``(``n_workers``)`` ``{`\
+`  ``cl`` ``<-`` `[`makeCluster`](https://rdrr.io/r/parallel/makeCluster.html)`(``n_workers``, setup_strategy ``=`` ``"sequential"``)`\
+`  `[`on.exit`](https://rdrr.io/r/base/on.exit.html)`(`[`stopCluster`](https://rdrr.io/r/parallel/makeCluster.html)`(``cl``)``)`\
+`  `[`clusterEvalQ`](https://rdrr.io/r/parallel/clusterApply.html)`(``cl``, `[`suppressPackageStartupMessages`](https://rdrr.io/r/base/message.html)`(`[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)``)``)`\
+`  `[`clusterExport`](https://rdrr.io/r/parallel/clusterApply.html)`(``cl``, `[`c`](https://rdrr.io/r/base/c.html)`(``"sst_file"``, ``"var_name"``, ``"clim_period"``)``)`\
+`  ``tiles`` ``<-`` ``make_tiles``(``n_workers``)`\
+`  ``parts`` ``<-`` `[`parLapply`](https://rdrr.io/r/parallel/clusterApply.html)`(``cl``, ``tiles``, ``function``(``lr``)`` ``{`\
+`    ``stem`` ``<-`` `[`tempfile`](https://rdrr.io/r/base/tempfile.html)`(``)`\
+`    `[`on.exit`](https://rdrr.io/r/base/on.exit.html)`(`[`unlink`](https://rdrr.io/r/base/unlink.html)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, `[`c`](https://rdrr.io/r/base/c.html)`(``"_clim.nc"``, ``"_events.nc"``)``)``)``)`\
+`    ``out`` ``<-`` `[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(`\
+`      ``sst_file``,`\
+`      name ``=`` ``stem``,`\
+`      climatologyPeriod ``=`` ``clim_period``,`\
+`      var_name ``=`` ``var_name``,`\
+`      lon_range ``=`` ``lr``,`\
+`      category ``=`` ``TRUE``,`\
+`      n_threads ``=`` ``1L``,  ``# 1 thread per worker!`\
+`      quiet ``=`` ``TRUE`\
+`    ``)`\
+`    `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``out``[[``"events"``]``]``)`\
+`  ``}``)`\
+`  `[`do.call`](https://rdrr.io/r/base/do.call.html)`(``rbind``, ``parts``)`\
+`}`\
+\
+[`system.time`](https://rdrr.io/r/base/system.time.html)`(``evp`` ``<-`` ``run_psock``(``16L``)``)`
 
 The `n_threads = 1L` inside each worker is essential: each
 freshly-loaded `heatwave3` otherwise defaults to *half the cores*, so 16
@@ -205,7 +199,7 @@ See [Don’t oversubscribe](#dont-oversubscribe).
 | PSOCK (R workers)          |              16 |     18.4 |      6.1 |
 
 Wall-clock time to produce the full event table. Speed-up is relative to
-the single-threaded baseline.
+the single-threaded baseline. {.table}
 
 ![Speed-up versus thread or worker count for std::thread, the previous
 OpenMP build, and PSOCK, against the ideal linear line. The std::thread
@@ -370,11 +364,11 @@ as shown above.
 
 ## Summary
 
-| Approach                | Enable with                                                            | Best when                           | Notes                                                        |
-|-------------------------|------------------------------------------------------------------------|-------------------------------------|--------------------------------------------------------------|
-| Single-threaded         | `n_threads = 1`                                                        | debugging, tiny grids               | reference result                                             |
-| Threads (`std::thread`) | `n_threads = N`                                                        | one machine                         | low overhead, shared memory, single output, no OpenMP needed |
-| PSOCK                   | [`parallel::makeCluster`](https://rdrr.io/r/parallel/makeCluster.html) | many machines, or process isolation | tile by longitude, `n_threads = 1` per worker                |
+| Approach | Enable with | Best when | Notes |
+|----|----|----|----|
+| Single-threaded | `n_threads = 1` | debugging, tiny grids | reference result |
+| Threads (`std::thread`) | `n_threads = N` | one machine | low overhead, shared memory, single output, no OpenMP needed |
+| PSOCK | [`parallel::makeCluster`](https://rdrr.io/r/parallel/makeCluster.html) | many machines, or process isolation | tile by longitude, `n_threads = 1` per worker |
 
 All three give the same science. In-process threads are the efficient
 default on a single host, and R-side parallelism is the route to

@@ -1,5 +1,222 @@
 # Changelog
 
+## heatwave3 1.4.0
+
+### Breaking changes: outputs now match heatwaveR exactly
+
+heatwaveR is the reference for every heatwave3 output. On the bundled
+`sst_test.nc` data (heatwaves and cold-spells), the climatology, all
+event metrics, the event categories with `p_moderate` to `p_extreme`,
+and the daily categories are now identical to
+[`heatwaveR::ts2clm()`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html),
+[`detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)
+and
+[`category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html).
+Files written by earlier versions differ; regenerate them.
+
+- **`p_moderate`, `p_strong`, `p_severe`, `p_extreme`** are now, as in
+  [`heatwaveR::category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html),
+  the percentages of the event’s days at or beyond each category level
+  (whole numbers, rounded half to even). The levels are
+  `thresh + k * diff` (k = 0 to 3, `diff = thresh - seas`), each rounded
+  to 4 decimals. The event’s category is the highest one with a non-zero
+  percentage. Days below the threshold within a joined event are not
+  counted, so the percentages can sum to less than 100. Previously they
+  were fractions of the peak intensity.
+- **[`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  gains `sst_file` (and `var_name`).** Computing categories for an event
+  file without inline categories needs each event day’s temperature, so
+  it now requires `clim_file` and `sst_file`.
+- **Daily categories** (`detect_event3(daily = )`,
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md))
+  use the same rounded levels with strict exceedance, as
+  `heatwaveR::category(climatology = TRUE)`. In
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md),
+  cold-spell event days with `thresh < ice_thresh` are category 5 (ice).
+- **`rate_onset` and `rate_decline`** use heatwaveR’s formula: the peak
+  anomaly minus the mean anomaly of the first event day and the day
+  before it (last event day and the day after it for the decline),
+  divided by the days to (from) the peak plus 0.5. They are `NA` when
+  the event starts on the first day, or ends on the last day, of the
+  series.
+- **Cold-spell intensities and rates are negative**, as in heatwaveR
+  (`detect_event3(coldSpells = TRUE)`,
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md),
+  and `exceedance3(below = TRUE)`). The variances and the `_abs` metrics
+  are unchanged.
+- **Climatology:** 29 February in non-leap years is filled with the mean
+  of 28 February and 1 March rounded to 2 decimals, and all rounding,
+  means, sums and standard deviations follow R’s
+  [`round()`](https://rdrr.io/r/base/Round.html),
+  [`mean()`](https://rdrr.io/r/base/mean.html),
+  [`sum()`](https://rdrr.io/r/base/sum.html) and
+  [`sd()`](https://rdrr.io/r/stats/sd.html) (new `src/hw3_round.h`). The
+  climatology is bit-identical to heatwaveR’s.
+- **Known differences from heatwaveR**, both heatwaveR issues to be
+  fixed there: the season is that of the event’s peak month (December to
+  February = summer in the southern hemisphere), whereas
+  [`heatwaveR::category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html)
+  uses calendar quarters; and heatwaveR joins up to `maxGap`
+  non-exceeding days at the very end of the series into the last event,
+  whereas heatwave3 ends the event on its last exceeding day.
+
+### Changes
+
+- **Python package on PyPI** (`pip install heatwave3`), with the same
+  functions, arguments and outputs as the R package, built on the same
+  C++ core. Its version is pinned to the R package’s (1.4.0 for both),
+  so a version number means the same features in either language.
+- **New
+  [`detect_event_array3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event_array3.md)**
+  (R and Python) detects events day by day in arrays instead of files,
+  with the climatology already matched to each day (`seas` and `thresh`
+  with the same dimensions as `temp`). It returns the per-day `event`,
+  `event_no`, `intensity` and daily `category`, identical to the per-day
+  file of `detect_event3(daily = "only")` for the same days and
+  climatology, and no event metrics, which need whole events. Time is
+  the first dimension in R and the last axis in Python, so neither
+  copies its input; in Python it releases the GIL and runs under
+  `xarray.apply_ufunc(dask = "parallelized")`. Because only the days in
+  hand are compared, the full 366-day climatology is never loaded: on a
+  17-day window of 99,735 pixels it takes 0.04 s on one thread, where
+  writing the window to NetCDF and running
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  took 0.58 s on 8 threads and held the whole climatology in memory.
+- **New `compression` argument** (0 to 9) in
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  and
+  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md)
+  sets the zlib level of the NetCDF output. The default is now level 1
+  (previously fixed at 4): files are about 3% larger and are written
+  faster. `compression = 0` writes uncompressed files, several times
+  larger but quickest to write.
+- **Gridded outputs are compressed on all threads.** HDF5 compresses on
+  one thread, which made writing the per-day products
+  (`daily = "also"/"only"`, `protoEvent = TRUE`) the slowest step.
+  heatwave3 now compresses the chunks of the climatology, daily and
+  proto-event files on `n_threads` threads and stores them through HDF5;
+  the files are byte-identical to before. Writing a daily file for 1,525
+  pixels x 11,688 days takes 1.0 s with 4 threads (level 1), against 4.5
+  s before (level 4, one thread). This needs HDF5 \>= 1.10.3 and zlib at
+  build time, which `configure` finds next to libnetcdf; otherwise files
+  are written on one thread as before (also on Windows).
+- **New `slim` argument** in
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  and
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md):
+  with `daily = "also"` or `"only"`, `slim = TRUE` writes only
+  `intensity` and `category` to the per-day file (no `temp`, `seas`,
+  `thresh`, `event` or `event_no`), and the dropped buffers are not
+  allocated. On 5,569 pixels x 12,053 days the per-day file is 222 MB
+  instead of 422 MB, and the run takes 2.7 s instead of 3.8 s on 8
+  threads.
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+  reads slim files.
+- **Faster per-day output and event tables.** The per-day buffers are no
+  longer zero-filled and then filled again on one thread before
+  detection: each worker sets its own pixels. `seas`, `thresh` and
+  `intensity` are held in float, as the files store them. Event tables
+  are now also compressed on `n_threads` threads. On 5,569 pixels x
+  12,053 days with 8 threads,
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  takes 1.6 s instead of 2.2 s for the event table and 3.8 s instead of
+  5.1 s with `daily = "also"`. All outputs are unchanged.
+- **[`library(heatwave3)`](https://robwschlegel.github.io/heatwave3/index.html)
+  loads in 0.1 s instead of 0.9 s.** ggplot2, scales and rlang moved
+  from Imports to Suggests: they are loaded only when a plotting
+  function
+  ([`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md),
+  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md),
+  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md),
+  [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md))
+  is first used, and these functions ask for ggplot2 if it is not
+  installed.
+
+### Changes to defaults
+
+- **`n_threads` defaults to `NULL`** in
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  and
+  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md),
+  which uses the session default: half the available cores, unless
+  changed with
+  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+  or the `R_HEATWAVE3_NUM_THREADS` environment variable. Previously the
+  default was one thread.
+
+### Bug fixes
+
+- **The climatology file’s `thresh` `long_name` contained stray bytes.**
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  wrote the attribute with a hard-coded length of 30 for the
+  21-character text, so 9 bytes beyond the string were stored with it
+  (read as `"threshold climatology\000var\000def "`, or
+  `"threshold climatologyvardef "` in tools that drop the nulls; the
+  exact bytes depend on the compiler). The `seas` and `var` long names
+  carried a trailing null. All three lengths are now taken from the
+  text. Values in the file were never affected.
+- **Multi-threaded calls no longer wait out a progress interval.** With
+  more than one thread, the main thread checked for completion every 80
+  ms, so each climatology or detection step took at least 80 ms longer
+  than its work. It is now woken as soon as the last pixel finishes; on
+  the bundled test file `detect3(n_threads = 4)` drops from 0.19 s to
+  0.04 s.
+- **`event_line3(coldSpells = TRUE)`** picked the event with the largest
+  intensity; it now picks the most intense cold-spell (the most
+  negative).
+- **The per-day product gave categories to days outside events.**
+  `detect_event3(daily = "also")` (and `"only"`) assigned a Hobday et
+  al. (2018) category (1 to 4) to every day above the threshold,
+  including short exceedances that are not events (runs shorter than
+  `minDuration`). The categories describe events, so these days are now
+  `NA`, matching
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md).
+  Categories on event days are unchanged. On the bundled `sst_test.nc`
+  data, 4,217 non-event days (45% of the days that previously carried a
+  category) lose their category. Category-day counts from daily products
+  written by earlier versions are overstated; regenerate them.
+- **`hw3_version()`** reported `"1.0.0"`; it now reports the package
+  version.
+- **[`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)
+  crashed on series with missing values** when no point exceeded the
+  threshold, or when `n_gap` bridging met a missing value (“missing
+  value where TRUE/FALSE needed”). A missing value is now treated as not
+  exceeding the threshold.
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)
+  was not affected (it drops incomplete days first).
+
+### Changes
+
+- **`quiet = TRUE` now silences all console output.** In
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  and
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  it previously suppressed only the post-computation summary, while the
+  progress messages from the C++ core still printed. Warnings, such as
+  files skipped with `skip_bad_files = TRUE`, are still shown.
+- **[`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md)
+  gains `quiet`**, which suppresses its progress messages in the same
+  way (warnings are still shown).
+- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
+  is about 25 times faster.** The exceedance mask, the anomalies and the
+  per-blob summaries are now vectorised instead of looping over every
+  pixel and day in R; outputs are identical. On 42 years of daily OSTIA
+  SST on a 31 x 21 grid it takes 2.3 s instead of 61 s. Voxel offsets
+  are now computed in double precision, so they no longer overflow
+  32-bit integers on grids with more than 2^31 voxels.
+
+### Internal
+
+- The C++ core no longer depends on Rcpp: the computation and
+  orchestration code (`src/hw3_api.cpp`, `src/blob_core.cpp`) is shared
+  with the Python package in development, and only the binding files use
+  Rcpp. Outputs are unchanged.
+
 ## heatwave3 1.3.1 (2026-07-24)
 
 ### Bug fixes
@@ -373,7 +590,7 @@
   daily files. Non-zero, non-missing values are treated as `TRUE`, and
   the secondary pass uses `minDuration2` and `maxGap2` with the same
   event logic as
-  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html).
+  [`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html).
 
 - **CSV and Parquet companion exports are chunked.**
   [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
@@ -463,7 +680,7 @@
   [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
   has always done in `compute_pixel_clim`), filling missing dates with
   `NA`. `proto_event()` then breaks runs at the gap exactly as
-  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html)
+  [`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)
   does via `make_whole()`. Verified by pixel-by-pixel agreement with
   heatwaveR (1705 / 1705 events on a Cape Town OSTIA region match
   exactly: same count, same date_start / peak / end, same duration,

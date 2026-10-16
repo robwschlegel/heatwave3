@@ -11,7 +11,7 @@ gridded equivalent of heatwaveR::detect_event()."><meta property="og:image" cont
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,7 @@ gridded equivalent of heatwaveR::detect_event()."><meta property="og:image" cont
     <div class="ref-description section level2">
     <p>Detects marine heatwave (or cold-spell) events for each pixel in a gridded
 dataset, using climatologies computed by <code><a href="ts2clm3.html">ts2clm3</a></code>. This is the
-gridded equivalent of <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>.</p>
+gridded equivalent of <code><a href="https://robwschlegel.github.io/heatwaveR/reference/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -85,8 +85,10 @@ gridded equivalent of <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_ev
 <span>  hemisphere <span class="op">=</span> <span class="st">"south"</span>,</span>
 <span>  roundRes <span class="op">=</span> <span class="fl">4L</span>,</span>
 <span>  daily <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"also"</span>, <span class="st">"only"</span><span class="op">)</span>,</span>
+<span>  slim <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  protoEvent <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  n_threads <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  n_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  compression <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  skip_bad_files <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -143,7 +145,7 @@ criterion. Used only when <code>threshClim2</code> is supplied.</p></dd>
 
 <dt id="arg-threshclim-">threshClim2<a class="anchor" aria-label="anchor" href="#arg-threshclim-"></a></dt>
 <dd><p>Optional gridded NetCDF logical criterion for the
-secondary event pass, equivalent to <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>'s
+secondary event pass, equivalent to <code><a href="https://robwschlegel.github.io/heatwaveR/reference/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>'s
 <code>threshClim2</code>. The file must align with <code>file_in</code>; non-zero and
 non-missing values are treated as <code>TRUE</code>. May be a single NetCDF file,
 a vector of files, or a directory of daily <code>.nc</code>/<code>.nc4</code> files.</p></dd>
@@ -183,7 +185,18 @@ event table), <code>"also"</code> (event table plus a per-day NetCDF), or
 written to <code>paste0(name, "_events_daily.nc")</code> and contains <code>temp</code>,
 <code>seas</code>, <code>thresh</code>, <code>intensity</code> (<code>temp - seas</code>),
 <code>event</code>, <code>event_no</code>, and the daily Hobday (2018) <code>category</code>
-(0 = none, 1 = I Moderate ... 4 = IV Extreme).</p></dd>
+(1 = I Moderate ... 4 = IV Extreme) on event days above the threshold;
+other days, including short exceedances that are not events, have no
+category (stored as 0, read as <code>NA</code>).</p></dd>
+
+
+<dt id="arg-slim">slim<a class="anchor" aria-label="anchor" href="#arg-slim"></a></dt>
+<dd><p>Logical. With <code>daily = "also"</code> or <code>"only"</code>, write
+only <code>intensity</code> and <code>category</code> to the per-day file (no
+<code>temp</code>, <code>seas</code>, <code>thresh</code>, <code>event</code> or
+<code>event_no</code>): about half the size, and quicker to write. The
+dropped variables can be rebuilt from the SST and climatology files.
+Default <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-protoevent">protoEvent<a class="anchor" aria-label="anchor" href="#arg-protoevent"></a></dt>
@@ -196,7 +209,18 @@ with <code>daily</code>. Default <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-n-threads">n_threads<a class="anchor" aria-label="anchor" href="#arg-n-threads"></a></dt>
-<dd><p>Number of threads for parallel computation. Default <code>1</code>.</p></dd>
+<dd><p>Number of threads for parallel computation. Default
+<code>NULL</code>: the session default, half the available cores unless
+changed with <code><a href="getHW3threads.html">setHW3threads</a></code> or the
+<code>R_HEATWAVE3_NUM_THREADS</code> environment variable.</p></dd>
+
+
+<dt id="arg-compression">compression<a class="anchor" aria-label="anchor" href="#arg-compression"></a></dt>
+<dd><p>Integer from 0 to 9. zlib compression level of the
+NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+(a few percent smaller), and 0 writes uncompressed files, which are
+several times larger but much quicker to write. Gridded outputs are
+compressed on <code>n_threads</code> threads when heatwave3 was built with HDF5.</p></dd>
 
 
 <dt id="arg-skip-bad-files">skip_bad_files<a class="anchor" aria-label="anchor" href="#arg-skip-bad-files"></a></dt>
@@ -205,8 +229,10 @@ or files with mismatched grids instead of failing. Default <code>FALSE</code>.</
 
 
 <dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
-<dd><p>Logical. Suppress the post-computation console summary (head,
-tail, and summary statistics of each product written)? Default <code>FALSE</code>.</p></dd>
+<dd><p>Logical. Suppress all console output: the progress messages
+from the computation and the post-computation summary (head, tail, and
+summary statistics of each product written)? Warnings, such as skipped
+files, are still shown. Default <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -225,15 +251,21 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, name <span class="op">=</span> <span class="va">stem</span>,</span></span>
 <span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /tmp/RtmpKE019E/demo_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /tmp/RtmpKE019E/demo_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -257,22 +289,28 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/tmp/RtmpKE019E/demo_clim.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/tmp/RtmpKE019E/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">detect_event3</span><span class="op">(</span><span class="va">sst_file</span>, name <span class="op">=</span> <span class="va">stem</span><span class="op">)</span>                 <span class="co"># demo_events.nc</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /tmp/RtmpKE019E/demo_clim.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Detecting events with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Found 610 events across 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /tmp/RtmpKE019E/demo_events.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Events written to: /tmp/RtmpKE019E/demo_events.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 610</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -301,11 +339,11 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4                         3.8969           294.7100            295.27</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5                         1.5575           294.0717            294.29</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.5886                  5610.30     0.1840       0.1471</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.1573                  1489.82     0.1007       0.0349</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3            0.0677                  1773.69     0.0303       0.0282</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4            0.3945                  2062.97     0.2077       0.1885</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5            0.1824                  1764.43     0.1363       0.1270</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.5886                  5610.30     0.2375       0.1539</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.1573                  1489.82     0.7084       0.3201</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3            0.0677                  1773.69     0.0579       0.0985</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4            0.3945                  2062.97     0.7383       0.2044</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5            0.1824                  1764.43     0.2438       0.1360</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        lon     lat pixel_index event_no date_start  date_peak   date_end</span>
@@ -333,11 +371,11 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 609                         2.5966           293.8140            294.37</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 610                         2.4402           292.9757            293.17</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 606            0.3438                  2350.18     0.2090       0.1836</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 607            0.6214                  2057.12     0.2155       0.5020</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 608            0.9940                  3531.97     0.5195       0.4084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 609            0.4723                  1469.07     0.3247       0.2915</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 610            0.1695                  2050.83     0.2322       0.0693</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606            0.3438                  2350.18     0.3962       0.3769</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607            0.6214                  2057.12     0.4158       0.6025</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608            0.9940                  3531.97     0.5238       0.4265</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609            0.4723                  1469.07     0.6940       0.4588</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 610            0.1695                  2050.83     0.4821       0.1454</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   events: 610   pixels with events: 6</span>
@@ -345,23 +383,29 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   duration (days):     5 to    38</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_max:   1.314 to 4.911</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/tmp/RtmpKE019E/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span><span class="fu">detect_event3</span><span class="op">(</span><span class="va">sst_file</span>, name <span class="op">=</span> <span class="va">stem</span>, daily <span class="op">=</span> <span class="st">"also"</span><span class="op">)</span>  <span class="co"># + demo_events_daily.nc</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /tmp/RtmpKE019E/demo_clim.nc...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Detecting events with 1 thread(s)...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   1/6 pixels (16%)  2/6 pixels (33%)  3/6 pixels (50%)  4/6 pixels (66%)  5/6 pixels (83%)  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Found 610 events across 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing per-day series to /tmp/RtmpKE019E/demo_events_daily.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /tmp/RtmpKE019E/demo_events.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Events written to: /tmp/RtmpKE019E/demo_events.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 610</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -390,11 +434,11 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4                         3.8969           294.7100            295.27</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5                         1.5575           294.0717            294.29</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.5886                  5610.30     0.1840       0.1471</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.1573                  1489.82     0.1007       0.0349</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3            0.0677                  1773.69     0.0303       0.0282</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4            0.3945                  2062.97     0.2077       0.1885</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5            0.1824                  1764.43     0.1363       0.1270</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.5886                  5610.30     0.2375       0.1539</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.1573                  1489.82     0.7084       0.3201</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3            0.0677                  1773.69     0.0579       0.0985</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4            0.3945                  2062.97     0.7383       0.2044</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5            0.1824                  1764.43     0.2438       0.1360</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        lon     lat pixel_index event_no date_start  date_peak   date_end</span>
@@ -422,11 +466,11 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 609                         2.5966           293.8140            294.37</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 610                         2.4402           292.9757            293.17</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 606            0.3438                  2350.18     0.2090       0.1836</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 607            0.6214                  2057.12     0.2155       0.5020</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 608            0.9940                  3531.97     0.5195       0.4084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 609            0.4723                  1469.07     0.3247       0.2915</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 610            0.1695                  2050.83     0.2322       0.0693</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606            0.3438                  2350.18     0.3962       0.3769</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607            0.6214                  2057.12     0.4158       0.6025</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608            0.9940                  3531.97     0.5238       0.4265</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609            0.4723                  1469.07     0.6940       0.4588</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 610            0.1695                  2050.83     0.4821       0.1454</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   events: 610   pixels with events: 6</span>
@@ -434,12 +478,12 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   duration (days):     5 to    38</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_max:   1.314 to 4.911</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/tmp/RtmpKE019E/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Daily series written to: /tmp/RtmpKE019E/demo_events_daily.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 85,656   grid: 2 lon x 3 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -473,10 +517,10 @@ export to CSV/RDS/Parquet.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   dates: 1982-01-01 to 2021-01-31</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   event-days: 5195</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   category: 1=8922  2=439  3=3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   category: 1=4799  2=345  3=3</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/tmp/RtmpKE019E/demo_events_daily.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/tmp/RtmpKE019E/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>

@@ -63,6 +63,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # HDF5 + netcdf-c from build_netcdf.sh, which skips the build when its
+      # stamp file is present. macOS only: Linux builds them inside the
+      # manylinux container, out of reach of the cache. pyproject.toml is in
+      # the key because it sets MACOSX_DEPLOYMENT_TARGET.
+      - name: Cache HDF5 and netcdf-c (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/cache@v6
+        with:
+          path: /tmp/hw3-netcdf
+          key: hw3-netcdf-${{ matrix.os }}-${{ hashFiles('python/tools/build_netcdf.sh', 'pyproject.toml') }}
+
       - uses: pypa/cibuildwheel@v4.3.1
 
       - uses: actions/upload-artifact@v7

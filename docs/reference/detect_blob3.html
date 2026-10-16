@@ -11,7 +11,7 @@ mask across longitude, latitude, (optionally) depth, and time.'><meta property="
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -176,8 +176,7 @@ threshold climatology (<code>temp &gt; thresh</code> for heatwaves, or
 <code>temp &lt; thresh</code> for cold-spells). Connected voxels in this mask are
 then labelled as coherent spatial (or spatio-vertical) events using a
 union-find algorithm.</p>
-<p>This is the same approach used by <code>heatwaveR::detect_blob3()</code>. The
-reason an event file from <code><a href="detect_event3.html">detect_event3</a></code> cannot be used
+<p>The reason an event file from <code><a href="detect_event3.html">detect_event3</a></code> cannot be used
 directly is that the event file stores per-pixel event <em>summaries</em>
 (start/end dates, intensity metrics), not the daily per-pixel boolean mask
 needed for spatial connectivity analysis.</p>
@@ -201,6 +200,17 @@ at the event level, <code>volume_km3</code> at the daily level, both computed as
 area x vertical layer thickness); <code>voxel</code> gains a <code>depth</code> column.
 For an ordinary 3D <code>clim_file</code>, none of this changes: connectivity
 stays 3-axis (lon, lat, time) and no depth columns are added.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="ties-and-cpu-type">Ties and CPU type<a class="anchor" aria-label="anchor" href="#ties-and-cpu-type"></a></h2>
+
+
+<p>Blobs with exactly equal values of <code>rankBy</code> (common for small blobs) are
+ranked in blob order. On CPUs whose compilers fuse multiply-adds by default
+(e.g. ARM, including Apple Silicon) the accumulated metrics can differ from
+x86-64 in the last bit, so tied blobs can be ordered and ranked differently,
+and <code>topN</code> can select a different blob at a tie. Values agree to about
+1e-15 relative.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

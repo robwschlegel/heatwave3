@@ -8,6 +8,8 @@
   : Compute climatology for gridded NetCDF data
 - [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
   : Detect marine heatwave events in gridded data
+- [`detect_event_array3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event_array3.md)
+  : Detect marine heatwaves day by day in arrays
 - [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
   : Convenience wrapper for marine heatwave event categories
 - [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md)

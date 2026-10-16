@@ -69,6 +69,25 @@ For larger grids using daily files (Benguela region, 260 × 360 pixels,
 - **Numerical equivalence**. Climatology and event metrics match
   **`heatwaveR`** to rounding precision, validated pixel-by-pixel.
 
+## Python
+
+A Python package with the same functions, arguments and outputs, built
+on the same C++ core, is on PyPI. Its version is pinned to the R
+package’s, so both have the same features:
+
+``` bash
+pip install heatwave3
+```
+
+``` python
+import heatwave3 as hw3
+out = hw3.detect3("sst.nc", "run1", ("1982-01-01", "2011-12-31"), category=True)
+events = hw3.hw3_export(out["events"])   # a pandas DataFrame
+```
+
+Documentation: <https://heatwave3.readthedocs.io>. The source is in
+[`python/`](https://robwschlegel.github.io/heatwave3/index.html/python/).
+
 ## Installation
 
 ### Development version (recommended)
@@ -76,18 +95,16 @@ For larger grids using daily files (Benguela region, 260 × 360 pixels,
 The `dev` branch contains all of the most cutting-edge things being
 developed:
 
-``` r
-# install.packages("remotes")
-remotes::install_github("robwschlegel/heatwave3@dev")
-```
+\
+`# install.packages("remotes")`\
+`remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"robwschlegel/heatwave3@dev"``)`
 
 If however you feel like playing it safe, the main branch is the way to
 go:
 
-``` r
-# install.packages("remotes")
-remotes::install_github("robwschlegel/heatwave3")
-```
+\
+`# install.packages("remotes")`\
+`remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"robwschlegel/heatwave3"``)`
 
 ### System requirements
 
@@ -132,15 +149,14 @@ vignette for the full story and a performance comparison.
 `R_HEATWAVE3_NUM_THREADS`). Control threads at the session level or per
 function call:
 
-``` r
-library(heatwave3)
-getHW3threads()       # check current default
-setHW3threads(8)      # use 8 threads for all subsequent calls
-setHW3threads(0)      # reset to default (50% of cores)
-
-# Or override per call:
-detect_event3(..., n_threads = 12)
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`getHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)`(``)``       ``# check current default`\
+[`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)`(``8``)``      ``# use 8 threads for all subsequent calls`\
+[`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)`(``0``)``      ``# reset to default (50% of cores)`\
+\
+`# Or override per call:`\
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``...``, n_threads ``=`` ``12``)`
 
 **`heatwave3`** has no OpenMP dependency, so it can never change thread
 counts for other OpenMP-using packages in the same session. It is also
@@ -151,130 +167,123 @@ heatwave3 threads are ever alive at fork time.
 
 ## Quick start
 
-``` r
-library(heatwave3)
-
-sst_file <- "path/to/sst.nc"  # or a directory of daily files
-
-# All-in-one: climatology + event detection + categories. A single 'name' stem
-# writes benguela_clim.nc and benguela_events.nc.
-detect3(
-  file_in           = sst_file,
-  name              = "benguela",
-  climatologyPeriod = c("1991-01-01", "2020-12-31"),
-  lon_range         = c(15, 35),
-  lat_range         = c(-38, -28),
-  category          = TRUE,
-  hemisphere        = "south",
-  n_threads         = 4
-)
-
-# Read the events back as a data.frame (or a quick preview with n =)
-events <- hw3_export("benguela_events.nc")
-head(events)
-table(events$category)
-```
+\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+\
+`sst_file`` ``<-`` ``"path/to/sst.nc"``  ``# or a directory of daily files`\
+\
+`# All-in-one: climatology + event detection + categories. A single 'name' stem`\
+`# writes benguela_clim.nc and benguela_events.nc.`\
+[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(`\
+`  file_in           ``=`` ``sst_file``,`\
+`  name              ``=`` ``"benguela"``,`\
+`  climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1991-01-01"``, ``"2020-12-31"``)``,`\
+`  lon_range         ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``15``, ``35``)``,`\
+`  lat_range         ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``-``38``, ``-``28``)``,`\
+`  category          ``=`` ``TRUE``,`\
+`  hemisphere        ``=`` ``"south"``,`\
+`  n_threads         ``=`` ``4`\
+`)`\
+\
+`# Read the events back as a data.frame (or a quick preview with n =)`\
+`events`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``)`\
+[`head`](https://rdrr.io/r/utils/head.html)`(``events``)`\
+[`table`](https://rdrr.io/r/base/table.html)`(``events``$``category``)`
 
 ### Cold-spell detection
 
-``` r
-# Use pctile = 10 for the cold tail
-detect3(
-  file_in           = sst_file,
-  name              = "benguela_cold",
-  climatologyPeriod = c("1991-01-01", "2020-12-31"),
-  pctile            = 10,
-  coldSpells        = TRUE,
-  category          = TRUE,
-  hemisphere        = "south",
-  n_threads         = 12
-)
-
-table(hw3_export("benguela_cold_events.nc")$category)
-```
+\
+`# Use pctile = 10 for the cold tail`\
+[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(`\
+`  file_in           ``=`` ``sst_file``,`\
+`  name              ``=`` ``"benguela_cold"``,`\
+`  climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1991-01-01"``, ``"2020-12-31"``)``,`\
+`  pctile            ``=`` ``10``,`\
+`  coldSpells        ``=`` ``TRUE``,`\
+`  category          ``=`` ``TRUE``,`\
+`  hemisphere        ``=`` ``"south"``,`\
+`  n_threads         ``=`` ``12`\
+`)`\
+\
+[`table`](https://rdrr.io/r/base/table.html)`(`[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_cold_events.nc"``)``$``category``)`
 
 ### Per-pixel time series plot
 
-``` r
-event_line3(sst_file, "benguela_clim.nc", lon = 25.0, lat = -34.0,
-            start_date = "2018-01-01", end_date = "2019-12-31")
-```
+\
+[`event_line3`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)`(``sst_file``, ``"benguela_clim.nc"``, lon ``=`` ``25.0``, lat ``=`` ``-``34.0``,`\
+`            start_date ``=`` ``"2018-01-01"``, end_date ``=`` ``"2019-12-31"``)`
 
 ### Spatial map of peak intensity
 
-``` r
-# C++-backed per-pixel aggregation, efficient even for millions of events
-plot_metric3("benguela_events.nc", metric = "intensity_max", summary = "mean")
-```
+\
+`# C++-backed per-pixel aggregation, efficient even for millions of events`\
+[`plot_metric3`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md)`(``"benguela_events.nc"``, metric ``=`` ``"intensity_max"``, summary ``=`` ``"mean"``)`
 
 ### Event categories (standalone)
 
-``` r
-# Reads pre-computed categories from event file (no clim_file needed)
-cats <- category3("benguela_events.nc")
-table(cats$category)
-
-# Or compute from scratch for older event files
-cats <- category3("benguela_events.nc", "benguela_clim.nc", hemisphere = "south")
-```
+\
+`# Reads pre-computed categories from event file (no clim_file needed)`\
+`cats`` ``<-`` `[`category3`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)`(``"benguela_events.nc"``)`\
+[`table`](https://rdrr.io/r/base/table.html)`(``cats``$``category``)`\
+\
+`# Or compute them for event files written without categories (needs the SST)`\
+`cats`` ``<-`` `[`category3`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)`(``"benguela_events.nc"``, ``"benguela_clim.nc"``, sst_file ``=`` ``sst_file``,`\
+`                  hemisphere ``=`` ``"south"``)`
 
 ### Using daily files
 
-``` r
-# Pass a directory. All .nc/.nc4 files are read, sorted, and merged
-ts2clm3(
-  file_in = "/path/to/daily_ostia/",
-  name = "ostia",
-  climatologyPeriod = c("1991-01-01", "2020-12-31"),
-  n_threads = 12
-)
-```
+\
+`# Pass a directory. All .nc/.nc4 files are read, sorted, and merged`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(`\
+`  file_in ``=`` ``"/path/to/daily_ostia/"``,`\
+`  name ``=`` ``"ostia"``,`\
+`  climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1991-01-01"``, ``"2020-12-31"``)``,`\
+`  n_threads ``=`` ``12`\
+`)`
 
 ### Spatial blob detection
 
-``` r
-blobs <- detect_blob3(
-  sst_file  = sst_file,
-  clim_file = "benguela_clim.nc",
-  minVoxels = 200,
-  topN      = 6,
-  return    = c("event", "daily", "voxel")
-)
-
-# blobs$event: summary per blob (duration, peak area, cumulative intensity)
-# blobs$daily: daily progression (area, centroid, bounding box)
-# blobs$voxel: full 3D footprint (for spatial maps)
-```
+\
+`blobs`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)`(`\
+`  sst_file  ``=`` ``sst_file``,`\
+`  clim_file ``=`` ``"benguela_clim.nc"``,`\
+`  minVoxels ``=`` ``200``,`\
+`  topN      ``=`` ``6``,`\
+`  return    ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"event"``, ``"daily"``, ``"voxel"``)`\
+`)`\
+\
+`# blobs$event: summary per blob (duration, peak area, cumulative intensity)`\
+`# blobs$daily: daily progression (area, centroid, bounding box)`\
+`# blobs$voxel: full 3D footprint (for spatial maps)`
 
 ### Detrended climatology
 
-``` r
-# Remove linear warming trend before computing climatology
-# (Jacox et al. 2020 approach)
-ts2clm3(sst_file, name = "benguela_detrended",
-        climatologyPeriod = c("1991-01-01", "2020-12-31"),
-        detrend = TRUE)
-```
+\
+`# Remove linear warming trend before computing climatology`\
+`# (Jacox et al. 2020 approach)`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``"benguela_detrended"``,`\
+`        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1991-01-01"``, ``"2020-12-31"``)``,`\
+`        detrend ``=`` ``TRUE``)`
 
 ## API overview
 
 All functions are suffixed with `3` to avoid namespace conflicts with
 **`heatwaveR`**:
 
-| Function                                                                                              | Purpose                                                                  |
-|-------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)               | **Primary entry point**. Climatology, detection, and optional categories |
-| [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)               | Compute climatology (NetCDF → NetCDF)                                    |
-| [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)   | Detect per-pixel events (with optional inline categories)                |
-| [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)     | 3D spatial blob detection                                                |
-| [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)           | Hobday et al. (2018) event categories (reads or computes)                |
-| [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md) | Yearly aggregation of event metrics                                      |
-| [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md)       | Static threshold exceedance                                              |
-| [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)       | Per-pixel time series plot                                               |
-| [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)       | ggplot2 flame polygon geom                                               |
-| [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md)       | ggplot2 lollipop geom                                                    |
-| [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md)     | Spatial map of event metrics (C++-backed aggregation)                    |
-| [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)         | Read any product into a data.frame, or export to CSV/RDS/Parquet         |
+| Function | Purpose |
+|----|----|
+| [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md) | **Primary entry point**. Climatology, detection, and optional categories |
+| [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md) | Compute climatology (NetCDF → NetCDF) |
+| [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md) | Detect per-pixel events (with optional inline categories) |
+| [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md) | 3D spatial blob detection |
+| [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md) | Hobday et al. (2018) event categories (reads or computes) |
+| [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md) | Yearly aggregation of event metrics |
+| [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md) | Static threshold exceedance |
+| [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md) | Per-pixel time series plot |
+| [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md) | ggplot2 flame polygon geom |
+| [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md) | ggplot2 lollipop geom |
+| [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md) | Spatial map of event metrics (C++-backed aggregation) |
+| [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md) | Read any product into a data.frame, or export to CSV/RDS/Parquet |
 
 ## Vignettes
 

@@ -11,7 +11,7 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,7 +63,7 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
     <div class="ref-description section level2">
     <p>Calculates seasonal and threshold climatologies for each pixel in a gridded
 NetCDF file, following the Hobday et al. (2016) methodology. This is the
-gridded equivalent of <code><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code>.</p>
+gridded equivalent of <code><a href="https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -86,7 +86,8 @@ gridded equivalent of <code><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.ht
 <span>  var <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  detrend <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  roundClm <span class="op">=</span> <span class="fl">4L</span>,</span>
-<span>  n_threads <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  n_threads <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  compression <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  skip_bad_files <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -194,7 +195,18 @@ Set to <code>FALSE</code> to disable.</p></dd>
 
 
 <dt id="arg-n-threads">n_threads<a class="anchor" aria-label="anchor" href="#arg-n-threads"></a></dt>
-<dd><p>Number of threads for parallel computation. Default <code>1</code>.</p></dd>
+<dd><p>Number of threads for parallel computation. Default
+<code>NULL</code>: the session default, half the available cores unless
+changed with <code><a href="getHW3threads.html">setHW3threads</a></code> or the
+<code>R_HEATWAVE3_NUM_THREADS</code> environment variable.</p></dd>
+
+
+<dt id="arg-compression">compression<a class="anchor" aria-label="anchor" href="#arg-compression"></a></dt>
+<dd><p>Integer from 0 to 9. zlib compression level of the
+NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+(a few percent smaller), and 0 writes uncompressed files, which are
+several times larger but much quicker to write. Gridded outputs are
+compressed on <code>n_threads</code> threads when heatwave3 was built with HDF5.</p></dd>
 
 
 <dt id="arg-skip-bad-files">skip_bad_files<a class="anchor" aria-label="anchor" href="#arg-skip-bad-files"></a></dt>
@@ -203,8 +215,10 @@ or files with mismatched grids instead of failing. Default <code>FALSE</code>.</
 
 
 <dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
-<dd><p>Logical. Suppress the post-computation console summary (head,
-tail, and summary statistics of the climatology)? Default <code>FALSE</code>.</p></dd>
+<dd><p>Logical. Suppress all console output: the progress messages
+from the computation and the post-computation summary (head, tail, and
+summary statistics of the climatology)? Warnings, such as skipped files,
+are still shown. Default <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

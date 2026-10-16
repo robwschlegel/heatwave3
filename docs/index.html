@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,23 +107,23 @@
 </h3>
 <p>Benchmarked on the OSTIA South-West Indian Ocean reanalysis (400 × 200 grid, ca. 50,000 ocean pixels, 14,276 daily time steps), Apple M5 Max:</p>
 <table class="table">
-<thead><tr class="header">
+<thead><tr>
 <th>Method</th>
 <th>Time</th>
 <th>Speedup</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td>heatwaveR (serial)</td>
 <td>ca. 69 min</td>
 <td>1×</td>
 </tr>
-<tr class="even">
+<tr>
 <td>heatwave3 (1 thread)</td>
 <td>4.3 min</td>
 <td><strong>16×</strong></td>
 </tr>
-<tr class="odd">
+<tr>
 <td>heatwave3 (12 threads)</td>
 <td>1.9 min</td>
 <td><strong>36×</strong></td>
@@ -164,30 +164,40 @@
 </ul>
 </div>
 <div class="section level2">
+<h2 id="python">Python<a class="anchor" aria-label="anchor" href="#python"></a>
+</h2>
+<p>A Python package with the same functions, arguments and outputs, built on the same C++ core, is on PyPI. Its version is pinned to the R package’s, so both have the same features:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">pip</span> install heatwave3</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="im">import</span> heatwave3 <span class="im">as</span> hw3</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>out <span class="op">=</span> hw3.detect3(<span class="st">"sst.nc"</span>, <span class="st">"run1"</span>, (<span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span>), category<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>events <span class="op">=</span> hw3.hw3_export(out[<span class="st">"events"</span>])   <span class="co"># a pandas DataFrame</span></span></code></pre></div>
+<p>Documentation: <a href="https://heatwave3.readthedocs.io" class="external-link uri">https://heatwave3.readthedocs.io</a>. The source is in <a href="python/"><code>python/</code></a>.</p>
+</div>
+<div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="section level3">
 <h3 id="development-version-recommended">Development version (recommended)<a class="anchor" aria-label="anchor" href="#development-version-recommended"></a>
 </h3>
 <p>The <code>dev</code> branch contains all of the most cutting-edge things being developed:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"robwschlegel/heatwave3@dev"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3@dev"</span><span class="op">)</span></span></code></pre></div>
 <p>If however you feel like playing it safe, the main branch is the way to go:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
 </h3>
 <p>heatwave3 requires the <strong>netCDF C library</strong> (version 4.0+). The <code>configure</code> script finds it automatically via <code>nc-config</code> or <code>pkg-config</code>.</p>
 <p><strong>macOS:</strong></p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="ex">brew</span> install netcdf</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">brew</span> install netcdf</span></code></pre></div>
 <p><strong>Ubuntu / Debian:</strong></p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">sudo</span> apt install libnetcdf-dev</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">sudo</span> apt install libnetcdf-dev</span></code></pre></div>
 <p><strong>Fedora / RHEL:</strong></p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">sudo</span> dnf install netcdf-devel</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">sudo</span> dnf install netcdf-devel</span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="in-process-parallelism">In-process parallelism<a class="anchor" aria-label="anchor" href="#in-process-parallelism"></a>
@@ -198,7 +208,7 @@
 <h3 id="thread-management">Thread management<a class="anchor" aria-label="anchor" href="#thread-management"></a>
 </h3>
 <p><strong><code>heatwave3</code></strong> defaults to <strong>50% of available cores</strong> (overridable via <code>R_HEATWAVE3_NUM_THREADS</code>). Control threads at the session level or per function call:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/getHW3threads.html">getHW3threads</a></span><span class="op">(</span><span class="op">)</span>       <span class="co"># check current default</span></span>
 <span><span class="fu"><a href="reference/getHW3threads.html">setHW3threads</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span>      <span class="co"># use 8 threads for all subsequent calls</span></span>
@@ -212,7 +222,7 @@
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="st">"path/to/sst.nc"</span>  <span class="co"># or a directory of daily files</span></span>
@@ -237,7 +247,7 @@
 <div class="section level3">
 <h3 id="cold-spell-detection">Cold-spell detection<a class="anchor" aria-label="anchor" href="#cold-spell-detection"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use pctile = 10 for the cold tail</span></span>
 <span><span class="fu"><a href="reference/detect3.html">detect3</a></span><span class="op">(</span></span>
 <span>  file_in           <span class="op">=</span> <span class="va">sst_file</span>,</span>
@@ -255,32 +265,33 @@
 <div class="section level3">
 <h3 id="per-pixel-time-series-plot">Per-pixel time series plot<a class="anchor" aria-label="anchor" href="#per-pixel-time-series-plot"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/event_line3.html">event_line3</a></span><span class="op">(</span><span class="va">sst_file</span>, <span class="st">"benguela_clim.nc"</span>, lon <span class="op">=</span> <span class="fl">25.0</span>, lat <span class="op">=</span> <span class="op">-</span><span class="fl">34.0</span>,</span>
 <span>            start_date <span class="op">=</span> <span class="st">"2018-01-01"</span>, end_date <span class="op">=</span> <span class="st">"2019-12-31"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="spatial-map-of-peak-intensity">Spatial map of peak intensity<a class="anchor" aria-label="anchor" href="#spatial-map-of-peak-intensity"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># C++-backed per-pixel aggregation, efficient even for millions of events</span></span>
 <span><span class="fu"><a href="reference/plot_metric3.html">plot_metric3</a></span><span class="op">(</span><span class="st">"benguela_events.nc"</span>, metric <span class="op">=</span> <span class="st">"intensity_max"</span>, summary <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="event-categories-standalone">Event categories (standalone)<a class="anchor" aria-label="anchor" href="#event-categories-standalone"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Reads pre-computed categories from event file (no clim_file needed)</span></span>
 <span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/category3.html">category3</a></span><span class="op">(</span><span class="st">"benguela_events.nc"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">cats</span><span class="op">$</span><span class="va">category</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Or compute from scratch for older event files</span></span>
-<span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/category3.html">category3</a></span><span class="op">(</span><span class="st">"benguela_events.nc"</span>, <span class="st">"benguela_clim.nc"</span>, hemisphere <span class="op">=</span> <span class="st">"south"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Or compute them for event files written without categories (needs the SST)</span></span>
+<span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/category3.html">category3</a></span><span class="op">(</span><span class="st">"benguela_events.nc"</span>, <span class="st">"benguela_clim.nc"</span>, sst_file <span class="op">=</span> <span class="va">sst_file</span>,</span>
+<span>                  hemisphere <span class="op">=</span> <span class="st">"south"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="using-daily-files">Using daily files<a class="anchor" aria-label="anchor" href="#using-daily-files"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Pass a directory. All .nc/.nc4 files are read, sorted, and merged</span></span>
 <span><span class="fu"><a href="reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span></span>
 <span>  file_in <span class="op">=</span> <span class="st">"/path/to/daily_ostia/"</span>,</span>
@@ -292,7 +303,7 @@
 <div class="section level3">
 <h3 id="spatial-blob-detection">Spatial blob detection<a class="anchor" aria-label="anchor" href="#spatial-blob-detection"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">blobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/detect_blob3.html">detect_blob3</a></span><span class="op">(</span></span>
 <span>  sst_file  <span class="op">=</span> <span class="va">sst_file</span>,</span>
 <span>  clim_file <span class="op">=</span> <span class="st">"benguela_clim.nc"</span>,</span>
@@ -308,7 +319,7 @@
 <div class="section level3">
 <h3 id="detrended-climatology">Detrended climatology<a class="anchor" aria-label="anchor" href="#detrended-climatology"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Remove linear warming trend before computing climatology</span></span>
 <span><span class="co"># (Jacox et al. 2020 approach)</span></span>
 <span><span class="fu"><a href="reference/ts2clm3.html">ts2clm3</a></span><span class="op">(</span><span class="va">sst_file</span>, name <span class="op">=</span> <span class="st">"benguela_detrended"</span>,</span>
@@ -325,57 +336,57 @@
 <col width="52%">
 <col width="47%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Purpose</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/detect3.html">detect3()</a></code></td>
 <td>
 <strong>Primary entry point</strong>. Climatology, detection, and optional categories</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/ts2clm3.html">ts2clm3()</a></code></td>
 <td>Compute climatology (NetCDF → NetCDF)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/detect_event3.html">detect_event3()</a></code></td>
 <td>Detect per-pixel events (with optional inline categories)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/detect_blob3.html">detect_blob3()</a></code></td>
 <td>3D spatial blob detection</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/category3.html">category3()</a></code></td>
 <td>Hobday et al. (2018) event categories (reads or computes)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/block_average3.html">block_average3()</a></code></td>
 <td>Yearly aggregation of event metrics</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/exceedance3.html">exceedance3()</a></code></td>
 <td>Static threshold exceedance</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/event_line3.html">event_line3()</a></code></td>
 <td>Per-pixel time series plot</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/geom_flame3.html">geom_flame3()</a></code></td>
 <td>ggplot2 flame polygon geom</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/geom_lolli3.html">geom_lolli3()</a></code></td>
 <td>ggplot2 lollipop geom</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/plot_metric3.html">plot_metric3()</a></code></td>
 <td>Spatial map of event metrics (C++-backed aggregation)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/hw3_export.html">hw3_export()</a></code></td>
 <td>Read any product into a data.frame, or export to CSV/RDS/Parquet</td>
 </tr>

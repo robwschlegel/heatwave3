@@ -79,19 +79,19 @@ detect_blob3(
 
   `"event"`
 
-  :   One row per blob with summary metrics (duration, peak area,
-      cumulative intensity, centroid, etc.)
+  : One row per blob with summary metrics (duration, peak area,
+    cumulative intensity, centroid, etc.)
 
   `"daily"`
 
-  :   One row per (blob, date) with daily area, mean/max anomaly,
-      centroid, and bounding box
+  : One row per (blob, date) with daily area, mean/max anomaly,
+    centroid, and bounding box
 
   `"voxel"`
 
-  :   One row per (blob, lon, lat, date) (plus depth, if
-      depth-resolved), the full footprint. Required for spatial
-      footprint maps and persistence analysis. Can be large.
+  : One row per (blob, lon, lat, date) (plus depth, if depth-resolved),
+    the full footprint. Required for spatial footprint maps and
+    persistence analysis. Can be large.
 
   Default `c("event", "daily")`.
 
@@ -115,8 +115,7 @@ for cold-spells). Connected voxels in this mask are then labelled as
 coherent spatial (or spatio-vertical) events using a union-find
 algorithm.
 
-This is the same approach used by `heatwaveR::detect_blob3()`. The
-reason an event file from
+The reason an event file from
 [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
 cannot be used directly is that the event file stores per-pixel event
 *summaries* (start/end dates, intensity metrics), not the daily
@@ -141,6 +140,15 @@ threshold. `event`/`daily` gain `depth_min_m`, `depth_max_m`,
 thickness); `voxel` gains a `depth` column. For an ordinary 3D
 `clim_file`, none of this changes: connectivity stays 3-axis (lon, lat,
 time) and no depth columns are added.
+
+## Ties and CPU type
+
+Blobs with exactly equal values of `rankBy` (common for small blobs) are
+ranked in blob order. On CPUs whose compilers fuse multiply-adds by
+default (e.g. ARM, including Apple Silicon) the accumulated metrics can
+differ from x86-64 in the last bit, so tied blobs can be ordered and
+ranked differently, and `topN` can select a different blob at a tie.
+Values agree to about 1e-15 relative.
 
 ## See also
 

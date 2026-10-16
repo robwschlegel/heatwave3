@@ -3,7 +3,7 @@
 Calculates seasonal and threshold climatologies for each pixel in a
 gridded NetCDF file, following the Hobday et al. (2016) methodology.
 This is the gridded equivalent of
-[`heatwaveR::ts2clm()`](https://rdrr.io/pkg/heatwaveR/man/ts2clm.html).
+[`heatwaveR::ts2clm()`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html).
 
 ## Usage
 
@@ -26,7 +26,8 @@ ts2clm3(
   var = FALSE,
   detrend = FALSE,
   roundClm = 4L,
-  n_threads = 1L,
+  n_threads = NULL,
+  compression = 1L,
   skip_bad_files = FALSE,
   quiet = FALSE
 )
@@ -132,7 +133,18 @@ ts2clm3(
 
 - n_threads:
 
-  Number of threads for parallel computation. Default `1`.
+  Number of threads for parallel computation. Default `NULL`: the
+  session default, half the available cores unless changed with
+  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+  or the `R_HEATWAVE3_NUM_THREADS` environment variable.
+
+- compression:
+
+  Integer from 0 to 9. zlib compression level of the NetCDF output: 1
+  (the default) compresses fastest, 9 gives the smallest files (a few
+  percent smaller), and 0 writes uncompressed files, which are several
+  times larger but much quicker to write. Gridded outputs are compressed
+  on `n_threads` threads when heatwave3 was built with HDF5.
 
 - skip_bad_files:
 
@@ -141,8 +153,10 @@ ts2clm3(
 
 - quiet:
 
-  Logical. Suppress the post-computation console summary (head, tail,
-  and summary statistics of the climatology)? Default `FALSE`.
+  Logical. Suppress all console output: the progress messages from the
+  computation and the post-computation summary (head, tail, and summary
+  statistics of the climatology)? Warnings, such as skipped files, are
+  still shown. Default `FALSE`.
 
 ## Value
 

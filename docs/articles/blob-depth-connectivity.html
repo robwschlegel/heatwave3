@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -141,17 +141,9 @@ fixture (0.49-5.08 m):</p>
 <span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1993-01-01"</span>, <span class="st">"2019-12-31"</span><span class="op">)</span>,</span>
 <span>        depth_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, </span>
 <span>        quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<details><summary>
-Show console output
-</summary><pre><code><span><span class="co">#&gt; Reading SST data from /tmp/RtmpeUMl7g/temp_libpatheaf5a29c3cf/heatwave3/extdata/glorys_depth_test.nc...</span></span>
-<span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
-<span><span class="co">#&gt; Computing climatology with 1 thread(s)...</span></span>
-<span><span class="co">#&gt;   1/20 pixels (5%)  2/20 pixels (10%)  3/20 pixels (15%)  4/20 pixels (20%)  5/20 pixels (25%)  6/20 pixels (30%)  7/20 pixels (35%)  8/20 pixels (40%)  9/20 pixels (45%)  10/20 pixels (50%)  11/20 pixels (55%)  12/20 pixels (60%)  13/20 pixels (65%)  14/20 pixels (70%)  15/20 pixels (75%)  16/20 pixels (80%)  17/20 pixels (85%)  18/20 pixels (90%)  19/20 pixels (95%)  20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /tmp/RtmppMfZMu/mhw4d_clim.nc...</span></span>
-<span><span class="co">#&gt; Done.</span></span></code></pre>
-</details><p><code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> picks up the depth dimension from
+<p><code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> picks up the depth dimension from
 <code>stem_clim.nc</code> automatically:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">blobs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_blob3.html">detect_blob3</a></span><span class="op">(</span><span class="va">f</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span>
 <span>                      minVoxels <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>                      return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event"</span>, <span class="st">"daily"</span>, <span class="st">"voxel"</span><span class="op">)</span><span class="op">)</span></span>
@@ -159,7 +151,7 @@ Show console output
 <span><span class="co">#&gt; [1] 412</span></span></code></pre></div>
 <p><code>event</code> and <code>daily</code> both gain depth/volume
 columns; <code>voxel</code> gains a <code>depth</code> column:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">blobs</span><span class="op">$</span><span class="va">event</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "blob"                   "duration"               "date_start"            </span></span>
 <span><span class="co">#&gt;  [4] "date_end"               "date_peak"              "cumI_km2_day"          </span></span>
@@ -184,7 +176,7 @@ thickness, summed over the depth levels a blob occupies that day);
 <code>depthOfPeakIntensity_m</code> is the depth at which the single
 most intense day of the blob’s life occurred. <code>rankBy</code>
 accepts the volume metrics too when the input is depth-resolved:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/detect_blob3.html">detect_blob3</a></span><span class="op">(</span><span class="va">f</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span>
 <span>                    topN <span class="op">=</span> <span class="fl">5</span>, rankBy <span class="op">=</span> <span class="st">"totalVolume_km3"</span>, return <span class="op">=</span> <span class="st">"event"</span><span class="op">)</span></span>
 <span><span class="va">top</span><span class="op">$</span><span class="va">event</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"blob"</span>, <span class="st">"rank"</span>, <span class="st">"duration"</span>, <span class="st">"depth_min_m"</span>, <span class="st">"depth_max_m"</span>,</span>
@@ -204,7 +196,7 @@ vertical bounding box span more than a single level
 (<code>depth_min_m != depth_max_m</code>)? If depth connectivity did
 nothing, this would always be zero – every blob would be confined to the
 one level it was seeded on.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">spans_multiple</span> <span class="op">&lt;-</span> <span class="va">blobs</span><span class="op">$</span><span class="va">event</span><span class="op">$</span><span class="va">depth_min_m</span> <span class="op">!=</span> <span class="va">blobs</span><span class="op">$</span><span class="va">event</span><span class="op">$</span><span class="va">depth_max_m</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">spans_multiple</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.9660194</span></span>
@@ -219,12 +211,12 @@ shared blobs, not kept artificially separate per level.</p>
 </h2>
 <p>Pick one blob and look at how its depth range and volume evolve day
 by day, using the <code>daily</code> table:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="va">top</span><span class="op">$</span><span class="va">event</span><span class="op">$</span><span class="va">blob</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">dd</span> <span class="op">&lt;-</span> <span class="va">blobs</span><span class="op">$</span><span class="va">daily</span><span class="op">[</span><span class="va">blobs</span><span class="op">$</span><span class="va">daily</span><span class="op">$</span><span class="va">blob</span> <span class="op">==</span> <span class="va">b</span>, <span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">dd</span><span class="op">$</span><span class="va">date</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "1999-05-31" "1999-06-27"</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">dd</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">date</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">depth_min_m</span>, ymax <span class="op">=</span> <span class="va">depth_max_m</span>, fill <span class="op">=</span> <span class="va">mean_delta</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_reverse</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"depth (m)"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -246,7 +238,7 @@ no missing values.</p>
 which – aggregated across this fixture’s 5 horizontal pixels since
 they’re not the interesting axis here – makes a genuine depth-time
 “Hovmoeller” view of one blob’s water column:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">vox</span> <span class="op">&lt;-</span> <span class="va">blobs</span><span class="op">$</span><span class="va">voxel</span><span class="op">[</span><span class="va">blobs</span><span class="op">$</span><span class="va">voxel</span><span class="op">$</span><span class="va">blob</span> <span class="op">==</span> <span class="va">b</span>, <span class="op">]</span></span>
 <span><span class="va">agg</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">delta</span> <span class="op">~</span> <span class="va">date</span> <span class="op">+</span> <span class="va">depth</span>, data <span class="op">=</span> <span class="va">vox</span>, FUN <span class="op">=</span> <span class="va">mean</span><span class="op">)</span></span>
 <span></span>

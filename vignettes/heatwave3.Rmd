@@ -121,7 +121,7 @@ plot_metric3(event_file, metric = "intensity_max", summary = "mean")
 ## Event categories and yearly aggregation
 
 ```{r categories, eval = has_test_data}
-cats <- category3(event_file, clim_file)
+cats <- category3(event_file, clim_file, sst_file = sst_file)
 head(cats)
 table(cats$category)
 ```

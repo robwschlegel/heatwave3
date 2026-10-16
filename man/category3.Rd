@@ -71,7 +71,8 @@ stem <- file.path(tempdir(), "demo")
 detect3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 
-cats <- category3(paste0(stem, "_events.nc"), paste0(stem, "_clim.nc"))
+cats <- category3(paste0(stem, "_events.nc"), paste0(stem, "_clim.nc"),
+                  sst_file = sst_file)
 table(cats$category)
 }
 }

@@ -1,16 +1,25 @@
 .onLoad <- function(libname, pkgname) {
   hw3_init_fork_safety()
   # The ggplot2 geoms are created when first used: ggplot2 is only suggested,
-  # and loading it would add most of a second to every library(heatwave3)
+  # and loading it would add most of a second to every library(heatwave3).
+  # Without ggplot2 they are NULL rather than an error: R CMD INSTALL's
+  # final-location test serialises the whole namespace, which evaluates these
+  # promises, and an error there made heatwave3 uninstallable without ggplot2.
+  # geom_flame3() and geom_lolli3() call .need_ggplot2() before using them.
   ns <- topenv()
   if (!environmentIsLocked(ns)) {
-    delayedAssign("GeomFlame3", { .need_ggplot2(); .make_geom_flame3() }, assign.env = ns)
-    delayedAssign("GeomLolli3", { .need_ggplot2(); .make_geom_lolli3() }, assign.env = ns)
+    delayedAssign("GeomFlame3", .geom_if_ggplot2(.make_geom_flame3), assign.env = ns)
+    delayedAssign("GeomLolli3", .geom_if_ggplot2(.make_geom_lolli3), assign.env = ns)
   }
 }
 
+.has_ggplot2 <- function() requireNamespace("ggplot2", quietly = TRUE)
+
+# The geom made by make(), or NULL when ggplot2 is not installed
+.geom_if_ggplot2 <- function(make) if (.has_ggplot2()) make() else NULL
+
 .need_ggplot2 <- function() {
-  if (!requireNamespace("ggplot2", quietly = TRUE))
+  if (!.has_ggplot2())
     stop("Plotting needs the ggplot2 package: install.packages(\"ggplot2\")",
          call. = FALSE)
 }

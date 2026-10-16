@@ -23,3 +23,18 @@ test_that("missing values are not exceedances and never error", {
   expect_identical(flame_ids(c(-1, NA, -1, -1)), character(0))
   expect_identical(flame_ids(c(1, 1, NA, 1, 1), n_gap = 1), c("1-2", "3-3", "4-5"))
 })
+
+test_that("without ggplot2 the geoms are NULL, not an error, and plotting says why", {
+  # R CMD INSTALL serialises the whole namespace after loading, which evaluates
+  # the delayed GeomFlame3/GeomLolli3; an error there blocked installation.
+  local_mocked_bindings(.has_ggplot2 = function() FALSE)
+  expect_null(.geom_if_ggplot2(.make_geom_flame3))
+  expect_null(.geom_if_ggplot2(.make_geom_lolli3))
+  expect_error(.need_ggplot2(), "Plotting needs the ggplot2 package")
+})
+
+test_that("with ggplot2 the geoms are built on first use", {
+  skip_if_not_installed("ggplot2")
+  expect_s3_class(.geom_if_ggplot2(.make_geom_flame3), "Geom")
+  expect_s3_class(GeomLolli3, "Geom")
+})

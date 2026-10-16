@@ -183,8 +183,9 @@ plot_metric3("benguela_events.nc", metric = "intensity_max", summary = "mean")
 cats <- category3("benguela_events.nc")
 table(cats$category)
 
-# Or compute from scratch for older event files
-cats <- category3("benguela_events.nc", "benguela_clim.nc", hemisphere = "south")
+# Or compute them for event files written without categories (needs the SST)
+cats <- category3("benguela_events.nc", "benguela_clim.nc", sst_file = sst_file,
+                  hemisphere = "south")
 ```
 
 ### Using daily files

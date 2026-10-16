@@ -46,6 +46,10 @@ categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
 
 ## Changes
 
+* **Python package on PyPI** (`pip install heatwave3`), with the same
+  functions, arguments and outputs as the R package, built on the same C++
+  core. Its version is pinned to the R package's (1.4.0 for both), so a
+  version number means the same features in either language.
 * **New `detect_event_array3()`** (R and Python) detects events day by day in
   arrays instead of files, with the climatology already matched to each day
   (`seas` and `thresh` with the same dimensions as `temp`). It returns the

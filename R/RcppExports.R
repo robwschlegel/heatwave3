@@ -89,6 +89,10 @@ hw3_detect_events_multi <- function(files, clim_file, events_file, var_name, min
     invisible(.Call(`_heatwave3_hw3_detect_events_multi`, files, clim_file, events_file, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_files, threshClim2_var_name, skip_bad_files, daily_file, proto_file, compression, slim))
 }
 
+hw3_detect_events_array <- function(temp, seas, thresh, ntime, minDuration = 5L, joinAcrossGaps = TRUE, maxGap = 2L, coldSpells = FALSE, roundRes = 4L, n_threads = 0L, event = TRUE, event_no = FALSE, intensity = TRUE, category = TRUE) {
+    .Call(`_heatwave3_hw3_detect_events_array`, temp, seas, thresh, ntime, minDuration, joinAcrossGaps, maxGap, coldSpells, roundRes, n_threads, event, event_no, intensity, category)
+}
+
 hw3_read_event_nc <- function(event_file) {
     .Call(`_heatwave3_hw3_read_event_nc`, event_file)
 }

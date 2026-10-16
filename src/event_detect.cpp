@@ -750,4 +750,61 @@ void detect_events_grid(
     }
 }
 
+// ---- Per-day detection on arrays ----
+
+void detect_events_array_grid(
+    const double* temp,
+    const double* seas,
+    const double* thresh,
+    int npixels,
+    int ntime,
+    int minDuration,
+    bool joinAcrossGaps,
+    int maxGap,
+    bool coldSpells,
+    int roundRes,
+    int n_threads,
+    const DailyBuffers& out) {
+
+    if (npixels <= 0 || ntime <= 0) return;
+    const float NA_F = std::numeric_limits<float>::quiet_NaN();
+    int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
+
+    hw3::parallel_for(npixels, nt, [&](int, int px) {
+        size_t off = static_cast<size_t>(px) * ntime;
+        const double* pixel_temp = temp + off;
+        const double* pixel_seas = seas + off;
+        const double* pixel_thresh = thresh + off;
+
+        // This pixel's slice of the outputs, set to the defaults first
+        DailyBuffers pdaily;
+        if (out.event)     { pdaily.event = out.event + off;         std::fill(pdaily.event, pdaily.event + ntime, 0); }
+        if (out.event_no)  { pdaily.event_no = out.event_no + off;   std::fill(pdaily.event_no, pdaily.event_no + ntime, 0); }
+        if (out.intensity) { pdaily.intensity = out.intensity + off; std::fill(pdaily.intensity, pdaily.intensity + ntime, NA_F); }
+        if (out.category)  { pdaily.category = out.category + off;   std::fill(pdaily.category, pdaily.category + ntime, 0); }
+
+        // Skip pixels with no temperature or no climatology, as detect_events_grid()
+        bool has_data = false, has_clim = false;
+        for (int t = 0; t < ntime && !(has_data && has_clim); ++t) {
+            if (!is_na(pixel_temp[t])) has_data = true;
+            if (!is_na(pixel_seas[t])) has_clim = true;
+        }
+        if (!has_data || !has_clim) return;
+
+        // The input is already dense and per day: identity map, no dates,
+        // and each day's levels from its own seas and thresh (computed only
+        // for the days that get a category: event days).
+        detect_dense_events(
+            pixel_temp, nullptr, pixel_seas, pixel_thresh, nullptr, ntime,
+            pixel_temp, nullptr, ntime,
+            minDuration, minDuration, joinAcrossGaps, maxGap, maxGap,
+            coldSpells, roundRes, /*category=*/false, /*southHemisphere=*/false,
+            &pdaily, /*want_events=*/false,
+            [&](int t, double* lv) {
+                day_levels(pixel_seas[t], pixel_thresh[t], 4, lv);
+                return true;
+            });
+    }, [](int) {});
+}
+
 } // namespace hw3

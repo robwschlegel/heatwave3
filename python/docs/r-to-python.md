@@ -15,6 +15,7 @@ the original Python `marineHeatWaves` code.
 | `ts2clm3()` | {func}`~heatwave3.ts2clm3` | path of the climatology file |
 | `detect_event3()` | {func}`~heatwave3.detect_event3` | dict of the paths written |
 | `exceedance3()` | {func}`~heatwave3.exceedance3` | path of the events file |
+| `detect_event_array3()` | {func}`~heatwave3.detect_event_array3` | NumPy array, or tuple of arrays |
 | `hw3_export()` | {func}`~heatwave3.hw3_export` | DataFrame, or the path written |
 | `category3()` | {func}`~heatwave3.category3` | DataFrame |
 | `category_daily3()` | {func}`~heatwave3.category_daily3` | DataFrame |
@@ -68,6 +69,12 @@ hw3.detect3("sst.nc", name="run1", climatologyPeriod=("1982-01-01", "2011-12-31"
 
 - **`detect_blob3(return_=...)`**: the R argument `return` is a Python
   keyword, so it is `return_` in Python.
+- **`detect_event_array3()` axis order**: time is the *last* axis in Python
+  and the *first* dimension in R. Each language then holds every pixel's
+  series contiguously (NumPy arrays are row-major, R arrays column-major), so
+  neither copies its input. Several outputs come back as a tuple in Python
+  (as `xarray.apply_ufunc` expects) and as a named list in R; `event` is
+  `bool`, `event_no` `int32`, `intensity` `float32` and `category` `int8`.
 - **`hw3_export()` file formats**: `.csv` and `.parquet` (the latter needs
   `pyarrow`). The R-only `.rds` format is not available.
 - **Plotting**: in R, `geom_flame3()` and `geom_lolli3()` are ggplot2 layers.

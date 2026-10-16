@@ -7,8 +7,11 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
+#include <algorithm>
+#include <cstdint>
 #include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -381,6 +384,67 @@ PYBIND11_MODULE(_core, m) {
           py::arg("threshClim2_files") = py::none(), py::arg("threshClim2_var_name") = "",
           py::arg("skip_bad_files") = false, py::arg("daily_file") = "",
           py::arg("proto_file") = "", py::arg("compression") = 1, py::arg("slim") = false);
+
+    // Per-day detection on arrays (detect_event_array3). temp, seas and thresh
+    // share one shape, time on the last axis, so a C-ordered array is already
+    // pixel-major. Outputs have the same shape; only the requested ones are
+    // allocated. Returns a dict keyed by output name.
+    m.def("hw3_detect_events_array",
+          [](py::array_t<double, py::array::c_style | py::array::forcecast> temp,
+             py::array_t<double, py::array::c_style | py::array::forcecast> seas,
+             py::array_t<double, py::array::c_style | py::array::forcecast> thresh,
+             int minDuration, bool joinAcrossGaps, int maxGap, bool coldSpells,
+             int roundRes, int n_threads, bool event, bool event_no, bool intensity,
+             bool category) {
+              if (temp.ndim() < 1)
+                  throw std::invalid_argument("temp must have at least one dimension (time).");
+              std::vector<py::ssize_t> shape(temp.shape(), temp.shape() + temp.ndim());
+              auto same_shape = [&](const py::array& a) {
+                  return a.ndim() == temp.ndim() &&
+                         std::equal(shape.begin(), shape.end(), a.shape());
+              };
+              if (!same_shape(seas) || !same_shape(thresh))
+                  throw std::invalid_argument("temp, seas and thresh must have the same shape.");
+              const py::ssize_t ntime = shape.back();
+              const py::ssize_t npixels = ntime > 0 ? temp.size() / ntime : 0;
+
+              py::dict result;
+              hw3::ArrayDetectOutputs out;
+              if (event) {
+                  py::array_t<bool> a(shape);
+                  out.event = reinterpret_cast<signed char*>(a.mutable_data());
+                  result["event"] = a;
+              }
+              if (event_no) {
+                  py::array_t<int32_t> a(shape);
+                  out.event_no = a.mutable_data();
+                  result["event_no"] = a;
+              }
+              if (intensity) {
+                  py::array_t<float> a(shape);
+                  out.intensity = a.mutable_data();
+                  result["intensity"] = a;
+              }
+              if (category) {
+                  py::array_t<int8_t> a(shape);
+                  out.category = a.mutable_data();
+                  result["category"] = a;
+              }
+              {
+                  py::gil_scoped_release nogil;
+                  hw3::detect_events_array(temp.data(), seas.data(), thresh.data(),
+                                           static_cast<int>(npixels), static_cast<int>(ntime),
+                                           detect_params(minDuration, minDuration, joinAcrossGaps,
+                                                         maxGap, maxGap, coldSpells, roundRes,
+                                                         n_threads, false, false, 0),
+                                           out);
+              }
+              return result;
+          },
+          py::arg("temp"), py::arg("seas"), py::arg("thresh"), py::arg("minDuration") = 5,
+          py::arg("joinAcrossGaps") = true, py::arg("maxGap") = 2, py::arg("coldSpells") = false,
+          py::arg("roundRes") = 4, py::arg("n_threads") = 0, py::arg("event") = true,
+          py::arg("event_no") = false, py::arg("intensity") = true, py::arg("category") = true);
 
     // Product readers
 

@@ -183,6 +183,18 @@
     "skip_bad_files": "FALSE",
     "quiet": "FALSE"
   },
+  "detect_event_array3": {
+    "temp": "<required>",
+    "seas": "<required>",
+    "thresh": "<required>",
+    "minDuration": "5",
+    "joinAcrossGaps": "TRUE",
+    "maxGap": "2",
+    "coldSpells": "FALSE",
+    "roundRes": "4",
+    "outputs": "c(\"event\", \"intensity\", \"category\")",
+    "n_threads": "NULL"
+  },
   "detect_blob3": {
     "sst_file": "<required>",
     "clim_file": "<required>",

@@ -66,6 +66,7 @@ reference:
   - '`detect3`'
   - '`ts2clm3`'
   - '`detect_event3`'
+  - '`detect_event_array3`'
   - '`category3`'
   - '`category_daily3`'
   - '`exceedance3`'

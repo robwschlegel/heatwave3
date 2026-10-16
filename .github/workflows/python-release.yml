@@ -31,9 +31,13 @@ jobs:
 
       - name: Tag matches the package version (and a release tag is on main)
         run: |
-          version=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml)
+          version=$(sed -n 's/^version = "\([^"]*\)".*/\1/p' pyproject.toml)
           test "${GITHUB_REF_NAME#*-v}" = "${version}" || {
             echo "Tag ${GITHUB_REF_NAME} does not match pyproject.toml version ${version}"; exit 1; }
+          # The Python and R packages are pinned to the same version
+          r_version=$(sed -n 's/^Version: *//p' DESCRIPTION)
+          test "${version}" = "${r_version}" || {
+            echo "pyproject.toml version ${version} differs from DESCRIPTION Version ${r_version}"; exit 1; }
           if [ "${REAL_RELEASE}" = "true" ]; then
             git merge-base --is-ancestor "${GITHUB_SHA}" origin/main || {
               echo "Tagged commit is not on main"; exit 1; }

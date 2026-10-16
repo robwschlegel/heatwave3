@@ -46,7 +46,7 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 
 ## Python
 
-A Python package with the same functions, arguments and outputs, built on the same C++ core, is in development (alpha):
+A Python package with the same functions, arguments and outputs, built on the same C++ core, is on PyPI. Its version is pinned to the R package's, so both have the same features:
 
 ```bash
 pip install heatwave3

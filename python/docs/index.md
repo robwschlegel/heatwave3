@@ -13,8 +13,9 @@ function names, arguments and output columns are also the same, which means
 code moves between the two languages almost line for line.
 
 ```{note}
-This is an early (alpha) release. The functions and their outputs are tested
-against the R package, but the Python interface may still change before 1.0.
+The Python and R packages share one version number: heatwave3 1.4.0 has the
+same functions and outputs in both languages, and the test suite checks every
+output against the R package.
 ```
 
 ## Installation

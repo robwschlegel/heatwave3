@@ -1,9 +1,12 @@
-"""Event detection (ports of R/detect_event3.R, R/detect3.R, R/exceedance3.R)."""
+"""Event detection (ports of R/detect_event3.R, R/detect3.R, R/exceedance3.R,
+R/detect_event_array3.R)."""
 
 from __future__ import annotations
 
 import os
 import tempfile
+
+import numpy as np
 
 from . import _core
 from ._utils import (check_out_dir, choose, clim_path, compression_level, daily_path, date_strings,
@@ -257,6 +260,103 @@ def exceedance3(file_in, file_out, threshold, var_name=None, below=False, minDur
     finally:
         os.remove(clim_file)
     return file_out
+
+
+ARRAY_OUTPUTS = ("event", "event_no", "intensity", "category")
+
+
+def detect_event_array3(temp, seas, thresh, minDuration=5, joinAcrossGaps=True, maxGap=2,
+                        coldSpells=False, roundRes=4,
+                        outputs=("event", "intensity", "category"), n_threads=None):
+    """Detect marine heatwaves (or cold-spells) day by day in arrays.
+
+    The in-memory counterpart of :func:`detect_event3` with ``daily="only"``:
+    the same detection, but on arrays instead of files, and with the
+    climatology already matched to each day. It returns only per-day results,
+    because event metrics such as duration or cumulative intensity need the
+    whole event, which a short series (a forecast window, for example) may
+    cut off.
+
+    Parameters
+    ----------
+    temp : array_like
+        Daily temperature, time on the **last** axis, any number of leading
+        axes (pixels). The days must be consecutive, with no gaps. Missing
+        days are NaN.
+    seas, thresh : array_like
+        Seasonal climatology and threshold for each day of ``temp``, same
+        shape. Match them to the dates beforehand, for example from a
+        :func:`ts2clm3` climatology by day of year.
+    minDuration : int
+        Minimum event duration (days).
+    joinAcrossGaps : bool
+        Join events separated by short gaps?
+    maxGap : int
+        Maximum gap (days) to join across.
+    coldSpells : bool
+        Detect cold-spells instead of heatwaves.
+    roundRes : int
+        Decimal places for ``intensity``.
+    outputs : str or sequence of str
+        Which results to return, in this order: any of ``"event"``,
+        ``"event_no"``, ``"intensity"`` and ``"category"``.
+    n_threads : int, optional
+        Threads for the per-pixel computation; ``None`` uses the session
+        default (see :func:`setHW3threads`). Use 1 when the calls themselves
+        run in parallel, as with dask.
+
+    Returns
+    -------
+    numpy.ndarray or tuple of numpy.ndarray
+        One array per name in ``outputs`` (a single array when only one is
+        requested), each with the shape of ``temp``:
+
+        - ``event`` (bool): the day belongs to an event.
+        - ``event_no`` (int32): the event's number within its pixel, counted
+          from the start of this call (0 outside events). It is not an
+          identifier across calls: the same event in two overlapping series
+          can have different numbers.
+        - ``intensity`` (float32): ``temp - seas`` on every day with data,
+          rounded to ``roundRes``; NaN where either is missing.
+        - ``category`` (int8): the daily Hobday et al. (2018) category, 1 (I
+          Moderate) to 4 (IV Extreme), on event days beyond the threshold;
+          0 on all other days.
+
+        A pixel with no temperature or no ``seas`` at all gets ``False``,
+        0, NaN and 0. Results are identical to the per-day file of
+        :func:`detect_event3` for the same days and climatology.
+
+    Notes
+    -----
+    Whether a day belongs to an event depends on the days around it, so
+    events are cut off at both ends of the series: a run of exceedances that
+    started before the first day is shorter here, and one that continues
+    past the last day may not reach ``minDuration``. Prepend earlier days
+    when that matters. ``intensity`` does not depend on the other days, and
+    ``category`` only through event membership.
+
+    With xarray, time as the core dimension:
+
+    >>> xarray.apply_ufunc(detect_event_array3, temp, seas, thresh,
+    ...                    input_core_dims=[["time"]] * 3,
+    ...                    output_core_dims=[["time"]] * 3,
+    ...                    kwargs={"n_threads": 1},
+    ...                    dask="parallelized",
+    ...                    output_dtypes=[bool, np.float32, np.int8])  # doctest: +SKIP
+    """
+    if isinstance(outputs, str):
+        outputs = (outputs,)
+    outputs = tuple(outputs)
+    if not outputs or len(set(outputs)) != len(outputs) or not set(outputs) <= set(ARRAY_OUTPUTS):
+        raise ValueError(f"'outputs' must name one or more of {', '.join(ARRAY_OUTPUTS)}, "
+                         f"each at most once; got {outputs!r}.")
+    result = _core.hw3_detect_events_array(
+        np.asarray(temp), np.asarray(seas), np.asarray(thresh),
+        minDuration=int(minDuration), joinAcrossGaps=bool(joinAcrossGaps), maxGap=int(maxGap),
+        coldSpells=bool(coldSpells), roundRes=int(roundRes), n_threads=nthreads(n_threads),
+        **{name: name in outputs for name in ARRAY_OUTPUTS})
+    arrays = tuple(result[name] for name in outputs)
+    return arrays[0] if len(arrays) == 1 else arrays
 
 
 def _resolve_nc_input(path, arg_name: str) -> list[str]:

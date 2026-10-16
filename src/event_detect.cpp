@@ -95,43 +95,46 @@ static double round_to(double val, int decimals) {
 // 0 = no exceedance (or undefined), 1 = I Moderate ... 4 = IV Extreme.
 // Mirrors the inline event-category thresholds: exceedance measured in
 // multiples of |thresh - seas| above (heatwave) or below (cold-spell) seas.
-void category_levels(const double* seas, const double* thresh, int digits,
-                     CategoryLevels& out) {
-    for (int d = 0; d < 366; ++d) {
-        double s = seas[d], th = thresh[d];
-        if (is_na(s) || is_na(th)) {
-            for (int k = 0; k < 4; ++k) out.level[k][d] = NA_DOUBLE;
-            continue;
-        }
-        double diff = round_to(th - s, digits);
-        out.level[0][d] = th;
-        for (int k = 1; k < 4; ++k)
-            out.level[k][d] = round_to(out.level[k - 1][d] + diff, digits);
+//
+// The arithmetic lives in the one-day helpers below, shared by the
+// day-of-year form (CategoryLevels, for 366-day climatologies) and the
+// per-day form used by detect_dense_events(), so both give identical levels.
+
+// One day's four levels: the threshold, then thresh + k x diff for k = 1..3,
+// diff = round(thresh - seas, digits), each level rounded and built
+// cumulatively, as heatwaveR. All NaN when seas or thresh is missing.
+static void day_levels(double s, double th, int digits, double* lv) {
+    if (is_na(s) || is_na(th)) {
+        for (int k = 0; k < 4; ++k) lv[k] = NA_DOUBLE;
+        return;
     }
+    double diff = round_to(th - s, digits);
+    lv[0] = th;
+    for (int k = 1; k < 4; ++k) lv[k] = round_to(lv[k - 1] + diff, digits);
 }
 
-int daily_category(double temp, int doy, const CategoryLevels& L, bool coldSpells) {
-    int d = doy - 1;
-    if (is_na(temp) || d < 0 || d >= 366) return 0;
+// The daily category of one day from its four levels (see daily_category())
+static int day_category(double temp, const double* lv, bool coldSpells) {
+    if (is_na(temp)) return 0;
     for (int k = 0; k < 4; ++k)
-        if (is_na(L.level[k][d])) return 0;
-    for (int k = 3; k >= 0; --k) {
-        double lv = L.level[k][d];
-        if (coldSpells ? (temp < lv) : (temp > lv)) return k + 1;
-    }
+        if (is_na(lv[k])) return 0;
+    for (int k = 3; k >= 0; --k)
+        if (coldSpells ? (temp < lv[k]) : (temp > lv[k])) return k + 1;
     return 0;
 }
 
-EventCategory event_category(const double* temp, const int* doy, int n, int duration,
-                             const CategoryLevels& L, bool coldSpells) {
+// The event category over n days (see event_category()). levels_of_day(i, lv)
+// writes day i's four levels to lv and returns false when the day has none.
+template <typename LevelsOfDay>
+static EventCategory event_category_from(const double* temp, int n, int duration,
+                                         LevelsOfDay levels_of_day, bool coldSpells) {
     int count[4] = {0, 0, 0, 0};
+    double lv[4];
     for (int i = 0; i < n; ++i) {
         double t = temp[i];
-        int d = doy[i] - 1;
-        if (is_na(t) || d < 0 || d >= 366) continue;
+        if (is_na(t) || !levels_of_day(i, lv)) continue;
         for (int k = 0; k < 4; ++k) {
-            double lv = L.level[k][d];
-            if (!is_na(lv) && (coldSpells ? (t <= lv) : (t >= lv))) ++count[k];
+            if (!is_na(lv[k]) && (coldSpells ? (t <= lv[k]) : (t >= lv[k]))) ++count[k];
         }
     }
     EventCategory ec;
@@ -150,14 +153,63 @@ EventCategory event_category(const double* temp, const int* doy, int n, int dura
     return ec;
 }
 
-PixelEvents detect_pixel_events(
-    const double* temp,
-    const double* thresh2,
-    const double* seas,
-    const double* thresh,
-    const int* time_jd,
-    const int* doy,
-    int ntime,
+void category_levels(const double* seas, const double* thresh, int digits,
+                     CategoryLevels& out) {
+    double lv[4];
+    for (int d = 0; d < 366; ++d) {
+        day_levels(seas[d], thresh[d], digits, lv);
+        for (int k = 0; k < 4; ++k) out.level[k][d] = lv[k];
+    }
+}
+
+// Day d's four levels from the day-of-year form; false when d is out of range
+static bool doy_levels(const CategoryLevels& L, int d, double* lv) {
+    if (d < 0 || d >= 366) return false;
+    for (int k = 0; k < 4; ++k) lv[k] = L.level[k][d];
+    return true;
+}
+
+int daily_category(double temp, int doy, const CategoryLevels& L, bool coldSpells) {
+    double lv[4];
+    if (is_na(temp) || !doy_levels(L, doy - 1, lv)) return 0;
+    return day_category(temp, lv, coldSpells);
+}
+
+EventCategory event_category(const double* temp, const int* doy, int n, int duration,
+                             const CategoryLevels& L, bool coldSpells) {
+    return event_category_from(temp, n, duration,
+                               [&](int i, double* lv) { return doy_levels(L, doy[i] - 1, lv); },
+                               coldSpells);
+}
+
+// ---- Event detection on a dense daily series ----
+//
+// Everything after the dense daily expansion of detect_pixel_events():
+// threshold exceedance, proto-events, per-day output and event metrics.
+// Inputs are on a dense daily grid of n days: dense_temp (missing days NaN),
+// dense_thresh2 (0/1, or nullptr), and each day's own seas and thresh.
+// dense_jd (Julian days) is needed only for event dates and seasons; with
+// dense_jd == nullptr, want_events must be false.
+// Per-day output goes to the caller's grid of out_n days: out_temp[t] is that
+// day's temperature and out_index[t] its dense index (nullptr: identity).
+// With want_events == false the per-day output is filled and no event
+// metrics are computed (the returned events are empty).
+// levels_of_day(t, lv) writes dense day t's four category levels to lv and
+// returns false when the day has none; it is called only when a category is
+// wanted, and only on event days. detect_pixel_events() looks the levels up
+// in a 366-day table built once per pixel, which is cheaper than rounding
+// four levels for every day of a long series.
+template <typename LevelsOfDay>
+static PixelEvents detect_dense_events(
+    const double* dense_temp,
+    const char* dense_thresh2,
+    const double* daily_seas,
+    const double* daily_thresh,
+    const int* dense_jd,
+    int dntime,
+    const double* out_temp,
+    const int* out_index,
+    int out_n,
     int minDuration,
     int minDuration2,
     bool joinAcrossGaps,
@@ -167,61 +219,12 @@ PixelEvents detect_pixel_events(
     int roundRes,
     bool category,
     bool southHemisphere,
-    const DailyBuffers* daily) {
+    const DailyBuffers* daily,
+    bool want_events,
+    LevelsOfDay levels_of_day) {
 
     PixelEvents result;
     result.valid = false;
-
-    if (ntime <= 0) return result;
-
-    // Step 0: Expand the (possibly sparse) input series to a dense daily
-    // array, filling missing dates with NA. This mirrors heatwaveR's
-    // make_whole() and ensures that proto_event(), which walks indices,
-    // does not glue runs together across calendar-day gaps in the input.
-    int first_jd = time_jd[0];
-    int last_jd = time_jd[ntime - 1];
-    int dntime = last_jd - first_jd + 1;
-
-    std::vector<double> dense_temp(dntime, NA_DOUBLE);
-    std::vector<int>    dense_jd(dntime);
-    std::vector<int>    dense_doy(dntime);
-    for (int i = 0; i < dntime; ++i) {
-        dense_jd[i] = first_jd + i;
-        dense_doy[i] = jd_to_doy_366(dense_jd[i]);
-    }
-    for (int t = 0; t < ntime; ++t) {
-        int idx = time_jd[t] - first_jd;
-        if (idx >= 0 && idx < dntime) {
-            dense_temp[idx] = temp[t];
-        }
-    }
-    std::vector<char> dense_thresh2;
-    if (thresh2 != nullptr) {
-        dense_thresh2.assign(dntime, 0);
-        for (int t = 0; t < ntime; ++t) {
-            int idx = time_jd[t] - first_jd;
-            if (idx >= 0 && idx < dntime) {
-                dense_thresh2[idx] = (!is_na(thresh2[t]) && thresh2[t] != 0.0) ? 1 : 0;
-            }
-        }
-    }
-    // From here on we work entirely on the dense arrays. The original
-    // sparse `temp`, `time_jd`, `doy` and `ntime` are NOT used below;
-    // `index_*` fields in EventResult therefore index the dense array.
-    (void)doy;
-
-    // Build per-day seas and thresh from 366-day climatology
-    std::vector<double> daily_seas(dntime), daily_thresh(dntime);
-    for (int t = 0; t < dntime; ++t) {
-        int d = dense_doy[t] - 1; // 0-based DOY index
-        if (d >= 0 && d < 366) {
-            daily_seas[t] = seas[d];
-            daily_thresh[t] = thresh[d];
-        } else {
-            daily_seas[t] = NA_DOUBLE;
-            daily_thresh[t] = NA_DOUBLE;
-        }
-    }
 
     // Step 1: Threshold criterion
     // Using char instead of bool to allow .data() access
@@ -247,12 +250,6 @@ PixelEvents detect_pixel_events(
         }
     }
 
-    // heatwaveR category levels for this pixel (per day of year), when any
-    // category output is wanted
-    const bool want_levels = category || (daily != nullptr && daily->category != nullptr);
-    CategoryLevels levels;
-    if (want_levels) category_levels(seas, thresh, 4, levels);
-
     // Convert to bool array for proto_event
     std::vector<bool> thresh_criterion(dntime);
     for (int t = 0; t < dntime; ++t) thresh_criterion[t] = (thresh_raw[t] != 0);
@@ -271,11 +268,11 @@ PixelEvents detect_pixel_events(
     // Step 2: Detect proto-events — use manual loop since vector<bool> lacks .data()
     // The duration_mask is captured from the FINAL proto_event pass (the
     // secondary one when threshClim2 is supplied, otherwise the primary).
-    signed char* dur_mask = (want_daily && thresh2 == nullptr) ? dense_dur.data() : nullptr;
+    signed char* dur_mask = (want_daily && dense_thresh2 == nullptr) ? dense_dur.data() : nullptr;
     auto events = proto_event(thresh_criterion, dntime,
                               minDuration, joinAcrossGaps, maxGap, dur_mask);
 
-    if (thresh2 != nullptr && !events.empty()) {
+    if (dense_thresh2 != nullptr && !events.empty()) {
         std::vector<bool> primary_event(dntime, false);
         for (const auto& pe : events) {
             for (int t = pe.start; t <= pe.end; ++t) {
@@ -303,8 +300,8 @@ PixelEvents detect_pixel_events(
                 dense_eno[k] = pe.event_no;
             }
         }
-        for (int t = 0; t < ntime; ++t) {
-            int di = time_jd[t] - first_jd;
+        for (int t = 0; t < out_n; ++t) {
+            int di = out_index ? out_index[t] : t;
             double s = NA_DOUBLE, th = NA_DOUBLE, intens = NA_DOUBLE;
             signed char tc = 0, dc = 0, ev = 0, cat = 0;
             int eno = 0;
@@ -315,16 +312,16 @@ PixelEvents detect_pixel_events(
                 dc = dense_dur[di];
                 ev = dense_evt[di];
                 eno = dense_eno[di];
-                double tv = temp[t];
+                double tv = out_temp[t];
                 if (!is_na(tv) && !is_na(s)) {
                     intens = tv - s;
                     if (roundRes > 0) intens = round_to(intens, roundRes);
                 }
                 // Hobday (2018) categories describe events: only event days
                 // are categorised, by heatwaveR's rule (category_daily3() too).
-                if (ev && daily->category)
-                    cat = static_cast<signed char>(daily_category(temp[t], dense_doy[di], levels,
-                                                                  coldSpells));
+                double lv[4];
+                if (ev && daily->category && levels_of_day(di, lv))
+                    cat = static_cast<signed char>(day_category(tv, lv, coldSpells));
             }
             if (daily->seas) daily->seas[t] = static_cast<float>(s);
             if (daily->thresh) daily->thresh[t] = static_cast<float>(th);
@@ -337,7 +334,7 @@ PixelEvents detect_pixel_events(
         }
     }
 
-    if (events.empty()) {
+    if (events.empty() || !want_events) {
         result.valid = true;
         return result;
     }
@@ -459,10 +456,11 @@ PixelEvents detect_pixel_events(
         if (category) {
             // heatwaveR::category(): days at or beyond each level, over the
             // event's days, against the original (unfilled) temperatures
-            EventCategory ec = event_category(dense_temp.data() + pe.start,
-                                              dense_doy.data() + pe.start,
-                                              pe.end - pe.start + 1, er.duration,
-                                              levels, coldSpells);
+            const int start = pe.start;
+            EventCategory ec = event_category_from(
+                dense_temp + start, pe.end - start + 1, er.duration,
+                [&](int i, double* lv) { return levels_of_day(start + i, lv); },
+                coldSpells);
             er.category = ec.category;
             er.p_moderate = ec.p_moderate;
             er.p_strong = ec.p_strong;
@@ -493,6 +491,103 @@ PixelEvents detect_pixel_events(
 
     result.valid = true;
     return result;
+}
+
+PixelEvents detect_pixel_events(
+    const double* temp,
+    const double* thresh2,
+    const double* seas,
+    const double* thresh,
+    const int* time_jd,
+    const int* doy,
+    int ntime,
+    int minDuration,
+    int minDuration2,
+    bool joinAcrossGaps,
+    int maxGap,
+    int maxGap2,
+    bool coldSpells,
+    int roundRes,
+    bool category,
+    bool southHemisphere,
+    const DailyBuffers* daily) {
+
+    if (ntime <= 0) {
+        PixelEvents result;
+        result.valid = false;
+        return result;
+    }
+
+    // Step 0: Expand the (possibly sparse) input series to a dense daily
+    // array, filling missing dates with NA. This mirrors heatwaveR's
+    // make_whole() and ensures that proto_event(), which walks indices,
+    // does not glue runs together across calendar-day gaps in the input.
+    int first_jd = time_jd[0];
+    int last_jd = time_jd[ntime - 1];
+    int dntime = last_jd - first_jd + 1;
+
+    std::vector<double> dense_temp(dntime, NA_DOUBLE);
+    std::vector<int>    dense_jd(dntime);
+    std::vector<int>    dense_doy(dntime);
+    for (int i = 0; i < dntime; ++i) {
+        dense_jd[i] = first_jd + i;
+        dense_doy[i] = jd_to_doy_366(dense_jd[i]);
+    }
+    for (int t = 0; t < ntime; ++t) {
+        int idx = time_jd[t] - first_jd;
+        if (idx >= 0 && idx < dntime) {
+            dense_temp[idx] = temp[t];
+        }
+    }
+    std::vector<char> dense_thresh2;
+    if (thresh2 != nullptr) {
+        dense_thresh2.assign(dntime, 0);
+        for (int t = 0; t < ntime; ++t) {
+            int idx = time_jd[t] - first_jd;
+            if (idx >= 0 && idx < dntime) {
+                dense_thresh2[idx] = (!is_na(thresh2[t]) && thresh2[t] != 0.0) ? 1 : 0;
+            }
+        }
+    }
+    // From here on we work entirely on the dense arrays. The original
+    // sparse `temp`, `time_jd`, `doy` and `ntime` are NOT used below;
+    // `index_*` fields in EventResult therefore index the dense array.
+    (void)doy;
+
+    // Build per-day seas and thresh from 366-day climatology
+    std::vector<double> daily_seas(dntime), daily_thresh(dntime);
+    for (int t = 0; t < dntime; ++t) {
+        int d = dense_doy[t] - 1; // 0-based DOY index
+        if (d >= 0 && d < 366) {
+            daily_seas[t] = seas[d];
+            daily_thresh[t] = thresh[d];
+        } else {
+            daily_seas[t] = NA_DOUBLE;
+            daily_thresh[t] = NA_DOUBLE;
+        }
+    }
+
+    // Per-day output is written on the caller's (possibly sparse) grid
+    std::vector<int> out_index;
+    if (daily != nullptr) {
+        out_index.resize(ntime);
+        for (int t = 0; t < ntime; ++t) out_index[t] = time_jd[t] - first_jd;
+    }
+
+    // heatwaveR category levels for this pixel (per day of year), when any
+    // category output is wanted
+    const bool want_levels = category || (daily != nullptr && daily->category != nullptr);
+    CategoryLevels levels;
+    if (want_levels) category_levels(seas, thresh, 4, levels);
+
+    return detect_dense_events(
+        dense_temp.data(), thresh2 != nullptr ? dense_thresh2.data() : nullptr,
+        daily_seas.data(), daily_thresh.data(), dense_jd.data(), dntime,
+        temp, out_index.empty() ? nullptr : out_index.data(), ntime,
+        minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2,
+        coldSpells, roundRes, category, southHemisphere, daily,
+        /*want_events=*/true,
+        [&](int t, double* lv) { return doy_levels(levels, dense_doy[t] - 1, lv); });
 }
 
 // ---- Grid-level event detection with OpenMP ----
@@ -653,6 +748,63 @@ void detect_events_grid(
             }
         }
     }
+}
+
+// ---- Per-day detection on arrays ----
+
+void detect_events_array_grid(
+    const double* temp,
+    const double* seas,
+    const double* thresh,
+    int npixels,
+    int ntime,
+    int minDuration,
+    bool joinAcrossGaps,
+    int maxGap,
+    bool coldSpells,
+    int roundRes,
+    int n_threads,
+    const DailyBuffers& out) {
+
+    if (npixels <= 0 || ntime <= 0) return;
+    const float NA_F = std::numeric_limits<float>::quiet_NaN();
+    int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
+
+    hw3::parallel_for(npixels, nt, [&](int, int px) {
+        size_t off = static_cast<size_t>(px) * ntime;
+        const double* pixel_temp = temp + off;
+        const double* pixel_seas = seas + off;
+        const double* pixel_thresh = thresh + off;
+
+        // This pixel's slice of the outputs, set to the defaults first
+        DailyBuffers pdaily;
+        if (out.event)     { pdaily.event = out.event + off;         std::fill(pdaily.event, pdaily.event + ntime, 0); }
+        if (out.event_no)  { pdaily.event_no = out.event_no + off;   std::fill(pdaily.event_no, pdaily.event_no + ntime, 0); }
+        if (out.intensity) { pdaily.intensity = out.intensity + off; std::fill(pdaily.intensity, pdaily.intensity + ntime, NA_F); }
+        if (out.category)  { pdaily.category = out.category + off;   std::fill(pdaily.category, pdaily.category + ntime, 0); }
+
+        // Skip pixels with no temperature or no climatology, as detect_events_grid()
+        bool has_data = false, has_clim = false;
+        for (int t = 0; t < ntime && !(has_data && has_clim); ++t) {
+            if (!is_na(pixel_temp[t])) has_data = true;
+            if (!is_na(pixel_seas[t])) has_clim = true;
+        }
+        if (!has_data || !has_clim) return;
+
+        // The input is already dense and per day: identity map, no dates,
+        // and each day's levels from its own seas and thresh (computed only
+        // for the days that get a category: event days).
+        detect_dense_events(
+            pixel_temp, nullptr, pixel_seas, pixel_thresh, nullptr, ntime,
+            pixel_temp, nullptr, ntime,
+            minDuration, minDuration, joinAcrossGaps, maxGap, maxGap,
+            coldSpells, roundRes, /*category=*/false, /*southHemisphere=*/false,
+            &pdaily, /*want_events=*/false,
+            [&](int t, double* lv) {
+                day_levels(pixel_seas[t], pixel_thresh[t], 4, lv);
+                return true;
+            });
+    }, [](int) {});
 }
 
 } // namespace hw3

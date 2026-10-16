@@ -477,6 +477,71 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              threshClim2_var_name, skip_bad_files, daily_file, proto_file);
 }
 
+// Per-day detection on arrays (detect_event_array3). temp, seas and thresh
+// hold the same number of values with time on the first dimension, so R's
+// column-major storage is already pixel-major [pixel][time] and is read in
+// place (NA_real_ is a NaN, as the core expects). Returns the requested
+// outputs as plain vectors (the R wrapper restores the dimensions): event
+// (logical), event_no (integer), intensity (double, NA where missing) and
+// category (integer, 0 = none).
+// [[Rcpp::export]]
+Rcpp::List hw3_detect_events_array(Rcpp::NumericVector temp,
+                                   Rcpp::NumericVector seas,
+                                   Rcpp::NumericVector thresh,
+                                   int ntime,
+                                   int minDuration = 5,
+                                   bool joinAcrossGaps = true,
+                                   int maxGap = 2,
+                                   bool coldSpells = false,
+                                   int roundRes = 4,
+                                   int n_threads = 0,
+                                   bool event = true,
+                                   bool event_no = false,
+                                   bool intensity = true,
+                                   bool category = true) {
+    const R_xlen_t n = temp.size();
+    if (seas.size() != n || thresh.size() != n)
+        Rcpp::stop("temp, seas and thresh must have the same number of values.");
+    if (n > 0 && (ntime <= 0 || n % ntime != 0))
+        Rcpp::stop("The number of values is not a multiple of the number of days.");
+    const int npixels = n > 0 ? static_cast<int>(n / ntime) : 0;
+
+    std::vector<signed char> ev, cat;
+    std::vector<float> inten;
+    Rcpp::IntegerVector eno;
+    hw3::ArrayDetectOutputs out;
+    if (event)     { ev.resize(n);                   out.event = ev.data(); }
+    if (event_no)  { eno = Rcpp::IntegerVector(n);   out.event_no = eno.begin(); }
+    if (intensity) { inten.resize(n);                out.intensity = inten.data(); }
+    if (category)  { cat.resize(n);                  out.category = cat.data(); }
+
+    hw3::detect_events_array(temp.begin(), seas.begin(), thresh.begin(), npixels, ntime,
+                             detect_params(minDuration, minDuration, joinAcrossGaps, maxGap,
+                                           maxGap, coldSpells, roundRes, n_threads,
+                                           false, false),
+                             out);
+
+    Rcpp::List result;
+    if (event) {
+        Rcpp::LogicalVector v(n);
+        for (R_xlen_t i = 0; i < n; ++i) v[i] = ev[i] != 0;
+        result["event"] = v;
+    }
+    if (event_no) result["event_no"] = eno;
+    if (intensity) {
+        Rcpp::NumericVector v(n);
+        for (R_xlen_t i = 0; i < n; ++i)
+            v[i] = std::isnan(inten[i]) ? NA_REAL : static_cast<double>(inten[i]);
+        result["intensity"] = v;
+    }
+    if (category) {
+        Rcpp::IntegerVector v(n);
+        for (R_xlen_t i = 0; i < n; ++i) v[i] = cat[i];
+        result["category"] = v;
+    }
+    return result;
+}
+
 // [[Rcpp::export]]
 Rcpp::List hw3_read_event_nc(std::string event_file) {
     hw3::EventData ed = hw3::read_event_netcdf(event_file);

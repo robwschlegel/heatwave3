@@ -30,6 +30,8 @@ EXCEPTIONS = {
     ("detect3", "minDuration2"): ("minDuration", None),
     ("detect3", "maxGap2"): ("maxGap", None),
     ("detect_blob3", "return_"): ('c("event", "daily")', ("event", "daily")),
+    ("detect_event_array3", "outputs"): ('c("event", "intensity", "category")',
+                                         ("event", "intensity", "category")),
 }
 
 

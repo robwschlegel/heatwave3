@@ -386,6 +386,30 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// hw3_detect_events_array
+Rcpp::List hw3_detect_events_array(Rcpp::NumericVector temp, Rcpp::NumericVector seas, Rcpp::NumericVector thresh, int ntime, int minDuration, bool joinAcrossGaps, int maxGap, bool coldSpells, int roundRes, int n_threads, bool event, bool event_no, bool intensity, bool category);
+RcppExport SEXP _heatwave3_hw3_detect_events_array(SEXP tempSEXP, SEXP seasSEXP, SEXP threshSEXP, SEXP ntimeSEXP, SEXP minDurationSEXP, SEXP joinAcrossGapsSEXP, SEXP maxGapSEXP, SEXP coldSpellsSEXP, SEXP roundResSEXP, SEXP n_threadsSEXP, SEXP eventSEXP, SEXP event_noSEXP, SEXP intensitySEXP, SEXP categorySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type temp(tempSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type seas(seasSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type thresh(threshSEXP);
+    Rcpp::traits::input_parameter< int >::type ntime(ntimeSEXP);
+    Rcpp::traits::input_parameter< int >::type minDuration(minDurationSEXP);
+    Rcpp::traits::input_parameter< bool >::type joinAcrossGaps(joinAcrossGapsSEXP);
+    Rcpp::traits::input_parameter< int >::type maxGap(maxGapSEXP);
+    Rcpp::traits::input_parameter< bool >::type coldSpells(coldSpellsSEXP);
+    Rcpp::traits::input_parameter< int >::type roundRes(roundResSEXP);
+    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type event(eventSEXP);
+    Rcpp::traits::input_parameter< bool >::type event_no(event_noSEXP);
+    Rcpp::traits::input_parameter< bool >::type intensity(intensitySEXP);
+    Rcpp::traits::input_parameter< bool >::type category(categorySEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_detect_events_array(temp, seas, thresh, ntime, minDuration, joinAcrossGaps, maxGap, coldSpells, roundRes, n_threads, event, event_no, intensity, category));
+    return rcpp_result_gen;
+END_RCPP
+}
 // hw3_read_event_nc
 Rcpp::List hw3_read_event_nc(std::string event_file);
 RcppExport SEXP _heatwave3_hw3_read_event_nc(SEXP event_fileSEXP) {
@@ -462,6 +486,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_hw3_read_daily_nc", (DL_FUNC) &_heatwave3_hw3_read_daily_nc, 1},
     {"_heatwave3_hw3_detect_events", (DL_FUNC) &_heatwave3_hw3_detect_events, 20},
     {"_heatwave3_hw3_detect_events_multi", (DL_FUNC) &_heatwave3_hw3_detect_events_multi, 21},
+    {"_heatwave3_hw3_detect_events_array", (DL_FUNC) &_heatwave3_hw3_detect_events_array, 14},
     {"_heatwave3_hw3_read_event_nc", (DL_FUNC) &_heatwave3_hw3_read_event_nc, 1},
     {"_heatwave3_hw3_category", (DL_FUNC) &_heatwave3_hw3_category, 7},
     {"_heatwave3_hw3_block_average", (DL_FUNC) &_heatwave3_hw3_block_average, 1},

@@ -46,6 +46,19 @@ categories are now identical to `heatwaveR::ts2clm()`, `detect_event()` and
 
 ## Changes
 
+* **New `detect_event_array3()`** (R and Python) detects events day by day in
+  arrays instead of files, with the climatology already matched to each day
+  (`seas` and `thresh` with the same dimensions as `temp`). It returns the
+  per-day `event`, `event_no`, `intensity` and daily `category`, identical to
+  the per-day file of `detect_event3(daily = "only")` for the same days and
+  climatology, and no event metrics, which need whole events. Time is the
+  first dimension in R and the last axis in Python, so neither copies its
+  input; in Python it releases the GIL and runs under
+  `xarray.apply_ufunc(dask = "parallelized")`. Because only the days in hand
+  are compared, the full 366-day climatology is never loaded: on a 17-day
+  window of 99,735 pixels it takes 0.04 s on one thread, where writing the
+  window to NetCDF and running `detect_event3()` took 0.58 s on 8 threads and
+  held the whole climatology in memory.
 * **New `compression` argument** (0 to 9) in `ts2clm3()`, `detect_event3()`,
   `detect3()` and `exceedance3()` sets the zlib level of the NetCDF output.
   The default is now level 1 (previously fixed at 4): files are about 3%

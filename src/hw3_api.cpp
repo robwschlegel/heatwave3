@@ -468,6 +468,23 @@ void detect_events_multi(const std::vector<std::string>& files,
                             p, daily_file, proto_file);
 }
 
+// ---- Per-day detection on arrays ----
+
+void detect_events_array(const double* temp, const double* seas, const double* thresh,
+                         int npixels, int ntime, const DetectParams& p,
+                         const ArrayDetectOutputs& out) {
+    if (p.minDuration < 1) throw std::runtime_error("minDuration must be at least 1.");
+    if (p.maxGap < 0) throw std::runtime_error("maxGap must not be negative.");
+    DailyBuffers buffers;
+    buffers.event = out.event;
+    buffers.event_no = out.event_no;
+    buffers.intensity = out.intensity;
+    buffers.category = out.category;
+    detect_events_array_grid(temp, seas, thresh, npixels, ntime,
+                             p.minDuration, p.joinAcrossGaps, p.maxGap,
+                             p.coldSpells, p.roundRes, p.n_threads, buffers);
+}
+
 // ---- Daily categories for a date window ----
 
 // Core of the daily-category computation: given an already-read SST window

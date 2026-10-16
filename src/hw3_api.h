@@ -111,6 +111,26 @@ void detect_events_multi(const std::vector<std::string>& files,
                          bool skip_bad_files,
                          const std::string& daily_file, const std::string& proto_file);
 
+// ---- Per-day detection on arrays (detect_event_array3) ----
+
+// Output buffers of detect_events_array(), each [npixels * ntime] and owned by
+// the caller; a null member is not computed. event is 0/1 in one byte (so a
+// numpy bool array can be passed); category is 0 (none) to 4.
+struct ArrayDetectOutputs {
+    signed char* event = nullptr;
+    int* event_no = nullptr;
+    float* intensity = nullptr;
+    signed char* category = nullptr;
+};
+
+// temp, seas and thresh: [npixels * ntime] pixel-major, gap-free daily series,
+// each day paired with its own seas and thresh. Uses p.minDuration,
+// p.joinAcrossGaps, p.maxGap, p.coldSpells, p.roundRes and p.n_threads
+// (0 = session default). No files and no console output.
+void detect_events_array(const double* temp, const double* seas, const double* thresh,
+                         int npixels, int ntime, const DetectParams& p,
+                         const ArrayDetectOutputs& out);
+
 // ---- Daily categories for a date window ----
 
 // Full per-pixel per-day grid. event is 0/1; event_no and category are NA_INT

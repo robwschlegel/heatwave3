@@ -124,6 +124,30 @@ void detect_events_grid(
     std::vector<double>* event_depth = nullptr
 );
 
+// Per-day detection on arrays, behind detect_event_array3(). temp, seas and
+// thresh are [npixels * ntime] pixel-major daily series with no gaps, each
+// day already paired with its own seas and thresh (no dates and no
+// day-of-year lookup). Fills the non-null members event, event_no,
+// intensity and category of `out` ([npixels * ntime] each) as
+// detect_event3()'s per-day product; the other members must be null. Pixels
+// with no temperature or no seas at all keep the defaults: event 0,
+// event_no 0, intensity NaN, category 0. event_no numbers the events of each
+// pixel within this call only.
+void detect_events_array_grid(
+    const double* temp,
+    const double* seas,
+    const double* thresh,
+    int npixels,
+    int ntime,
+    int minDuration,
+    bool joinAcrossGaps,
+    int maxGap,
+    bool coldSpells,
+    int roundRes,
+    int n_threads,
+    const DailyBuffers& out
+);
+
 } // namespace hw3
 
 #endif

@@ -1,0 +1,71 @@
+# Build and test the Python sdist and wheels (Linux x86_64/aarch64, macOS
+# arm64/x86_64). Also called by python-release.yml.
+name: Python wheels
+
+on:
+  push:
+    branches: [main, python-port]
+    paths:
+      - "src/**"
+      - "python/**"
+      - "!python/docs/**"
+      - "!python/notebooks/**"
+      - "inst/extdata/**"
+      - "pyproject.toml"
+      - "CMakeLists.txt"
+      - ".github/workflows/python-wheels.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "python/**"
+      - "!python/docs/**"
+      - "!python/notebooks/**"
+      - "inst/extdata/**"
+      - "pyproject.toml"
+      - "CMakeLists.txt"
+      - ".github/workflows/python-wheels.yml"
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  sdist:
+    name: sdist (+ install against the system libnetcdf)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build the sdist
+        run: pipx run build --sdist
+
+      - name: Install the sdist and run the tests
+        run: |
+          sudo apt-get update && sudo apt-get install -y libnetcdf-dev
+          python3 -m venv .venv
+          .venv/bin/pip install "$(ls dist/*.tar.gz)[test]"
+          .venv/bin/python -m pytest python/tests -p no:cacheprovider
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  wheels:
+    name: wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # x86_64 and aarch64 Linux; arm64 and x86_64 macOS
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, macos-15-intel]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pypa/cibuildwheel@v4.3.1
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl

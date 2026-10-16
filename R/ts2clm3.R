@@ -50,11 +50,21 @@
 #'   approach (Jacox et al. 2020).
 #' @param roundClm Number of decimal places for rounding. Default \code{4}.
 #'   Set to \code{FALSE} to disable.
-#' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default
+#'   \code{NULL}: the session default, half the available cores unless
+#'   changed with \code{\link{setHW3threads}} or the
+#'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
+#' @param compression Integer from 0 to 9. zlib compression level of the
+#'   NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+#'   (a few percent smaller), and 0 writes uncompressed files, which are
+#'   several times larger but much quicker to write. Gridded outputs are
+#'   compressed on \code{n_threads} threads when heatwave3 was built with HDF5.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
-#' @param quiet Logical. Suppress the post-computation console summary (head,
-#'   tail, and summary statistics of the climatology)? Default \code{FALSE}.
+#' @param quiet Logical. Suppress all console output: the progress messages
+#'   from the computation and the post-computation summary (head, tail, and
+#'   summary statistics of the climatology)? Warnings, such as skipped files,
+#'   are still shown. Default \code{FALSE}.
 #'
 #' @return Invisibly returns the path to the climatology NetCDF
 #'   (\code{paste0(name, "_clim.nc")}). Use \code{\link{hw3_export}} to read it
@@ -85,7 +95,8 @@ ts2clm3 <- function(file_in, name,
                     var = FALSE,
                     detrend = FALSE,
                     roundClm = 4L,
-                    n_threads = 1L,
+                    n_threads = NULL,
+                    compression = 1L,
                     skip_bad_files = FALSE,
                     quiet = FALSE) {
 
@@ -108,6 +119,10 @@ ts2clm3 <- function(file_in, name,
   rnd <- if (is.numeric(roundClm)) as.integer(roundClm) else 0L
   vn <- if (is.null(var_name)) "" else var_name
   dp <- if (is.null(depth)) -1L else as.integer(depth)
+
+  # quiet also silences the C++ progress messages (warnings still show)
+  old_quiet <- hw3_set_quiet(isTRUE(quiet))
+  on.exit(hw3_set_quiet(old_quiet), add = TRUE)
 
   # Determine input mode: single file, vector of files, or directory
   multi_file <- FALSE
@@ -142,7 +157,8 @@ ts2clm3 <- function(file_in, name,
       smoothPercentileWidth = as.integer(smoothPercentileWidth),
       compute_var = var,
       roundClm = rnd,
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
+      compression = .hw3_compression(compression),
       detrend = detrend,
       skip_bad_files = skip_bad_files
     )
@@ -164,7 +180,8 @@ ts2clm3 <- function(file_in, name,
       smoothPercentileWidth = as.integer(smoothPercentileWidth),
       compute_var = var,
       roundClm = rnd,
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
+      compression = .hw3_compression(compression),
       detrend = detrend
     )
   }

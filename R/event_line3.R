@@ -54,6 +54,7 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
                         metric = "intensity_cumulative",
                         event_file = NULL,
                         coldSpells = FALSE) {
+  .need_ggplot2()
 
   eps <- 0.01
   vn <- if (is.null(var_name)) "" else var_name
@@ -134,7 +135,9 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
       px_mask <- px_mask & abs(ev$depth - resolved_depth) < 1e-3
     }
     if (any(px_mask)) {
-      best <- which(px_mask)[which.max(ev_metric[px_mask])]
+      # Cold-spell intensities are negative: the strongest is the minimum
+      pick <- if (coldSpells) which.min else which.max
+      best <- which(px_mask)[pick(ev_metric[px_mask])]
       center <- peak_dates[best]
       df <- df[df$t >= (center - spread) & df$t <= (center + spread), ]
     }

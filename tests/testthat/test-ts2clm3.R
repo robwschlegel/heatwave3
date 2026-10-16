@@ -154,6 +154,21 @@ test_that("ts2clm3 preserves input temperature units in climatology output", {
   expect_equal(ncdf4::ncatt_get(nc, "thresh", "units")$value, "kelvin")
 })
 
+test_that("ts2clm3 writes the exact climatology long names", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, var = TRUE,
+          climatologyPeriod = c("1982-01-01", "2011-12-31"), quiet = TRUE)
+
+  nc <- ncdf4::nc_open(paste0(stem, "_clim.nc"))
+  on.exit(ncdf4::nc_close(nc), add = TRUE)
+  expect_identical(ncdf4::ncatt_get(nc, "seas", "long_name")$value, "seasonal climatology")
+  expect_identical(ncdf4::ncatt_get(nc, "thresh", "long_name")$value, "threshold climatology")
+  expect_identical(ncdf4::ncatt_get(nc, "var", "long_name")$value, "variance climatology")
+})
+
 test_that("ts2clm3 rejects unsupported CF calendars explicitly", {
   sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
   skip_if(sst_file == "", "sst_test.nc not available")

@@ -33,6 +33,7 @@ geom_lolli3 <- function(mapping = NULL, data = NULL, stat = "identity",
                         position = "identity", ...,
                         na.rm = FALSE, show.legend = NA,
                         inherit.aes = TRUE) {
+  .need_ggplot2()
   ggplot2::layer(
     data = data, mapping = mapping, stat = stat,
     geom = GeomLolli3, position = position,
@@ -45,7 +46,11 @@ geom_lolli3 <- function(mapping = NULL, data = NULL, stat = "identity",
 #' @format NULL
 #' @usage NULL
 #' @export
-GeomLolli3 <- ggplot2::ggproto("GeomLolli3", ggplot2::Geom,
+GeomLolli3 <- NULL
+
+# Built on first access (see .onLoad), so loading heatwave3 does not load
+# ggplot2.
+.make_geom_lolli3 <- function() ggplot2::ggproto("GeomLolli3", ggplot2::Geom,
 
   required_aes = c("x", "y"),
 

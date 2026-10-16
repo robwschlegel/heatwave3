@@ -9,7 +9,9 @@ category3(
   clim_file = NULL,
   hemisphere = "south",
   roundVal = 4L,
-  S = NULL
+  S = NULL,
+  sst_file = NULL,
+  var_name = NULL
 )
 }
 \arguments{
@@ -24,10 +26,18 @@ DJF = Summer) or \code{"north"} (boreal: DJF = Winter).}
 \item{roundVal}{Decimal places for rounding. Default \code{4}.}
 
 \item{S}{Deprecated. Use \code{hemisphere} instead.}
+
+\item{sst_file}{The SST used for detection (a file, a directory of daily
+files or a vector of files). Only required when the event file does not
+contain pre-computed categories.}
+
+\item{var_name}{Name of the SST variable in \code{sst_file}; auto-detected
+when \code{NULL}.}
 }
 \value{
 A data.frame with columns: event_no, lon, lat, peak_date, category,
-intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme, season.
+intensity_max, duration, p_moderate, p_strong, p_severe, p_extreme (whole
+percentages), season.
 }
 \description{
 \code{category3()} is a convenience wrapper for adding or reading Hobday
@@ -38,14 +48,20 @@ for an event NetCDF file. New analyses should usually set
 detection and avoids a second pass over the files.
 }
 \details{
-If the event file already contains categories, \code{category3()} reads
-those values directly and \code{clim_file} may be omitted. If the event file
-does not contain categories, \code{clim_file} is required so the category
-width can be computed from the seasonal and threshold climatologies.
+Categories follow \code{heatwaveR::category()}. For each event day the
+category limits are the threshold and \code{thresh + k * diff} (k = 1, 2, 3),
+with \code{diff = thresh - seas} and each limit rounded to \code{roundVal}
+decimals. \code{p_moderate} to \code{p_extreme} are the percentages of the
+event's duration (days, rounded to whole numbers) spent in each category,
+and the event's category is the highest one with a non-zero percentage.
+Works for both marine heatwaves and cold-spells (cold-spells are recognised,
+as in heatwaveR, by their negative intensities). The season is that of the
+event's peak month.
 
-Works for both marine heatwaves and cold-spells: the category width is
-\code{|seas - thresh|}, which is always positive regardless of whether the
-threshold is above (heatwave) or below (cold-spell) the seasonal mean.
+If the event file already contains categories, \code{category3()} reads
+those values directly, and \code{clim_file} and \code{sst_file} may be
+omitted. Otherwise both are required, because the percentages are counts of
+days, which need each event day's temperature.
 }
 \examples{
 \donttest{
@@ -55,7 +71,8 @@ stem <- file.path(tempdir(), "demo")
 detect3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 
-cats <- category3(paste0(stem, "_events.nc"), paste0(stem, "_clim.nc"))
+cats <- category3(paste0(stem, "_events.nc"), paste0(stem, "_clim.nc"),
+                  sst_file = sst_file)
 table(cats$category)
 }
 }

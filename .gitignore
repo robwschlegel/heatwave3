@@ -11,3 +11,14 @@ src/*.dll
 src/Makevars
 dev/
 /windows/
+
+# Python build
+build/
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+python/docs/_build/
+.jupyter_cache/
+tests/testthat/_problems/
+tests/testthat/testthat-problems.rds

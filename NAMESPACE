@@ -8,6 +8,7 @@ export(category_daily3)
 export(detect3)
 export(detect_blob3)
 export(detect_event3)
+export(detect_event_array3)
 export(event_line3)
 export(exceedance3)
 export(geom_flame3)
@@ -18,12 +19,13 @@ export(plot_metric3)
 export(setHW3threads)
 export(ts2clm3)
 importFrom(Rcpp,sourceCpp)
-importFrom(ggplot2,.pt)
-importFrom(rlang,.data)
-importFrom(scales,alpha)
-importFrom(stats,aggregate)
-importFrom(stats,complete.cases)
-importFrom(stats,weighted.mean)
-importFrom(utils,head)
-importFrom(utils,tail)
+importFrom(stats,
+  aggregate,
+  complete.cases,
+  weighted.mean
+)
+importFrom(utils,
+  head,
+  tail
+)
 useDynLib(heatwave3, .registration = TRUE)

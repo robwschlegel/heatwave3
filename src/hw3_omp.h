@@ -16,6 +16,8 @@
 #include <vector>
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
+#include <mutex>
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -30,10 +32,12 @@ inline int& hw3_threads_ref() {
 }
 
 inline int hw3_default_threads() {
-    const char* env = std::getenv("R_HEATWAVE3_NUM_THREADS");
-    if (env && std::strlen(env) > 0) {
-        int n = std::atoi(env);
-        if (n > 0) return n;
+    for (const char* var : {"R_HEATWAVE3_NUM_THREADS", "HEATWAVE3_NUM_THREADS"}) {
+        const char* env = std::getenv(var);
+        if (env && std::strlen(env) > 0) {
+            int n = std::atoi(env);
+            if (n > 0) return n;
+        }
     }
     unsigned hc = std::thread::hardware_concurrency();
     int procs = (hc > 0) ? static_cast<int>(hc) : 1;
@@ -70,7 +74,7 @@ inline void hw3_init_fork_handler() {}
 // IMPORTANT: body() runs on worker threads and must NOT touch the R API.
 // report(done_count) is invoked only on the calling (main) thread -- before,
 // during (periodically), and at the end of the run -- so it may use
-// Rcpp::Rcout for progress reporting.
+// hw3::out() (hw3_log.h) for progress reporting.
 template <class Body, class Report>
 inline void parallel_for(int n, int nthreads, Body body, Report report) {
     if (n <= 0) return;
@@ -85,13 +89,20 @@ inline void parallel_for(int n, int nthreads, Body body, Report report) {
         return;
     }
 
+    // The main thread reports progress every 80 ms, but is woken as soon as
+    // the last item finishes, so short regions do not wait out the interval.
     std::atomic<int> next{0};
     std::atomic<int> done{0};
+    std::mutex mtx;
+    std::condition_variable finished;
     auto worker = [&](int wid) {
         int i;
         while ((i = next.fetch_add(1, std::memory_order_relaxed)) < n) {
             body(wid, i);
-            done.fetch_add(1, std::memory_order_relaxed);
+            if (done.fetch_add(1, std::memory_order_acq_rel) + 1 == n) {
+                std::lock_guard<std::mutex> lock(mtx);
+                finished.notify_one();
+            }
         }
     };
 
@@ -101,10 +112,13 @@ inline void parallel_for(int n, int nthreads, Body body, Report report) {
 
     int last = 0;
     for (;;) {
-        int d = done.load(std::memory_order_relaxed);
+        int d = done.load(std::memory_order_acquire);
         if (d != last) { report(d); last = d; }
         if (d >= n) break;
-        std::this_thread::sleep_for(std::chrono::milliseconds(80));
+        std::unique_lock<std::mutex> lock(mtx);
+        finished.wait_for(lock, std::chrono::milliseconds(80), [&] {
+            return done.load(std::memory_order_acquire) >= n;
+        });
     }
     for (auto& th : pool) th.join();
 }

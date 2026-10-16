@@ -1,5 +1,5 @@
 Package: heatwave3
-Version: 1.3.1
+Version: 1.4.0
 Date: 2026-07-24
 Title: Detect Heatwaves and Cold-Spells in Gridded Data
 Description: Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded
@@ -19,14 +19,13 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports:
-    Rcpp (>= 1.0.0),
-    ggplot2,
-    rlang,
-    scales
+    Rcpp (>= 1.0.0)
 LinkingTo:
     Rcpp,
     RcppArmadillo
 Suggests:
+    ggplot2,
+    scales,
     testthat (>= 3.0.0),
     ncdf4,
     heatwaveR,
@@ -46,4 +45,4 @@ Depends:
 SystemRequirements: GNU make, netcdf (>= 4.0), C++17
 URL: https://robwschlegel.github.io/heatwave3/index.html, https://github.com/robwschlegel/heatwave3
 NeedsCompilation: yes
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1

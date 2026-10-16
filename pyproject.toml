@@ -1,0 +1,84 @@
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.13"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "heatwave3"
+version = "1.4.0"  # pinned to Version in DESCRIPTION (R): same features
+description = "Detect marine heatwaves and cold-spells directly in gridded NetCDF data"
+readme = "python/README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE.md"]
+authors = [
+  { name = "Robert W. Schlegel", email = "robwschlegel@gmail.com" },
+  { name = "Albertus J. Smit", email = "albertus.smit@gmail.com" },
+]
+maintainers = [
+  { name = "Robert W. Schlegel", email = "robwschlegel@gmail.com" },
+  { name = "Albertus J. Smit", email = "albertus.smit@gmail.com" },
+]
+keywords = ["marine heatwave", "cold-spell", "climatology", "NetCDF", "oceanography"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: C++",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Atmospheric Science",
+  "Topic :: Scientific/Engineering :: Hydrology",
+]
+dependencies = ["numpy>=1.23", "pandas>=1.5"]
+
+[project.optional-dependencies]
+parquet = ["pyarrow>=10"]
+plot = ["matplotlib>=3.6"]
+test = ["pytest>=7", "pyarrow>=10", "matplotlib>=3.6"]
+
+[project.urls]
+Homepage = "https://github.com/robwschlegel/heatwave3"
+Documentation = "https://heatwave3.readthedocs.io"
+Source = "https://github.com/robwschlegel/heatwave3"
+"R package" = "https://robwschlegel.github.io/heatwave3/"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+wheel.packages = ["python/heatwave3"]
+# The repo root is also the R package. Publish an explicit allowlist so R files
+# and stray local files (e.g. editor or agent settings) never reach PyPI.
+sdist.exclude = ["*"]
+sdist.include = [
+  "/pyproject.toml", "/CMakeLists.txt", "/LICENSE.md", "/python/README.md",
+  "/python/heatwave3/*.py", "/python/src/*.cpp", "/python/tests/*.py",
+  "/src/hw3_api.cpp", "/src/hw3_api.h", "/src/hw3_log.h", "/src/hw3_omp.h",
+  "/src/hw3_round.h", "/src/hw3_h5chunk.cpp", "/src/hw3_h5chunk.h",
+  "/src/heatwave3_types.h", "/src/netcdf_io.cpp", "/src/netcdf_io.h",
+  "/src/climatology.cpp", "/src/climatology.h", "/src/event_detect.cpp",
+  "/src/event_detect.h", "/src/blob_core.cpp", "/src/blob_core.h",
+]
+
+[tool.cibuildwheel]
+# CPython 3.10-3.14. CPython 3.15 and free-threaded builds can be added once
+# numpy and pandas publish wheels for them; musllinux (Alpine) users install
+# from the sdist for now.
+build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+skip = "cp31?t-* *-musllinux_*"
+build-verbosity = 1
+# Tests run against the installed wheel, from copies of these folders.
+test-sources = ["python/tests", "inst/extdata", "DESCRIPTION"]
+test-requires = ["pytest", "matplotlib"]
+test-command = "pytest python/tests -p no:cacheprovider"
+
+[tool.cibuildwheel.linux]
+# Pinned HDF5 + netcdf-c built from source; auditwheel bundles them.
+before-all = "dnf install -y zlib-devel && bash python/tools/build_netcdf.sh /opt/hw3-netcdf"
+environment = { CMAKE_PREFIX_PATH = "/opt/hw3-netcdf", HDF5_ROOT = "/opt/hw3-netcdf" }
+
+[tool.cibuildwheel.macos]
+# One architecture per runner (arm64 and x86_64 runners); delocate bundles
+# the libraries. MACOSX_DEPLOYMENT_TARGET is set inline for before-all.
+archs = ["native"]
+before-all = "MACOSX_DEPLOYMENT_TARGET=11.0 bash python/tools/build_netcdf.sh /tmp/hw3-netcdf"
+environment = { CMAKE_PREFIX_PATH = "/tmp/hw3-netcdf", HDF5_ROOT = "/tmp/hw3-netcdf", MACOSX_DEPLOYMENT_TARGET = "11.0" }
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]

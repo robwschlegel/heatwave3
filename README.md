@@ -44,6 +44,22 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 - **NetCDF-native output, exported on demand**. The compute functions always write gridded NetCDF; `hw3_export()` reads any product back into R or converts it to CSV, RDS, or Parquet, with optional variable and lon/lat/time/depth subsetting.
 - **Numerical equivalence**. Climatology and event metrics match **`heatwaveR`** to rounding precision, validated pixel-by-pixel.
 
+## Python
+
+A Python package with the same functions, arguments and outputs, built on the same C++ core, is on PyPI. Its version is pinned to the R package's, so both have the same features:
+
+```bash
+pip install heatwave3
+```
+
+```python
+import heatwave3 as hw3
+out = hw3.detect3("sst.nc", "run1", ("1982-01-01", "2011-12-31"), category=True)
+events = hw3.hw3_export(out["events"])   # a pandas DataFrame
+```
+
+Documentation: <https://heatwave3.readthedocs.io>. The source is in [`python/`](python/).
+
 ## Installation
 
 ### Development version (recommended)
@@ -167,8 +183,9 @@ plot_metric3("benguela_events.nc", metric = "intensity_max", summary = "mean")
 cats <- category3("benguela_events.nc")
 table(cats$category)
 
-# Or compute from scratch for older event files
-cats <- category3("benguela_events.nc", "benguela_clim.nc", hemisphere = "south")
+# Or compute them for event files written without categories (needs the SST)
+cats <- category3("benguela_events.nc", "benguela_clim.nc", sst_file = sst_file,
+                  hemisphere = "south")
 ```
 
 ### Using daily files

@@ -17,7 +17,17 @@
 #' @param time_range Optional \code{c("start", "end")} date range.
 #' @param depth Optional depth index.
 #' @param roundRes Decimal places for rounding. Default \code{4}.
-#' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default
+#'   \code{NULL}: the session default, half the available cores unless
+#'   changed with \code{\link{setHW3threads}} or the
+#'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
+#' @param compression Integer from 0 to 9. zlib compression level of the
+#'   NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+#'   (a few percent smaller), and 0 writes uncompressed files, which are
+#'   several times larger but much quicker to write. Gridded outputs are
+#'   compressed on \code{n_threads} threads when heatwave3 was built with HDF5.
+#' @param quiet Logical. Suppress the progress messages from the computation?
+#'   Warnings are still shown. Default \code{FALSE}.
 #'
 #' @return Invisibly returns the output file path.
 #'
@@ -40,10 +50,13 @@ exceedance3 <- function(file_in, file_out, threshold,
                         lon_range = NULL, lat_range = NULL,
                         time_range = NULL, depth = NULL,
                         roundRes = 4L,
-                        n_threads = 1L) {
+                        n_threads = NULL,
+                        compression = 1L,
+                        quiet = FALSE) {
 
   if (missing(threshold))
     stop("A threshold value must be provided.", call. = FALSE)
+  compression <- .hw3_compression(compression)
 
   # Create a dummy climatology where seas = threshold and thresh = threshold
   # This reuses the event detection machinery
@@ -54,6 +67,10 @@ exceedance3 <- function(file_in, file_out, threshold,
   # then overwrite seas/thresh with the static threshold value.
   # For simplicity, run ts2clm3 first then modify the output.
   vn <- if (is.null(var_name)) "" else var_name
+
+  # quiet silences the C++ progress messages (warnings still show)
+  old_quiet <- hw3_set_quiet(isTRUE(quiet))
+  on.exit(hw3_set_quiet(old_quiet), add = TRUE)
 
   # Write a constant-value climatology NetCDF via the C++ helper
   hw3_write_const_clim(
@@ -79,7 +96,8 @@ exceedance3 <- function(file_in, file_out, threshold,
     maxGap2 = as.integer(maxGap),
     coldSpells = below,
     roundRes = as.integer(roundRes),
-    n_threads = as.integer(n_threads),
+    n_threads = .hw3_nthreads(n_threads),
+    compression = compression,
     category = FALSE,
     southHemisphere = TRUE,
     threshClim2_file = "",

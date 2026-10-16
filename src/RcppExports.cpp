@@ -51,6 +51,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// hw3_set_quiet
+bool hw3_set_quiet(bool quiet);
+RcppExport SEXP _heatwave3_hw3_set_quiet(SEXP quietSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< bool >::type quiet(quietSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_set_quiet(quiet));
+    return rcpp_result_gen;
+END_RCPP
+}
 // hw3_get_threads
 int hw3_get_threads();
 RcppExport SEXP _heatwave3_hw3_get_threads() {
@@ -146,8 +157,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_compute_clim
-void hw3_compute_clim(std::string file_in, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::CharacterVector> time_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend, Rcpp::Nullable<Rcpp::NumericVector> depth_range);
-RcppExport SEXP _heatwave3_hw3_compute_clim(SEXP file_inSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP time_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP, SEXP depth_rangeSEXP) {
+void hw3_compute_clim(std::string file_in, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, Rcpp::Nullable<Rcpp::CharacterVector> time_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend, Rcpp::Nullable<Rcpp::NumericVector> depth_range, int compression);
+RcppExport SEXP _heatwave3_hw3_compute_clim(SEXP file_inSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP time_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP, SEXP depth_rangeSEXP, SEXP compressionSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type file_in(file_inSEXP);
@@ -168,13 +179,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< bool >::type detrend(detrendSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type depth_range(depth_rangeSEXP);
-    hw3_compute_clim(file_in, file_out, var_name, climatologyPeriod, lon_range, lat_range, time_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, depth_range);
+    Rcpp::traits::input_parameter< int >::type compression(compressionSEXP);
+    hw3_compute_clim(file_in, file_out, var_name, climatologyPeriod, lon_range, lat_range, time_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, depth_range, compression);
     return R_NilValue;
 END_RCPP
 }
 // hw3_compute_clim_multi
-void hw3_compute_clim_multi(Rcpp::CharacterVector files, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend, bool skip_bad_files, Rcpp::Nullable<Rcpp::NumericVector> depth_range);
-RcppExport SEXP _heatwave3_hw3_compute_clim_multi(SEXP filesSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP, SEXP skip_bad_filesSEXP, SEXP depth_rangeSEXP) {
+void hw3_compute_clim_multi(Rcpp::CharacterVector files, std::string file_out, std::string var_name, Rcpp::CharacterVector climatologyPeriod, Rcpp::Nullable<Rcpp::NumericVector> lon_range, Rcpp::Nullable<Rcpp::NumericVector> lat_range, int depth, int maxPadLength, int windowHalfWidth, double pctile, bool smoothPercentile, int smoothPercentileWidth, bool compute_var, int roundClm, int n_threads, bool detrend, bool skip_bad_files, Rcpp::Nullable<Rcpp::NumericVector> depth_range, int compression);
+RcppExport SEXP _heatwave3_hw3_compute_clim_multi(SEXP filesSEXP, SEXP file_outSEXP, SEXP var_nameSEXP, SEXP climatologyPeriodSEXP, SEXP lon_rangeSEXP, SEXP lat_rangeSEXP, SEXP depthSEXP, SEXP maxPadLengthSEXP, SEXP windowHalfWidthSEXP, SEXP pctileSEXP, SEXP smoothPercentileSEXP, SEXP smoothPercentileWidthSEXP, SEXP compute_varSEXP, SEXP roundClmSEXP, SEXP n_threadsSEXP, SEXP detrendSEXP, SEXP skip_bad_filesSEXP, SEXP depth_rangeSEXP, SEXP compressionSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type files(filesSEXP);
@@ -195,7 +207,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type detrend(detrendSEXP);
     Rcpp::traits::input_parameter< bool >::type skip_bad_files(skip_bad_filesSEXP);
     Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::NumericVector> >::type depth_range(depth_rangeSEXP);
-    hw3_compute_clim_multi(files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, skip_bad_files, depth_range);
+    Rcpp::traits::input_parameter< int >::type compression(compressionSEXP);
+    hw3_compute_clim_multi(files, file_out, var_name, climatologyPeriod, lon_range, lat_range, depth, maxPadLength, windowHalfWidth, pctile, smoothPercentile, smoothPercentileWidth, compute_var, roundClm, n_threads, detrend, skip_bad_files, depth_range, compression);
     return R_NilValue;
 END_RCPP
 }
@@ -315,8 +328,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_detect_events
-void hw3_detect_events(std::string file_in, std::string clim_file, std::string events_file, std::string var_name, int minDuration, int minDuration2, bool joinAcrossGaps, int maxGap, int maxGap2, bool coldSpells, int roundRes, int n_threads, bool category, bool southHemisphere, std::string threshClim2_file, std::string threshClim2_var_name, std::string daily_file, std::string proto_file);
-RcppExport SEXP _heatwave3_hw3_detect_events(SEXP file_inSEXP, SEXP clim_fileSEXP, SEXP events_fileSEXP, SEXP var_nameSEXP, SEXP minDurationSEXP, SEXP minDuration2SEXP, SEXP joinAcrossGapsSEXP, SEXP maxGapSEXP, SEXP maxGap2SEXP, SEXP coldSpellsSEXP, SEXP roundResSEXP, SEXP n_threadsSEXP, SEXP categorySEXP, SEXP southHemisphereSEXP, SEXP threshClim2_fileSEXP, SEXP threshClim2_var_nameSEXP, SEXP daily_fileSEXP, SEXP proto_fileSEXP) {
+void hw3_detect_events(std::string file_in, std::string clim_file, std::string events_file, std::string var_name, int minDuration, int minDuration2, bool joinAcrossGaps, int maxGap, int maxGap2, bool coldSpells, int roundRes, int n_threads, bool category, bool southHemisphere, std::string threshClim2_file, std::string threshClim2_var_name, std::string daily_file, std::string proto_file, int compression, bool slim);
+RcppExport SEXP _heatwave3_hw3_detect_events(SEXP file_inSEXP, SEXP clim_fileSEXP, SEXP events_fileSEXP, SEXP var_nameSEXP, SEXP minDurationSEXP, SEXP minDuration2SEXP, SEXP joinAcrossGapsSEXP, SEXP maxGapSEXP, SEXP maxGap2SEXP, SEXP coldSpellsSEXP, SEXP roundResSEXP, SEXP n_threadsSEXP, SEXP categorySEXP, SEXP southHemisphereSEXP, SEXP threshClim2_fileSEXP, SEXP threshClim2_var_nameSEXP, SEXP daily_fileSEXP, SEXP proto_fileSEXP, SEXP compressionSEXP, SEXP slimSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type file_in(file_inSEXP);
@@ -337,13 +350,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type threshClim2_var_name(threshClim2_var_nameSEXP);
     Rcpp::traits::input_parameter< std::string >::type daily_file(daily_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type proto_file(proto_fileSEXP);
-    hw3_detect_events(file_in, clim_file, events_file, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_file, threshClim2_var_name, daily_file, proto_file);
+    Rcpp::traits::input_parameter< int >::type compression(compressionSEXP);
+    Rcpp::traits::input_parameter< bool >::type slim(slimSEXP);
+    hw3_detect_events(file_in, clim_file, events_file, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_file, threshClim2_var_name, daily_file, proto_file, compression, slim);
     return R_NilValue;
 END_RCPP
 }
 // hw3_detect_events_multi
-void hw3_detect_events_multi(Rcpp::CharacterVector files, std::string clim_file, std::string events_file, std::string var_name, int minDuration, int minDuration2, bool joinAcrossGaps, int maxGap, int maxGap2, bool coldSpells, int roundRes, int n_threads, bool category, bool southHemisphere, Rcpp::Nullable<Rcpp::CharacterVector> threshClim2_files, std::string threshClim2_var_name, bool skip_bad_files, std::string daily_file, std::string proto_file);
-RcppExport SEXP _heatwave3_hw3_detect_events_multi(SEXP filesSEXP, SEXP clim_fileSEXP, SEXP events_fileSEXP, SEXP var_nameSEXP, SEXP minDurationSEXP, SEXP minDuration2SEXP, SEXP joinAcrossGapsSEXP, SEXP maxGapSEXP, SEXP maxGap2SEXP, SEXP coldSpellsSEXP, SEXP roundResSEXP, SEXP n_threadsSEXP, SEXP categorySEXP, SEXP southHemisphereSEXP, SEXP threshClim2_filesSEXP, SEXP threshClim2_var_nameSEXP, SEXP skip_bad_filesSEXP, SEXP daily_fileSEXP, SEXP proto_fileSEXP) {
+void hw3_detect_events_multi(Rcpp::CharacterVector files, std::string clim_file, std::string events_file, std::string var_name, int minDuration, int minDuration2, bool joinAcrossGaps, int maxGap, int maxGap2, bool coldSpells, int roundRes, int n_threads, bool category, bool southHemisphere, Rcpp::Nullable<Rcpp::CharacterVector> threshClim2_files, std::string threshClim2_var_name, bool skip_bad_files, std::string daily_file, std::string proto_file, int compression, bool slim);
+RcppExport SEXP _heatwave3_hw3_detect_events_multi(SEXP filesSEXP, SEXP clim_fileSEXP, SEXP events_fileSEXP, SEXP var_nameSEXP, SEXP minDurationSEXP, SEXP minDuration2SEXP, SEXP joinAcrossGapsSEXP, SEXP maxGapSEXP, SEXP maxGap2SEXP, SEXP coldSpellsSEXP, SEXP roundResSEXP, SEXP n_threadsSEXP, SEXP categorySEXP, SEXP southHemisphereSEXP, SEXP threshClim2_filesSEXP, SEXP threshClim2_var_nameSEXP, SEXP skip_bad_filesSEXP, SEXP daily_fileSEXP, SEXP proto_fileSEXP, SEXP compressionSEXP, SEXP slimSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type files(filesSEXP);
@@ -365,8 +380,34 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type skip_bad_files(skip_bad_filesSEXP);
     Rcpp::traits::input_parameter< std::string >::type daily_file(daily_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type proto_file(proto_fileSEXP);
-    hw3_detect_events_multi(files, clim_file, events_file, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_files, threshClim2_var_name, skip_bad_files, daily_file, proto_file);
+    Rcpp::traits::input_parameter< int >::type compression(compressionSEXP);
+    Rcpp::traits::input_parameter< bool >::type slim(slimSEXP);
+    hw3_detect_events_multi(files, clim_file, events_file, var_name, minDuration, minDuration2, joinAcrossGaps, maxGap, maxGap2, coldSpells, roundRes, n_threads, category, southHemisphere, threshClim2_files, threshClim2_var_name, skip_bad_files, daily_file, proto_file, compression, slim);
     return R_NilValue;
+END_RCPP
+}
+// hw3_detect_events_array
+Rcpp::List hw3_detect_events_array(Rcpp::NumericVector temp, Rcpp::NumericVector seas, Rcpp::NumericVector thresh, int ntime, int minDuration, bool joinAcrossGaps, int maxGap, bool coldSpells, int roundRes, int n_threads, bool event, bool event_no, bool intensity, bool category);
+RcppExport SEXP _heatwave3_hw3_detect_events_array(SEXP tempSEXP, SEXP seasSEXP, SEXP threshSEXP, SEXP ntimeSEXP, SEXP minDurationSEXP, SEXP joinAcrossGapsSEXP, SEXP maxGapSEXP, SEXP coldSpellsSEXP, SEXP roundResSEXP, SEXP n_threadsSEXP, SEXP eventSEXP, SEXP event_noSEXP, SEXP intensitySEXP, SEXP categorySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type temp(tempSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type seas(seasSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type thresh(threshSEXP);
+    Rcpp::traits::input_parameter< int >::type ntime(ntimeSEXP);
+    Rcpp::traits::input_parameter< int >::type minDuration(minDurationSEXP);
+    Rcpp::traits::input_parameter< bool >::type joinAcrossGaps(joinAcrossGapsSEXP);
+    Rcpp::traits::input_parameter< int >::type maxGap(maxGapSEXP);
+    Rcpp::traits::input_parameter< bool >::type coldSpells(coldSpellsSEXP);
+    Rcpp::traits::input_parameter< int >::type roundRes(roundResSEXP);
+    Rcpp::traits::input_parameter< int >::type n_threads(n_threadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type event(eventSEXP);
+    Rcpp::traits::input_parameter< bool >::type event_no(event_noSEXP);
+    Rcpp::traits::input_parameter< bool >::type intensity(intensitySEXP);
+    Rcpp::traits::input_parameter< bool >::type category(categorySEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_detect_events_array(temp, seas, thresh, ntime, minDuration, joinAcrossGaps, maxGap, coldSpells, roundRes, n_threads, event, event_no, intensity, category));
+    return rcpp_result_gen;
 END_RCPP
 }
 // hw3_read_event_nc
@@ -381,8 +422,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hw3_category
-Rcpp::DataFrame hw3_category(std::string event_file, std::string clim_file, std::string hemisphere, int roundVal);
-RcppExport SEXP _heatwave3_hw3_category(SEXP event_fileSEXP, SEXP clim_fileSEXP, SEXP hemisphereSEXP, SEXP roundValSEXP) {
+Rcpp::DataFrame hw3_category(std::string event_file, std::string clim_file, std::string hemisphere, int roundVal, Rcpp::Nullable<Rcpp::CharacterVector> sst_files, std::string var_name, bool skip_bad_files);
+RcppExport SEXP _heatwave3_hw3_category(SEXP event_fileSEXP, SEXP clim_fileSEXP, SEXP hemisphereSEXP, SEXP roundValSEXP, SEXP sst_filesSEXP, SEXP var_nameSEXP, SEXP skip_bad_filesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -390,7 +431,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< std::string >::type clim_file(clim_fileSEXP);
     Rcpp::traits::input_parameter< std::string >::type hemisphere(hemisphereSEXP);
     Rcpp::traits::input_parameter< int >::type roundVal(roundValSEXP);
-    rcpp_result_gen = Rcpp::wrap(hw3_category(event_file, clim_file, hemisphere, roundVal));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::CharacterVector> >::type sst_files(sst_filesSEXP);
+    Rcpp::traits::input_parameter< std::string >::type var_name(var_nameSEXP);
+    Rcpp::traits::input_parameter< bool >::type skip_bad_files(skip_bad_filesSEXP);
+    rcpp_result_gen = Rcpp::wrap(hw3_category(event_file, clim_file, hemisphere, roundVal, sst_files, var_name, skip_bad_files));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -422,6 +466,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_label_components_cpp", (DL_FUNC) &_heatwave3_label_components_cpp, 6},
     {"_heatwave3_blob_daily_summary_cpp", (DL_FUNC) &_heatwave3_blob_daily_summary_cpp, 13},
+    {"_heatwave3_hw3_set_quiet", (DL_FUNC) &_heatwave3_hw3_set_quiet, 1},
     {"_heatwave3_hw3_get_threads", (DL_FUNC) &_heatwave3_hw3_get_threads, 0},
     {"_heatwave3_hw3_set_threads", (DL_FUNC) &_heatwave3_hw3_set_threads, 1},
     {"_heatwave3_hw3_init_fork_safety", (DL_FUNC) &_heatwave3_hw3_init_fork_safety, 0},
@@ -429,8 +474,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_hw3_read_sst", (DL_FUNC) &_heatwave3_hw3_read_sst, 7},
     {"_heatwave3_hw3_read_sst_multi", (DL_FUNC) &_heatwave3_hw3_read_sst_multi, 7},
     {"_heatwave3_hw3_pixel_clim", (DL_FUNC) &_heatwave3_hw3_pixel_clim, 10},
-    {"_heatwave3_hw3_compute_clim", (DL_FUNC) &_heatwave3_hw3_compute_clim, 18},
-    {"_heatwave3_hw3_compute_clim_multi", (DL_FUNC) &_heatwave3_hw3_compute_clim_multi, 18},
+    {"_heatwave3_hw3_compute_clim", (DL_FUNC) &_heatwave3_hw3_compute_clim, 19},
+    {"_heatwave3_hw3_compute_clim_multi", (DL_FUNC) &_heatwave3_hw3_compute_clim_multi, 19},
     {"_heatwave3_hw3_write_const_clim", (DL_FUNC) &_heatwave3_hw3_write_const_clim, 8},
     {"_heatwave3_hw3_jd_to_doy", (DL_FUNC) &_heatwave3_hw3_jd_to_doy, 1},
     {"_heatwave3_hw3_read_clim_nc", (DL_FUNC) &_heatwave3_hw3_read_clim_nc, 1},
@@ -439,10 +484,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_heatwave3_hw3_category_daily_multi", (DL_FUNC) &_heatwave3_hw3_category_daily_multi, 9},
     {"_heatwave3_hw3_file_meta", (DL_FUNC) &_heatwave3_hw3_file_meta, 1},
     {"_heatwave3_hw3_read_daily_nc", (DL_FUNC) &_heatwave3_hw3_read_daily_nc, 1},
-    {"_heatwave3_hw3_detect_events", (DL_FUNC) &_heatwave3_hw3_detect_events, 18},
-    {"_heatwave3_hw3_detect_events_multi", (DL_FUNC) &_heatwave3_hw3_detect_events_multi, 19},
+    {"_heatwave3_hw3_detect_events", (DL_FUNC) &_heatwave3_hw3_detect_events, 20},
+    {"_heatwave3_hw3_detect_events_multi", (DL_FUNC) &_heatwave3_hw3_detect_events_multi, 21},
+    {"_heatwave3_hw3_detect_events_array", (DL_FUNC) &_heatwave3_hw3_detect_events_array, 14},
     {"_heatwave3_hw3_read_event_nc", (DL_FUNC) &_heatwave3_hw3_read_event_nc, 1},
-    {"_heatwave3_hw3_category", (DL_FUNC) &_heatwave3_hw3_category, 4},
+    {"_heatwave3_hw3_category", (DL_FUNC) &_heatwave3_hw3_category, 7},
     {"_heatwave3_hw3_block_average", (DL_FUNC) &_heatwave3_hw3_block_average, 1},
     {"_heatwave3_hw3_read_metric_summary", (DL_FUNC) &_heatwave3_hw3_read_metric_summary, 3},
     {NULL, NULL, 0}

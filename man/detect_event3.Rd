@@ -21,8 +21,10 @@ detect_event3(
   hemisphere = "south",
   roundRes = 4L,
   daily = c("none", "also", "only"),
+  slim = FALSE,
   protoEvent = FALSE,
-  n_threads = 1L,
+  n_threads = NULL,
+  compression = 1L,
   skip_bad_files = FALSE,
   quiet = FALSE
 )
@@ -84,7 +86,16 @@ event table), \code{"also"} (event table plus a per-day NetCDF), or
 written to \code{paste0(name, "_events_daily.nc")} and contains \code{temp},
 \code{seas}, \code{thresh}, \code{intensity} (\code{temp - seas}),
 \code{event}, \code{event_no}, and the daily Hobday (2018) \code{category}
-(0 = none, 1 = I Moderate ... 4 = IV Extreme).}
+(1 = I Moderate ... 4 = IV Extreme) on event days above the threshold;
+other days, including short exceedances that are not events, have no
+category (stored as 0, read as \code{NA}).}
+
+\item{slim}{Logical. With \code{daily = "also"} or \code{"only"}, write
+only \code{intensity} and \code{category} to the per-day file (no
+\code{temp}, \code{seas}, \code{thresh}, \code{event} or
+\code{event_no}): about half the size, and quicker to write. The
+dropped variables can be rebuilt from the SST and climatology files.
+Default \code{FALSE}.}
 
 \item{protoEvent}{Logical. Write the per-day proto-event series to
 \code{paste0(name, "_protoevents.nc")} instead of the event table,
@@ -93,13 +104,24 @@ mirroring \code{heatwaveR::detect_event(protoEvents = TRUE)}. Variables:
 \code{durationCriterion}, \code{event}, \code{event_no}. Mutually exclusive
 with \code{daily}. Default \code{FALSE}.}
 
-\item{n_threads}{Number of threads for parallel computation. Default \code{1}.}
+\item{n_threads}{Number of threads for parallel computation. Default
+\code{NULL}: the session default, half the available cores unless
+changed with \code{\link{setHW3threads}} or the
+\code{R_HEATWAVE3_NUM_THREADS} environment variable.}
+
+\item{compression}{Integer from 0 to 9. zlib compression level of the
+NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+(a few percent smaller), and 0 writes uncompressed files, which are
+several times larger but much quicker to write. Gridded outputs are
+compressed on \code{n_threads} threads when heatwave3 was built with HDF5.}
 
 \item{skip_bad_files}{Logical. For multi-file inputs, skip unreadable files
 or files with mismatched grids instead of failing. Default \code{FALSE}.}
 
-\item{quiet}{Logical. Suppress the post-computation console summary (head,
-tail, and summary statistics of each product written)? Default \code{FALSE}.}
+\item{quiet}{Logical. Suppress all console output: the progress messages
+from the computation and the post-computation summary (head, tail, and
+summary statistics of each product written)? Warnings, such as skipped
+files, are still shown. Default \code{FALSE}.}
 }
 \value{
 Invisibly returns a named character vector of the NetCDF files

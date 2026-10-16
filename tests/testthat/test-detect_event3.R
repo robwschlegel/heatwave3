@@ -10,22 +10,22 @@ make_clim <- function() {
   list(sst = sst_file, stem = stem)
 }
 
-test_that("detect_event3 cold-spell intensities are positive (heatwaveR convention)", {
-  skip_if_not(file.exists("/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"),
-              "SWIO test data not available")
-
-  sst_file <- "/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"
+test_that("detect_event3 cold-spell intensities are negative (heatwaveR convention)", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
   stem <- tempfile()
-  on.exit(unlink(paste0(stem, c("_clim.nc", "_events.nc"))))
 
-  ts2clm3(file_in = sst_file, name = stem, climatologyPeriod = cp,
-          lon_range = c(25.025, 25.075), lat_range = c(-33.975, -33.925),
-          var_name = "analysed_sst", pctile = 10, quiet = TRUE)
-  detect_event3(file_in = sst_file, name = stem, var_name = "analysed_sst",
-                coldSpells = TRUE, quiet = TRUE)
+  ts2clm3(sst_file, name = stem, climatologyPeriod = cp, pctile = 10, quiet = TRUE)
+  detect_event3(sst_file, name = stem, coldSpells = TRUE, quiet = TRUE)
 
+  # As heatwaveR::detect_event(coldSpells = TRUE): intensities and rates are
+  # negative; the variances and the absolute (_abs) temperatures are not
   ev <- hw3_export(paste0(stem, "_events.nc"))
-  expect_true(all(ev$intensity_mean > 0, na.rm = TRUE))
+  expect_true(all(ev$intensity_mean < 0))
+  expect_true(all(ev$intensity_max < 0))
+  expect_true(all(ev$intensity_cumulative_relThresh < 0))
+  expect_true(all(ev$intensity_var >= 0, na.rm = TRUE))
+  expect_true(all(ev$intensity_max_abs > 0))
 })
 
 test_that("daily = 'none' (default) writes only the events file", {
@@ -50,10 +50,11 @@ test_that("daily = 'also' writes events + a self-consistent per-day file", {
   dd <- hw3_export(out[["daily"]])
   expect_named(dd, c("lon", "lat", "t", "temp", "seas", "thresh",
                      "intensity", "event", "event_no", "category"))
-  # daily category is NA off-threshold and 1-4 on-threshold
+  # daily category is 1-4 on event days above the threshold and NA elsewhere
+  # (short exceedances that are not events get no category)
   expect_true(all(is.na(dd$category) | dd$category %in% 1:4))
   exceed <- !is.na(dd$temp) & !is.na(dd$thresh) & dd$temp > dd$thresh
-  expect_equal(!is.na(dd$category), exceed)
+  expect_equal(!is.na(dd$category), exceed & dd$event)
   # event-days equal the total event duration
   expect_equal(sum(!is.na(dd$event_no)), sum(ev$duration))
 })
@@ -66,6 +67,34 @@ test_that("daily = 'only' writes the per-day file and no events table", {
   expect_true(file.exists(paste0(fx$stem, "_events_daily.nc")))
   expect_false(file.exists(paste0(fx$stem, "_events.nc")))
   expect_equal(hw3_file_meta(out[["daily"]])$product, "daily")
+})
+
+test_that("slim = TRUE writes only intensity and category to the per-day file", {
+  fx <- make_clim()
+  full <- detect_event3(fx$sst, name = fx$stem, category = TRUE,
+                        daily = "also", quiet = TRUE)
+  slim_stem <- tempfile()
+  slim <- detect_event3(fx$sst, name = slim_stem,
+                        clim_file = paste0(fx$stem, "_clim.nc"), category = TRUE,
+                        daily = "also", slim = TRUE, quiet = TRUE)
+
+  dd_full <- hw3_export(full[["daily"]])
+  dd_slim <- hw3_export(slim[["daily"]])
+  expect_named(dd_slim, c("lon", "lat", "t", "intensity", "category"))
+  expect_equal(dd_slim, dd_full[names(dd_slim)])
+  expect_lt(file.size(slim[["daily"]]), 0.7 * file.size(full[["daily"]]))
+  # the events table does not depend on slim
+  key <- function(ev) ev[order(ev$lon, ev$lat, ev$event_no), ]
+  ev_full <- key(hw3_export(full[["events"]]))
+  ev_slim <- key(hw3_export(slim[["events"]]))
+  rownames(ev_full) <- rownames(ev_slim) <- NULL
+  expect_equal(ev_slim, ev_full)
+
+  expect_error(detect_event3(fx$sst, name = fx$stem, slim = TRUE, quiet = TRUE),
+               "'slim' applies")
+  expect_error(detect3(fx$sst, name = tempfile(), climatologyPeriod = cp,
+                       slim = TRUE, quiet = TRUE),
+               "'slim' applies")
 })
 
 test_that("protoEvent writes the heatwaveR-style proto series only", {

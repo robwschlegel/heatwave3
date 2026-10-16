@@ -1,4 +1,6 @@
 #include "netcdf_io.h"
+#include "hw3_log.h"
+#include "hw3_h5chunk.h"
 #include <netcdf.h>
 #include <cstring>
 #include <algorithm>
@@ -36,6 +38,11 @@ static bool nc_get_att_str(int ncid, int varid, const char* name, std::string& o
     // Trim trailing nulls
     while (!out.empty() && out.back() == '\0') out.pop_back();
     return true;
+}
+
+// Write a text attribute, taking its length from the text (no trailing null)
+static void nc_put_att_str(int ncid, int varid, const char* name, const char* value) {
+    nc_put_att_text(ncid, varid, name, std::strlen(value), value);
 }
 
 // ---- CF time parsing ----
@@ -530,6 +537,55 @@ GridData read_sst_netcdf(const std::string& file_in,
 
 // ---- Write climatology NetCDF ----
 
+// zlib compression (with the shuffle filter) at the requested level; none at 0
+static void def_deflate(int ncid, int varid, const WriteOpts& wo) {
+    if (wo.compression > 0) nc_def_var_deflate(ncid, varid, 1, 1, wo.compression);
+}
+
+// A gridded data variable to store: its netCDF id and its source array
+struct GridPut {
+    int varid;
+    ChunkSrc src;
+};
+
+// Stores the gridded variables of a file whose definitions and coordinates
+// are complete, then closes it. Compressed variables are compressed on all
+// threads and stored through HDF5 (hw3_h5chunk.h) when the build allows it;
+// the rest are written with netCDF.
+static void put_gridded_and_close(int ncid, const std::string& file,
+                                  const std::vector<GridPut>& vars,
+                                  const WriteOpts& wo) {
+    std::vector<bool> done(vars.size(), false);
+    if (wo.compression > 0 && h5_direct_available()) {
+        nc_check(nc_close(ncid), "close " + file);
+        std::vector<ChunkSrc> srcs;
+        for (const auto& v : vars) srcs.push_back(v.src);
+        done = h5_write_chunks(file, srcs, wo.n_threads);
+        if (std::all_of(done.begin(), done.end(), [](bool d) { return d; })) return;
+        nc_check(nc_open(file.c_str(), NC_WRITE, &ncid), "reopen " + file);
+    }
+    for (size_t i = 0; i < vars.size(); ++i) {
+        if (done[i]) continue;
+        const ChunkSrc& c = vars[i].src;
+        std::string what = "put " + c.name;
+        switch (c.kind) {
+        case ChunkSrc::DOUBLE:
+            nc_check(nc_put_var_double(ncid, vars[i].varid, static_cast<const double*>(c.data)), what);
+            break;
+        case ChunkSrc::FLOAT:
+            nc_check(nc_put_var_float(ncid, vars[i].varid, static_cast<const float*>(c.data)), what);
+            break;
+        case ChunkSrc::SCHAR:
+            nc_check(nc_put_var_schar(ncid, vars[i].varid, static_cast<const signed char*>(c.data)), what);
+            break;
+        case ChunkSrc::INT:
+            nc_check(nc_put_var_int(ncid, vars[i].varid, static_cast<const int*>(c.data)), what);
+            break;
+        }
+    }
+    nc_check(nc_close(ncid), "close " + file);
+}
+
 void write_clim_netcdf(const std::string& file_out,
                        const std::vector<double>& lon,
                        const std::vector<double>& lat,
@@ -546,7 +602,8 @@ void write_clim_netcdf(const std::string& file_out,
                        int smoothPercentileWidth,
                        const std::string& temp_units,
                        int ndepth,
-                       const std::vector<double>& depth) {
+                       const std::vector<double>& depth,
+                       const WriteOpts& wo) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -596,19 +653,19 @@ void write_clim_netcdf(const std::string& file_out,
     nc_check(nc_def_var(ncid, "seas", NC_DOUBLE, ndims_data, dims_data, &seas_varid), "def var seas");
     nc_check(nc_def_var(ncid, "thresh", NC_DOUBLE, ndims_data, dims_data, &thresh_varid), "def var thresh");
 
-    nc_put_att_text(ncid, seas_varid, "long_name", 21, "seasonal climatology");
+    nc_put_att_str(ncid, seas_varid, "long_name", "seasonal climatology");
     nc_put_att_text(ncid, seas_varid, "units", temp_units.size(), temp_units.c_str());
-    nc_put_att_text(ncid, thresh_varid, "long_name", 30, "threshold climatology");
+    nc_put_att_str(ncid, thresh_varid, "long_name", "threshold climatology");
     nc_put_att_text(ncid, thresh_varid, "units", temp_units.size(), temp_units.c_str());
 
     // Enable compression
-    nc_def_var_deflate(ncid, seas_varid, 1, 1, 4);
-    nc_def_var_deflate(ncid, thresh_varid, 1, 1, 4);
+    def_deflate(ncid, seas_varid, wo);
+    def_deflate(ncid, thresh_varid, wo);
 
     if (has_var) {
         nc_check(nc_def_var(ncid, "var", NC_DOUBLE, ndims_data, dims_data, &var_varid), "def var var");
-        nc_put_att_text(ncid, var_varid, "long_name", 21, "variance climatology");
-        nc_def_var_deflate(ncid, var_varid, 1, 1, 4);
+        nc_put_att_str(ncid, var_varid, "long_name", "variance climatology");
+        def_deflate(ncid, var_varid, wo);
     }
 
     // Global attributes
@@ -646,13 +703,11 @@ void write_clim_netcdf(const std::string& file_out,
     // pixel = (ilon*nlat + ilat)*ndepth + idepth, matching NetCDF layout
     // [lon][lat][doy] (3D) or [lon][lat][depth][doy] (4D). Same order in
     // both cases, so write directly with no reordering.
-    nc_check(nc_put_var_double(ncid, seas_varid, seas.data()), "put seas");
-    nc_check(nc_put_var_double(ncid, thresh_varid, thresh.data()), "put thresh");
-    if (has_var) {
-        nc_check(nc_put_var_double(ncid, var_varid, var.data()), "put var");
-    }
-
-    nc_check(nc_close(ncid), "close " + file_out);
+    std::vector<GridPut> grid = {
+        {seas_varid, {"seas", seas.data(), ChunkSrc::DOUBLE}},
+        {thresh_varid, {"thresh", thresh.data(), ChunkSrc::DOUBLE}}};
+    if (has_var) grid.push_back({var_varid, {"var", var.data(), ChunkSrc::DOUBLE}});
+    put_gridded_and_close(ncid, file_out, grid, wo);
 }
 
 // ---- Read climatology NetCDF ----
@@ -838,7 +893,8 @@ void write_event_netcdf(const std::string& file_out,
                         bool coldSpells,
                         bool southHemisphere,
                         const std::string& temp_units,
-                        const std::vector<double>& event_depth) {
+                        const std::vector<double>& event_depth,
+                        const WriteOpts& wo) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -856,7 +912,7 @@ void write_event_netcdf(const std::string& file_out,
         nc_check(nc_def_var(ncid, name, NC_DOUBLE, 1, &event_dimid, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
         if (units) nc_put_att_text(ncid, vid, "units", strlen(units), units);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
     auto def_ivar = [&](const char* name, const char* long_name, const char* units) -> int {
@@ -864,7 +920,7 @@ void write_event_netcdf(const std::string& file_out,
         nc_check(nc_def_var(ncid, name, NC_INT, 1, &event_dimid, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
         if (units) nc_put_att_text(ncid, vid, "units", strlen(units), units);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
 
@@ -929,11 +985,6 @@ void write_event_netcdf(const std::string& file_out,
 
     nc_check(nc_enddef(ncid), "enddef");
 
-    // Write data
-    nc_check(nc_put_var_double(ncid, v_lon, event_lon.data()), "put lon");
-    nc_check(nc_put_var_double(ncid, v_lat, event_lat.data()), "put lat");
-    nc_check(nc_put_var_int(ncid, v_pixel, pixel_index.data()), "put pixel");
-
     // Extract fields into contiguous arrays
     std::vector<int> eno(nevents), dur(nevents);
     std::vector<double> im(nevents), ix(nevents), iv(nevents), ic(nevents);
@@ -969,36 +1020,42 @@ void write_event_netcdf(const std::string& file_out,
         sea[i] = e.season;
     }
 
-    nc_check(nc_put_var_int(ncid, v_eno, eno.data()), "put event_no");
-    nc_check(nc_put_var_int(ncid, v_ds, date_start.data()), "put date_start");
-    nc_check(nc_put_var_int(ncid, v_dp, date_peak.data()), "put date_peak");
-    nc_check(nc_put_var_int(ncid, v_de, date_end.data()), "put date_end");
-    nc_check(nc_put_var_int(ncid, v_dur, dur.data()), "put duration");
-    nc_check(nc_put_var_double(ncid, v_im, im.data()), "put intensity_mean");
-    nc_check(nc_put_var_double(ncid, v_ix, ix.data()), "put intensity_max");
-    nc_check(nc_put_var_double(ncid, v_iv, iv.data()), "put intensity_var");
-    nc_check(nc_put_var_double(ncid, v_ic, ic.data()), "put intensity_cumulative");
-    nc_check(nc_put_var_double(ncid, v_imrt, imrt.data()), "put imrt");
-    nc_check(nc_put_var_double(ncid, v_ixrt, ixrt.data()), "put ixrt");
-    nc_check(nc_put_var_double(ncid, v_ivrt, ivrt.data()), "put ivrt");
-    nc_check(nc_put_var_double(ncid, v_icrt, icrt.data()), "put icrt");
-    nc_check(nc_put_var_double(ncid, v_ima, ima.data()), "put ima");
-    nc_check(nc_put_var_double(ncid, v_ixa, ixa.data()), "put ixa");
-    nc_check(nc_put_var_double(ncid, v_iva, iva.data()), "put iva");
-    nc_check(nc_put_var_double(ncid, v_ica, ica.data()), "put ica");
-    nc_check(nc_put_var_double(ncid, v_ro, ro.data()), "put rate_onset");
-    nc_check(nc_put_var_double(ncid, v_rd, rd.data()), "put rate_decline");
-    nc_check(nc_put_var_int(ncid, v_cat, cat.data()), "put category");
-    nc_check(nc_put_var_double(ncid, v_pm, pm.data()), "put p_moderate");
-    nc_check(nc_put_var_double(ncid, v_ps, ps.data()), "put p_strong");
-    nc_check(nc_put_var_double(ncid, v_pv, pv2.data()), "put p_severe");
-    nc_check(nc_put_var_double(ncid, v_pe, pex.data()), "put p_extreme");
-    nc_check(nc_put_var_int(ncid, v_sea, sea.data()), "put season");
-    if (has_depth) {
-        nc_check(nc_put_var_double(ncid, v_depth, event_depth.data()), "put depth");
-    }
-
-    nc_check(nc_close(ncid), "close " + file_out);
+    // Store every column; compressed columns are compressed on all threads
+    // (put_gridded_and_close), which was the single-threaded part of writing
+    // large event tables.
+    using K = ChunkSrc;
+    std::vector<GridPut> cols = {
+        {v_lon, {"lon", event_lon.data(), K::DOUBLE}},
+        {v_lat, {"lat", event_lat.data(), K::DOUBLE}},
+        {v_pixel, {"pixel_index", pixel_index.data(), K::INT}},
+        {v_eno, {"event_no", eno.data(), K::INT}},
+        {v_ds, {"date_start", date_start.data(), K::INT}},
+        {v_dp, {"date_peak", date_peak.data(), K::INT}},
+        {v_de, {"date_end", date_end.data(), K::INT}},
+        {v_dur, {"duration", dur.data(), K::INT}},
+        {v_im, {"intensity_mean", im.data(), K::DOUBLE}},
+        {v_ix, {"intensity_max", ix.data(), K::DOUBLE}},
+        {v_iv, {"intensity_var", iv.data(), K::DOUBLE}},
+        {v_ic, {"intensity_cumulative", ic.data(), K::DOUBLE}},
+        {v_imrt, {"intensity_mean_relThresh", imrt.data(), K::DOUBLE}},
+        {v_ixrt, {"intensity_max_relThresh", ixrt.data(), K::DOUBLE}},
+        {v_ivrt, {"intensity_var_relThresh", ivrt.data(), K::DOUBLE}},
+        {v_icrt, {"intensity_cumulative_relThresh", icrt.data(), K::DOUBLE}},
+        {v_ima, {"intensity_mean_abs", ima.data(), K::DOUBLE}},
+        {v_ixa, {"intensity_max_abs", ixa.data(), K::DOUBLE}},
+        {v_iva, {"intensity_var_abs", iva.data(), K::DOUBLE}},
+        {v_ica, {"intensity_cumulative_abs", ica.data(), K::DOUBLE}},
+        {v_ro, {"rate_onset", ro.data(), K::DOUBLE}},
+        {v_rd, {"rate_decline", rd.data(), K::DOUBLE}},
+        {v_cat, {"category", cat.data(), K::INT}},
+        {v_pm, {"p_moderate", pm.data(), K::DOUBLE}},
+        {v_ps, {"p_strong", ps.data(), K::DOUBLE}},
+        {v_pv, {"p_severe", pv2.data(), K::DOUBLE}},
+        {v_pe, {"p_extreme", pex.data(), K::DOUBLE}},
+        {v_sea, {"season", sea.data(), K::INT}},
+    };
+    if (has_depth) cols.push_back({v_depth, {"depth", event_depth.data(), K::DOUBLE}});
+    put_gridded_and_close(ncid, file_out, cols, wo);
 }
 
 // ---- Write per-day NetCDF ([lon, lat, time]) ----
@@ -1009,13 +1066,13 @@ void write_daily_netcdf(const std::string& file_out,
                         int nlon, int nlat, int ntime,
                         const std::vector<int>& time_days,
                         const double* temp,
-                        const double* seas,
-                        const double* thresh,
+                        const float* seas,
+                        const float* thresh,
                         const signed char* threshCriterion,
                         const signed char* durationCriterion,
                         const signed char* event,
                         const int* event_no,
-                        const double* intensity,
+                        const float* intensity,
                         const signed char* category,
                         const std::string& product,
                         const std::string& source_file,
@@ -1026,7 +1083,8 @@ void write_daily_netcdf(const std::string& file_out,
                         bool southHemisphere,
                         const std::string& temp_units,
                         int ndepth,
-                        const std::vector<double>& depth) {
+                        const std::vector<double>& depth,
+                        const WriteOpts& wo) {
     int ncid;
     nc_check(nc_create(file_out.c_str(), NC_NETCDF4 | NC_CLOBBER, &ncid),
              "create " + file_out);
@@ -1077,21 +1135,21 @@ void write_daily_netcdf(const std::string& file_out,
         nc_check(nc_def_var(ncid, name, NC_FLOAT, ndims_data, dims_data, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
         if (units) nc_put_att_text(ncid, vid, "units", strlen(units), units);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
     auto def_bvar = [&](const char* name, const char* long_name) -> int {
         int vid;
         nc_check(nc_def_var(ncid, name, NC_BYTE, ndims_data, dims_data, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
     auto def_ivar = [&](const char* name, const char* long_name) -> int {
         int vid;
         nc_check(nc_def_var(ncid, name, NC_INT, ndims_data, dims_data, &vid), name);
         nc_put_att_text(ncid, vid, "long_name", strlen(long_name), long_name);
-        nc_def_var_deflate(ncid, vid, 1, 1, 4);
+        def_deflate(ncid, vid, wo);
         return vid;
     };
 
@@ -1141,30 +1199,30 @@ void write_daily_netcdf(const std::string& file_out,
     // (or [lon][lat][time] when ndepth == 1), which is
     // exactly the declared dimension order, so write directly. Real-valued
     // variables are NC_FLOAT; nc_put_var_double converts (NaN stays NaN -> NA).
-    if (temp)   nc_check(nc_put_var_double(ncid, v_temp, temp), "put temp");
-    if (seas)   nc_check(nc_put_var_double(ncid, v_seas, seas), "put seas");
-    if (thresh) nc_check(nc_put_var_double(ncid, v_thresh, thresh), "put thresh");
+    std::vector<GridPut> grid;
+    if (temp)   grid.push_back({v_temp, {"temp", temp, ChunkSrc::DOUBLE}});
+    if (seas)   grid.push_back({v_seas, {"seas", seas, ChunkSrc::FLOAT}});
+    if (thresh) grid.push_back({v_thresh, {"thresh", thresh, ChunkSrc::FLOAT}});
     if (threshCriterion)
-        nc_check(nc_put_var_schar(ncid, v_tc, threshCriterion), "put threshCriterion");
+        grid.push_back({v_tc, {"threshCriterion", threshCriterion, ChunkSrc::SCHAR}});
     if (durationCriterion)
-        nc_check(nc_put_var_schar(ncid, v_dc, durationCriterion), "put durationCriterion");
-    if (event)  nc_check(nc_put_var_schar(ncid, v_ev, event), "put event");
-    if (event_no) nc_check(nc_put_var_int(ncid, v_eno, event_no), "put event_no");
-    if (intensity) nc_check(nc_put_var_double(ncid, v_int, intensity), "put intensity");
-    if (category) nc_check(nc_put_var_schar(ncid, v_cat, category), "put category");
-
-    nc_check(nc_close(ncid), "close " + file_out);
+        grid.push_back({v_dc, {"durationCriterion", durationCriterion, ChunkSrc::SCHAR}});
+    if (event)  grid.push_back({v_ev, {"event", event, ChunkSrc::SCHAR}});
+    if (event_no) grid.push_back({v_eno, {"event_no", event_no, ChunkSrc::INT}});
+    if (intensity) grid.push_back({v_int, {"intensity", intensity, ChunkSrc::FLOAT}});
+    if (category) grid.push_back({v_cat, {"category", category, ChunkSrc::SCHAR}});
+    put_gridded_and_close(ncid, file_out, grid, wo);
 }
 
 // ---- Streaming hyperslab subset of a gridded product ----
 
-Rcpp::List read_subset_netcdf(const std::string& file,
-                              const std::vector<double>& lon_range,
-                              const std::vector<double>& lat_range,
-                              const std::vector<int>& t_jd_range,
-                              const std::vector<double>& depth_range,
-                              const std::vector<std::string>& vars,
-                              int max_rows) {
+SubsetResult read_subset_netcdf(const std::string& file,
+                                const std::vector<double>& lon_range,
+                                const std::vector<double>& lat_range,
+                                const std::vector<int>& t_jd_range,
+                                const std::vector<double>& depth_range,
+                                const std::vector<std::string>& vars,
+                                int max_rows) {
     int ncid;
     nc_check(nc_open(file.c_str(), NC_NOWRITE, &ncid), "open " + file);
 
@@ -1181,7 +1239,7 @@ Rcpp::List read_subset_netcdf(const std::string& file,
     }
     if (product == "events") {
         nc_close(ncid);
-        Rcpp::stop("read_subset_netcdf: events are subset in R, not via hyperslab.");
+        throw std::runtime_error("read_subset_netcdf: events are subset in R, not via hyperslab.");
     }
     bool is_clim = (product == "climatology");
     bool has_depth = has_dim("depth");
@@ -1247,8 +1305,8 @@ Rcpp::List read_subset_netcdf(const std::string& file,
         coord_window(depth, depth_range, dk0, dk1);
     } else if (!depth_range.empty()) {
         nc_close(ncid);
-        Rcpp::stop("depth_range was given but this %s file has no depth "
-                   "dimension.", product.c_str());
+        throw std::runtime_error("depth_range was given but this " + product +
+                                 " file has no depth dimension.");
     }
 
     int t0 = 0, t1 = static_cast<int>(n3) - 1;
@@ -1258,7 +1316,8 @@ Rcpp::List read_subset_netcdf(const std::string& file,
         t0 = static_cast<int>(n3); t1 = -1;
         for (int k = 0; k < static_cast<int>(n3); ++k) {
             if (third_vals[k] >= lo && third_vals[k] <= hi) {
-                if (k < t0) t0 = k; if (k > t1) t1 = k;
+                if (k < t0) t0 = k;
+                if (k > t1) t1 = k;
             }
         }
     }
@@ -1280,8 +1339,8 @@ Rcpp::List read_subset_netcdf(const std::string& file,
             for (size_t i = 0; i < present.size(); ++i)
                 avs += (i ? ", " : "") + present[i];
             nc_close(ncid);
-            Rcpp::stop("Variable '%s' is not in this %s file. Available: %s",
-                       w, product, avs);
+            throw std::runtime_error("Variable '" + w + "' is not in this " + product +
+                                     " file. Available: " + avs);
         }
     }
 
@@ -1308,7 +1367,7 @@ Rcpp::List read_subset_netcdf(const std::string& file,
     // variable itself, so a 3D variable only reads start/count[0..2] -- the
     // reassignment below folds the unused depth slot out of the way for that
     // case rather than needing a separate 3-vs-4-element code path.
-    Rcpp::List data;
+    SubsetResult res;
     if (!empty) {
         size_t start[4] = {static_cast<size_t>(li0), static_cast<size_t>(lj0),
                            static_cast<size_t>(dk0), static_cast<size_t>(t0)};
@@ -1321,44 +1380,39 @@ Rcpp::List read_subset_netcdf(const std::string& file,
         for (const auto& w : wanted) {
             int vid; nc_check(nc_inq_varid(ncid, w.c_str(), &vid), "inq " + w);
             nc_type vt; nc_check(nc_inq_vartype(ncid, vid, &vt), "type " + w);
+            SubsetVar sv;
+            sv.name = w;
             if (vt == NC_FLOAT || vt == NC_DOUBLE) {
-                std::vector<double> buf(slab);
-                nc_check(nc_get_vara_double(ncid, vid, start, count, buf.data()), "get " + w);
-                data[w] = buf;
+                sv.dbl.resize(slab);
+                nc_check(nc_get_vara_double(ncid, vid, start, count, sv.dbl.data()), "get " + w);
             } else if (vt == NC_INT) {
-                std::vector<int> buf(slab);
-                nc_check(nc_get_vara_int(ncid, vid, start, count, buf.data()), "get " + w);
-                data[w] = buf;
+                sv.is_double = false;
+                sv.intg.resize(slab);
+                nc_check(nc_get_vara_int(ncid, vid, start, count, sv.intg.data()), "get " + w);
             } else { // NC_BYTE flags
                 std::vector<signed char> b(slab);
                 nc_check(nc_get_vara_schar(ncid, vid, start, count, b.data()), "get " + w);
-                data[w] = std::vector<int>(b.begin(), b.end());
+                sv.is_double = false;
+                sv.intg.assign(b.begin(), b.end());
             }
+            res.data.push_back(std::move(sv));
         }
     }
     nc_close(ncid);
 
-    std::vector<double> lon_s, lat_s, depth_s;
-    std::vector<int> third_s;
-    for (int i = 0; i < nlon_read; ++i) lon_s.push_back(lon[li0 + i]);
-    for (int j = 0; j < nlat_sub; ++j)  lat_s.push_back(lat[lj0 + j]);
-    for (int d = 0; d < ndepth_sub; ++d) depth_s.push_back(depth[dk0 + d]);
-    for (int k = 0; k < n3_sub; ++k)    third_s.push_back(third_vals[t0 + k]);
+    for (int i = 0; i < nlon_read; ++i) res.lon.push_back(lon[li0 + i]);
+    for (int j = 0; j < nlat_sub; ++j)  res.lat.push_back(lat[lj0 + j]);
+    for (int d = 0; d < ndepth_sub; ++d) res.depth.push_back(depth[dk0 + d]);
+    for (int k = 0; k < n3_sub; ++k)    res.third.push_back(third_vals[t0 + k]);
 
-    return Rcpp::List::create(
-        Rcpp::Named("product") = product,
-        Rcpp::Named("lon") = lon_s,
-        Rcpp::Named("lat") = lat_s,
-        Rcpp::Named("has_depth") = has_depth,
-        Rcpp::Named("depth") = depth_s,
-        Rcpp::Named("third") = third_s,
-        Rcpp::Named("third_name") = std::string(is_clim ? "doy" : "t"),
-        Rcpp::Named("nlon") = nlon_read,
-        Rcpp::Named("nlat") = nlat_sub,
-        Rcpp::Named("ndepth") = ndepth_sub,
-        Rcpp::Named("n3") = n3_sub,
-        Rcpp::Named("data") = data
-    );
+    res.product = product;
+    res.has_depth = has_depth;
+    res.third_name = is_clim ? "doy" : "t";
+    res.nlon = nlon_read;
+    res.nlat = nlat_sub;
+    res.ndepth = ndepth_sub;
+    res.n3 = n3_sub;
+    return res;
 }
 
 // ---- Lightweight product metadata (attrs + dim lengths only) ----
@@ -1531,7 +1585,7 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
             if (!skip_bad_files) {
                 throw;
             }
-            Rcpp::Rcerr << "Warning: failed to read " << files[first_file_index]
+            hw3::err() << "Warning: failed to read " << files[first_file_index]
                         << ": " << e.what() << ", skipping" << std::endl;
         }
     }
@@ -1576,7 +1630,7 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
                     " vs " + std::to_string(nlon) + "x" + std::to_string(nlat) +
                     "x" + std::to_string(ndepth) + ")";
                 if (skip_bad_files) {
-                    Rcpp::Rcerr << "Warning: " << msg << ", skipping" << std::endl;
+                    hw3::err() << "Warning: " << msg << ", skipping" << std::endl;
                     continue;
                 }
                 throw std::runtime_error(msg);
@@ -1593,7 +1647,7 @@ GridData read_sst_multi_netcdf(const std::vector<std::string>& files,
             }
         } catch (const std::exception& e) {
             if (skip_bad_files) {
-                Rcpp::Rcerr << "Warning: failed to read " << files[f]
+                hw3::err() << "Warning: failed to read " << files[f]
                             << ": " << e.what() << ", skipping" << std::endl;
                 continue;
             }

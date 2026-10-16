@@ -77,6 +77,6 @@ test_that("hw3_version reports package metadata", {
   v <- hw3_version()
   expect_type(v, "list")
   expect_equal(v$package, "heatwave3")
-  expect_match(v$version, "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+  expect_equal(v$version, as.character(utils::packageVersion("heatwave3")))
   expect_equal(v$cpp_standard, "C++17")
 })

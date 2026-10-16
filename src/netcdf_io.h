@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <Rcpp.h>
 #include "heatwave3_types.h"
 
 namespace hw3 {
@@ -76,6 +75,32 @@ struct DailyData {
     std::vector<int> event_no;
 };
 
+// One data variable from read_subset_netcdf(). Floating-point variables fill
+// `dbl`; integer and byte-flag variables fill `intg` (is_double == false).
+struct SubsetVar {
+    std::string name;
+    bool is_double = true;
+    std::vector<double> dbl;
+    std::vector<int> intg;
+};
+
+// Result of read_subset_netcdf(): the subset coordinates plus the requested
+// data variables, in request order.
+struct SubsetResult {
+    std::string product;
+    std::vector<double> lon;
+    std::vector<double> lat;
+    bool has_depth = false;
+    std::vector<double> depth;
+    std::vector<int> third;          // DOY (climatology) or Julian Day
+    std::string third_name;          // "doy" or "t"
+    int nlon = 0;
+    int nlat = 0;
+    int ndepth = 0;
+    int n3 = 0;
+    std::vector<SubsetVar> data;     // empty when the window has no overlap
+};
+
 // Lightweight metadata for any heatwave3 product file (reads attributes and
 // dimension lengths only, never the data arrays).
 struct FileMeta {
@@ -101,6 +126,14 @@ void parse_cf_time(const std::string& units,
                    const std::vector<double>& time_raw,
                    std::vector<int>& julian_days);
 
+// Output options shared by the writers: the zlib level of every data
+// variable (0 = uncompressed, 1-9) and the threads used to compress gridded
+// variables (0 = session default; see hw3_h5chunk.h).
+struct WriteOpts {
+    int compression = 1;
+    int n_threads = 0;
+};
+
 // ndepth/depth: pass ndepth <= 1 (depth may be empty) for an ordinary 3D
 // climatology file (unchanged schema). Pass ndepth > 1 with a matching
 // `depth` coordinate (metres) to write a depth-resolved 4D climatology
@@ -121,7 +154,8 @@ void write_clim_netcdf(const std::string& file_out,
                        int smoothPercentileWidth,
                        const std::string& temp_units,
                        int ndepth = 1,
-                       const std::vector<double>& depth = {});
+                       const std::vector<double>& depth = {},
+                       const WriteOpts& wo = WriteOpts());
 
 // event_depth: either empty (ordinary 3D events file, unchanged schema) or
 // one value per event (metres), written as an optional "depth" variable on
@@ -142,7 +176,8 @@ void write_event_netcdf(const std::string& file_out,
                         bool coldSpells,
                         bool southHemisphere,
                         const std::string& temp_units,
-                        const std::vector<double>& event_depth = {});
+                        const std::vector<double>& event_depth = {},
+                        const WriteOpts& wo = WriteOpts());
 
 ClimData read_clim_netcdf(const std::string& clim_file);
 
@@ -160,13 +195,13 @@ void write_daily_netcdf(const std::string& file_out,
                         int nlon, int nlat, int ntime,
                         const std::vector<int>& time_days,
                         const double* temp,
-                        const double* seas,
-                        const double* thresh,
+                        const float* seas,
+                        const float* thresh,
                         const signed char* threshCriterion,
                         const signed char* durationCriterion,
                         const signed char* event,
                         const int* event_no,
-                        const double* intensity,
+                        const float* intensity,
                         const signed char* category,
                         const std::string& product,
                         const std::string& source_file,
@@ -177,7 +212,8 @@ void write_daily_netcdf(const std::string& file_out,
                         bool southHemisphere,
                         const std::string& temp_units,
                         int ndepth = 1,
-                        const std::vector<double>& depth = {});
+                        const std::vector<double>& depth = {},
+                        const WriteOpts& wo = WriteOpts());
 
 DailyData read_daily_netcdf(const std::string& daily_file);
 
@@ -188,15 +224,15 @@ DailyData read_daily_netcdf(const std::string& daily_file);
 // ignored (with a warning left to the R caller) for a file with no depth
 // dimension; empty means "every depth level" for one that has it. `max_rows`
 // (>= 0) caps the number of long-table rows by limiting how many longitude
-// columns are read (<0 = no cap). Returns an Rcpp::List consumed by the R
-// builder. Throws if the file is an events product (those are filtered in R).
-Rcpp::List read_subset_netcdf(const std::string& file,
-                              const std::vector<double>& lon_range,
-                              const std::vector<double>& lat_range,
-                              const std::vector<int>& t_jd_range,
-                              const std::vector<double>& depth_range,
-                              const std::vector<std::string>& vars,
-                              int max_rows);
+// columns are read (<0 = no cap). Throws if the file is an events product
+// (those are filtered by the language layer).
+SubsetResult read_subset_netcdf(const std::string& file,
+                                const std::vector<double>& lon_range,
+                                const std::vector<double>& lat_range,
+                                const std::vector<int>& t_jd_range,
+                                const std::vector<double>& depth_range,
+                                const std::vector<std::string>& vars,
+                                int max_rows);
 
 // Read and merge multiple daily NetCDF files into a single GridData
 GridData read_sst_multi_netcdf(const std::vector<std::string>& files,

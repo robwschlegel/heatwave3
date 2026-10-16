@@ -45,18 +45,36 @@
 #'   written to \code{paste0(name, "_events_daily.nc")} and contains \code{temp},
 #'   \code{seas}, \code{thresh}, \code{intensity} (\code{temp - seas}),
 #'   \code{event}, \code{event_no}, and the daily Hobday (2018) \code{category}
-#'   (0 = none, 1 = I Moderate ... 4 = IV Extreme).
+#'   (1 = I Moderate ... 4 = IV Extreme) on event days above the threshold;
+#'   other days, including short exceedances that are not events, have no
+#'   category (stored as 0, read as \code{NA}).
+#' @param slim Logical. With \code{daily = "also"} or \code{"only"}, write
+#'   only \code{intensity} and \code{category} to the per-day file (no
+#'   \code{temp}, \code{seas}, \code{thresh}, \code{event} or
+#'   \code{event_no}): about half the size, and quicker to write. The
+#'   dropped variables can be rebuilt from the SST and climatology files.
+#'   Default \code{FALSE}.
 #' @param protoEvent Logical. Write the per-day proto-event series to
 #'   \code{paste0(name, "_protoevents.nc")} instead of the event table,
 #'   mirroring \code{heatwaveR::detect_event(protoEvents = TRUE)}. Variables:
 #'   \code{temp}, \code{seas}, \code{thresh}, \code{threshCriterion},
 #'   \code{durationCriterion}, \code{event}, \code{event_no}. Mutually exclusive
 #'   with \code{daily}. Default \code{FALSE}.
-#' @param n_threads Number of threads for parallel computation. Default \code{1}.
+#' @param n_threads Number of threads for parallel computation. Default
+#'   \code{NULL}: the session default, half the available cores unless
+#'   changed with \code{\link{setHW3threads}} or the
+#'   \code{R_HEATWAVE3_NUM_THREADS} environment variable.
+#' @param compression Integer from 0 to 9. zlib compression level of the
+#'   NetCDF output: 1 (the default) compresses fastest, 9 gives the smallest files
+#'   (a few percent smaller), and 0 writes uncompressed files, which are
+#'   several times larger but much quicker to write. Gridded outputs are
+#'   compressed on \code{n_threads} threads when heatwave3 was built with HDF5.
 #' @param skip_bad_files Logical. For multi-file inputs, skip unreadable files
 #'   or files with mismatched grids instead of failing. Default \code{FALSE}.
-#' @param quiet Logical. Suppress the post-computation console summary (head,
-#'   tail, and summary statistics of each product written)? Default \code{FALSE}.
+#' @param quiet Logical. Suppress all console output: the progress messages
+#'   from the computation and the post-computation summary (head, tail, and
+#'   summary statistics of each product written)? Warnings, such as skipped
+#'   files, are still shown. Default \code{FALSE}.
 #'
 #' @return Invisibly returns a named character vector of the NetCDF files
 #'   written (a subset of \code{events}, \code{daily}, \code{protoevents}). Use
@@ -93,8 +111,10 @@ detect_event3 <- function(
   hemisphere = "south",
   roundRes = 4L,
   daily = c("none", "also", "only"),
+  slim = FALSE,
   protoEvent = FALSE,
-  n_threads = 1L,
+  n_threads = NULL,
+  compression = 1L,
   skip_bad_files = FALSE,
   quiet = FALSE
 ) {
@@ -102,6 +122,10 @@ detect_event3 <- function(
     stop("file_in and name must both be provided.", call. = FALSE)
   }
   daily <- match.arg(daily)
+  if (isTRUE(slim) && daily == "none") {
+    stop("'slim' applies to the per-day file: set daily = \"also\" or \"only\".",
+         call. = FALSE)
+  }
   if (protoEvent && daily != "none") {
     stop("Set only one of 'protoEvent' or 'daily' (\"also\"/\"only\"); ",
          "they are mutually exclusive.", call. = FALSE)
@@ -127,6 +151,10 @@ detect_event3 <- function(
   south <- hemisphere == "south"
   vn <- if (is.null(var_name)) "" else var_name
   t2_vn <- if (is.null(threshClim2_var_name)) "" else threshClim2_var_name
+
+  # quiet also silences the C++ progress messages (warnings still show)
+  old_quiet <- hw3_set_quiet(isTRUE(quiet))
+  on.exit(hw3_set_quiet(old_quiet), add = TRUE)
 
   multi_file <- FALSE
   if (length(file_in) == 1 && dir.exists(file_in)) {
@@ -171,14 +199,16 @@ detect_event3 <- function(
       maxGap2 = as.integer(maxGap2),
       coldSpells = coldSpells,
       roundRes = as.integer(roundRes),
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
+      compression = .hw3_compression(compression),
       category = category,
       southHemisphere = south,
       threshClim2_files = thresh2_files,
       threshClim2_var_name = t2_vn,
       skip_bad_files = skip_bad_files,
       daily_file = daily_path,
-      proto_file = proto_path
+      proto_file = proto_path,
+      slim = isTRUE(slim)
     )
   } else {
     if (!file.exists(file_in)) {
@@ -196,13 +226,15 @@ detect_event3 <- function(
       maxGap2 = as.integer(maxGap2),
       coldSpells = coldSpells,
       roundRes = as.integer(roundRes),
-      n_threads = as.integer(n_threads),
+      n_threads = .hw3_nthreads(n_threads),
+      compression = .hw3_compression(compression),
       category = category,
       southHemisphere = south,
       threshClim2_file = if (is.null(thresh2_files)) "" else thresh2_files[1],
       threshClim2_var_name = t2_vn,
       daily_file = daily_path,
-      proto_file = proto_path
+      proto_file = proto_path,
+      slim = isTRUE(slim)
     )
   }
 
@@ -280,6 +312,10 @@ detect_event3 <- function(
   if (length(ev$depth) > 0) {
     df$depth <- ev$depth[idx]
   }
+
+  # Missing metrics (e.g. rates for events at the edges of the series) are NA,
+  # as in heatwaveR
+  for (v in names(df)) if (is.double(df[[v]])) df[[v]][is.nan(df[[v]])] <- NA_real_
 
   if (length(ev$category) > 0 && any(ev$category > 0)) {
     cat_lookup <- c(NA_character_, cat_labels)

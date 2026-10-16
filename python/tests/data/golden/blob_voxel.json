@@ -1,0 +1,1 @@
+{"nrow":9364,"columns":[{"name":"blob","type":"integer","values":null},{"name":"lon","type":"double","values":null},{"name":"lat","type":"double","values":null},{"name":"t_idx","type":"integer","values":null},{"name":"date","type":"Date","values":null},{"name":"delta","type":"double","values":null}]}

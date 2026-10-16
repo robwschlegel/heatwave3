@@ -27,8 +27,9 @@ test_that("exceedance3 below = TRUE detects periods under the threshold", {
 
   ev <- hw3_export(event_file)
   expect_true(nrow(ev) > 0)
-  # heatwaveR convention: cold-spell intensities are reported positive
-  expect_true(all(ev$intensity_mean > 0, na.rm = TRUE))
+  # As heatwaveR::exceedance(below = TRUE): intensities below the threshold
+  # are reported negative
+  expect_true(all(ev$intensity_mean < 0, na.rm = TRUE))
 })
 
 test_that("exceedance3 requires a threshold", {

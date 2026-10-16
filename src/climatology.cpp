@@ -1,11 +1,12 @@
 #include "climatology.h"
 #include "hw3_omp.h"
+#include "hw3_round.h"
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <cstring>
 #include <atomic>
-#include <Rcpp.h>
+#include "hw3_log.h"
 
 namespace hw3 {
 
@@ -250,19 +251,17 @@ PixelClimResult compute_pixel_climatology(
         }
     }
 
-    // Step 5: Fill Feb 29 (DOY 60, index 59) for non-leap years
-    // Interpolate from DOY 59 and DOY 61
+    // Step 5: Fill Feb 29 (DOY 60, index 59) for non-leap years, as
+    // heatwaveR's clim_spread(): round(mean(DOY 59, DOY 61, na.rm = TRUE), 2)
     for (int col = 0; col < n_years; ++col) {
         if (is_na(spread[59 * n_years + col])) {
+            double vals[2];
+            int nv = 0;
             double v59 = spread[58 * n_years + col]; // DOY 59
             double v61 = spread[60 * n_years + col]; // DOY 61
-            if (!is_na(v59) && !is_na(v61)) {
-                spread[59 * n_years + col] = (v59 + v61) / 2.0;
-            } else if (!is_na(v59)) {
-                spread[59 * n_years + col] = v59;
-            } else if (!is_na(v61)) {
-                spread[59 * n_years + col] = v61;
-            }
+            if (!is_na(v59)) vals[nv++] = v59;
+            if (!is_na(v61)) vals[nv++] = v61;
+            if (nv > 0) spread[59 * n_years + col] = r_round(r_mean(vals, nv), 2);
         }
     }
 
@@ -386,7 +385,7 @@ void compute_climatology_grid(
     int nt = (n_threads > 0) ? n_threads : hw3::get_threads(npixels);
 
     auto report = [&](int cur) {
-        Rcpp::Rcout << "\r  " << cur << "/" << npixels << " pixels ("
+        hw3::out() << "\r  " << cur << "/" << npixels << " pixels ("
                     << (100 * cur / npixels) << "%)" << std::flush;
     };
 
@@ -420,7 +419,7 @@ void compute_climatology_grid(
         }
     }, report);
 
-    Rcpp::Rcout << std::endl;
+    hw3::out() << std::endl;
 }
 
 } // namespace hw3

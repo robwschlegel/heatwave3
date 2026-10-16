@@ -1,0 +1,1 @@
+{"nrow":7320,"columns":[{"name":"lon","type":"double","values":null},{"name":"lat","type":"double","values":null},{"name":"doy","type":"integer","values":null},{"name":"seas","type":"double","values":null},{"name":"thresh","type":"double","values":null},{"name":"depth","type":"double","values":null}]}

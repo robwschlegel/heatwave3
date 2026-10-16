@@ -28,6 +28,8 @@ testthat::test_file("tests/testthat/test-ts2clm3.R")
 devtools::check()
 ```
 
+Documentation is generated with the newest roxygen2 (`Config/roxygen2/version` in `DESCRIPTION`). When a newer roxygen2 changes `DESCRIPTION`, `NAMESPACE` or `man/`, commit those changes (in their own commit) rather than reverting them; do not hand-edit generated files to match an older version.
+
 Python package (in development on the `python-port` branch; same C++ core):
 
 ```bash

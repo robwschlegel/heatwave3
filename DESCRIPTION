@@ -45,4 +45,4 @@ Depends:
 SystemRequirements: GNU make, netcdf (>= 4.0), C++17
 URL: https://robwschlegel.github.io/heatwave3/index.html, https://github.com/robwschlegel/heatwave3
 NeedsCompilation: yes
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1

@@ -18,9 +18,13 @@ export(plot_metric3)
 export(setHW3threads)
 export(ts2clm3)
 importFrom(Rcpp,sourceCpp)
-importFrom(stats,aggregate)
-importFrom(stats,complete.cases)
-importFrom(stats,weighted.mean)
-importFrom(utils,head)
-importFrom(utils,tail)
+importFrom(stats,
+  aggregate,
+  complete.cases,
+  weighted.mean
+)
+importFrom(utils,
+  head,
+  tail
+)
 useDynLib(heatwave3, .registration = TRUE)

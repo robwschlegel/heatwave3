@@ -318,3 +318,13 @@ def test_slim_leaves_the_events_table_unchanged(stem, tmp_path):
     pd.testing.assert_frame_equal(
         hw3.hw3_export(tmp_path / "s_events.nc").sort_values(srt, ignore_index=True),
         hw3.hw3_export(stem + "_events.nc").sort_values(srt, ignore_index=True))
+
+
+def test_climatology_long_names_are_exact(tmp_path):
+    netCDF4 = pytest.importorskip("netCDF4")
+    clim = hw3.ts2clm3(SST, tmp_path / "c", CP, var=True, quiet=True)
+    with netCDF4.Dataset(clim) as nc:
+        # exact text: nothing read past the end of the string literal
+        assert nc["seas"].getncattr("long_name") == "seasonal climatology"
+        assert nc["thresh"].getncattr("long_name") == "threshold climatology"
+        assert nc["var"].getncattr("long_name") == "variance climatology"

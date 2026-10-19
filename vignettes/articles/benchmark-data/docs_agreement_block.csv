@@ -1,0 +1,4 @@
+Package,Events,Events (heatwave3),Paired (same dates),Peak date (%),Duration (%),Mean intensity (%),Max intensity (%),Cumulative intensity (%),Category (%),Median diff. (°C),Max diff. (°C)
+heatwaveR,28018,28018,27996,100.0,100.0,100.0,100.0,99.94,99.99,0,0.0001
+marineHeatWaves,28018,28018,27647,99.87,100.0,85.64,86.98,62.68,99.97,0.00003,0.002
+xmhw,28021,28018,27588,99.87,100.0,80.49,84.97,62.44,99.95,0.00003,0.003

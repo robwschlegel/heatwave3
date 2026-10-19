@@ -43,5 +43,4 @@ SystemRequirements: GNU make, netcdf (>= 4.0), C++17
 URL: https://robwschlegel.github.io/heatwave3/, https://github.com/robwschlegel/heatwave3
 BugReports: https://github.com/robwschlegel/heatwave3/issues
 NeedsCompilation: yes
-Config/Needs/website: quarto, reticulate
 Config/roxygen2/version: 8.1.1

@@ -35,8 +35,8 @@ navbar:
         href: articles/parallelism.html
       - text: Performance benchmark - heatwaveR
         href: articles/benchmark.html
-      - text: Performance benchmark - xmhw
-        href: articles/benchmark_xmhw.html
+      - text: Performance benchmark - MHW packages
+        href: articles/benchmark_packages.html
     resources:
       text: Resources
       menu:
@@ -59,6 +59,9 @@ navbar:
       icon: fa-github fa-lg
       aria-label: GitHub
       href: https://github.com/robwschlegel/heatwave3
+
+redirects:
+  - ["articles/benchmark_xmhw.html", "articles/benchmark_packages.html"]
 
 reference:
 - title: Core workflows
@@ -93,7 +96,7 @@ articles:
   - netcdf-output
   - parallelism
   - benchmark
-  - articles/benchmark_xmhw
+  - articles/benchmark_packages
 - title: Depth-resolved (4D) analysis
   contents:
   - depth-range

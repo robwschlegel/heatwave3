@@ -1,0 +1,9 @@
+package,configuration,climatology_s,detection_s,total_s,timed,peak_ram_gb,x_heatwave3_8_threads
+heatwaveR,"heatwaveR, 1 core (projected from 20 × 20)",394.9,188.6,583.5,computation only,,120.282
+marineHeatWaves,"marineHeatWaves, 1 core (projected from 20 × 20)",,,424.2,computation only,,87.444
+xmhw,"xmhw, 1 core",2460.408,129.984,2598.978,read + compute + write,4.133,535.75
+xmhw,"xmhw, dask distributed, 8 workers",1971.202,84.536,2064.153,read + compute + write,10.836,425.502
+xmhw,"xmhw, dask processes, 8 workers",1516.084,59.349,1583.406,read + compute + write,5.54,326.401
+xmhw,"xmhw, 8 independent processes on tiles",,,361.0,read + compute + write,15.633,74.416
+heatwave3,"heatwave3, 1 thread",12.95,3.256,16.206,read + compute + write,2.25,3.341
+heatwave3,"heatwave3, 8 threads",3.167,1.684,4.851,read + compute + write,2.355,1.0

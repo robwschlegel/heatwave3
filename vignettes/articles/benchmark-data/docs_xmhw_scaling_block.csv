@@ -1,0 +1,11 @@
+Scheduler,Workers,Climatology (s),Detection (s),Total (s)
+distributed,1,308.8,13.0,323.2
+distributed,2,149.0,8.3,158.7
+distributed,4,72.7,5.5,79.6
+distributed,8,62.6,5.2,69.3
+processes,1,110.9,10.2,122.4
+processes,2,65.9,6.5,73.6
+processes,4,43.5,4.6,49.3
+processes,8,41.9,4.4,47.5
+synchronous,1,97.9,8.8,107.9
+threads,8,107.7,10.3,119.3

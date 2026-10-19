@@ -58,5 +58,6 @@ lists every function and the few differences.
 getting-started
 r-to-python
 r-and-python-notebook
+benchmark
 api
 ```

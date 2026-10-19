@@ -293,7 +293,7 @@ def plot_metric3(event_file, metric="intensity_max", summary="mean", coastline=T
         Aggregation across each pixel's events (computed in C++).
     coastline : bool
         Draw coastlines when ``cartopy`` is installed (otherwise skipped, as
-        R skips them without ``rnaturalearth``).
+        R skips them without ``rnaturalearth``, ``rnaturalearthdata`` and ``sf``).
     ax : matplotlib Axes, optional
         Axes to draw on (Python only); a new figure is created otherwise.
     **kwargs

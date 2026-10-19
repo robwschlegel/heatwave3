@@ -38,6 +38,7 @@ test_that("plot_metric3 adds a coastline layer when coastline = TRUE and depende
   sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
   skip_if(sst_file == "", "sst_test.nc not available")
   skip_if_not_installed("rnaturalearth")
+  skip_if_not_installed("rnaturalearthdata")
   skip_if_not_installed("sf")
 
   stem <- tempfile()

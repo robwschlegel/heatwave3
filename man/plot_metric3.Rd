@@ -25,7 +25,8 @@ One of \code{"mean"} (default), \code{"max"}, \code{"min"},
 \code{"sum"}, or \code{"count"}.}
 
 \item{coastline}{Logical. Add a coastline layer? Requires the
-\code{rnaturalearth} and \code{sf} packages. Default \code{TRUE}.}
+\code{rnaturalearth}, \code{rnaturalearthdata} and \code{sf} packages
+(skipped otherwise). Default \code{TRUE}.}
 
 \item{...}{Additional arguments passed to
 \code{ggplot2::scale_fill_viridis_c}.}

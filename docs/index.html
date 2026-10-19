@@ -18,7 +18,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Detect Heatwaves and Cold-Spells in Gridded Data">
 <meta name="description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++17 with std::thread parallelism for high performance on large datasets.">
 <meta property="og:description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++17 with std::thread parallelism for high performance on large datasets.">
-<meta property="og:image" content="https://robwschlegel.github.io/heatwave3/index.html/logo.png">
+<meta property="og:image" content="https://robwschlegel.github.io/heatwave3/logo.png">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -202,14 +202,14 @@
 <div class="section level3">
 <h3 id="in-process-parallelism">In-process parallelism<a class="anchor" aria-label="anchor" href="#in-process-parallelism"></a>
 </h3>
-<p><strong><code>heatwave3</code></strong> uses C++ <code>std::thread</code> for in-process parallelism, not OpenMP. There is no OpenMP toolchain to install or enable – no <code>libomp</code>, no <code>omp.h</code>, nothing for <code>configure</code> to probe for – since <code>std::thread</code> is part of the C++ standard library and works out of the box on every platform. Earlier versions used OpenMP; it was replaced because a <code>dlopen</code>-ed <code>libomp</code> could crash on macOS when heatwave3 ran alongside other native-heavy packages (terra, sf, GDAL) or inside IDEs that embed R (e.g. Positron). See the <a href="https://robwschlegel.github.io/heatwave3/articles/parallelism.html" class="external-link">Parallel performance</a> vignette for the full story and a performance comparison.</p>
+<p><strong><code>heatwave3</code></strong> uses C++ <code>std::thread</code> for in-process parallelism, not OpenMP. There is no OpenMP toolchain to install or enable – no <code>libomp</code>, no <code>omp.h</code>, nothing for <code>configure</code> to probe for – since <code>std::thread</code> is part of the C++ standard library and works out of the box on every platform. Earlier versions used OpenMP; it was replaced because a <code>dlopen</code>-ed <code>libomp</code> could crash on macOS when heatwave3 ran alongside other native-heavy packages (terra, sf, GDAL) or inside IDEs that embed R (e.g. Positron). See the <a href="https://robwschlegel.github.io/heatwave3/articles/parallelism.html">Parallel performance</a> vignette for the full story and a performance comparison.</p>
 </div>
 <div class="section level3">
 <h3 id="thread-management">Thread management<a class="anchor" aria-label="anchor" href="#thread-management"></a>
 </h3>
 <p><strong><code>heatwave3</code></strong> defaults to <strong>50% of available cores</strong> (overridable via <code>R_HEATWAVE3_NUM_THREADS</code>). Control threads at the session level or per function call:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/">heatwave3</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/getHW3threads.html">getHW3threads</a></span><span class="op">(</span><span class="op">)</span>       <span class="co"># check current default</span></span>
 <span><span class="fu"><a href="reference/getHW3threads.html">setHW3threads</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span>      <span class="co"># use 8 threads for all subsequent calls</span></span>
 <span><span class="fu"><a href="reference/getHW3threads.html">setHW3threads</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>      <span class="co"># reset to default (50% of cores)</span></span>
@@ -223,7 +223,7 @@
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="st">"path/to/sst.nc"</span>  <span class="co"># or a directory of daily files</span></span>
 <span></span>
@@ -398,13 +398,13 @@
 </h2>
 <ul>
 <li>
-<a href="https://robwschlegel.github.io/heatwave3/articles/heatwave3.html" class="external-link"><strong>Getting started</strong></a>. Full pipeline walkthrough with spatial blob figures.</li>
+<a href="https://robwschlegel.github.io/heatwave3/articles/heatwave3.html"><strong>Getting started</strong></a>. Full pipeline walkthrough with spatial blob figures.</li>
 <li>
-<a href="https://robwschlegel.github.io/heatwave3/articles/netcdf-output.html" class="external-link"><strong>NetCDF output internals</strong></a>. Output file structure, CF compliance, and reading in R/Python/CDO.</li>
+<a href="https://robwschlegel.github.io/heatwave3/articles/netcdf-output.html"><strong>NetCDF output internals</strong></a>. Output file structure, CF compliance, and reading in R/Python/CDO.</li>
 <li>
-<a href="https://robwschlegel.github.io/heatwave3/articles/benchmark.html" class="external-link"><strong>Performance benchmark</strong></a>. <strong><code>heatwaveR</code></strong> versus <strong><code>heatwave3</code></strong> timing comparison.</li>
+<a href="https://robwschlegel.github.io/heatwave3/articles/benchmark.html"><strong>Performance benchmark</strong></a>. <strong><code>heatwaveR</code></strong> versus <strong><code>heatwave3</code></strong> timing comparison.</li>
 <li>
-<a href="https://robwschlegel.github.io/heatwave3/articles/parallelism.html" class="external-link"><strong>Parallel performance</strong></a>. In-process <code>std::thread</code> parallelism versus R-side (PSOCK) parallelism, with per-platform setup and a comparison against the retired OpenMP backend.</li>
+<a href="https://robwschlegel.github.io/heatwave3/articles/parallelism.html"><strong>Parallel performance</strong></a>. In-process <code>std::thread</code> parallelism versus R-side (PSOCK) parallelism, with per-platform setup and a comparison against the retired OpenMP backend.</li>
 </ul>
 </div>
 <div class="section level2">

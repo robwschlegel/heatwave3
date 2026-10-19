@@ -5,11 +5,11 @@
 heatwave3 produces two types of NetCDF output files:
 
 1.  **Climatology file** (from
-    [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)),
+    [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)),
     holding seasonal and threshold climatologies per pixel per
     day-of-year
 2.  **Event file** (from
-    [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)),
+    [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)),
     holding detected events stored as a CF ragged array
 
 Both files target CF-1.8 compliance and can be read by any
@@ -19,7 +19,7 @@ Panoply).
 ## Climatology file structure
 
 Produced by
-[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md).
 Contains the 366-day climatological cycle for each pixel.
 
 ### Dimensions
@@ -89,7 +89,7 @@ cdo selvar,seas clim_output.nc seas_only.nc
 ## Event file structure
 
 Produced by
-[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
 Uses a **flat event dimension**, where each row represents one detected
 event at one pixel. This avoids padding to a maximum number of events
 per pixel and keeps the file compact.
@@ -197,17 +197,17 @@ heatwave3 output files aim for CF-1.8 compliance:
 
 The compute functions always write NetCDF. To read a product into R, or
 convert it to CSV, RDS, or Parquet, use
-[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md),
+[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md),
 which auto-detects the product type and is backed by the C++ reader:
 
 \
 `# Read into R (whole, or a quick preview with n =)`\
-`events`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``)`\
-[`head`](https://rdrr.io/r/utils/head.html)`(`[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``, n ``=`` ``20``)``)`\
+`events`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_events.nc"``)`\
+[`head`](https://rdrr.io/r/utils/head.html)`(`[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_events.nc"``, n ``=`` ``20``)``)`\
 \
 `# Convert to a flat file (format chosen by the extension)`\
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``, file_out ``=`` ``"events.parquet"``)`\
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_clim.nc"``,   file_out ``=`` ``"clim.csv"``)`
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_events.nc"``, file_out ``=`` ``"events.parquet"``)`\
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_clim.nc"``,   file_out ``=`` ``"clim.csv"``)`
 
 **Format comparison:**
 

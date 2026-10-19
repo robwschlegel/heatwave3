@@ -13,7 +13,7 @@ exploited in two distinct ways.
     the data slab is read once into shared memory, the threads compute,
     and one set of output files is written. Controlled by the
     `n_threads` argument (or
-    [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)).
+    [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)).
     This is the fast path on a single machine, and it works out of the
     box on every platform with no OpenMP toolchain required.
 
@@ -34,13 +34,13 @@ reach for each.
 
 ## Is multithreading active?
 
-[`getHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+[`getHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)
 reports the default thread count (roughly half your cores). `n_threads`
 is honoured on every platform; there is no build-time switch to miss.
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
-[`getHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)`(``)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
+[`getHW3threads`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)`(``)`\
 `#> [1] 9        # default: 50% of 18 cores`
 
 The shared library links no OpenMP runtime; it uses `std::thread`
@@ -73,12 +73,12 @@ The baseline. `n_threads = 1` forces one core regardless of the package
 default.
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 \
 `run_once`` ``<-`` ``function``(``nthreads``, ``lon_range`` ``=`` ``NULL``)`` ``{`\
 `  ``stem`` ``<-`` `[`tempfile`](https://rdrr.io/r/base/tempfile.html)`(``)`\
 `  `[`on.exit`](https://rdrr.io/r/base/on.exit.html)`(`[`unlink`](https://rdrr.io/r/base/unlink.html)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, `[`c`](https://rdrr.io/r/base/c.html)`(``"_clim.nc"``, ``"_events.nc"``)``)``)``)`\
-`  ``out`` ``<-`` `[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(`\
+`  ``out`` ``<-`` `[`detect3`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)`(`\
 `    ``sst_file``,`\
 `    name ``=`` ``stem``,`\
 `    climatologyPeriod ``=`` ``clim_period``,`\
@@ -88,7 +88,7 @@ default.
 `    n_threads ``=`` ``nthreads``,`\
 `    quiet ``=`` ``TRUE`\
 `  ``)`\
-`  `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``out``[[``"events"``]``]``)`\
+`  `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``out``[[``"events"``]``]``)`\
 `}`\
 \
 [`system.time`](https://rdrr.io/r/base/system.time.html)`(``ev1`` ``<-`` ``run_once``(``1L``)``)`
@@ -150,13 +150,13 @@ does not exist.
 `run_psock`` ``<-`` ``function``(``n_workers``)`` ``{`\
 `  ``cl`` ``<-`` `[`makeCluster`](https://rdrr.io/r/parallel/makeCluster.html)`(``n_workers``, setup_strategy ``=`` ``"sequential"``)`\
 `  `[`on.exit`](https://rdrr.io/r/base/on.exit.html)`(`[`stopCluster`](https://rdrr.io/r/parallel/makeCluster.html)`(``cl``)``)`\
-`  `[`clusterEvalQ`](https://rdrr.io/r/parallel/clusterApply.html)`(``cl``, `[`suppressPackageStartupMessages`](https://rdrr.io/r/base/message.html)`(`[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)``)``)`\
+`  `[`clusterEvalQ`](https://rdrr.io/r/parallel/clusterApply.html)`(``cl``, `[`suppressPackageStartupMessages`](https://rdrr.io/r/base/message.html)`(`[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)``)``)`\
 `  `[`clusterExport`](https://rdrr.io/r/parallel/clusterApply.html)`(``cl``, `[`c`](https://rdrr.io/r/base/c.html)`(``"sst_file"``, ``"var_name"``, ``"clim_period"``)``)`\
 `  ``tiles`` ``<-`` ``make_tiles``(``n_workers``)`\
 `  ``parts`` ``<-`` `[`parLapply`](https://rdrr.io/r/parallel/clusterApply.html)`(``cl``, ``tiles``, ``function``(``lr``)`` ``{`\
 `    ``stem`` ``<-`` `[`tempfile`](https://rdrr.io/r/base/tempfile.html)`(``)`\
 `    `[`on.exit`](https://rdrr.io/r/base/on.exit.html)`(`[`unlink`](https://rdrr.io/r/base/unlink.html)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, `[`c`](https://rdrr.io/r/base/c.html)`(``"_clim.nc"``, ``"_events.nc"``)``)``)``)`\
-`    ``out`` ``<-`` `[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(`\
+`    ``out`` ``<-`` `[`detect3`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)`(`\
 `      ``sst_file``,`\
 `      name ``=`` ``stem``,`\
 `      climatologyPeriod ``=`` ``clim_period``,`\
@@ -166,7 +166,7 @@ does not exist.
 `      n_threads ``=`` ``1L``,  ``# 1 thread per worker!`\
 `      quiet ``=`` ``TRUE`\
 `    ``)`\
-`    `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``out``[[``"events"``]``]``)`\
+`    `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``out``[[``"events"``]``]``)`\
 `  ``}``)`\
 `  `[`do.call`](https://rdrr.io/r/base/do.call.html)`(``rbind``, ``parts``)`\
 `}`\
@@ -249,7 +249,7 @@ Two caveats keep this from being a blanket “PSOCK wins”:
 
 - **Endpoint.** This benchmark reads the events back into an in-memory
   `data.frame` (via
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)),
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)),
   which makes the serial assembly a large part of the thread build’s
   tail. The usual production endpoint (just write the event NetCDF and
   stop) removes that assembly, shrinking the serial fraction and
@@ -289,7 +289,7 @@ event table (we assert [`nrow()`](https://rdrr.io/r/base/nrow.html)
 equality above, and the per-pixel metrics match to the bit). Tiling
 changes only *which* process computes a pixel, never the result. The one
 exception is
-[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md),
+[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md),
 which finds spatially **connected** heatwave blobs across pixels. That
 computation must see the whole grid and **cannot** be tiled this way.
 

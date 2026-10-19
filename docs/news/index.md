@@ -23,15 +23,15 @@ Files written by earlier versions differ; regenerate them.
   percentage. Days below the threshold within a joined event are not
   counted, so the percentages can sum to less than 100. Previously they
   were fractions of the peak intensity.
-- **[`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+- **[`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   gains `sst_file` (and `var_name`).** Computing categories for an event
   file without inline categories needs each event day’s temperature, so
   it now requires `clim_file` and `sst_file`.
 - **Daily categories** (`detect_event3(daily = )`,
-  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md))
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md))
   use the same rounded levels with strict exceedance, as
   `heatwaveR::category(climatology = TRUE)`. In
-  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md),
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md),
   cold-spell event days with `thresh < ice_thresh` are category 5 (ice).
 - **`rate_onset` and `rate_decline`** use heatwaveR’s formula: the peak
   anomaly minus the mean anomaly of the first event day and the day
@@ -41,7 +41,7 @@ Files written by earlier versions differ; regenerate them.
   series.
 - **Cold-spell intensities and rates are negative**, as in heatwaveR
   (`detect_event3(coldSpells = TRUE)`,
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md),
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md),
   and `exceedance3(below = TRUE)`). The variances and the `_abs` metrics
   are unchanged.
 - **Climatology:** 29 February in non-leap years is filled with the mean
@@ -67,7 +67,7 @@ Files written by earlier versions differ; regenerate them.
   C++ core. Its version is pinned to the R package’s (1.4.0 for both),
   so a version number means the same features in either language.
 - **New
-  [`detect_event_array3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event_array3.md)**
+  [`detect_event_array3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event_array3.md)**
   (R and Python) detects events day by day in arrays instead of files,
   with the climatology already matched to each day (`seas` and `thresh`
   with the same dimensions as `temp`). It returns the per-day `event`,
@@ -80,14 +80,14 @@ Files written by earlier versions differ; regenerate them.
   hand are compared, the full 366-day climatology is never loaded: on a
   17-day window of 99,735 pixels it takes 0.04 s on one thread, where
   writing the window to NetCDF and running
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   took 0.58 s on 8 threads and held the whole climatology in memory.
 - **New `compression` argument** (0 to 9) in
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md),
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   and
-  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md)
+  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/reference/exceedance3.md)
   sets the zlib level of the NetCDF output. The default is now level 1
   (previously fixed at 4): files are about 3% larger and are written
   faster. `compression = 0` writes uncompressed files, several times
@@ -103,16 +103,16 @@ Files written by earlier versions differ; regenerate them.
   build time, which `configure` finds next to libnetcdf; otherwise files
   are written on one thread as before (also on Windows).
 - **New `slim` argument** in
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   and
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md):
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md):
   with `daily = "also"` or `"only"`, `slim = TRUE` writes only
   `intensity` and `category` to the per-day file (no `temp`, `seas`,
   `thresh`, `event` or `event_no`), and the dropped buffers are not
   allocated. On 5,569 pixels x 12,053 days the per-day file is 222 MB
   instead of 422 MB, and the run takes 2.7 s instead of 3.8 s on 8
   threads.
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
   reads slim files.
 - **Faster per-day output and event tables.** The per-day buffers are no
   longer zero-filled and then filled again on one thread before
@@ -120,38 +120,38 @@ Files written by earlier versions differ; regenerate them.
   `intensity` are held in float, as the files store them. Event tables
   are now also compressed on `n_threads` threads. On 5,569 pixels x
   12,053 days with 8 threads,
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   takes 1.6 s instead of 2.2 s for the event table and 3.8 s instead of
   5.1 s with `daily = "also"`. All outputs are unchanged.
-- **[`library(heatwave3)`](https://robwschlegel.github.io/heatwave3/index.html)
+- **[`library(heatwave3)`](https://robwschlegel.github.io/heatwave3/)
   loads in 0.1 s instead of 0.9 s.** ggplot2, scales and rlang moved
   from Imports to Suggests: they are loaded only when a plotting
   function
-  ([`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md),
-  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md),
-  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md),
-  [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md))
+  ([`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md),
+  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md),
+  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md),
+  [`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/reference/geom_lolli3.md))
   is first used, and these functions ask for ggplot2 if it is not
   installed.
 
 ### Changes to defaults
 
 - **`n_threads` defaults to `NULL`** in
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md),
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   and
-  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md),
+  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/reference/exceedance3.md),
   which uses the session default: half the available cores, unless
   changed with
-  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)
   or the `R_HEATWAVE3_NUM_THREADS` environment variable. Previously the
   default was one thread.
 
 ### Bug fixes
 
 - **The climatology file’s `thresh` `long_name` contained stray bytes.**
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   wrote the attribute with a hard-coded length of 30 for the
   21-character text, so 9 bytes beyond the string were stored with it
   (read as `"threshold climatology\000var\000def "`, or
@@ -174,35 +174,35 @@ Files written by earlier versions differ; regenerate them.
   including short exceedances that are not events (runs shorter than
   `minDuration`). The categories describe events, so these days are now
   `NA`, matching
-  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md).
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md).
   Categories on event days are unchanged. On the bundled `sst_test.nc`
   data, 4,217 non-event days (45% of the days that previously carried a
   category) lose their category. Category-day counts from daily products
   written by earlier versions are overstated; regenerate them.
 - **`hw3_version()`** reported `"1.0.0"`; it now reports the package
   version.
-- **[`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)
+- **[`geom_flame3()`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md)
   crashed on series with missing values** when no point exceeded the
   threshold, or when `n_gap` bridging met a missing value (“missing
   value where TRUE/FALSE needed”). A missing value is now treated as not
   exceeding the threshold.
-  [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)
   was not affected (it drops incomplete days first).
 
 ### Changes
 
 - **`quiet = TRUE` now silences all console output.** In
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   and
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   it previously suppressed only the post-computation summary, while the
   progress messages from the C++ core still printed. Warnings, such as
   files skipped with `skip_bad_files = TRUE`, are still shown.
-- **[`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md)
+- **[`exceedance3()`](https://robwschlegel.github.io/heatwave3/reference/exceedance3.md)
   gains `quiet`**, which suppresses its progress messages in the same
   way (warnings are still shown).
-- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
+- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
   is about 25 times faster.** The exceedance mask, the anomalies and the
   per-blob summaries are now vectorised instead of looping over every
   pixel and day in R; outputs are identical. On 42 years of daily OSTIA
@@ -221,7 +221,7 @@ Files written by earlier versions differ; regenerate them.
 
 ### Bug fixes
 
-- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
   crashed on event files containing `category = 0`.**
   `.event_df_from_indices()` mapped category codes to labels with
   `cat_labels[ev$category[idx]]`; indexing an R vector with `0` silently
@@ -240,14 +240,14 @@ Files written by earlier versions differ; regenerate them.
 
 - **`depth_range`: native depth-resolved (4D) climatology and event
   detection.**
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   and
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   gain `depth_range = c(min_depth, max_depth)`, which keeps a contiguous
   band of depth levels as a real dimension instead of squeezing to a
   single level (the existing `depth` index argument is unchanged and
   still available).
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   needs no new argument – it reads the depth range straight off the
   climatology file it already loads, so climatology and event detection
   can never disagree about which levels they are comparing. Output
@@ -256,30 +256,30 @@ Files written by earlier versions differ; regenerate them.
   unchanged. Verified bit-exact against the legacy per-level-squeeze
   approach.
 - **Per-day/proto-event output,
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md),
-  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md),
-  [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md),
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md),
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md),
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md),
   and
-  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)
+  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md)
   are all depth-aware.** The `daily`/`protoEvent` products gain a
   `depth` dimension when the source climatology is depth-resolved;
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)’s
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)’s
   streaming subset reads gain a `depth_range` argument;
-  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md)
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md)
   and
-  [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)
   auto-inherit the depth range from the climatology file the same way
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   does
-  ([`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)
+  ([`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)
   additionally gains an explicit `depth` argument, matched to the
   nearest level actually present in the climatology);
-  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)’s
+  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md)’s
   `GeomFlame3` ggproto gains a `setup_data()` override that folds a
   mapped `depth` aesthetic into row grouping, so each depth level gets
   its own flame polygons instead of being drawn as one interleaved
   series.
-- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
+- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
   now connects blobs through the water column, not just across space and
   time.** Given a depth-resolved climatology, the union-find labeller
   connects voxels across four axes (longitude, latitude, depth, time)
@@ -294,11 +294,11 @@ Files written by earlier versions differ; regenerate them.
   ever accepted `6`) is removed.
 - **Two new vignettes.** *Depth-resolved (4D) marine heatwave analysis*
   walks through `depth_range` end to end – climatology, detection,
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md),
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md),
   and depth-resolved plotting with
-  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)/[`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md)/[`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md).
+  [`geom_flame3()`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md)/[`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/reference/geom_lolli3.md)/[`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md).
   *4D blob connectivity through the water column* demonstrates
-  [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)’s
+  [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)’s
   depth connectivity, including a depth-time “Hovmoeller” view of a
   single blob’s vertical structure. Both compile against a small (2x2
   pixel, 5 depth-level) real GLORYS12 fixture bundled with the package
@@ -315,23 +315,23 @@ Files written by earlier versions differ; regenerate them.
 
 ### Bug fixes
 
-- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)’s
+- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)’s
   climatology reader assumed `npixels = nlon*nlat`.** For a
   depth-resolved climatology file this silently misread the data (each
   pixel’s depth levels were interleaved into what the reader thought
   were separate horizontal pixels). Fixed alongside the `depth_range`
   work.
 - **Stale
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)/[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)/[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   examples were failing `R CMD check --as-cran`.** Several `@examples`
   blocks
-  ([`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md),
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md),
-  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md),
-  [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md),
-  [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md))
+  ([`block_average3()`](https://robwschlegel.github.io/heatwave3/reference/block_average3.md),
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md),
+  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md),
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md),
+  [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md))
   still called
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)/[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)/[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   with the pre-1.2.0 positional-argument convention (separate
   `clim_file`/`event_file` paths). Under the current `name`-stem
   signature this let a tempfile path silently land in the `var_name`
@@ -342,7 +342,7 @@ Files written by earlier versions differ; regenerate them.
   skips `\donttest{}` by default).
 - **`category3(event_file, clim_file)` silently returned `NA` for every
   category instead of computing them.**
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   always writes a `category` NetCDF variable to the events file (filled
   with `0` when `category = FALSE` was passed), so `hw3_category()`’s
   C++ used mere presence of that field to decide whether categories were
@@ -350,7 +350,7 @@ Files written by earlier versions differ; regenerate them.
   `clim_file`, even when it was supplied precisely because the event
   file had none. Fixed by requiring at least one real (`1`-`4`) category
   code before treating them as pre-computed, matching the check
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   already used on the R side to raise its “clim_file is required” error.
   Found and fixed while raising test coverage (below).
 
@@ -358,29 +358,29 @@ Files written by earlier versions differ; regenerate them.
 
 - **Test coverage raised from 77.6% to over 90%** (Codecov), via a
   five-step plan targeting the least-tested code: (1) tests for
-  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/exceedance3.md),
-  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md),
+  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/reference/exceedance3.md),
+  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md),
   and
-  [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md),
+  [`block_average3()`](https://robwschlegel.github.io/heatwave3/reference/block_average3.md),
   which previously had none at all; (2) tests that force the multi-file/
   directory ingestion path (`hw3_detect_events_multi`,
   `hw3_category_daily_multi`, `hw3_read_sst_multi`) using the
   `glorys_depth_test_annual` fixture, previously untested for
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)/[`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md)/[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md); (3)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)/[`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md)/[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md); (3)
   direct tests for `hw3_version()`, `hw3_pixel_clim()`,
-  [`getHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)/
-  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md),
+  [`getHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)/
+  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md),
   and an explicit `n_threads > 1` run to exercise
   `hw3::parallel_for()`’s worker-pool branch (unreached by default on a
   2-core CI runner, regardless of what `n_threads` a test passed); (4)
   edge-case tests for `export.R` (RDS export, multi-chunk CSV writes,
   empty subset windows, malformed `time_range`, events-product
   `lon_range`/`depth_range` filtering, non-quiet console summaries),
-  [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)
   (directory input, event-centred window, error paths), and
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   (file-not-found, deprecated `S` argument). The
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   bug above was found in the course of this work.
 
 ### Documentation
@@ -415,25 +415,25 @@ Files written by earlier versions differ; regenerate them.
 ### Breaking changes
 
 - **`name`-stem output replaces explicit output paths.**
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md),
   and
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   now take a single `name` argument (a path stem) and derive their
   output filenames from it:
-  - [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  - [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
     writes `paste0(name, "_clim.nc")`.
-  - [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  - [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
     writes `paste0(name, "_events.nc")`.
   - the per-day products use `"_events_daily.nc"` and
     `"_protoevents.nc"`. The old `file_out` / `file_out_clim` /
     `file_out_event` arguments are removed.
-    [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)’s
+    [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)’s
     `clim_file` now defaults to `paste0(name, "_clim.nc")`.
 - **`return_df` and `save_file` are removed.** The compute functions
   always write their native NetCDF and (invisibly) return the path(s)
   written. To read a product into R or export it to CSV/RDS/Parquet, use
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
   (below).
 
 ### New features
@@ -455,14 +455,14 @@ Files written by earlier versions differ; regenerate them.
     `days since 1970-01-01` time axis. Verified against
     `heatwaveR::detect_event(protoEvents = TRUE)`: identical event
     counts and proto flags pixel-by-pixel.
-- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
   is now a read/export hub for every product.** It auto-detects the
   product (climatology, events, daily, proto-events) via the C++ reader
   and either returns a long `data.frame` (whole, or the first `n` rows
   for a quick look) or writes a flat companion file
   (`.csv`/`.rds`/`.parquet`). It replaces the old
   `return_df`/`save_file` pathways.
-- **[`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md)**
+- **[`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md)**
   builds the per-pixel daily marine-heatwave (or cold-spell) category
   series for a date window straight from an SST file, a climatology, and
   an events file, entirely via the C++ readers. It reads only the
@@ -505,7 +505,7 @@ Files written by earlier versions differ; regenerate them.
   Climatologies, events, and daily categories derived from noon-stamped
   inputs should be regenerated.
 - **Streaming subset extraction in
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md).**
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md).**
   `vars`, `lon_range`, `lat_range`, `time_range`, and `n` select a
   subset that is read straight from the NetCDF as a hyperslab: for the
   gridded products only the requested lon/lat/time window and the chosen
@@ -518,15 +518,15 @@ Files written by earlier versions differ; regenerate them.
 ### Internal
 
 - **`hw3_read_subset()`** (C++) performs the hyperslab read behind
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)’s
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)’s
   subset path.
 - **Post-computation console summary.**
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   and
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   print the head, tail, and summary statistics of each product written,
   with a pointer to
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md).
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md).
   Suppress with `quiet = TRUE`.
 - **`hw3_read_daily_nc()`** and **`hw3_file_meta()`** read a per-day
   NetCDF and a product’s lightweight metadata (type, dimensions, row
@@ -577,14 +577,14 @@ Files written by earlier versions differ; regenerate them.
   while still writing the primary NetCDF output.
 
 - **Companion exports now use `save_file` only.**
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   and
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   now infer the requested companion export format from the extension of
   `save_file`. Supported extensions are `.csv`, `.rds`, and `.parquet`.
   If `save_file = NULL`, no companion file is written.
 
-- **[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+- **[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   now implements gridded `threshClim2`.** Users may supply a secondary
   logical criterion as a NetCDF file, vector of files, or directory of
   daily files. Non-zero, non-missing values are treated as `TRUE`, and
@@ -593,7 +593,7 @@ Files written by earlier versions differ; regenerate them.
   [`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html).
 
 - **CSV and Parquet companion exports are chunked.**
-  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
   now streams CSV rows and writes Parquet row groups using a
   configurable `chunk_size`, reducing peak memory pressure for large
   gridded outputs.
@@ -626,17 +626,17 @@ Files written by earlier versions differ; regenerate them.
   character values so that CSV reads and `return_df` output compare
   cleanly.
 
-- **[`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+- **[`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   now passes through the current base-function options.** Companion
   output paths can be supplied separately for climatology and event
   outputs, and `detrend` is passed through to
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md).
 
-- **[`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+- **[`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   now passes through secondary event-detection options.** `threshClim2`,
   `threshClim2_var_name`, `minDuration2`, and `maxGap2` are passed
   through to
-  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
 
 - **NetCDF time calendars and temperature units are handled more
   defensibly.** Non-Gregorian CF calendars now fail with an explicit
@@ -653,13 +653,13 @@ Files written by earlier versions differ; regenerate them.
   requested rounding, but category boundaries are no longer affected by
   rounded `intensity_max` values.
 
-- **[`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+- **[`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   is now documented and validated as a convenience wrapper.** Inline
   categories from `detect_event3(category = TRUE)` can be read without a
   climatology file; uncategorised event files now require `clim_file`
   with a clear error.
 
-- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
+- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
   now validates fragile arguments.** Unsupported connectivity, invalid
   return components, invalid ranking variables, singleton grids, and
   grid mismatches now fail with explicit errors.
@@ -668,7 +668,7 @@ Files written by earlier versions differ; regenerate them.
 
 ### Bug fixes
 
-- **[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+- **[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   no longer glues events across calendar gaps in the input SST stack.**
   When the input had missing days (e.g. unavailable OSTIA files), the
   run-length-encoding in `detect_pixel_events()` walked array indices
@@ -677,7 +677,7 @@ Files written by earlier versions differ; regenerate them.
   reported `date_end − date_start + 1` was larger than `duration`
   (calendar-span \> index-count). The fix expands the per-pixel series
   to a dense daily array up front (mirroring what
-  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   has always done in `compute_pixel_clim`), filling missing dates with
   `NA`. `proto_event()` then breaks runs at the gap exactly as
   [`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)
@@ -692,9 +692,9 @@ Files written by earlier versions differ; regenerate them.
   the start, peak, and end of each event. `index_*` fields are now
   indices into the dense (gap-filled) array rather than the sparse
   input. Downstream code that uses `hw3_read_event_nc()` /
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   /
-  [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md)
+  [`block_average3()`](https://robwschlegel.github.io/heatwave3/reference/block_average3.md)
   is unaffected: the NetCDF event-file layout and the R-facing return
   values are unchanged.
 
@@ -702,7 +702,7 @@ Files written by earlier versions differ; regenerate them.
 
 ### Bug fixes
 
-- **[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)**
+- **[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)**
   now validates that the parent directory of `file_out` exists before
   running the climatology computation. Previously, an invalid path
   (e.g. a typo such as `dev/test/clim.nc` when only `dev/tests/` exists)
@@ -711,7 +711,7 @@ Files written by earlier versions differ; regenerate them.
   been computed. The new check fires immediately with a clear
   `Output directory does not exist: ...` message.
 
-- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)**
+- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)**
   now correctly handles climatology files whose grid has a singleton
   longitude or latitude dimension. Previously
   [`ncdf4::ncvar_get()`](https://rdrr.io/pkg/ncdf4/man/ncvar_get.html)
@@ -719,12 +719,12 @@ Files written by earlier versions differ; regenerate them.
   fail with *incorrect number of dimensions*. The variable is now read
   with `collapse_degen = FALSE`.
 
-- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)**
+- **[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)**
   now writes Hobday et al. (2018) **category** and **season** values as
   human-readable labels (`"I Moderate"`, `"II Strong"`, …, `"Summer"`,
   `"Fall"`, …) when exporting an event file, matching the labels
   returned by
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md).
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md).
   Previously the raw integer codes (1–4) were written, making the
   exported CSV / RDA / Parquet hard to use directly.
 
@@ -737,9 +737,9 @@ parallelism.
 
 #### New features
 
-- **[`getHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+- **[`getHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)
   /
-  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)**
+  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)**
   — package-level thread management. Defaults to 50% of available cores
   (polite). Overridable via the `R_HEATWAVE3_NUM_THREADS` environment
   variable. The per-function `n_threads` parameter still takes
@@ -789,21 +789,21 @@ The previous R/heatwaveR-based implementation is fully replaced.
   computes Hobday et al. (2018) severity categories (I Moderate through
   IV Extreme) during event detection, writing them directly to the event
   NetCDF. This eliminates the separate
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   call and the second read of the climatology file.
 
 - **Cold-spell categories** — category computation now uses
   `|seas - thresh|` as the category width, correctly handling both
   heatwaves (thresh \> seas) and cold-spells (thresh \< seas).
   Previously,
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   returned all NAs for cold-spell events.
 
 - **`hemisphere` parameter** — replaces the cryptic `S = TRUE` boolean
   with `hemisphere = "south"` (or `"north"`). Used for season naming in
   category output. Backward-compatible: the `S` parameter is still
   accepted in
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md).
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md).
 
 - **`return_df` parameter** — `detect_event3(return_df = TRUE)` returns
   the event table as a tidy `data.frame` directly, avoiding the
@@ -818,7 +818,7 @@ The previous R/heatwaveR-based implementation is fully replaced.
   efficient spatial plotting without reading the full event table into
   R.
 
-- **[`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+- **[`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   as primary entry point** — now accepts `category`, `hemisphere`, and
   `return_df` parameters, making it the single function needed for a
   complete analysis pipeline.
@@ -833,13 +833,13 @@ The previous R/heatwaveR-based implementation is fully replaced.
 
 #### Performance
 
-- [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+- [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   and
-  [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md)
+  [`block_average3()`](https://robwschlegel.github.io/heatwave3/reference/block_average3.md)
   are now pure C++. On a 5.6M-event Benguela dataset,
-  [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md)
   completes in ~3 seconds (previously ~15 minutes in R with ncdf4).
-- [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md)
+- [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md)
   aggregation is now C++-backed via `hw3_read_metric_summary()`.
 
 #### Other improvements
@@ -850,9 +850,9 @@ The previous R/heatwaveR-based implementation is fully replaced.
 - `read_event_netcdf()` gracefully handles older event files that lack
   category fields.
 - Cleaned up ggplot2 code in
-  [`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)
   and
-  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md):
+  [`plot_metric3()`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md):
   proper [`expression()`](https://rdrr.io/r/base/expression.html) axis
   labels, composable plot objects, no hard-coded colours.
 
@@ -869,12 +869,12 @@ The previous R/heatwaveR-based implementation is fully replaced.
 
 ## heatwave3 0.0.4 (2024-06-13)
 
-- [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+- [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   catches NA pixels before calculating climatologies
 
 ## heatwave3 0.0.3 (2024-01-22)
 
-- [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+- [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   now converts hourly data to daily before running detection code
 - It also checks for pixels with missing data and handles them
   accordingly
@@ -904,7 +904,7 @@ The previous R/heatwaveR-based implementation is fully replaced.
 ## heatwave3 0.0.0.9006 (2023-08-20)
 
 - Added if gates at the start of
-  [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   to catch common errors
 
 ## heatwave3 0.0.0.9005 (2023-08-17)
@@ -913,7 +913,7 @@ The previous R/heatwaveR-based implementation is fully replaced.
 
 ## heatwave3 0.0.0.9004 (2023-07-30)
 
-- [`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+- [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
   now returns the full event metric output.
 
 ## heatwave3 0.0.0.9003 (2023-07-29)

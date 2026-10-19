@@ -82,7 +82,7 @@ ts2clm3(
   in this range as a real dimension: the climatology is computed
   independently for every `(lon, lat, depth)` triple, and
   `paste0(name, "_clim.nc")` gains a `depth` dimension/coordinate.
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   automatically detects and matches this depth range from the
   climatology file – no separate argument is needed there. Mutually
   exclusive with `depth`. Default `NULL` (no depth subsetting).
@@ -135,7 +135,7 @@ ts2clm3(
 
   Number of threads for parallel computation. Default `NULL`: the
   session default, half the available cores unless changed with
-  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)
   or the `R_HEATWAVE3_NUM_THREADS` environment variable.
 
 - compression:
@@ -162,7 +162,7 @@ ts2clm3(
 
 Invisibly returns the path to the climatology NetCDF
 (`paste0(name, "_clim.nc")`). Use
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
 to read it into a `data.frame` or export it to CSV/RDS/Parquet.
 
 ## Examples

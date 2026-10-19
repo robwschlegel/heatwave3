@@ -1,7 +1,7 @@
 # Detect marine heatwaves day by day in arrays
 
 The in-memory counterpart of
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 with `daily = "only"`: the same detection, but on arrays instead of
 files, and with the climatology already matched to each day. It returns
 only per-day results, because event metrics such as duration or
@@ -39,7 +39,7 @@ detect_event_array3(
   Seasonal climatology and threshold for each day of `temp`, with the
   same dimensions. Match them to the dates beforehand, for example from
   a
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   climatology by day of year.
 
 - minDuration:
@@ -71,7 +71,7 @@ detect_event_array3(
 
   Number of threads for the per-pixel computation. Default `NULL`: the
   session default (see
-  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)).
+  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)).
   Use `1` when the calls themselves run in parallel.
 
 ## Value
@@ -102,7 +102,7 @@ named list in the order of `outputs`.
 
 A pixel with no temperature or no `seas` at all gets `FALSE`, 0, `NA`
 and 0. Results are identical to the per-day file of
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 for the same days and climatology.
 
 ## Details
@@ -122,8 +122,8 @@ per day, or `aperm(x, c(3, 1, 2))` for a `[x, y, time]` array.
 
 ## See also
 
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md),
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
 
 ## Examples
 

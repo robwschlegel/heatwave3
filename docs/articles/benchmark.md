@@ -15,7 +15,7 @@ We compare three configurations:
 
 > **Backend note.** These timings were recorded before heatwave3
 > replaced its OpenMP backend with C++ `std::thread` (see the [Parallel
-> performance](https://robwschlegel.github.io/heatwave3/index.html/articles/parallelism.md)
+> performance](https://robwschlegel.github.io/heatwave3/articles/parallelism.md)
 > vignette). The `std::thread` build tracks OpenMP’s scaling curve
 > within about 5%, so the relative speedups here versus heatwaveR still
 > hold; only the in-process threading mechanism itself has changed, not
@@ -33,18 +33,18 @@ We compare three configurations:
 ## heatwave3: single-threaded
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 \
 `stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"bench"``)`\
 \
 `t_clim`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \
 `t_event`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \
@@ -56,13 +56,13 @@ We compare three configurations:
 
 \
 `t_clim_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \
 `t_event_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \
@@ -151,7 +151,7 @@ lon × 360 lat = 93,600 pixels). This is a region with strong upwelling
 variability and a mix of ocean and land pixels.
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 \
 `ostia_dir`` ``<-`` ``"/Volumes/OceanData/Tom/OSTIA"`\
 `stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"benguela"``)`
@@ -159,7 +159,7 @@ variability and a mix of ocean and land pixels.
 \
 `# Climatology from ca. 16,000 daily files (WMO 1991-2020 baseline)`\
 `t_clim`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(`\
 `    file_in  ``=`` ``ostia_dir``,`\
 `    name     ``=`` ``stem``,`\
 `    climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1991-01-01"``, ``"2020-12-31"``)``,`\
@@ -171,7 +171,7 @@ variability and a mix of ocean and land pixels.
 \
 `# Event detection on the same daily files`\
 `t_event`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)`(`\
 `    file_in   ``=`` ``ostia_dir``,`\
 `    name      ``=`` ``stem``,`\
 `    var_name  ``=`` ``"analysed_sst"``,`\

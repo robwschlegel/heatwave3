@@ -13,16 +13,14 @@ calls to the netCDF-C library, which is a system requirement.
 * This is a new submission.
 
 The words flagged as possibly misspelled in DESCRIPTION are correct:
-"Hobday" (author name), "MHWs" (marine heatwaves), "MCS" (marine cold-spells),
-"gridded", "NetCDF", and the British spellings "categorisation" and
-"visualisation".
+"Hobday" (author name), "et al.", "MHWs" (marine heatwaves), and "gridded" /
+"Gridded" (data on a regular spatial grid).
 
 ## Test environments
 
-* local macOS (arm64), R 4.6.1
+* local macOS 27 (arm64), R 4.6.1
 * GitHub Actions: macOS, Ubuntu and Windows, R release
-* win-builder: R-devel and R-release
-* mac-builder: R-release
+* win-builder: R-devel (2026-10-18 r90707 ucrt) and R-release (4.6.1)
 
 ## Threads
 

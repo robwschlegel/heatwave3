@@ -58,7 +58,7 @@ out = hw3.detect3("sst.nc", "run1", ("1982-01-01", "2011-12-31"), category=True)
 events = hw3.hw3_export(out["events"])   # a pandas DataFrame
 ```
 
-Documentation: <https://heatwave3.readthedocs.io>. The source is in [`python/`](python/).
+Documentation: <https://heatwave3.readthedocs.io>. The source is in [`python/`](https://github.com/robwschlegel/heatwave3/tree/main/python).
 
 ## Installation
 

@@ -292,8 +292,10 @@ def plot_metric3(event_file, metric="intensity_max", summary="mean", coastline=T
     summary : {"mean", "max", "min", "sum", "count"}
         Aggregation across each pixel's events (computed in C++).
     coastline : bool
-        Draw coastlines when ``cartopy`` is installed (otherwise skipped, as
-        R skips them without ``rnaturalearth``, ``rnaturalearthdata`` and ``sf``).
+        Draw the 1:50m Natural Earth coastline (the one R draws), with
+        ``cartopy``, which ``pip install "heatwave3[plot]"`` installs. Skipped
+        when cartopy is missing, as R skips it without ``rnaturalearth``,
+        ``rnaturalearthdata`` and ``sf``.
     ax : matplotlib Axes, optional
         Axes to draw on (Python only); a new figure is created otherwise.
     **kwargs
@@ -332,10 +334,16 @@ def _add_coastline(ax) -> None:
         ax.add_feature(cfeature.COASTLINE, edgecolor="0.19", linewidth=0.85)
     else:
         from cartopy.io import shapereader
+        from shapely.geometry import box
         xlim, ylim = ax.get_xlim(), ax.get_ylim()  # keep the data extent
+        view = box(xlim[0], ylim[0], xlim[1], ylim[1])
+        # Only the coastline inside the map, so saved vector files do not carry
+        # every coastline on Earth
         for geom in shapereader.Reader(
                 shapereader.natural_earth("50m", "physical", "coastline")).geometries():
-            for line in getattr(geom, "geoms", [geom]):
-                x, y = line.xy
-                ax.plot(x, y, color="0.19", linewidth=0.85)
+            part = geom.intersection(view)
+            for line in getattr(part, "geoms", [part]):
+                if line.geom_type == "LineString" and not line.is_empty:
+                    x, y = line.xy
+                    ax.plot(x, y, color="0.19", linewidth=0.85)
         ax.set(xlim=xlim, ylim=ylim)

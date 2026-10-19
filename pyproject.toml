@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "heatwave3"
-version = "1.4.0"  # pinned to Version in DESCRIPTION (R): same features
+version = "1.4.1"  # pinned to Version in DESCRIPTION (R): same features
 description = "Detect marine heatwaves and cold-spells directly in gridded NetCDF data"
 readme = "python/README.md"
 requires-python = ">=3.10"
@@ -31,7 +31,7 @@ dependencies = ["numpy>=1.23", "pandas>=1.5"]
 
 [project.optional-dependencies]
 parquet = ["pyarrow>=10"]
-plot = ["matplotlib>=3.6"]
+plot = ["matplotlib>=3.6", "cartopy>=0.22"]  # cartopy: plot_metric3() coastlines
 test = ["pytest>=7", "pyarrow>=10", "matplotlib>=3.6"]
 
 [project.urls]

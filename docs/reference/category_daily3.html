@@ -17,7 +17,7 @@ intensity, event, event_no, category).'><meta property="og:image" content="https
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,7 +35,7 @@ intensity, event, event_no, category).'><meta property="og:image" content="https
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_packages.html">Performance benchmark - MHW packages</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -180,14 +180,1246 @@ events must already cover the requested window.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/sst_test.nc"</span>, package <span class="op">=</span> <span class="st">"heatwave3"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"demo"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="detect3.html">detect3</a></span><span class="op">(</span><span class="va">sst_file</span>, name <span class="op">=</span> <span class="va">stem</span>,</span></span>
+<span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      lon     lat doy     seas   thresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26.525 -34.125   1 294.4208 295.9951</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 26.525 -34.125   2 294.4648 296.0311</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 26.525 -34.125   3 294.5088 296.0720</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 26.525 -34.125   4 294.5524 296.1133</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 26.525 -34.125   5 294.5955 296.1553</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         lon     lat doy     seas   thresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2192 26.575 -34.025 362 293.5308 295.1848</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2193 26.575 -34.025 363 293.5672 295.2141</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2194 26.575 -34.025 364 293.6065 295.2460</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2195 26.575 -34.025 365 293.6480 295.2776</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2196 26.575 -34.025 366 293.6907 295.3100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ocean pixels (valid climatology): 6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Detecting events with 1 thread(s)...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Found 610 events across 6 pixels</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 610</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      lon     lat pixel_index event_no date_start  date_peak   date_end duration</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26.525 -34.125           0        1 1982-11-06 1982-11-14 1982-11-24       19</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 26.525 -34.125           0        2 1983-04-19 1983-04-20 1983-04-23        5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 26.525 -34.125           0        3 1983-05-27 1983-05-30 1983-06-01        6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 26.525 -34.125           0        4 1983-06-24 1983-06-25 1983-06-30        7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 26.525 -34.125           0        5 1983-07-10 1983-07-12 1983-07-15        6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_mean intensity_max intensity_var intensity_cumulative</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         2.2099        3.1531        0.5616              41.9874</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         3.4849        3.6150        0.1535              17.4243</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         1.9696        2.0416        0.0668              11.8179</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         1.9655        2.4626        0.3339              13.7587</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5         1.5890        1.8050        0.1784               9.5342</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                   0.6780                  1.6275                  0.5667</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                   1.6822                  1.8107                  0.1481</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                   0.2178                  0.2885                  0.0702</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                   0.5567                  1.0416                  0.3225</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                   0.2596                  0.4747                  0.1772</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                        12.8813           295.2789            296.22</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                         8.4110           297.9640            298.10</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                         1.3069           295.6150            295.67</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                         3.8969           294.7100            295.27</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                         1.5575           294.0717            294.29</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.5886                  5610.30     0.2375       0.1539</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.1573                  1489.82     0.7084       0.3201</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3            0.0677                  1773.69     0.0579       0.0985</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4            0.3945                  2062.97     0.7383       0.2044</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5            0.1824                  1764.43     0.2438       0.1360</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        lon     lat pixel_index event_no date_start  date_peak   date_end</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 610 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     duration intensity_mean intensity_max intensity_var intensity_cumulative</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606        8         1.9123        2.6167        0.3509              15.2983</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607        7         2.6135        3.2218        0.6238              18.2944</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608       12         2.7097        4.2806        0.9613              32.5162</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609        5         1.9184        2.4610        0.4567               9.5918</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 610        7         1.7027        1.8887        0.1673              11.9191</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606                   0.5331                  1.2395                  0.3545</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607                   1.2196                  1.8291                  0.6356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608                   1.2481                  2.8252                  0.9574</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609                   0.5193                  1.0566                  0.4505</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 610                   0.3486                  0.5476                  0.1719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606                         4.2646           293.7725            294.47</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607                         8.5369           293.8743            294.48</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608                        14.9767           294.3308            295.87</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609                         2.5966           293.8140            294.37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 610                         2.4402           292.9757            293.17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606            0.3438                  2350.18     0.3962       0.3769</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607            0.6214                  2057.12     0.4158       0.6025</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608            0.9940                  3531.97     0.5238       0.4265</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609            0.4723                  1469.07     0.6940       0.4588</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 610            0.1695                  2050.83     0.4821       0.1454</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   events: 610   pixels with events: 6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   dates:  1982-11-06 to 2020-09-26</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   duration (days):     5 to    38</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_max:   1.314 to 4.911</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">category_daily3</span><span class="op">(</span></span></span>
-<span class="r-in"><span>  sst_file   <span class="op">=</span> <span class="st">"oisst-avhrr-v02r01.ts.0001.nc"</span>,</span></span>
-<span class="r-in"><span>  clim_file  <span class="op">=</span> <span class="st">"MHW_0001_1982-2011_clim.nc"</span>,</span></span>
-<span class="r-in"><span>  event_file <span class="op">=</span> <span class="st">"MHW_0001_1982-2011_events.nc"</span>,</span></span>
-<span class="r-in"><span>  time_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2026-05-10"</span>, <span class="st">"2026-05-20"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  sst_file   <span class="op">=</span> <span class="va">sst_file</span>,</span></span>
+<span class="r-in"><span>  clim_file  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  event_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_events.nc"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  time_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2020-01-01"</span>, <span class="st">"2020-03-31"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        lon     lat          t   temp     seas   thresh intensity event event_no</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   26.525 -34.125 2020-01-01 291.90 294.4208 295.9951     -2.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   26.525 -34.125 2020-01-02 291.80 294.4648 296.0311     -2.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   26.525 -34.125 2020-01-03 292.10 294.5088 296.0720     -2.41 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   26.525 -34.125 2020-01-04 293.04 294.5524 296.1133     -1.51 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5   26.525 -34.125 2020-01-05 293.64 294.5955 296.1553     -0.96 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6   26.525 -34.125 2020-01-06 294.01 294.6380 296.1988     -0.63 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7   26.525 -34.125 2020-01-07 294.62 294.6781 296.2424     -0.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8   26.525 -34.125 2020-01-08 294.00 294.7147 296.2866     -0.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9   26.525 -34.125 2020-01-09 294.87 294.7480 296.3312      0.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10  26.525 -34.125 2020-01-10 295.17 294.7794 296.3755      0.39 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11  26.525 -34.125 2020-01-11 295.05 294.8105 296.4242      0.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12  26.525 -34.125 2020-01-12 295.85 294.8409 296.4710      1.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13  26.525 -34.125 2020-01-13 295.05 294.8703 296.5165      0.18 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14  26.525 -34.125 2020-01-14 293.45 294.8985 296.5614     -1.45 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15  26.525 -34.125 2020-01-15 292.78 294.9267 296.6053     -2.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16  26.525 -34.125 2020-01-16 293.72 294.9549 296.6485     -1.23 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17  26.525 -34.125 2020-01-17 293.83 294.9833 296.6907     -1.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18  26.525 -34.125 2020-01-18 294.13 295.0120 296.7305     -0.88 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19  26.525 -34.125 2020-01-19 294.51 295.0418 296.7688     -0.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20  26.525 -34.125 2020-01-20 294.68 295.0720 296.8080     -0.39 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21  26.525 -34.125 2020-01-21 294.92 295.1014 296.8458     -0.18 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22  26.525 -34.125 2020-01-22 292.38 295.1277 296.8819     -2.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23  26.525 -34.125 2020-01-23 293.16 295.1510 296.9123     -1.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24  26.525 -34.125 2020-01-24 292.90 295.1716 296.9416     -2.27 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25  26.525 -34.125 2020-01-25 292.25 295.1904 296.9710     -2.94 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26  26.525 -34.125 2020-01-26 292.21 295.2068 297.0001     -3.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27  26.525 -34.125 2020-01-27 294.22 295.2201 297.0289     -1.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28  26.525 -34.125 2020-01-28 294.35 295.2300 297.0589     -0.88 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29  26.525 -34.125 2020-01-29 294.66 295.2382 297.0865     -0.58 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30  26.525 -34.125 2020-01-30 294.86 295.2455 297.1141     -0.39 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 31  26.525 -34.125 2020-01-31 294.71 295.2527 297.1402     -0.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 32  26.525 -34.125 2020-02-01 294.73 295.2596 297.1642     -0.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 33  26.525 -34.125 2020-02-02 296.78 295.2668 297.1882      1.51 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 34  26.525 -34.125 2020-02-03 297.33 295.2731 297.2044      2.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 35  26.525 -34.125 2020-02-04 297.35 295.2789 297.2186      2.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 36  26.525 -34.125 2020-02-05 297.01 295.2831 297.2306      1.73 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 37  26.525 -34.125 2020-02-06 297.22 295.2863 297.2410      1.93 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 38  26.525 -34.125 2020-02-07 295.81 295.2889 297.2469      0.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 39  26.525 -34.125 2020-02-08 294.36 295.2914 297.2479     -0.93 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 40  26.525 -34.125 2020-02-09 294.20 295.2926 297.2453     -1.09 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 41  26.525 -34.125 2020-02-10 294.38 295.2920 297.2410     -0.91 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 42  26.525 -34.125 2020-02-11 295.32 295.2884 297.2323      0.03 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 43  26.525 -34.125 2020-02-12 295.47 295.2822 297.2229      0.19 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 44  26.525 -34.125 2020-02-13 295.34 295.2740 297.2125      0.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 45  26.525 -34.125 2020-02-14 295.35 295.2644 297.2022      0.09 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 46  26.525 -34.125 2020-02-15 295.24 295.2534 297.1906     -0.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 47  26.525 -34.125 2020-02-16 295.75 295.2407 297.1729      0.51 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 48  26.525 -34.125 2020-02-17 294.56 295.2261 297.1509     -0.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 49  26.525 -34.125 2020-02-18 293.52 295.2100 297.1279     -1.69 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 50  26.525 -34.125 2020-02-19 293.13 295.1922 297.1056     -2.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 51  26.525 -34.125 2020-02-20 293.34 295.1731 297.0876     -1.83 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 52  26.525 -34.125 2020-02-21 294.08 295.1539 297.0713     -1.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 53  26.525 -34.125 2020-02-22 294.48 295.1369 297.0565     -0.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 54  26.525 -34.125 2020-02-23 298.49 295.1232 297.0435      3.37 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 55  26.525 -34.125 2020-02-24 298.21 295.1129 297.0332      3.10 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 56  26.525 -34.125 2020-02-25 297.49 295.1039 297.0235      2.39 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 57  26.525 -34.125 2020-02-26 296.84 295.0958 297.0147      1.74 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 58  26.525 -34.125 2020-02-27 295.61 295.0889 297.0095      0.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 59  26.525 -34.125 2020-02-28 294.07 295.0841 297.0034     -1.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 60  26.525 -34.125 2020-02-29 292.79 295.0800 296.9994     -2.29 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 61  26.525 -34.125 2020-03-01 292.35 295.0764 296.9959     -2.73 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 62  26.525 -34.125 2020-03-02 291.55 295.0733 296.9933     -3.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 63  26.525 -34.125 2020-03-03 291.33 295.0704 296.9913     -3.74 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 64  26.525 -34.125 2020-03-04 291.31 295.0669 296.9894     -3.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 65  26.525 -34.125 2020-03-05 292.44 295.0621 296.9877     -2.62 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 66  26.525 -34.125 2020-03-06 292.62 295.0562 296.9861     -2.44 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 67  26.525 -34.125 2020-03-07 292.44 295.0515 296.9855     -2.61 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 68  26.525 -34.125 2020-03-08 290.73 295.0487 296.9847     -4.32 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 69  26.525 -34.125 2020-03-09 291.27 295.0468 296.9840     -3.78 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 70  26.525 -34.125 2020-03-10 292.43 295.0456 296.9878     -2.62 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 71  26.525 -34.125 2020-03-11 293.38 295.0455 296.9911     -1.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 72  26.525 -34.125 2020-03-12 292.69 295.0466 296.9961     -2.36 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 73  26.525 -34.125 2020-03-13 292.02 295.0482 296.9975     -3.03 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 74  26.525 -34.125 2020-03-14 291.70 295.0498 296.9982     -3.35 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 75  26.525 -34.125 2020-03-15 294.70 295.0509 296.9985     -0.35 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 76  26.525 -34.125 2020-03-16 295.01 295.0517 296.9993     -0.04 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 77  26.525 -34.125 2020-03-17 294.79 295.0521 297.0011     -0.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 78  26.525 -34.125 2020-03-18 294.42 295.0518 297.0079     -0.63 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 79  26.525 -34.125 2020-03-19 293.13 295.0504 297.0176     -1.92 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 80  26.525 -34.125 2020-03-20 293.00 295.0478 297.0261     -2.05 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 81  26.525 -34.125 2020-03-21 294.57 295.0437 297.0305     -0.47 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 82  26.525 -34.125 2020-03-22 294.56 295.0384 297.0295     -0.48 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 83  26.525 -34.125 2020-03-23 293.91 295.0320 297.0216     -1.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 84  26.525 -34.125 2020-03-24 293.87 295.0246 297.0125     -1.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 85  26.525 -34.125 2020-03-25 293.86 295.0151 297.0002     -1.16 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 86  26.525 -34.125 2020-03-26 294.76 295.0027 296.9852     -0.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 87  26.525 -34.125 2020-03-27 296.25 294.9881 296.9684      1.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 88  26.525 -34.125 2020-03-28 296.49 294.9715 296.9487      1.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 89  26.525 -34.125 2020-03-29 296.40 294.9534 296.9248      1.45 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 90  26.525 -34.125 2020-03-30 296.48 294.9339 296.8989      1.55 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 91  26.525 -34.125 2020-03-31 296.43 294.9142 296.8737      1.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 92  26.525 -34.075 2020-01-01 291.59 293.9314 295.4957     -2.34 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 93  26.525 -34.075 2020-01-02 291.78 293.9752 295.5327     -2.20 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 94  26.525 -34.075 2020-01-03 292.02 294.0192 295.5717     -2.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95  26.525 -34.075 2020-01-04 292.82 294.0627 295.6134     -1.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 96  26.525 -34.075 2020-01-05 293.41 294.1057 295.6563     -0.70 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 97  26.525 -34.075 2020-01-06 293.76 294.1480 295.7006     -0.39 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 98  26.525 -34.075 2020-01-07 294.34 294.1878 295.7449      0.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 99  26.525 -34.075 2020-01-08 293.54 294.2241 295.7898     -0.68 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 100 26.525 -34.075 2020-01-09 294.38 294.2568 295.8363      0.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 101 26.525 -34.075 2020-01-10 294.25 294.2873 295.8830     -0.04 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 102 26.525 -34.075 2020-01-11 294.58 294.3169 295.9301      0.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 103 26.525 -34.075 2020-01-12 295.59 294.3453 295.9769      1.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 104 26.525 -34.075 2020-01-13 294.63 294.3722 296.0204      0.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 105 26.525 -34.075 2020-01-14 292.44 294.3976 296.0626     -1.96 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 106 26.525 -34.075 2020-01-15 292.29 294.4232 296.1059     -2.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 107 26.525 -34.075 2020-01-16 293.02 294.4487 296.1492     -1.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 108 26.525 -34.075 2020-01-17 292.96 294.4744 296.1907     -1.51 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 109 26.525 -34.075 2020-01-18 293.39 294.5007 296.2304     -1.11 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 110 26.525 -34.075 2020-01-19 293.87 294.5283 296.2681     -0.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 111 26.525 -34.075 2020-01-20 294.14 294.5569 296.3045     -0.42 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 112 26.525 -34.075 2020-01-21 294.46 294.5852 296.3403     -0.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 113 26.525 -34.075 2020-01-22 292.12 294.6110 296.3735     -2.49 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 114 26.525 -34.075 2020-01-23 292.92 294.6347 296.4062     -1.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 115 26.525 -34.075 2020-01-24 292.16 294.6562 296.4376     -2.50 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 116 26.525 -34.075 2020-01-25 290.71 294.6761 296.4679     -3.97 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 117 26.525 -34.075 2020-01-26 290.68 294.6936 296.4961     -4.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 118 26.525 -34.075 2020-01-27 293.36 294.7081 296.5225     -1.35 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 119 26.525 -34.075 2020-01-28 293.73 294.7191 296.5483     -0.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 120 26.525 -34.075 2020-01-29 293.97 294.7283 296.5672     -0.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 121 26.525 -34.075 2020-01-30 294.22 294.7360 296.5822     -0.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 122 26.525 -34.075 2020-01-31 294.27 294.7431 296.5953     -0.47 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 123 26.525 -34.075 2020-02-01 294.29 294.7496 296.6059     -0.46 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 124 26.525 -34.075 2020-02-02 296.53 294.7560 296.6150      1.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 125 26.525 -34.075 2020-02-03 296.88 294.7614 296.6209      2.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 126 26.525 -34.075 2020-02-04 297.01 294.7663 296.6215      2.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 127 26.525 -34.075 2020-02-05 296.72 294.7699 296.6205      1.95 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 128 26.525 -34.075 2020-02-06 296.89 294.7726 296.6185      2.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 129 26.525 -34.075 2020-02-07 295.51 294.7751 296.6133      0.73 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 130 26.525 -34.075 2020-02-08 294.25 294.7779 296.6058     -0.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 131 26.525 -34.075 2020-02-09 294.25 294.7799 296.5941     -0.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 132 26.525 -34.075 2020-02-10 294.14 294.7806 296.5817     -0.64 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 133 26.525 -34.075 2020-02-11 293.82 294.7790 296.5707     -0.96 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 134 26.525 -34.075 2020-02-12 293.77 294.7757 296.5601     -1.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 135 26.525 -34.075 2020-02-13 293.62 294.7708 296.5495     -1.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 136 26.525 -34.075 2020-02-14 293.65 294.7649 296.5402     -1.11 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 137 26.525 -34.075 2020-02-15 293.54 294.7571 296.5299     -1.22 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 138 26.525 -34.075 2020-02-16 294.20 294.7471 296.5189     -0.55 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 139 26.525 -34.075 2020-02-17 293.42 294.7349 296.5051     -1.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 140 26.525 -34.075 2020-02-18 292.97 294.7206 296.4910     -1.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 141 26.525 -34.075 2020-02-19 292.54 294.7042 296.4768     -2.16 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 142 26.525 -34.075 2020-02-20 292.43 294.6864 296.4656     -2.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 143 26.525 -34.075 2020-02-21 293.11 294.6679 296.4475     -1.56 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 144 26.525 -34.075 2020-02-22 293.32 294.6509 296.4279     -1.33 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 145 26.525 -34.075 2020-02-23 297.67 294.6358 296.4089      3.03 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 146 26.525 -34.075 2020-02-24 296.72 294.6229 296.3929      2.10 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 147 26.525 -34.075 2020-02-25 295.80 294.6103 296.3778      1.19 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 148 26.525 -34.075 2020-02-26 295.00 294.5985 296.3646      0.40 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 149 26.525 -34.075 2020-02-27 293.44 294.5878 296.3540     -1.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 150 26.525 -34.075 2020-02-28 292.04 294.5792 296.3441     -2.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 151 26.525 -34.075 2020-02-29 291.21 294.5714 296.3408     -3.36 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 152 26.525 -34.075 2020-03-01 291.01 294.5641 296.3405     -3.55 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 153 26.525 -34.075 2020-03-02 291.25 294.5571 296.3405     -3.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 154 26.525 -34.075 2020-03-03 291.41 294.5504 296.3409     -3.14 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 155 26.525 -34.075 2020-03-04 291.28 294.5430 296.3421     -3.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 156 26.525 -34.075 2020-03-05 291.35 294.5350 296.3437     -3.19 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 157 26.525 -34.075 2020-03-06 291.33 294.5261 296.3456     -3.20 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 158 26.525 -34.075 2020-03-07 291.15 294.5187 296.3475     -3.37 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 159 26.525 -34.075 2020-03-08 290.14 294.5132 296.3514     -4.37 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 160 26.525 -34.075 2020-03-09 290.74 294.5086 296.3572     -3.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 161 26.525 -34.075 2020-03-10 291.83 294.5045 296.3635     -2.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 162 26.525 -34.075 2020-03-11 292.73 294.5014 296.3700     -1.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 163 26.525 -34.075 2020-03-12 291.81 294.4992 296.3767     -2.69 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 164 26.525 -34.075 2020-03-13 291.27 294.4973 296.3812     -3.23 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 165 26.525 -34.075 2020-03-14 291.00 294.4953 296.3851     -3.50 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 166 26.525 -34.075 2020-03-15 293.23 294.4926 296.3880     -1.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 167 26.525 -34.075 2020-03-16 293.51 294.4895 296.3906     -0.98 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 168 26.525 -34.075 2020-03-17 293.26 294.4865 296.3934     -1.23 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 169 26.525 -34.075 2020-03-18 292.48 294.4830 296.3931     -2.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 170 26.525 -34.075 2020-03-19 290.79 294.4788 296.3915     -3.69 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 171 26.525 -34.075 2020-03-20 291.77 294.4736 296.3867     -2.70 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 172 26.525 -34.075 2020-03-21 293.58 294.4670 296.3766     -0.89 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 173 26.525 -34.075 2020-03-22 293.55 294.4592 296.3629     -0.91 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 174 26.525 -34.075 2020-03-23 293.64 294.4503 296.3543     -0.81 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 175 26.525 -34.075 2020-03-24 293.30 294.4406 296.3471     -1.14 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 176 26.525 -34.075 2020-03-25 293.07 294.4294 296.3367     -1.36 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 177 26.525 -34.075 2020-03-26 294.54 294.4161 296.3245      0.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 178 26.525 -34.075 2020-03-27 295.63 294.4011 296.3102      1.23 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 179 26.525 -34.075 2020-03-28 295.71 294.3837 296.2907      1.33 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 180 26.525 -34.075 2020-03-29 295.23 294.3651 296.2688      0.86 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 181 26.525 -34.075 2020-03-30 295.46 294.3449 296.2443      1.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 182 26.525 -34.075 2020-03-31 295.38 294.3247 296.2217      1.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 183 26.525 -34.025 2020-01-01 291.78 293.5506 295.2301     -1.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 184 26.525 -34.025 2020-01-02 292.11 293.5938 295.2672     -1.48 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 185 26.525 -34.025 2020-01-03 292.26 293.6377 295.3063     -1.38 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 186 26.525 -34.025 2020-01-04 292.87 293.6813 295.3477     -0.81 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 187 26.525 -34.025 2020-01-05 293.35 293.7244 295.3932     -0.37 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 188 26.525 -34.025 2020-01-06 293.65 293.7672 295.4405     -0.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 189 26.525 -34.025 2020-01-07 294.19 293.8075 295.4865      0.38 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 190 26.525 -34.025 2020-01-08 293.34 293.8442 295.5302     -0.50 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 191 26.525 -34.025 2020-01-09 293.87 293.8774 295.5747     -0.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 192 26.525 -34.025 2020-01-10 293.62 293.9081 295.6187     -0.29 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 193 26.525 -34.025 2020-01-11 294.51 293.9374 295.6606      0.57 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 194 26.525 -34.025 2020-01-12 295.38 293.9646 295.7000      1.42 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 195 26.525 -34.025 2020-01-13 294.26 293.9899 295.7362      0.27 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196 26.525 -34.025 2020-01-14 292.02 294.0135 295.7673     -1.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197 26.525 -34.025 2020-01-15 292.33 294.0369 295.7976     -1.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198 26.525 -34.025 2020-01-16 292.91 294.0601 295.8261     -1.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199 26.525 -34.025 2020-01-17 292.64 294.0831 295.8517     -1.44 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200 26.525 -34.025 2020-01-18 293.06 294.1069 295.8778     -1.05 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 201 26.525 -34.025 2020-01-19 293.54 294.1322 295.9040     -0.59 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 202 26.525 -34.025 2020-01-20 293.85 294.1588 295.9301     -0.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 203 26.525 -34.025 2020-01-21 294.19 294.1855 295.9563      0.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 204 26.525 -34.025 2020-01-22 292.22 294.2103 295.9827     -1.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 205 26.525 -34.025 2020-01-23 292.87 294.2336 296.0092     -1.36 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 206 26.525 -34.025 2020-01-24 291.73 294.2553 296.0347     -2.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 207 26.525 -34.025 2020-01-25 289.45 294.2756 296.0603     -4.83 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 208 26.525 -34.025 2020-01-26 289.51 294.2935 296.0845     -4.78 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 209 26.525 -34.025 2020-01-27 292.76 294.3085 296.1058     -1.55 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 210 26.525 -34.025 2020-01-28 293.32 294.3204 296.1255     -1.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 211 26.525 -34.025 2020-01-29 293.47 294.3299 296.1394     -0.86 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 212 26.525 -34.025 2020-01-30 293.68 294.3376 296.1513     -0.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 213 26.525 -34.025 2020-01-31 293.87 294.3442 296.1610     -0.47 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 214 26.525 -34.025 2020-02-01 293.90 294.3496 296.1668     -0.45 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 215 26.525 -34.025 2020-02-02 296.26 294.3546 296.1704      1.91  TRUE      100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 216 26.525 -34.025 2020-02-03 296.39 294.3584 296.1705      2.03  TRUE      100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 217 26.525 -34.025 2020-02-04 296.56 294.3616 296.1658      2.20  TRUE      100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 218 26.525 -34.025 2020-02-05 296.32 294.3637 296.1560      1.96  TRUE      100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 219 26.525 -34.025 2020-02-06 296.47 294.3649 296.1442      2.11  TRUE      100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 220 26.525 -34.025 2020-02-07 295.22 294.3662 296.1313      0.85 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 221 26.525 -34.025 2020-02-08 294.15 294.3680 296.1175     -0.22 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 222 26.525 -34.025 2020-02-09 294.37 294.3694 296.1003      0.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 223 26.525 -34.025 2020-02-10 294.04 294.3702 296.0808     -0.33 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 224 26.525 -34.025 2020-02-11 292.49 294.3695 296.0623     -1.88 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 225 26.525 -34.025 2020-02-12 292.37 294.3680 296.0473     -2.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 226 26.525 -34.025 2020-02-13 292.30 294.3658 296.0359     -2.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 227 26.525 -34.025 2020-02-14 292.34 294.3630 296.0290     -2.02 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 228 26.525 -34.025 2020-02-15 292.28 294.3581 296.0237     -2.08 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 229 26.525 -34.025 2020-02-16 292.92 294.3511 296.0172     -1.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 230 26.525 -34.025 2020-02-17 292.60 294.3416 296.0101     -1.74 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 231 26.525 -34.025 2020-02-18 292.61 294.3299 296.0017     -1.72 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 232 26.525 -34.025 2020-02-19 292.23 294.3160 295.9924     -2.09 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 233 26.525 -34.025 2020-02-20 292.03 294.3003 295.9821     -2.27 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 234 26.525 -34.025 2020-02-21 292.66 294.2835 295.9712     -1.62 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 235 26.525 -34.025 2020-02-22 292.51 294.2674 295.9563     -1.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 236 26.525 -34.025 2020-02-23 296.60 294.2517 295.9382      2.35 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 237 26.525 -34.025 2020-02-24 295.18 294.2368 295.9202      0.94 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 238 26.525 -34.025 2020-02-25 294.26 294.2215 295.9011      0.04 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 239 26.525 -34.025 2020-02-26 293.45 294.2066 295.8824     -0.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 240 26.525 -34.025 2020-02-27 291.78 294.1926 295.8647     -2.41 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 241 26.525 -34.025 2020-02-28 290.49 294.1805 295.8489     -3.69 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 242 26.525 -34.025 2020-02-29 290.04 294.1692 295.8372     -4.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 243 26.525 -34.025 2020-03-01 289.88 294.1583 295.8282     -4.28 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 244 26.525 -34.025 2020-03-02 291.20 294.1475 295.8231     -2.95 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 245 26.525 -34.025 2020-03-03 291.49 294.1367 295.8202     -2.65 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 246 26.525 -34.025 2020-03-04 291.38 294.1252 295.8202     -2.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 247 26.525 -34.025 2020-03-05 290.80 294.1136 295.8220     -3.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 248 26.525 -34.025 2020-03-06 290.73 294.1016 295.8242     -3.37 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 249 26.525 -34.025 2020-03-07 290.56 294.0910 295.8261     -3.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 250 26.525 -34.025 2020-03-08 290.07 294.0820 295.8283     -4.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 251 26.525 -34.025 2020-03-09 290.59 294.0740 295.8315     -3.48 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 252 26.525 -34.025 2020-03-10 291.49 294.0664 295.8437     -2.58 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 253 26.525 -34.025 2020-03-11 292.25 294.0596 295.8580     -1.81 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 254 26.525 -34.025 2020-03-12 291.39 294.0533 295.8738     -2.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 255 26.525 -34.025 2020-03-13 291.07 294.0473 295.8888     -2.98 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 256 26.525 -34.025 2020-03-14 290.87 294.0411 295.9008     -3.17 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 257 26.525 -34.025 2020-03-15 292.04 294.0341 295.9076     -1.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 258 26.525 -34.025 2020-03-16 292.26 294.0266 295.9132     -1.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 259 26.525 -34.025 2020-03-17 291.90 294.0195 295.9137     -2.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 260 26.525 -34.025 2020-03-18 290.69 294.0120 295.9149     -3.32 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 261 26.525 -34.025 2020-03-19 288.78 294.0041 295.9116     -5.22 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 262 26.525 -34.025 2020-03-20 290.39 293.9954 295.9032     -3.61 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 263 26.525 -34.025 2020-03-21 291.91 293.9853 295.8919     -2.08 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 264 26.525 -34.025 2020-03-22 291.89 293.9741 295.8812     -2.08 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 265 26.525 -34.025 2020-03-23 293.06 293.9620 295.8705     -0.90 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 266 26.525 -34.025 2020-03-24 292.82 293.9495 295.8622     -1.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 267 26.525 -34.025 2020-03-25 292.52 293.9366 295.8544     -1.42 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 268 26.525 -34.025 2020-03-26 294.35 293.9225 295.8440      0.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 269 26.525 -34.025 2020-03-27 295.08 293.9073 295.8315      1.17 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 270 26.525 -34.025 2020-03-28 294.91 293.8899 295.8176      1.02 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 271 26.525 -34.025 2020-03-29 294.15 293.8715 295.8026      0.28 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 272 26.525 -34.025 2020-03-30 294.64 293.8517 295.7851      0.79 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 273 26.525 -34.025 2020-03-31 294.54 293.8319 295.7675      0.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 274 26.575 -34.125 2020-01-01 292.31 294.7673 296.3727     -2.46 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 275 26.575 -34.125 2020-01-02 291.93 294.8112 296.4092     -2.88 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 276 26.575 -34.125 2020-01-03 292.25 294.8551 296.4460     -2.61 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 277 26.575 -34.125 2020-01-04 293.23 294.8984 296.4861     -1.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 278 26.575 -34.125 2020-01-05 293.87 294.9415 296.5261     -1.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 279 26.575 -34.125 2020-01-06 294.26 294.9839 296.5711     -0.72 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 280 26.575 -34.125 2020-01-07 294.91 295.0239 296.6176     -0.11 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 281 26.575 -34.125 2020-01-08 294.63 295.0606 296.6637     -0.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 282 26.575 -34.125 2020-01-09 296.19 295.0941 296.7082      1.10 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 283 26.575 -34.125 2020-01-10 296.59 295.1257 296.7545      1.46 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 284 26.575 -34.125 2020-01-11 295.57 295.1570 296.8011      0.41 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 285 26.575 -34.125 2020-01-12 296.40 295.1878 296.8469      1.21 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 286 26.575 -34.125 2020-01-13 295.88 295.2179 296.8908      0.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 287 26.575 -34.125 2020-01-14 293.92 295.2470 296.9332     -1.33 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 288 26.575 -34.125 2020-01-15 293.39 295.2759 296.9732     -1.89 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 289 26.575 -34.125 2020-01-16 294.74 295.3044 297.0125     -0.56 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 290 26.575 -34.125 2020-01-17 294.88 295.3329 297.0490     -0.45 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 291 26.575 -34.125 2020-01-18 294.94 295.3616 297.0844     -0.42 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 292 26.575 -34.125 2020-01-19 295.19 295.3913 297.1170     -0.20 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 293 26.575 -34.125 2020-01-20 295.25 295.4213 297.1502     -0.17 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 294 26.575 -34.125 2020-01-21 295.40 295.4505 297.1822     -0.05 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 295 26.575 -34.125 2020-01-22 292.71 295.4764 297.2135     -2.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 296 26.575 -34.125 2020-01-23 293.08 295.4994 297.2429     -2.42 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 297 26.575 -34.125 2020-01-24 293.17 295.5197 297.2729     -2.35 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 298 26.575 -34.125 2020-01-25 292.76 295.5380 297.3029     -2.78 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 299 26.575 -34.125 2020-01-26 292.72 295.5538 297.3342     -2.83 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 300 26.575 -34.125 2020-01-27 294.91 295.5668 297.3649     -0.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 301 26.575 -34.125 2020-01-28 295.37 295.5766 297.3956     -0.21 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 302 26.575 -34.125 2020-01-29 295.81 295.5850 297.4259      0.23 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 303 26.575 -34.125 2020-01-30 295.35 295.5925 297.4556     -0.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 304 26.575 -34.125 2020-01-31 294.96 295.6000 297.4846     -0.64 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 305 26.575 -34.125 2020-02-01 294.97 295.6072 297.5135     -0.64 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 306 26.575 -34.125 2020-02-02 296.91 295.6148 297.5426      1.30 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 307 26.575 -34.125 2020-02-03 297.37 295.6212 297.5677      1.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 308 26.575 -34.125 2020-02-04 297.41 295.6271 297.5890      1.78 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 309 26.575 -34.125 2020-02-05 297.10 295.6311 297.6073      1.47 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 310 26.575 -34.125 2020-02-06 297.35 295.6341 297.6190      1.72 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 311 26.575 -34.125 2020-02-07 295.99 295.6363 297.6284      0.35 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 312 26.575 -34.125 2020-02-08 294.85 295.6382 297.6355     -0.79 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 313 26.575 -34.125 2020-02-09 294.74 295.6384 297.6355     -0.90 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 314 26.575 -34.125 2020-02-10 295.05 295.6366 297.6325     -0.59 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 315 26.575 -34.125 2020-02-11 296.70 295.6314 297.6266      1.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 316 26.575 -34.125 2020-02-12 296.84 295.6236 297.6171      1.22 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 317 26.575 -34.125 2020-02-13 296.76 295.6135 297.6049      1.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 318 26.575 -34.125 2020-02-14 296.49 295.6023 297.5925      0.89 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 319 26.575 -34.125 2020-02-15 296.23 295.5899 297.5802      0.64 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 320 26.575 -34.125 2020-02-16 296.40 295.5763 297.5656      0.82 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 321 26.575 -34.125 2020-02-17 295.29 295.5615 297.5520     -0.27 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 322 26.575 -34.125 2020-02-18 294.15 295.5454 297.5381     -1.40 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 323 26.575 -34.125 2020-02-19 293.72 295.5279 297.5251     -1.81 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 324 26.575 -34.125 2020-02-20 293.97 295.5096 297.5098     -1.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 325 26.575 -34.125 2020-02-21 294.57 295.4919 297.4943     -0.92 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 326 26.575 -34.125 2020-02-22 294.87 295.4771 297.4791     -0.61 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 327 26.575 -34.125 2020-02-23 298.60 295.4659 297.4664      3.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 328 26.575 -34.125 2020-02-24 298.69 295.4585 297.4551      3.23 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 329 26.575 -34.125 2020-02-25 298.25 295.4526 297.4440      2.80 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 330 26.575 -34.125 2020-02-26 297.87 295.4478 297.4327      2.42 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 331 26.575 -34.125 2020-02-27 296.71 295.4440 297.4244      1.27 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 332 26.575 -34.125 2020-02-28 295.36 295.4419 297.4175     -0.08 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 333 26.575 -34.125 2020-02-29 294.16 295.4405 297.4111     -1.28 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 334 26.575 -34.125 2020-03-01 293.20 295.4396 297.4053     -2.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 335 26.575 -34.125 2020-03-02 292.31 295.4391 297.4007     -3.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 336 26.575 -34.125 2020-03-03 291.75 295.4386 297.3985     -3.69 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 337 26.575 -34.125 2020-03-04 291.68 295.4376 297.3962     -3.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 338 26.575 -34.125 2020-03-05 293.35 295.4352 297.3952     -2.09 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 339 26.575 -34.125 2020-03-06 293.50 295.4316 297.3950     -1.93 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 340 26.575 -34.125 2020-03-07 293.19 295.4292 297.3960     -2.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 341 26.575 -34.125 2020-03-08 291.27 295.4284 297.4002     -4.16 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 342 26.575 -34.125 2020-03-09 291.91 295.4286 297.4061     -3.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 343 26.575 -34.125 2020-03-10 292.98 295.4298 297.4128     -2.45 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 344 26.575 -34.125 2020-03-11 293.85 295.4324 297.4209     -1.58 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 345 26.575 -34.125 2020-03-12 293.62 295.4368 297.4289     -1.82 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 346 26.575 -34.125 2020-03-13 293.15 295.4418 297.4354     -2.29 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 347 26.575 -34.125 2020-03-14 292.73 295.4470 297.4418     -2.72 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 348 26.575 -34.125 2020-03-15 296.02 295.4513 297.4492      0.57 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 349 26.575 -34.125 2020-03-16 295.94 295.4550 297.4565      0.49 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 350 26.575 -34.125 2020-03-17 295.57 295.4580 297.4630      0.11 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 351 26.575 -34.125 2020-03-18 295.27 295.4600 297.4718     -0.19 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 352 26.575 -34.125 2020-03-19 294.64 295.4604 297.4797     -0.82 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 353 26.575 -34.125 2020-03-20 294.04 295.4592 297.4868     -1.42 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 354 26.575 -34.125 2020-03-21 294.67 295.4559 297.4853     -0.79 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 355 26.575 -34.125 2020-03-22 294.70 295.4510 297.4812     -0.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 356 26.575 -34.125 2020-03-23 294.32 295.4443 297.4777     -1.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 357 26.575 -34.125 2020-03-24 294.77 295.4363 297.4741     -0.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 358 26.575 -34.125 2020-03-25 294.85 295.4258 297.4693     -0.58 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 359 26.575 -34.125 2020-03-26 295.98 295.4122 297.4622      0.57 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 360 26.575 -34.125 2020-03-27 297.07 295.3967 297.4528      1.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 361 26.575 -34.125 2020-03-28 297.04 295.3793 297.4349      1.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 362 26.575 -34.125 2020-03-29 296.79 295.3605 297.4136      1.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 363 26.575 -34.125 2020-03-30 296.91 295.3405 297.3901      1.57 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 364 26.575 -34.125 2020-03-31 296.89 295.3207 297.3662      1.57 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 365 26.575 -34.075 2020-01-01 291.60 294.2019 295.8009     -2.60 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 366 26.575 -34.075 2020-01-02 291.60 294.2464 295.8371     -2.65 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 367 26.575 -34.075 2020-01-03 291.93 294.2909 295.8780     -2.36 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 368 26.575 -34.075 2020-01-04 292.80 294.3348 295.9183     -1.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 369 26.575 -34.075 2020-01-05 293.47 294.3783 295.9583     -0.91 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 370 26.575 -34.075 2020-01-06 293.85 294.4210 296.0008     -0.57 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 371 26.575 -34.075 2020-01-07 294.50 294.4612 296.0488      0.04 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 372 26.575 -34.075 2020-01-08 293.83 294.4977 296.0975     -0.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 373 26.575 -34.075 2020-01-09 295.40 294.5308 296.1429      0.87 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 374 26.575 -34.075 2020-01-10 295.31 294.5615 296.1878      0.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 375 26.575 -34.075 2020-01-11 294.87 294.5915 296.2345      0.28 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 376 26.575 -34.075 2020-01-12 295.91 294.6204 296.2808      1.29 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 377 26.575 -34.075 2020-01-13 295.17 294.6483 296.3263      0.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 378 26.575 -34.075 2020-01-14 292.58 294.6751 296.3695     -2.10 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 379 26.575 -34.075 2020-01-15 292.42 294.7019 296.4127     -2.28 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 380 26.575 -34.075 2020-01-16 293.60 294.7285 296.4574     -1.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 381 26.575 -34.075 2020-01-17 293.64 294.7551 296.4961     -1.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 382 26.575 -34.075 2020-01-18 293.94 294.7824 296.5313     -0.84 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 383 26.575 -34.075 2020-01-19 294.33 294.8111 296.5645     -0.48 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 384 26.575 -34.075 2020-01-20 294.54 294.8406 296.5981     -0.30 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 385 26.575 -34.075 2020-01-21 294.81 294.8698 296.6317     -0.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 386 26.575 -34.075 2020-01-22 292.32 294.8965 296.6621     -2.58 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 387 26.575 -34.075 2020-01-23 292.62 294.9209 296.6917     -2.30 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 388 26.575 -34.075 2020-01-24 292.05 294.9431 296.7204     -2.89 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 389 26.575 -34.075 2020-01-25 290.86 294.9635 296.7475     -4.10 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 390 26.575 -34.075 2020-01-26 290.88 294.9816 296.7726     -4.10 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 391 26.575 -34.075 2020-01-27 293.91 294.9967 296.7963     -1.09 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 392 26.575 -34.075 2020-01-28 294.50 295.0087 296.8189     -0.51 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 393 26.575 -34.075 2020-01-29 294.87 295.0190 296.8408     -0.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 394 26.575 -34.075 2020-01-30 294.51 295.0279 296.8608     -0.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 395 26.575 -34.075 2020-01-31 294.33 295.0363 296.8794     -0.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 396 26.575 -34.075 2020-02-01 294.37 295.0441 296.8971     -0.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 397 26.575 -34.075 2020-02-02 296.51 295.0520 296.9142      1.46 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 398 26.575 -34.075 2020-02-03 296.85 295.0587 296.9236      1.79 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 399 26.575 -34.075 2020-02-04 297.00 295.0647 296.9320      1.94 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 400 26.575 -34.075 2020-02-05 296.72 295.0691 296.9404      1.65 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 401 26.575 -34.075 2020-02-06 296.93 295.0725 296.9478      1.86 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 402 26.575 -34.075 2020-02-07 295.60 295.0755 296.9494      0.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 403 26.575 -34.075 2020-02-08 294.49 295.0784 296.9479     -0.59 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 404 26.575 -34.075 2020-02-09 294.44 295.0801 296.9441     -0.64 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 405 26.575 -34.075 2020-02-10 294.46 295.0802 296.9386     -0.62 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 406 26.575 -34.075 2020-02-11 295.14 295.0775 296.9300      0.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 407 26.575 -34.075 2020-02-12 294.99 295.0726 296.9224     -0.08 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 408 26.575 -34.075 2020-02-13 294.81 295.0660 296.9102     -0.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 409 26.575 -34.075 2020-02-14 294.55 295.0582 296.8978     -0.51 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 410 26.575 -34.075 2020-02-15 294.36 295.0485 296.8829     -0.69 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 411 26.575 -34.075 2020-02-16 294.76 295.0370 296.8636     -0.28 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 412 26.575 -34.075 2020-02-17 294.01 295.0234 296.8478     -1.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 413 26.575 -34.075 2020-02-18 293.25 295.0080 296.8319     -1.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 414 26.575 -34.075 2020-02-19 292.75 294.9907 296.8167     -2.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 415 26.575 -34.075 2020-02-20 292.64 294.9724 296.8025     -2.33 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 416 26.575 -34.075 2020-02-21 293.22 294.9542 296.7876     -1.73 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 417 26.575 -34.075 2020-02-22 293.41 294.9383 296.7712     -1.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 418 26.575 -34.075 2020-02-23 297.69 294.9250 296.7572      2.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 419 26.575 -34.075 2020-02-24 297.10 294.9142 296.7471      2.19 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 420 26.575 -34.075 2020-02-25 296.44 294.9042 296.7401      1.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 421 26.575 -34.075 2020-02-26 295.90 294.8953 296.7352      1.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 422 26.575 -34.075 2020-02-27 294.35 294.8875 296.7326     -0.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 423 26.575 -34.075 2020-02-28 293.21 294.8816 296.7316     -1.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 424 26.575 -34.075 2020-02-29 292.48 294.8766 296.7306     -2.40 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 425 26.575 -34.075 2020-03-01 291.74 294.8721 296.7294     -3.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 426 26.575 -34.075 2020-03-02 291.76 294.8679 296.7289     -3.11 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 427 26.575 -34.075 2020-03-03 291.57 294.8638 296.7285     -3.29 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 428 26.575 -34.075 2020-03-04 291.41 294.8591 296.7281     -3.45 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 429 26.575 -34.075 2020-03-05 291.64 294.8536 296.7285     -3.21 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 430 26.575 -34.075 2020-03-06 291.67 294.8473 296.7275     -3.18 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 431 26.575 -34.075 2020-03-07 291.45 294.8424 296.7262     -3.39 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 432 26.575 -34.075 2020-03-08 290.21 294.8393 296.7251     -4.63 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 433 26.575 -34.075 2020-03-09 290.99 294.8375 296.7240     -3.85 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 434 26.575 -34.075 2020-03-10 292.10 294.8363 296.7276     -2.74 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 435 26.575 -34.075 2020-03-11 293.01 294.8365 296.7324     -1.83 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 436 26.575 -34.075 2020-03-12 292.34 294.8379 296.7388     -2.50 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 437 26.575 -34.075 2020-03-13 291.78 294.8399 296.7455     -3.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 438 26.575 -34.075 2020-03-14 291.41 294.8417 296.7484     -3.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 439 26.575 -34.075 2020-03-15 294.51 294.8426 296.7509     -0.33 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 440 26.575 -34.075 2020-03-16 294.52 294.8427 296.7534     -0.32 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 441 26.575 -34.075 2020-03-17 294.13 294.8426 296.7579     -0.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 442 26.575 -34.075 2020-03-18 293.37 294.8418 296.7650     -1.47 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 443 26.575 -34.075 2020-03-19 292.32 294.8400 296.7712     -2.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 444 26.575 -34.075 2020-03-20 293.08 294.8369 296.7777     -1.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 445 26.575 -34.075 2020-03-21 294.12 294.8320 296.7790     -0.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 446 26.575 -34.075 2020-03-22 294.12 294.8255 296.7783     -0.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 447 26.575 -34.075 2020-03-23 294.16 294.8172 296.7733     -0.66 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 448 26.575 -34.075 2020-03-24 294.13 294.8077 296.7700     -0.68 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 449 26.575 -34.075 2020-03-25 293.98 294.7962 296.7634     -0.82 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 450 26.575 -34.075 2020-03-26 296.11 294.7823 296.7529      1.33 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 451 26.575 -34.075 2020-03-27 296.76 294.7666 296.7387      1.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 452 26.575 -34.075 2020-03-28 296.51 294.7489 296.7209      1.76 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 453 26.575 -34.075 2020-03-29 295.62 294.7297 296.6962      0.89 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 454 26.575 -34.075 2020-03-30 295.87 294.7090 296.6683      1.16 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 455 26.575 -34.075 2020-03-31 295.83 294.6882 296.6422      1.14 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 456 26.575 -34.025 2020-01-01 291.47 293.7348 295.3454     -2.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 457 26.575 -34.025 2020-01-02 291.73 293.7792 295.3819     -2.05 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 458 26.575 -34.025 2020-01-03 291.98 293.8240 295.4216     -1.84 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 459 26.575 -34.025 2020-01-04 292.70 293.8684 295.4636     -1.17 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 460 26.575 -34.025 2020-01-05 293.30 293.9123 295.5085     -0.61 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 461 26.575 -34.025 2020-01-06 293.64 293.9558 295.5555     -0.32 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 462 26.575 -34.025 2020-01-07 294.26 293.9967 295.6017      0.26 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 463 26.575 -34.025 2020-01-08 293.31 294.0339 295.6488     -0.72 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 464 26.575 -34.025 2020-01-09 294.41 294.0675 295.6974      0.34 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 465 26.575 -34.025 2020-01-10 294.12 294.0985 295.7465      0.02 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 466 26.575 -34.025 2020-01-11 294.56 294.1284 295.7970      0.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 467 26.575 -34.025 2020-01-12 295.47 294.1564 295.8460      1.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 468 26.575 -34.025 2020-01-13 294.45 294.1830 295.8907      0.27 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 469 26.575 -34.025 2020-01-14 291.87 294.2084 295.9311     -2.34 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 470 26.575 -34.025 2020-01-15 292.06 294.2338 295.9726     -2.17 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 471 26.575 -34.025 2020-01-16 293.03 294.2588 296.0136     -1.23 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 472 26.575 -34.025 2020-01-17 292.88 294.2838 296.0486     -1.40 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 473 26.575 -34.025 2020-01-18 293.29 294.3097 296.0818     -1.02 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 474 26.575 -34.025 2020-01-19 293.76 294.3373 296.1163     -0.58 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 475 26.575 -34.025 2020-01-20 294.06 294.3661 296.1503     -0.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 476 26.575 -34.025 2020-01-21 294.40 294.3950 296.1843      0.00 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 477 26.575 -34.025 2020-01-22 292.29 294.4219 296.2154     -2.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 478 26.575 -34.025 2020-01-23 292.44 294.4474 296.2464     -2.01 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 479 26.575 -34.025 2020-01-24 291.35 294.4711 296.2774     -3.12 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 480 26.575 -34.025 2020-01-25 289.24 294.4931 296.3068     -5.25 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 481 26.575 -34.025 2020-01-26 289.38 294.5128 296.3342     -5.13 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 482 26.575 -34.025 2020-01-27 293.13 294.5295 296.3604     -1.40 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 483 26.575 -34.025 2020-01-28 293.77 294.5434 296.3859     -0.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 484 26.575 -34.025 2020-01-29 294.04 294.5551 296.4046     -0.52 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 485 26.575 -34.025 2020-01-30 293.81 294.5648 296.4204     -0.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 486 26.575 -34.025 2020-01-31 293.80 294.5736 296.4334     -0.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 487 26.575 -34.025 2020-02-01 293.87 294.5813 296.4415     -0.71 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 488 26.575 -34.025 2020-02-02 296.13 294.5887 296.4476      1.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 489 26.575 -34.025 2020-02-03 296.26 294.5946 296.4489      1.67 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 490 26.575 -34.025 2020-02-04 296.46 294.5998 296.4469      1.86 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 491 26.575 -34.025 2020-02-05 296.22 294.6035 296.4425      1.62 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 492 26.575 -34.025 2020-02-06 296.41 294.6062 296.4360      1.80 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 493 26.575 -34.025 2020-02-07 295.22 294.6087 296.4283      0.61 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 494 26.575 -34.025 2020-02-08 294.22 294.6114 296.4193     -0.39 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 495 26.575 -34.025 2020-02-09 294.30 294.6133 296.4051     -0.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 496 26.575 -34.025 2020-02-10 294.07 294.6142 296.3891     -0.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 497 26.575 -34.025 2020-02-11 293.53 294.6129 296.3731     -1.08 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 498 26.575 -34.025 2020-02-12 293.23 294.6104 296.3585     -1.38 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 499 26.575 -34.025 2020-02-13 293.07 294.6066 296.3443     -1.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 500 26.575 -34.025 2020-02-14 292.85 294.6020 296.3359     -1.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 501 26.575 -34.025 2020-02-15 292.76 294.5951 296.3245     -1.84 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 502 26.575 -34.025 2020-02-16 293.28 294.5860 296.3110     -1.31 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 503 26.575 -34.025 2020-02-17 292.97 294.5746 296.2985     -1.60 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 504 26.575 -34.025 2020-02-18 292.59 294.5610 296.2871     -1.97 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 505 26.575 -34.025 2020-02-19 292.14 294.5452 296.2724     -2.41 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 506 26.575 -34.025 2020-02-20 291.90 294.5281 296.2584     -2.63 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 507 26.575 -34.025 2020-02-21 292.44 294.5107 296.2405     -2.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 508 26.575 -34.025 2020-02-22 292.34 294.4946 296.2211     -2.15 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 509 26.575 -34.025 2020-02-23 296.54 294.4799 296.2010      2.06 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 510 26.575 -34.025 2020-02-24 295.40 294.4665 296.1839      0.93 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 511 26.575 -34.025 2020-02-25 294.69 294.4529 296.1684      0.24 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 512 26.575 -34.025 2020-02-26 294.09 294.4402 296.1540     -0.35 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 513 26.575 -34.025 2020-02-27 292.36 294.4284 296.1431     -2.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 514 26.575 -34.025 2020-02-28 291.40 294.4186 296.1338     -3.02 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 515 26.575 -34.025 2020-02-29 291.04 294.4097 296.1287     -3.37 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 516 26.575 -34.025 2020-03-01 290.41 294.4014 296.1259     -3.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 517 26.575 -34.025 2020-03-02 291.49 294.3932 296.1258     -2.90 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 518 26.575 -34.025 2020-03-03 291.51 294.3848 296.1271     -2.87 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 519 26.575 -34.025 2020-03-04 291.40 294.3757 296.1296     -2.98 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 520 26.575 -34.025 2020-03-05 290.62 294.3666 296.1334     -3.75 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 521 26.575 -34.025 2020-03-06 290.59 294.3570 296.1368     -3.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 522 26.575 -34.025 2020-03-07 290.43 294.3490 296.1396     -3.92 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 523 26.575 -34.025 2020-03-08 289.80 294.3428 296.1438     -4.54 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 524 26.575 -34.025 2020-03-09 290.56 294.3377 296.1489     -3.78 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 525 26.575 -34.025 2020-03-10 291.56 294.3333 296.1547     -2.77 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 526 26.575 -34.025 2020-03-11 292.39 294.3300 296.1605     -1.94 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 527 26.575 -34.025 2020-03-12 291.54 294.3275 296.1664     -2.79 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 528 26.575 -34.025 2020-03-13 291.01 294.3255 296.1702     -3.32 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 529 26.575 -34.025 2020-03-14 290.76 294.3232 296.1725     -3.56 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 530 26.575 -34.025 2020-03-15 293.25 294.3199 296.1735     -1.07 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 531 26.575 -34.025 2020-03-16 293.33 294.3156 296.1725     -0.99 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 532 26.575 -34.025 2020-03-17 292.88 294.3114 296.1738     -1.43 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 533 26.575 -34.025 2020-03-18 291.57 294.3067 296.1759     -2.74 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 534 26.575 -34.025 2020-03-19 290.12 294.3013 296.1757     -4.18 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 535 26.575 -34.025 2020-03-20 291.74 294.2949 296.1734     -2.55 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 536 26.575 -34.025 2020-03-21 292.76 294.2871 296.1677     -1.53 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 537 26.575 -34.025 2020-03-22 292.77 294.2777 296.1606     -1.51 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 538 26.575 -34.025 2020-03-23 293.62 294.2668 296.1558     -0.65 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 539 26.575 -34.025 2020-03-24 293.53 294.2550 296.1535     -0.73 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 540 26.575 -34.025 2020-03-25 293.27 294.2422 296.1494     -0.97 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 541 26.575 -34.025 2020-03-26 296.12 294.2279 296.1394      1.89 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 542 26.575 -34.025 2020-03-27 296.41 294.2124 296.1265      2.20 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 543 26.575 -34.025 2020-03-28 295.88 294.1949 296.1106      1.69 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 544 26.575 -34.025 2020-03-29 294.56 294.1763 296.0899      0.38 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 545 26.575 -34.025 2020-03-30 295.04 294.1560 296.0669      0.88 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 546 26.575 -34.025 2020-03-31 294.98 294.1356 296.0436      0.84 FALSE       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     category</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9         NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 31        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 32        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 33        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 34        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 35        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 36        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 37        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 38        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 39        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 40        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 41        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 42        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 43        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 44        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 45        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 46        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 47        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 48        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 49        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 50        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 51        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 52        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 53        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 54        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 55        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 56        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 57        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 58        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 59        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 60        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 61        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 62        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 63        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 64        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 65        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 66        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 67        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 68        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 69        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 70        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 71        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 72        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 73        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 74        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 75        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 76        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 77        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 78        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 79        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 80        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 81        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 82        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 83        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 84        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 85        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 86        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 87        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 88        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 89        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 90        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 91        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 92        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 93        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 94        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 95        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 96        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 97        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 98        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 99        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 100       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 101       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 102       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 103       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 104       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 105       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 106       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 107       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 108       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 109       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 110       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 111       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 112       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 113       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 114       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 115       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 116       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 117       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 118       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 119       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 120       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 121       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 122       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 123       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 124       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 125       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 126       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 127       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 128       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 129       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 130       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 131       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 132       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 133       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 134       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 135       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 136       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 137       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 138       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 139       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 140       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 141       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 142       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 143       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 144       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 145       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 146       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 147       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 148       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 149       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 150       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 151       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 152       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 153       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 154       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 155       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 156       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 157       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 158       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 159       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 160       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 161       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 162       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 163       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 164       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 165       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 166       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 167       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 168       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 169       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 170       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 171       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 172       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 173       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 174       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 175       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 176       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 177       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 178       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 179       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 180       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 181       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 182       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 183       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 184       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 185       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 186       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 187       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 188       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 189       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 190       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 191       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 192       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 193       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 194       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 195       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 196       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 197       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 198       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 199       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 200       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 201       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 202       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 203       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 204       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 205       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 206       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 207       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 208       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 209       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 210       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 211       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 212       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 213       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 214       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 215        1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 216        1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 217        1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 218        1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 219        1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 220       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 221       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 222       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 223       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 224       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 225       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 226       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 227       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 228       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 229       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 230       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 231       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 232       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 233       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 234       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 235       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 236       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 237       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 238       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 239       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 240       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 241       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 242       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 243       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 244       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 245       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 246       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 247       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 248       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 249       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 250       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 251       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 252       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 253       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 254       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 255       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 256       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 257       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 258       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 259       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 260       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 261       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 262       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 263       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 264       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 265       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 266       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 267       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 268       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 269       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 270       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 271       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 272       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 273       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 274       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 275       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 276       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 277       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 278       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 279       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 280       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 281       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 282       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 283       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 284       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 285       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 286       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 287       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 288       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 289       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 290       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 291       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 292       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 293       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 294       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 295       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 296       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 297       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 298       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 299       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 300       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 301       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 302       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 303       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 304       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 305       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 306       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 307       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 308       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 309       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 310       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 311       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 312       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 313       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 314       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 315       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 316       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 317       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 318       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 319       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 320       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 321       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 322       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 323       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 324       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 325       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 326       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 327       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 328       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 329       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 330       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 331       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 332       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 333       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 334       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 335       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 336       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 337       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 338       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 339       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 340       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 341       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 342       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 343       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 344       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 345       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 346       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 347       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 348       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 349       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 350       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 351       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 352       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 353       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 354       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 355       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 356       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 357       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 358       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 359       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 360       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 361       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 362       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 363       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 364       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 365       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 366       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 367       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 368       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 369       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 370       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 371       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 372       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 373       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 374       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 375       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 376       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 377       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 378       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 379       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 380       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 381       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 382       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 383       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 384       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 385       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 386       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 387       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 388       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 389       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 390       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 391       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 392       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 393       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 394       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 395       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 396       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 397       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 398       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 399       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 400       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 401       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 402       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 403       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 404       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 405       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 406       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 407       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 408       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 409       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 410       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 411       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 412       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 413       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 414       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 415       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 416       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 417       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 418       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 419       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 420       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 421       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 422       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 423       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 424       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 425       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 426       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 427       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 428       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 429       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 430       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 431       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 432       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 433       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 434       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 435       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 436       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 437       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 438       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 439       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 440       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 441       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 442       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 443       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 444       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 445       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 446       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 447       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 448       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 449       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 450       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 451       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 452       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 453       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 454       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 455       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 456       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 457       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 458       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 459       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 460       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 461       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 462       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 463       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 464       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 465       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 466       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 467       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 468       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 469       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 470       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 471       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 472       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 473       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 474       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 475       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 476       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 477       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 478       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 479       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 480       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 481       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 482       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 483       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 484       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 485       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 486       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 487       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 488       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 489       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 490       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 491       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 492       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 493       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 494       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 495       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 496       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 497       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 498       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 499       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 500       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 501       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 502       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 503       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 504       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 505       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 506       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 507       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 508       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 509       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 510       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 511       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 512       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 513       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 514       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 515       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 516       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 517       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 518       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 519       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 520       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 521       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 522       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 523       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 524       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 525       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 526       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 527       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 528       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 529       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 530       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 531       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 532       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 533       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 534       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 535       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 536       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 537       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 538       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 539       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 540       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 541       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 542       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 543       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 544       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 545       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 546       NA</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

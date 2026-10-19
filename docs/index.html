@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Detect Heatwaves and Cold-Spells in Gridded Data">
-<meta name="description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++17 with std::thread parallelism for high performance on large datasets.">
-<meta property="og:description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the Hobday et al. (2016, 2018) definition. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in C++17 with std::thread parallelism for high performance on large datasets.">
+<meta name="description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the definition of Hobday et al. (2016) &lt;doi:10.1016/j.pocean.2015.12.014&gt; and the categories of Hobday et al. (2018) &lt;doi:10.5670/oceanog.2018.205&gt;. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in multi-threaded C++ for high performance on large datasets.">
+<meta property="og:description" content="Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded NetCDF data using the definition of Hobday et al. (2016) &lt;doi:10.1016/j.pocean.2015.12.014&gt; and the categories of Hobday et al. (2018) &lt;doi:10.5670/oceanog.2018.205&gt;. Implements climatology calculation, event detection, exceedance analysis, event categorisation, blob detection, and visualisation. All core algorithms are written in multi-threaded C++ for high performance on large datasets.">
 <meta property="og:image" content="https://robwschlegel.github.io/heatwave3/logo.png">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,7 +48,7 @@
     <li><a class="dropdown-item" href="articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
-    <li><a class="dropdown-item" href="articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
+    <li><a class="dropdown-item" href="articles/benchmark_packages.html">Performance benchmark - MHW packages</a></li>
   </ul>
 </li>
 <li class="nav-item dropdown">
@@ -171,7 +171,7 @@
 <div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="im">import</span> heatwave3 <span class="im">as</span> hw3</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>out <span class="op">=</span> hw3.detect3(<span class="st">"sst.nc"</span>, <span class="st">"run1"</span>, (<span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span>), category<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>events <span class="op">=</span> hw3.hw3_export(out[<span class="st">"events"</span>])   <span class="co"># a pandas DataFrame</span></span></code></pre></div>
-<p>Documentation: <a href="https://heatwave3.readthedocs.io" class="external-link uri">https://heatwave3.readthedocs.io</a>. The source is in <a href="python/"><code>python/</code></a>.</p>
+<p>Documentation: <a href="https://heatwave3.readthedocs.io" class="external-link uri">https://heatwave3.readthedocs.io</a>. The source is in <a href="https://github.com/robwschlegel/heatwave3/tree/main/python" class="external-link"><code>python/</code></a>.</p>
 </div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -182,11 +182,11 @@
 <p>The <code>dev</code> branch contains all of the most cutting-edge things being developed:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3@dev"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"robwschlegel/heatwave3@dev"</span><span class="op">)</span></span></code></pre></div>
 <p>If however you feel like playing it safe, the main branch is the way to go:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"robwschlegel/heatwave3"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
@@ -430,6 +430,7 @@
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
 <li><a href="https://github.com/robwschlegel/heatwave3/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/robwschlegel/heatwave3/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -458,8 +459,8 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Robert W. Schlegel <br><small class="roles"> Author, copyright holder </small> <a href="https://orcid.org/0000-0002-0705-1287" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
-<li>Albertus J. Smit <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-3799-6126" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Robert W. Schlegel <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0002-0705-1287" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Albertus J. Smit <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-3799-6126" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 

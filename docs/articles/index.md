@@ -10,8 +10,8 @@
   parallelism](https://robwschlegel.github.io/heatwave3/articles/parallelism.md):
 - [Performance benchmark: heatwave3 vs
   heatwaveR](https://robwschlegel.github.io/heatwave3/articles/benchmark.md):
-- [Performance benchmark: heatwave3 vs
-  xmhw](https://robwschlegel.github.io/heatwave3/articles/benchmark_xmhw.md):
+- [Performance benchmark: heatwave3 vs other MHW
+  packages](https://robwschlegel.github.io/heatwave3/articles/benchmark_packages.md):
 
 ### Depth-resolved (4D) analysis
 

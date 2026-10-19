@@ -136,7 +136,10 @@ day, using the `daily` table:
 
 \
 [`ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)`(``dd``, `[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``x ``=`` ``date``)``)`` ``+`\
-`  `[`geom_ribbon`](https://ggplot2.tidyverse.org/reference/geom_ribbon.html)`(`[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``ymin ``=`` ``depth_min_m``, ymax ``=`` ``depth_max_m``, fill ``=`` ``mean_delta``)``)`` ``+`\
+`  ``# One rectangle per day: a ribbon with varying fill needs gradient support`\
+`  ``# from the graphics device, which not every device has.`\
+`  `[`geom_rect`](https://ggplot2.tidyverse.org/reference/geom_tile.html)`(`[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``xmin ``=`` ``date`` ``-`` ``0.5``, xmax ``=`` ``date`` ``+`` ``0.5``,`\
+`                ymin ``=`` ``depth_min_m``, ymax ``=`` ``depth_max_m``, fill ``=`` ``mean_delta``)``)`` ``+`\
 `  `[`scale_y_reverse`](https://ggplot2.tidyverse.org/reference/scale_continuous.html)`(``name ``=`` ``"depth (m)"``)`` ``+`\
 `  `[`scale_fill_viridis_c`](https://ggplot2.tidyverse.org/reference/scale_viridis.html)`(``name ``=`` `[`expression`](https://rdrr.io/r/base/expression.html)`(``Delta``*``"T ("`` ``*`` ``degree`` ``*`` ``"C)"``)``, option ``=`` ``"inferno"``)`` ``+`\
 `  `[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``title ``=`` `[`paste`](https://rdrr.io/r/base/paste.html)`(``"Vertical extent of blob"``, ``b``)``, x ``=`` ``NULL``)`` ``+`\

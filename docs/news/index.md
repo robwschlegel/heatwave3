@@ -1,5 +1,41 @@
 # Changelog
 
+## heatwave3 1.4.1
+
+Preparation for CRAN, and coastlines in the Python maps. Results are
+unchanged. This version is not released on PyPI; the Python package
+stays at 1.4.0 there.
+
+- **Default thread count.** The default (half of the cores) is now at
+  most 2 when `_R_CHECK_LIMIT_CORES_` is set (as by
+  `R CMD check --as-cran`), and at most `OMP_THREAD_LIMIT` when that is
+  set, as CRAN requires. An explicit `n_threads`,
+  [`setHW3threads()`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)
+  or `R_HEATWAVE3_NUM_THREADS` is used as given.
+- **[`plot_metric3()`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md)
+  (R)** draws the coastline only when `rnaturalearthdata` is installed
+  as well as `rnaturalearth` and `sf`; without it, rnaturalearth tried
+  to install it. `rnaturalearthdata` is now in Suggests.
+- **[`plot_metric3()`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md)
+  (Python)** draws the coastline whenever `cartopy` is installed, and
+  `cartopy` is now part of the `[plot]` extra. Only the part of the
+  coastline inside the map is drawn, so saved vector files stay small.
+- **Windows:** netCDF is linked from Rtools with `pkg-config`; nothing
+  is downloaded when the package is installed.
+- **Examples** of
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
+  [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md),
+  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/reference/exceedance3.md)
+  and
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md)
+  now run on the bundled data (`\donttest{}`).
+- **Documentation:** a new article compares heatwave3 with heatwaveR,
+  marineHeatWaves and xmhw on the Bay of Biscay GLORYS12 series
+  (replacing the xmhw article, whose address now redirects to it), with
+  a matching page in the Python documentation.
+- **Maintainer:** Robert W. Schlegel. Albertus J. Smit remains an
+  author.
+
 ## heatwave3 1.4.0
 
 ### Breaking changes: outputs now match heatwaveR exactly
@@ -8,14 +44,13 @@ heatwaveR is the reference for every heatwave3 output. On the bundled
 `sst_test.nc` data (heatwaves and cold-spells), the climatology, all
 event metrics, the event categories with `p_moderate` to `p_extreme`,
 and the daily categories are now identical to
-[`heatwaveR::ts2clm()`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html),
-[`detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)
-and
-[`category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html).
+[`heatwaveR::ts2clm()`](https://rdrr.io/pkg/heatwaveR/man/ts2clm.html),
+[`detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html)
+and [`category()`](https://rdrr.io/pkg/heatwaveR/man/category.html).
 Files written by earlier versions differ; regenerate them.
 
 - **`p_moderate`, `p_strong`, `p_severe`, `p_extreme`** are now, as in
-  [`heatwaveR::category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html),
+  [`heatwaveR::category()`](https://rdrr.io/pkg/heatwaveR/man/category.html),
   the percentages of the event’s days at or beyond each category level
   (whole numbers, rounded half to even). The levels are
   `thresh + k * diff` (k = 0 to 3, `diff = thresh - seas`), each rounded
@@ -55,7 +90,7 @@ Files written by earlier versions differ; regenerate them.
 - **Known differences from heatwaveR**, both heatwaveR issues to be
   fixed there: the season is that of the event’s peak month (December to
   February = summer in the southern hemisphere), whereas
-  [`heatwaveR::category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html)
+  [`heatwaveR::category()`](https://rdrr.io/pkg/heatwaveR/man/category.html)
   uses calendar quarters; and heatwaveR joins up to `maxGap`
   non-exceeding days at the very end of the series into the last event,
   whereas heatwave3 ends the event on its last exceeding day.
@@ -590,7 +625,7 @@ Files written by earlier versions differ; regenerate them.
   daily files. Non-zero, non-missing values are treated as `TRUE`, and
   the secondary pass uses `minDuration2` and `maxGap2` with the same
   event logic as
-  [`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html).
+  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html).
 
 - **CSV and Parquet companion exports are chunked.**
   [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
@@ -680,7 +715,7 @@ Files written by earlier versions differ; regenerate them.
   [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
   has always done in `compute_pixel_clim`), filling missing dates with
   `NA`. `proto_event()` then breaks runs at the gap exactly as
-  [`heatwaveR::detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)
+  [`heatwaveR::detect_event()`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html)
   does via `make_whole()`. Verified by pixel-by-pixel agreement with
   heatwaveR (1705 / 1705 events on a Cape Town OSTIA region match
   exactly: same count, same date_start / peak / end, same duration,

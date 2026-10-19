@@ -96,7 +96,7 @@ stem <- file.path(tempdir(), "demo")
 
 ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
 #> 
@@ -106,11 +106,11 @@ ts2clm3(sst_file, name = stem,
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -134,8 +134,8 @@ ts2clm3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 event_line3(sst_file, paste0(stem, "_clim.nc"),

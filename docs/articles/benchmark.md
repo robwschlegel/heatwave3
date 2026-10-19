@@ -77,7 +77,7 @@ pre-loaded to isolate computation from I/O) and extrapolate to the full
 grid.
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwaveR`](https://robwschlegel.github.io/heatwaveR/)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwaveR`](https://robwschlegel.github.io/heatwaveR/index.html)`)`\
 [`library`](https://rdrr.io/r/base/library.html)`(`[`ncdf4`](https://cirrus.ucsd.edu/~pierce/ncdf/)`)`\
 \
 `nc`` ``<-`` `[`nc_open`](https://rdrr.io/pkg/ncdf4/man/nc_open.html)`(``sst_file``)`\
@@ -94,9 +94,9 @@ grid.
 \
 `t_hwr`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(``{`\
 `  ``for`` ``(``j`` ``in`` ``ocean_idx``[``1``:``n_test``]``)`` ``{`\
-`    ``clm`` ``<-`` `[`ts2clm`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``t ``=`` ``dates``, temp ``=`` `[`as.numeric`](https://rdrr.io/r/base/numeric.html)`(``sst_col``[``j``, ``]``)``)``,`\
+`    ``clm`` ``<-`` `[`ts2clm`](https://rdrr.io/pkg/heatwaveR/man/ts2clm.html)`(`[`data.frame`](https://rdrr.io/r/base/data.frame.html)`(``t ``=`` ``dates``, temp ``=`` `[`as.numeric`](https://rdrr.io/r/base/numeric.html)`(``sst_col``[``j``, ``]``)``)``,`\
 `                  climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``)`\
-`    ``ev`` ``<-`` `[`detect_event`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)`(``clm``)`\
+`    ``ev`` ``<-`` `[`detect_event`](https://rdrr.io/pkg/heatwaveR/man/detect_event.html)`(``clm``)`\
 `  ``}`\
 `}``)`\
 \

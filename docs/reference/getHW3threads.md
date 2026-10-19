@@ -25,9 +25,11 @@ Integer: the current (or newly set) thread count.
 ## Details
 
 The default is 50 percent of available cores, which can be overridden by
-the environment variable `R_HEATWAVE3_NUM_THREADS`. The per-function
-`n_threads` parameter, when greater than zero, takes precedence over the
-package-level setting for that call.
+the environment variable `R_HEATWAVE3_NUM_THREADS`. Without that
+variable, the default is at most 2 when `_R_CHECK_LIMIT_CORES_` is set
+(as by `R CMD check --as-cran`) and at most `OMP_THREAD_LIMIT` when that
+is set. The per-function `n_threads` parameter, when greater than zero,
+takes precedence over the package-level setting for that call.
 
 ## Examples
 

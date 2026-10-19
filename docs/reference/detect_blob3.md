@@ -160,54 +160,216 @@ for per-pixel event detection (different from spatial blob detection).
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
-sst_file <- "/path/to/sst.nc"
+# \donttest{
+sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 stem <- tempfile()
 
 # Step 1: compute climatology
 ts2clm3(sst_file, name = stem,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
-        n_threads = 4)
+        n_threads = 2)
+#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...
+#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
+#> Computing climatology with 2 thread(s)...
+#> 
+  6/6 pixels (100%)
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc...
+#> Done.
+#> 
+#> ------------------------------------------------------------------
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc
+#> Rows (long format): 2,196   grid: 2 lon x 3 lat
+#> 
+#> Head:
+#>      lon     lat doy     seas   thresh
+#> 1 26.525 -34.125   1 294.4208 295.9951
+#> 2 26.525 -34.125   2 294.4648 296.0311
+#> 3 26.525 -34.125   3 294.5088 296.0720
+#> 4 26.525 -34.125   4 294.5524 296.1133
+#> 5 26.525 -34.125   5 294.5955 296.1553
+#> 
+#> Tail:
+#>         lon     lat doy     seas   thresh
+#> 2192 26.575 -34.025 362 293.5308 295.1848
+#> 2193 26.575 -34.025 363 293.5672 295.2141
+#> 2194 26.575 -34.025 364 293.6065 295.2460
+#> 2195 26.575 -34.025 365 293.6480 295.2776
+#> 2196 26.575 -34.025 366 293.6907 295.3100
+#> 
+#> Summary:
+#>   ocean pixels (valid climatology): 6
+#>   seas:   291.1 to 295.6
+#>   thresh: 292.4 to 297.6
+#> 
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> ------------------------------------------------------------------
 
 # Step 2: detect spatial blobs (heatwaves)
 blobs <- detect_blob3(
   sst_file  = sst_file,
   clim_file = paste0(stem, "_clim.nc"),
-  minVoxels = 200,
   topN      = 10,
   return    = c("event", "daily", "voxel")
 )
 
 head(blobs$event)   # summary per blob
+#>   blob duration date_start   date_end  date_peak cumI_km2_day peakArea_km2
+#> 1   42       29 1986-02-25 1986-03-25 1986-02-25     8953.650     153.9682
+#> 2  549       28 2018-09-09 2018-10-06 2018-09-10     8799.842     153.9682
+#> 3  465       36 2013-09-03 2013-10-08 2013-09-04     7928.461     153.9682
+#> 4   10       22 1982-11-06 1982-11-27 1982-11-11     6898.510     153.9682
+#> 5  570       23 2019-10-19 2019-11-10 2019-10-21     6753.086     153.9682
+#> 6   54       16 1987-01-21 1987-02-05 1987-01-21     6076.573     153.9682
+#>   meanArea_km2 centroid_lon centroid_lat rank
+#> 1     117.7061     26.54718    -34.06220    1
+#> 2     145.7194     26.54984    -34.07530    2
+#> 3     116.9140     26.54817    -34.06614    3
+#> 4     130.6397     26.54911    -34.07498    4
+#> 5     121.6198     26.54794    -34.06994    5
+#> 6     144.3490     26.54944    -34.07276    6
 head(blobs$daily)   # daily progression
+#>   blob t_idx  area_km2 mean_delta max_delta centroid_lon centroid_lat lon_min
+#> 1   10   310  51.29244   1.661800    1.7342       26.550    -34.12500  26.525
+#> 2   10   311 102.61519   1.996661    2.3603       26.550    -34.09999  26.525
+#> 3   10   312 102.61519   1.978866    2.2918       26.550    -34.09999  26.525
+#> 4   10   313 128.29170   1.906916    2.2238       26.545    -34.08498  26.525
+#> 5   10   314 102.61519   1.755398    1.8569       26.550    -34.09999  26.525
+#> 6   10   315 153.96821   1.674754    1.7319       26.550    -34.07498  26.525
+#>   lon_max lat_min lat_max n_cells       date
+#> 1  26.575 -34.125 -34.125       2 1982-11-06
+#> 2  26.575 -34.125 -34.075       4 1982-11-07
+#> 3  26.575 -34.125 -34.075       4 1982-11-08
+#> 4  26.575 -34.125 -34.025       5 1982-11-09
+#> 5  26.575 -34.125 -34.075       4 1982-11-10
+#> 6  26.575 -34.125 -34.025       6 1982-11-11
 head(blobs$voxel)   # full spatial footprint
+#>   blob    lon     lat t_idx       date  delta
+#> 1   10 26.525 -34.125   310 1982-11-06 1.5894
+#> 2   10 26.575 -34.125   310 1982-11-06 1.7342
+#> 3   10 26.525 -34.125   311 1982-11-07 2.3603
+#> 4   10 26.575 -34.125   311 1982-11-07 2.0639
+#> 5   10 26.525 -34.075   311 1982-11-07 1.9020
+#> 6   10 26.575 -34.075   311 1982-11-07 1.6607
 
 # Step 2b: detect cold-spell blobs (use pctile = 10 climatology)
 stem_cold <- tempfile()
 ts2clm3(sst_file, name = stem_cold,
         climatologyPeriod = c("1982-01-01", "2011-12-31"),
-        pctile = 10, n_threads = 4)
+        pctile = 10, n_threads = 2)
+#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...
+#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
+#> Computing climatology with 2 thread(s)...
+#> 
+  6/6 pixels (100%)
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc...
+#> Done.
+#> 
+#> ------------------------------------------------------------------
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc
+#> Rows (long format): 2,196   grid: 2 lon x 3 lat
+#> 
+#> Head:
+#>      lon     lat doy     seas   thresh
+#> 1 26.525 -34.125   1 294.4208 292.6104
+#> 2 26.525 -34.125   2 294.4648 292.6534
+#> 3 26.525 -34.125   3 294.5088 292.6952
+#> 4 26.525 -34.125   4 294.5524 292.7380
+#> 5 26.525 -34.125   5 294.5955 292.7771
+#> 
+#> Tail:
+#>         lon     lat doy     seas   thresh
+#> 2192 26.575 -34.025 362 293.5308 291.6945
+#> 2193 26.575 -34.025 363 293.5672 291.7234
+#> 2194 26.575 -34.025 364 293.6065 291.7597
+#> 2195 26.575 -34.025 365 293.6480 291.8034
+#> 2196 26.575 -34.025 366 293.6907 291.8467
+#> 
+#> Summary:
+#>   ocean pixels (valid climatology): 6
+#>   seas:   291.1 to 295.6
+#>   thresh: 289.7 to 293.5
+#> 
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> ------------------------------------------------------------------
 
 mcs <- detect_blob3(
   sst_file   = sst_file,
   clim_file  = paste0(stem_cold, "_clim.nc"),
   coldSpells = TRUE,
-  minVoxels  = 200,
   topN       = 6
 )
 
 # Step 2c: depth-resolved blobs, connected through the water column too
+glorys_file <- system.file("extdata/glorys_depth_test.nc", package = "heatwave3")
 stem_4d <- tempfile()
-ts2clm3(sst_file, name = stem_4d,
-        climatologyPeriod = c("1982-01-01", "2011-12-31"),
-        depth_range = c(0, 100), n_threads = 4)
+ts2clm3(glorys_file, name = stem_4d,
+        climatologyPeriod = c("1993-01-01", "2019-12-31"),
+        depth_range = c(0, 10), n_threads = 2)
+#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/glorys_depth_test.nc...
+#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels
+#> Computing climatology with 2 thread(s)...
+#> 
+  20/20 pixels (100%)
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc...
+#> Done.
+#> 
+#> ------------------------------------------------------------------
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc
+#> Rows (long format): 7,320   grid: 2 lon x 2 lat
+#> 
+#> Head:
+#>        lon       lat doy    seas  thresh    depth
+#> 1 25.16667 -34.91667   1 24.4421 25.7957 0.494025
+#> 2 25.16667 -34.91667   2 24.4798 25.8305 0.494025
+#> 3 25.16667 -34.91667   3 24.5167 25.8673 0.494025
+#> 4 25.16667 -34.91667   4 24.5528 25.9038 0.494025
+#> 5 25.16667 -34.91667   5 24.5878 25.9396 0.494025
+#> 
+#> Tail:
+#>        lon       lat doy    seas  thresh    depth
+#> 7316 25.25 -34.83333 362 24.0087 25.4949 5.078224
+#> 7317 25.25 -34.83333 363 24.0447 25.5349 5.078224
+#> 7318 25.25 -34.83333 364 24.0814 25.5727 5.078224
+#> 7319 25.25 -34.83333 365 24.1189 25.6097 5.078224
+#> 7320 25.25 -34.83333 366 24.1567 25.6499 5.078224
+#> 
+#> Summary:
+#>   ocean pixels (valid climatology): 4
+#>   seas:   20.98 to 25.55
+#>   thresh:    22 to 26.92
+#> 
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> ------------------------------------------------------------------
 
 blobs_4d <- detect_blob3(
-  sst_file  = sst_file,
+  sst_file  = glorys_file,
   clim_file = paste0(stem_4d, "_clim.nc"),
-  minVoxels = 200,
   topN      = 10
 )
 head(blobs_4d$event)  # gains depth_min_m/depth_max_m/totalVolume_km3/...
-} # }
+#>   blob duration date_start   date_end  date_peak cumI_km2_day peakArea_km2
+#> 1   67       22 2000-01-25 2000-02-15 2000-01-25     61533.09     1412.072
+#> 2   54       28 1999-05-31 1999-06-27 1999-06-02     49120.23     1412.072
+#> 3   85       24 2001-04-14 2001-05-07 2001-04-17     49058.69     1412.072
+#> 4  294       21 2015-12-08 2015-12-28 2015-12-08     47221.12     1412.072
+#> 5  290       21 2015-10-07 2015-10-27 2015-10-08     43830.41     1412.072
+#> 6  390       23 2023-05-03 2023-05-25 2023-05-03     42414.75     1412.072
+#>   meanArea_km2 centroid_lon centroid_lat depth_min_m depth_max_m
+#> 1     1412.072     25.20833    -34.87498    0.494025    5.078224
+#> 2     1222.987     25.20790    -34.87283    0.494025    5.078224
+#> 3     1235.518     25.20933    -34.87796    0.494025    5.078224
+#> 4     1334.739     25.20781    -34.87529    0.494025    5.078224
+#> 5     1361.615     25.20885    -34.87652    0.494025    5.078224
+#> 6     1273.880     25.20884    -34.87849    0.494025    5.078224
+#>   totalVolume_km3 peakVolume_km3 meanVolume_km3 depthOfPeakIntensity_m rank
+#> 1        35.64613       1.620279       1.620279               0.494025    1
+#> 2        39.29278       1.620279       1.403314               5.078224    2
+#> 3        34.02462       1.620279       1.417692               5.078224    3
+#> 4        32.14827       1.620279       1.530870               0.494025    4
+#> 5        32.81003       1.620279       1.562382               1.541375    5
+#> 6        33.61934       1.620279       1.461711               5.078224    6
+# }
 ```

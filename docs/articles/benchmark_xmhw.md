@@ -28,7 +28,7 @@ from `dask`.
 [`library`](https://rdrr.io/r/base/library.html)`(`[`reticulate`](https://rstudio.github.io/reticulate/)`)`\
 [`library`](https://rdrr.io/r/base/library.html)`(`[`ncdf4`](https://cirrus.ucsd.edu/~pierce/ncdf/)`)`\
 [`library`](https://rdrr.io/r/base/library.html)`(`[`heatwaveR`](https://robwschlegel.github.io/heatwaveR/)`)`\
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`
 
 ## Test data
 
@@ -148,13 +148,13 @@ print(f"Total (estimated): {round(x_clim_est + x_event_est)} sec "
 `stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"bench"``)`\
 \
 `t_clim`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \
 `t_event`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``1L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \
@@ -166,13 +166,13 @@ print(f"Total (estimated): {round(x_clim_est + x_event_est)} sec "
 
 \
 `t_clim_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `          climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `          var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \
 `t_event_12`` ``<-`` `[`system.time`](https://rdrr.io/r/base/system.time.html)`(`\
-`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
+`  `[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)`(``sst_file``, name ``=`` ``stem``,`\
 `                var_name ``=`` ``"analysed_sst"``, n_threads ``=`` ``12L``, quiet ``=`` ``TRUE``)`\
 `)`\
 \

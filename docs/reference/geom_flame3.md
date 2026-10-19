@@ -79,7 +79,7 @@ A ggplot2 layer.
 `geom_flame3()` finds exceedance runs by walking each group's rows in
 order, so a single group must be one continuous series through `x`. For
 depth-resolved data (e.g.
-[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
 on a `ts2clm3(depth_range = ...)` product), map `depth` as an aesthetic
 – `aes(x = t, y = temp, y2 = thresh, depth = depth)` – and it is
 automatically folded into the row grouping, so each depth level gets its

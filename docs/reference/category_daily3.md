@@ -4,7 +4,7 @@ Builds the per-pixel, per-day series for a window of dates directly from
 an SST file, a heatwave3 climatology, and a heatwave3 events file, using
 the C++ readers throughout. It returns the full daily grid for the
 window with the same columns as the
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 `daily = "also"` product (`lon`, `lat`, `t`, `temp`, `seas`, `thresh`,
 `intensity`, `event`, `event_no`, `category`).
 
@@ -37,12 +37,12 @@ category_daily3(
 - clim_file:
 
   Path to the climatology NetCDF from
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md).
 
 - event_file:
 
   Path to the events NetCDF from
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
 
 - time_range:
 
@@ -70,7 +70,7 @@ category_daily3(
   Number of decimal places for the returned `intensity`. Default `2`,
   mirroring the Marine Heatwave Tracker's `load_sub_cat_clim()`
   (`round(temp - seas, 2)`). Pass `roundRes = 4` to match
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)'s
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)'s
   `daily = "also"` product exactly.
 
 - skip_bad_files:
@@ -97,7 +97,7 @@ day, no separate argument needed here.
 Crucially, event membership is read from the events file rather than
 re-detected on the window, so events that began before `time_range` are
 still recognised. Re-running
-[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 on a short recent window instead would silently drop ongoing events
 whose in-window portion is shorter than the minimum duration. Only the
 requested time window of the SST file is read (a hyperslab), which makes

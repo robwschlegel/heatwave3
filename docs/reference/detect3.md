@@ -1,9 +1,9 @@
 # All-in-one marine heatwave detection for gridded data
 
 The primary entry point for `heatwave3`. Runs
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
 followed by
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 in a single call, with optional inline category computation.
 
 ## Usage
@@ -90,7 +90,7 @@ detect3(
   Optional numeric vector of length 2: `c(min_depth, max_depth)`. Runs
   the climatology and event detection natively across this contiguous
   band of depth levels instead of a single squeezed level – see
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)'s
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)'s
   `depth_range` for details. Mutually exclusive with `depth`. Compatible
   with `daily`/`protoEvent`: the per-day product gains a `depth`
   dimension the same way the climatology and event files do.
@@ -128,7 +128,7 @@ detect3(
 - minDuration2:
 
   Secondary minimum duration. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
 
 - joinAcrossGaps:
 
@@ -141,13 +141,13 @@ detect3(
 - maxGap2:
 
   Secondary maximum gap length. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
 
 - threshClim2:
 
   Optional gridded NetCDF logical criterion for secondary event
   detection. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
 
 - threshClim2_var_name:
 
@@ -177,26 +177,26 @@ detect3(
 - daily:
 
   Per-day output control: `"none"` (default), `"also"`, or `"only"`. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
 
 - slim:
 
   Logical. Per-day file with only `intensity` and `category`; see
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
   Default `FALSE`.
 
 - protoEvent:
 
   Logical. Write the per-day proto-event series
   (`paste0(name, "_protoevents.nc")`) instead of the event table. See
-  [`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md).
+  [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md).
   Default `FALSE`.
 
 - n_threads:
 
   Number of threads for parallel computation. Default `NULL`: the
   session default, half the available cores unless changed with
-  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)
   or the `R_HEATWAVE3_NUM_THREADS` environment variable.
 
 - compression:
@@ -222,7 +222,7 @@ detect3(
 
 Invisibly returns a named character vector of the NetCDF files written
 (`clim` plus a subset of `events`, `daily`, `protoevents`). Use
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
 to read or export any of them.
 
 ## Examples
@@ -233,7 +233,7 @@ sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 
 detect3(sst_file, name = file.path(tempdir(), "demo"),
         climatologyPeriod = c("1982-01-01", "2011-12-31"))
-#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...
+#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Computing climatology with 1 thread(s)...
 #> 
@@ -243,11 +243,11 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -271,11 +271,11 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
-#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_clim.nc...
-#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...
+#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_clim.nc...
+#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...
 #> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
 #> Detecting events with 1 thread(s)...
 #> 
@@ -286,11 +286,11 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
   5/6 pixels (83%)
   6/6 pixels (100%)
 #> Found 610 events across 6 pixels
-#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc...
+#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_events.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc
+#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_events.nc
 #> Rows (long format): 610
 #> 
 #> Head:
@@ -363,8 +363,8 @@ detect3(sst_file, name = file.path(tempdir(), "demo"),
 #>   duration (days):     5 to    38
 #>   intensity_max:   1.314 to 4.911
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp5khnSe/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_events.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpVtEa7B/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 # }
 ```

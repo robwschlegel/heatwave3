@@ -43,6 +43,6 @@ Config/testthat/edition: 3
 Depends:
     R (>= 4.1.0)
 SystemRequirements: GNU make, netcdf (>= 4.0), C++17
-URL: https://robwschlegel.github.io/heatwave3/index.html, https://github.com/robwschlegel/heatwave3
+URL: https://robwschlegel.github.io/heatwave3/, https://github.com/robwschlegel/heatwave3
 NeedsCompilation: yes
 Config/roxygen2/version: 8.1.1

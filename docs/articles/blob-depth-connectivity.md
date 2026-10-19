@@ -2,18 +2,18 @@
 
 ## Overview
 
-[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
+[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
 finds spatially contiguous marine heatwave “blobs” by
 connected-component labelling of the daily exceedance mask. Given a
 depth-resolved climatology (from `ts2clm3(depth_range = ...)`, see
-[`vignette("depth-range")`](https://robwschlegel.github.io/heatwave3/index.html/articles/depth-range.md)),
+[`vignette("depth-range")`](https://robwschlegel.github.io/heatwave3/articles/depth-range.md)),
 it now does this natively in 4D: a voxel connects to its neighbours in
 longitude, latitude, depth, *and* time, instead of just the first three.
 No new argument is needed – exactly like
-[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 and
-[`category_daily3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md),
-[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
+[`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md),
+[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
 reads the depth range straight off `clim_file` and switches to 4D
 connectivity automatically.
 
@@ -37,7 +37,7 @@ interesting *spatial* footprints. What it can show clearly is the
 shrinking through the water column over its lifetime.
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 [`library`](https://rdrr.io/r/base/library.html)`(`[`ggplot2`](https://ggplot2.tidyverse.org)`)`\
 \
 `f`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata/glorys_depth_test.nc"``, package ``=`` ``"heatwave3"``)`
@@ -49,16 +49,16 @@ First, a depth-resolved climatology covering all 5 levels in the fixture
 
 \
 `stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"mhw4d"``)`\
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``f``, name ``=`` ``stem``,`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``f``, name ``=`` ``stem``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1993-01-01"``, ``"2019-12-31"``)``,`\
 `        depth_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``0``, ``10``)``, `\
 `        quiet ``=`` ``TRUE``)`
 
-[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)
+[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
 picks up the depth dimension from `stem_clim.nc` automatically:
 
 \
-`blobs`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)`(``f``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``,`\
+`blobs`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)`(``f``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``,`\
 `                      minVoxels ``=`` ``1``,`\
 `                      return ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"event"``, ``"daily"``, ``"voxel"``)``)`\
 [`nrow`](https://rdrr.io/r/base/nrow.html)`(``blobs``$``event``)`\
@@ -93,7 +93,7 @@ single most intense day of the blob’s life occurred. `rankBy` accepts
 the volume metrics too when the input is depth-resolved:
 
 \
-`top`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)`(``f``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``,`\
+`top`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)`(``f``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``,`\
 `                    topN ``=`` ``5``, rankBy ``=`` ``"totalVolume_km3"``, return ``=`` ``"event"``)`\
 `top``$``event``[``, `[`c`](https://rdrr.io/r/base/c.html)`(``"blob"``, ``"rank"``, ``"duration"``, ``"depth_min_m"``, ``"depth_max_m"``,`\
 `             ``"totalVolume_km3"``)``]`\

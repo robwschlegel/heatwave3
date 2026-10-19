@@ -85,7 +85,7 @@ exceedance3(
 
   Number of threads for parallel computation. Default `NULL`: the
   session default, half the available cores unless changed with
-  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/index.html/reference/getHW3threads.md)
+  [`setHW3threads`](https://robwschlegel.github.io/heatwave3/reference/getHW3threads.md)
   or the `R_HEATWAVE3_NUM_THREADS` environment variable.
 
 - compression:

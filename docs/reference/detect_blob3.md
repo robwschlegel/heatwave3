@@ -26,12 +26,12 @@ detect_blob3(
 - sst_file:
 
   Path to the SST NetCDF file (the same file passed to
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)).
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)).
 
 - clim_file:
 
   Path to the climatology NetCDF produced by
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md).
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md).
   The spatial (and, if depth-resolved, vertical) grid of the climatology
   determines the region analysed.
 
@@ -69,7 +69,7 @@ detect_blob3(
   Logical. If `TRUE`, detect cold-spell blobs (`temp < thresh`).
   Requires a climatology computed with a low percentile (for example
   `pctile = 10` in
-  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)).
+  [`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)).
   Default `FALSE`.
 
 - return:
@@ -116,7 +116,7 @@ coherent spatial (or spatio-vertical) events using a union-find
 algorithm.
 
 The reason an event file from
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 cannot be used directly is that the event file stores per-pixel event
 *summaries* (start/end dates, intensity metrics), not the daily
 per-pixel boolean mask needed for spatial connectivity analysis.
@@ -126,9 +126,9 @@ per-pixel boolean mask needed for spatial connectivity analysis.
 When `clim_file` is depth-resolved (from `ts2clm3(depth_range = ...)`),
 `detect_blob3()` detects this automatically – no separate argument is
 needed, the same pattern used by
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 and
-[`category_daily3`](https://robwschlegel.github.io/heatwave3/index.html/reference/category_daily3.md).
+[`category_daily3`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md).
 Voxels are then connected across 4 axes (lon, lat, depth, time) instead
 of 3, using face-adjacency by depth *index*: a voxel connects to the
 level immediately above/below it, whatever that level's actual depth in
@@ -152,9 +152,9 @@ Values agree to about 1e-15 relative.
 
 ## See also
 
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
 for computing the climatology,
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 for per-pixel event detection (different from spatial blob detection).
 
 ## Examples

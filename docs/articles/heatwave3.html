@@ -133,7 +133,7 @@ conventions (<code>axis</code>, <code>standard_name</code>,
 the package works with GHRSST, OISST, OSTIA, ERA5, CMIP6, and other
 datasets without needing to specify dimension names.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Single multi-timestep file. 'name' is a path stem; ts2clm3() writes</span></span>
 <span><span class="co"># &lt;name&gt;_clim.nc.</span></span>
@@ -165,7 +165,7 @@ datasets without needing to specify dimension names.</p>
 (3×2 pixels off the Agulhas coast, 1982–2021, 40 years of daily
 SST).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/">heatwave3</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/sst_test.nc"</span>, package <span class="op">=</span> <span class="st">"heatwave3"</span><span class="op">)</span></span>
 <span><span class="va">stem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"demo"</span><span class="op">)</span></span>
@@ -176,15 +176,15 @@ SST).</p>
 <span>        name <span class="op">=</span> <span class="va">stem</span>,</span>
 <span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span>,</span>
 <span>        n_threads <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   6/6 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 2,196   grid: 2 lon x 3 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -208,20 +208,20 @@ SST).</p>
 <span><span class="co">#&gt;   seas:   291.1 to 295.6</span></span>
 <span><span class="co">#&gt;   thresh: 292.4 to 297.6</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc...</span></span>
-<span><span class="co">#&gt; Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   6/6 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 610 events across 6 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc</span></span>
+<span><span class="co">#&gt; Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 610</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -258,35 +258,35 @@ SST).</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Tail:</span></span>
 <span><span class="co">#&gt;        lon     lat pixel_index event_no date_start  date_peak   date_end</span></span>
-<span><span class="co">#&gt; 606 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14</span></span>
-<span><span class="co">#&gt; 607 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05</span></span>
-<span><span class="co">#&gt; 608 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01</span></span>
-<span><span class="co">#&gt; 609 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09</span></span>
-<span><span class="co">#&gt; 610 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30</span></span>
+<span><span class="co">#&gt; 606 26.575 -34.075           4      100 2019-02-27 2019-03-02 2019-03-04</span></span>
+<span><span class="co">#&gt; 607 26.575 -34.075           4      101 2019-07-07 2019-07-11 2019-07-14</span></span>
+<span><span class="co">#&gt; 608 26.575 -34.075           4      102 2019-08-29 2019-08-31 2019-09-04</span></span>
+<span><span class="co">#&gt; 609 26.575 -34.075           4      103 2019-10-19 2019-10-26 2019-10-31</span></span>
+<span><span class="co">#&gt; 610 26.575 -34.075           4      104 2020-07-05 2020-07-06 2020-07-09</span></span>
 <span><span class="co">#&gt;     duration intensity_mean intensity_max intensity_var intensity_cumulative</span></span>
-<span><span class="co">#&gt; 606        8         1.9123        2.6167        0.3509              15.2983</span></span>
-<span><span class="co">#&gt; 607        7         2.6135        3.2218        0.6238              18.2944</span></span>
-<span><span class="co">#&gt; 608       12         2.7097        4.2806        0.9613              32.5162</span></span>
-<span><span class="co">#&gt; 609        5         1.9184        2.4610        0.4567               9.5918</span></span>
-<span><span class="co">#&gt; 610        7         1.7027        1.8887        0.1673              11.9191</span></span>
+<span><span class="co">#&gt; 606        6         2.3280        2.6521        0.2624              13.9680</span></span>
+<span><span class="co">#&gt; 607        8         1.9937        2.4175        0.2732              15.9493</span></span>
+<span><span class="co">#&gt; 608        7         2.4202        2.9167        0.5184              16.9417</span></span>
+<span><span class="co">#&gt; 609       13         2.5752        3.9481        0.7323              33.4774</span></span>
+<span><span class="co">#&gt; 610        5         1.9388        2.5567        0.4944               9.6940</span></span>
 <span><span class="co">#&gt;     intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span></span>
-<span><span class="co">#&gt; 606                   0.5331                  1.2395                  0.3545</span></span>
-<span><span class="co">#&gt; 607                   1.2196                  1.8291                  0.6356</span></span>
-<span><span class="co">#&gt; 608                   1.2481                  2.8252                  0.9574</span></span>
-<span><span class="co">#&gt; 609                   0.5193                  1.0566                  0.4505</span></span>
-<span><span class="co">#&gt; 610                   0.3486                  0.5476                  0.1719</span></span>
+<span><span class="co">#&gt; 606                   0.4701                  0.7911                  0.2549</span></span>
+<span><span class="co">#&gt; 607                   0.6743                  1.1037                  0.2807</span></span>
+<span><span class="co">#&gt; 608                   1.0094                  1.5135                  0.5207</span></span>
+<span><span class="co">#&gt; 609                   1.0904                  2.4535                  0.7207</span></span>
+<span><span class="co">#&gt; 610                   0.5972                  1.2075                  0.4848</span></span>
 <span><span class="co">#&gt;     intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span></span>
-<span><span class="co">#&gt; 606                         4.2646           293.7725            294.47</span></span>
-<span><span class="co">#&gt; 607                         8.5369           293.8743            294.48</span></span>
-<span><span class="co">#&gt; 608                        14.9767           294.3308            295.87</span></span>
-<span><span class="co">#&gt; 609                         2.5966           293.8140            294.37</span></span>
-<span><span class="co">#&gt; 610                         2.4402           292.9757            293.17</span></span>
+<span><span class="co">#&gt; 606                         2.8209           297.2000            297.52</span></span>
+<span><span class="co">#&gt; 607                         5.3942           294.2825            294.70</span></span>
+<span><span class="co">#&gt; 608                         7.0655           294.1014            294.60</span></span>
+<span><span class="co">#&gt; 609                        14.1748           294.5685            295.96</span></span>
+<span><span class="co">#&gt; 610                         2.9861           294.2600            294.89</span></span>
 <span><span class="co">#&gt;     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span></span>
-<span><span class="co">#&gt; 606            0.3438                  2350.18     0.3962       0.3769</span></span>
-<span><span class="co">#&gt; 607            0.6214                  2057.12     0.4158       0.6025</span></span>
-<span><span class="co">#&gt; 608            0.9940                  3531.97     0.5238       0.4265</span></span>
-<span><span class="co">#&gt; 609            0.4723                  1469.07     0.6940       0.4588</span></span>
-<span><span class="co">#&gt; 610            0.1695                  2050.83     0.4821       0.1454</span></span>
+<span><span class="co">#&gt; 606            0.2535                  1783.20     0.3639       0.2594</span></span>
+<span><span class="co">#&gt; 607            0.2628                  2354.26     0.3353       0.2459</span></span>
+<span><span class="co">#&gt; 608            0.5172                  2058.71     0.6651       0.3258</span></span>
+<span><span class="co">#&gt; 609            0.7987                  3829.39     0.3467       0.3855</span></span>
+<span><span class="co">#&gt; 610            0.5098                  1471.30     0.7261       0.4756</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Summary:</span></span>
 <span><span class="co">#&gt;   events: 610   pixels with events: 6</span></span>
@@ -294,8 +294,8 @@ SST).</p>
 <span><span class="co">#&gt;   duration (days):     5 to    38</span></span>
 <span><span class="co">#&gt;   intensity_max:   1.314 to 4.911</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
 <span></span>
 <span><span class="co"># The two products follow the naming convention &lt;name&gt;_clim.nc / &lt;name&gt;_events.nc</span></span>
@@ -430,7 +430,7 @@ equivalents.</p>
 <h3 id="setup-climatology-and-blob-detection">Setup: climatology and blob detection<a class="anchor" aria-label="anchor" href="#setup-climatology-and-blob-detection"></a>
 </h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/index.html">heatwave3</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://robwschlegel.github.io/heatwave3/">heatwave3</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="st">"/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"</span></span>

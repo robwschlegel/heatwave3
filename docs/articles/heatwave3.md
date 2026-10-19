@@ -10,14 +10,14 @@ processing with heatwaveR.
 
 The typical workflow has three steps:
 
-1.  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md),
+1.  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
     to compute seasonal and threshold climatologies
-2.  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md),
+2.  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md),
     to detect events from the climatologies
 3.  Analyse/visualise with
-    [`category3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md),
-    [`block_average3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md),
-    [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md),
+    [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md),
+    [`block_average3()`](https://robwschlegel.github.io/heatwave3/reference/block_average3.md),
+    [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md),
     or the plotting functions
 
 ## Data input
@@ -35,19 +35,19 @@ ERA5, CMIP6, and other datasets without needing to specify dimension
 names.
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 \
 `# Single multi-timestep file. 'name' is a path stem; ts2clm3() writes`\
 `# <name>_clim.nc.`\
 `sst_file`` ``<-`` ``"/path/to/sst_merged.nc"`\
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
 `        name ``=`` ``"benguela"``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        lon_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``15``, ``35``)``, lat_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``-``38``, ``-``28``)``,`\
 `        n_threads ``=`` ``4``)`\
 \
 `# Directory of daily files`\
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``"/path/to/daily_sst/"``,`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``"/path/to/daily_sst/"``,`\
 `        name ``=`` ``"benguela"``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        n_threads ``=`` ``4``)`\
@@ -55,7 +55,7 @@ names.
 `# Explicit vector of file paths`\
 `daily_files`` ``<-`` `[`list.files`](https://rdrr.io/r/base/list.files.html)`(``"/path/to/daily/"``, pattern ``=`` ``"[.]nc4$"``,`\
 `                          full.names ``=`` ``TRUE``)`\
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``daily_files``,`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``daily_files``,`\
 `        name ``=`` ``"benguela"``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        n_threads ``=`` ``4``)`
@@ -66,26 +66,26 @@ Here we show the full pipeline using the bundled OSTIA test dataset (3×2
 pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 \
 `sst_file`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata/sst_test.nc"``, package ``=`` ``"heatwave3"``)`\
 `stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"demo"``)`\
 \
 `# All-in-one: climatology + event detection. A single 'name' stem produces`\
 `# demo_clim.nc and demo_events.nc.`\
-[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(``file_in ``=`` ``sst_file``,`\
+[`detect3`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)`(``file_in ``=`` ``sst_file``,`\
 `        name ``=`` ``stem``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        n_threads ``=`` ``2``)`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...`\
+`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...`\
 `#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   6/6 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc`\
 `#> Rows (long format): 2,196   grid: 2 lon x 3 lat`\
 `#> `\
 `#> Head:`\
@@ -109,20 +109,20 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `#>   seas:   291.1 to 295.6`\
 `#>   thresh: 292.4 to 297.6`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
-`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_clim.nc...`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/sst_test.nc...`\
+`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc...`\
+`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...`\
 `#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels`\
 `#> Detecting events with 2 thread(s)...`\
 `#>   6/6 pixels (100%)`\
 `#> Found 610 events across 6 pixels`\
-`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc...`\
+`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc`\
+`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc`\
 `#> Rows (long format): 610`\
 `#> `\
 `#> Head:`\
@@ -159,35 +159,35 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `#> `\
 `#> Tail:`\
 `#>        lon     lat pixel_index event_no date_start  date_peak   date_end`\
-`#> 606 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14`\
-`#> 607 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05`\
-`#> 608 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01`\
-`#> 609 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09`\
-`#> 610 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30`\
+`#> 606 26.575 -34.075           4      100 2019-02-27 2019-03-02 2019-03-04`\
+`#> 607 26.575 -34.075           4      101 2019-07-07 2019-07-11 2019-07-14`\
+`#> 608 26.575 -34.075           4      102 2019-08-29 2019-08-31 2019-09-04`\
+`#> 609 26.575 -34.075           4      103 2019-10-19 2019-10-26 2019-10-31`\
+`#> 610 26.575 -34.075           4      104 2020-07-05 2020-07-06 2020-07-09`\
 `#>     duration intensity_mean intensity_max intensity_var intensity_cumulative`\
-`#> 606        8         1.9123        2.6167        0.3509              15.2983`\
-`#> 607        7         2.6135        3.2218        0.6238              18.2944`\
-`#> 608       12         2.7097        4.2806        0.9613              32.5162`\
-`#> 609        5         1.9184        2.4610        0.4567               9.5918`\
-`#> 610        7         1.7027        1.8887        0.1673              11.9191`\
+`#> 606        6         2.3280        2.6521        0.2624              13.9680`\
+`#> 607        8         1.9937        2.4175        0.2732              15.9493`\
+`#> 608        7         2.4202        2.9167        0.5184              16.9417`\
+`#> 609       13         2.5752        3.9481        0.7323              33.4774`\
+`#> 610        5         1.9388        2.5567        0.4944               9.6940`\
 `#>     intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh`\
-`#> 606                   0.5331                  1.2395                  0.3545`\
-`#> 607                   1.2196                  1.8291                  0.6356`\
-`#> 608                   1.2481                  2.8252                  0.9574`\
-`#> 609                   0.5193                  1.0566                  0.4505`\
-`#> 610                   0.3486                  0.5476                  0.1719`\
+`#> 606                   0.4701                  0.7911                  0.2549`\
+`#> 607                   0.6743                  1.1037                  0.2807`\
+`#> 608                   1.0094                  1.5135                  0.5207`\
+`#> 609                   1.0904                  2.4535                  0.7207`\
+`#> 610                   0.5972                  1.2075                  0.4848`\
 `#>     intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs`\
-`#> 606                         4.2646           293.7725            294.47`\
-`#> 607                         8.5369           293.8743            294.48`\
-`#> 608                        14.9767           294.3308            295.87`\
-`#> 609                         2.5966           293.8140            294.37`\
-`#> 610                         2.4402           292.9757            293.17`\
+`#> 606                         2.8209           297.2000            297.52`\
+`#> 607                         5.3942           294.2825            294.70`\
+`#> 608                         7.0655           294.1014            294.60`\
+`#> 609                        14.1748           294.5685            295.96`\
+`#> 610                         2.9861           294.2600            294.89`\
 `#>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline`\
-`#> 606            0.3438                  2350.18     0.3962       0.3769`\
-`#> 607            0.6214                  2057.12     0.4158       0.6025`\
-`#> 608            0.9940                  3531.97     0.5238       0.4265`\
-`#> 609            0.4723                  1469.07     0.6940       0.4588`\
-`#> 610            0.1695                  2050.83     0.4821       0.1454`\
+`#> 606            0.2535                  1783.20     0.3639       0.2594`\
+`#> 607            0.2628                  2354.26     0.3353       0.2459`\
+`#> 608            0.5172                  2058.71     0.6651       0.3258`\
+`#> 609            0.7987                  3829.39     0.3467       0.3855`\
+`#> 610            0.5098                  1471.30     0.7261       0.4756`\
 `#> `\
 `#> Summary:`\
 `#>   events: 610   pixels with events: 6`\
@@ -195,8 +195,8 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `#>   duration (days):     5 to    38`\
 `#>   intensity_max:   1.314 to 4.911`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpgkLmru/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
 \
 `# The two products follow the naming convention <name>_clim.nc / <name>_events.nc`\
@@ -209,7 +209,7 @@ Extract a single pixel and produce a heatwaveR-style event line plot
 with flame polygons showing events above the threshold.
 
 \
-[`event_line3`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)`(``sst_file ``=`` ``sst_file``,`\
+[`event_line3`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)`(``sst_file ``=`` ``sst_file``,`\
 `            clim_file ``=`` ``clim_file``,`\
 `            lon ``=`` ``26.525``, lat ``=`` ``-``34.125``,`\
 `            start_date ``=`` ``"2010-01-01"``,`\
@@ -222,14 +222,14 @@ with flame polygons showing events above the threshold.
 Visualise the spatial distribution of any event metric across the grid.
 
 \
-[`plot_metric3`](https://robwschlegel.github.io/heatwave3/index.html/reference/plot_metric3.md)`(``event_file``, metric ``=`` ``"intensity_max"``, summary ``=`` ``"mean"``)`
+[`plot_metric3`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md)`(``event_file``, metric ``=`` ``"intensity_max"``, summary ``=`` ``"mean"``)`
 
 ![](heatwave3_files/figure-html/spatial-map-1.png)
 
 ## Event categories and yearly aggregation
 
 \
-`cats`` ``<-`` `[`category3`](https://robwschlegel.github.io/heatwave3/index.html/reference/category3.md)`(``event_file``, ``clim_file``, sst_file ``=`` ``sst_file``)`\
+`cats`` ``<-`` `[`category3`](https://robwschlegel.github.io/heatwave3/reference/category3.md)`(``event_file``, ``clim_file``, sst_file ``=`` ``sst_file``)`\
 [`head`](https://rdrr.io/r/utils/head.html)`(``cats``)`\
 `#>   event_no    lon     lat  peak_date   category intensity_max duration`\
 `#> 1        1 26.525 -34.125 1982-11-14  II Strong        3.1531       19`\
@@ -251,7 +251,7 @@ Visualise the spatial distribution of any event metric across the grid.
 `#>        477        131          2`
 
 \
-`ba`` ``<-`` `[`block_average3`](https://robwschlegel.github.io/heatwave3/index.html/reference/block_average3.md)`(``event_file``)`\
+`ba`` ``<-`` `[`block_average3`](https://robwschlegel.github.io/heatwave3/reference/block_average3.md)`(``event_file``)`\
 [`head`](https://rdrr.io/r/utils/head.html)`(``ba``)`\
 `#>      lon     lat year count duration_mean duration_max intensity_mean`\
 `#> 1 26.525 -34.125 1982     1      19.00000           19       2.209900`\
@@ -278,13 +278,13 @@ Visualise the spatial distribution of any event metric across the grid.
 ## Detrended climatology
 
 By default,
-[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
 follows Hobday et al. (2016) with a fixed baseline. To remove the
 long-term warming trend before computing the climatology (following
 Jacox et al. 2020), set `detrend = TRUE`:
 
 \
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
 `        name ``=`` ``"benguela_detrended"``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        detrend ``=`` ``TRUE``)`
@@ -293,17 +293,17 @@ Jacox et al. 2020), set `detrend = TRUE`:
 
 The compute functions always write their native NetCDF. To read a
 product into R, or export it to CSV/RDS/Parquet, use
-[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md),
+[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md),
 which auto-detects the product type:
 
 \
 `# Read the events back as a data.frame (whole, or a quick preview with n =)`\
-`events`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``)`\
-[`head`](https://rdrr.io/r/utils/head.html)`(`[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``, n ``=`` ``20``)``)`\
+`events`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_events.nc"``)`\
+[`head`](https://rdrr.io/r/utils/head.html)`(`[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_events.nc"``, n ``=`` ``20``)``)`\
 \
 `# Export to flat files (format chosen by the extension)`\
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_events.nc"``, file_out ``=`` ``"events.csv"``)`\
-[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(``"benguela_clim.nc"``,   file_out ``=`` ``"clim.parquet"``)`
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_events.nc"``, file_out ``=`` ``"events.csv"``)`\
+[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(``"benguela_clim.nc"``,   file_out ``=`` ``"clim.parquet"``)`
 
 ## Cold spells
 
@@ -311,12 +311,12 @@ Detect marine cold-spells by setting `pctile = 10` for the climatology
 and `coldSpells = TRUE` for detection.
 
 \
-[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
+[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
 `        name ``=`` ``"benguela_cold"``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        pctile ``=`` ``10``, n_threads ``=`` ``2``)`\
 \
-[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``file_in ``=`` ``sst_file``,`\
+[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)`(``file_in ``=`` ``sst_file``,`\
 `              name ``=`` ``"benguela_cold"``,`\
 `              coldSpells ``=`` ``TRUE``, n_threads ``=`` ``2``)`
 
@@ -333,13 +333,13 @@ All six figure types correspond to the example outputs in
 ### Setup: climatology and blob detection
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 [`library`](https://rdrr.io/r/base/library.html)`(`[`ggplot2`](https://ggplot2.tidyverse.org)`)`\
 \
 `sst_file`` ``<-`` ``"/Volumes/OceanData/OSTIA_East_Coast_MHW/SWIO_Jan1982-Dec2021.nc"`\
 `xlim`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``15``, ``35``)``; ``ylim`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``-``38``, ``-``28``)`\
 \
-`clim_file`` ``<-`` `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
+`clim_file`` ``<-`` `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
 `        name ``=`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"swio"``)``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        lon_range ``=`` ``xlim``, lat_range ``=`` ``ylim``,`\
@@ -347,7 +347,7 @@ All six figure types correspond to the example outputs in
 `        n_threads ``=`` ``4``)`\
 \
 `# Detect spatial blobs, including voxel data for footprint maps`\
-`blobs`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)`(``sst_file ``=`` ``sst_file``,`\
+`blobs`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)`(``sst_file ``=`` ``sst_file``,`\
 `                      clim_file ``=`` ``clim_file``,`\
 `                      var_name ``=`` ``"analysed_sst"``,`\
 `                      minVoxels ``=`` ``200L``,`\
@@ -458,14 +458,14 @@ All six figure types correspond to the example outputs in
 ### Figure 5: Cold-spell blob footprints
 
 \
-`clim_cold`` ``<-`` `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
+`clim_cold`` ``<-`` `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``sst_file``,`\
 `        name ``=`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"swio_cold"``)``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        lon_range ``=`` ``xlim``, lat_range ``=`` ``ylim``,`\
 `        var_name ``=`` ``"analysed_sst"``,`\
 `        pctile ``=`` ``10``, n_threads ``=`` ``4``)`\
 \
-`mcs_blobs`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_blob3.md)`(``sst_file ``=`` ``sst_file``,`\
+`mcs_blobs`` ``<-`` `[`detect_blob3`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)`(``sst_file ``=`` ``sst_file``,`\
 `                          clim_file ``=`` ``clim_cold``,`\
 `                          var_name ``=`` ``"analysed_sst"``,`\
 `                          coldSpells ``=`` ``TRUE``,`\

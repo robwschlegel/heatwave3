@@ -59,7 +59,7 @@ A ggplot2 layer.
 ## Details
 
 Each lollipop is drawn independently from its own row – unlike
-[`geom_flame3`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md),
+[`geom_flame3`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md),
 nothing here depends on row order or grouping within a series. For
 depth-resolved data, map `depth` to `colour` (or `shape`) to distinguish
 levels, or use `ggplot2::facet_wrap(~ depth)`; both work with the

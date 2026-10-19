@@ -20,7 +20,7 @@ depth levels (0.49-5.08 m, all within the mixed layer), don’t expect
 dramatic spatial or vertical structure in the figures below.
 
 \
-[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/index.html)`)`\
+[`library`](https://rdrr.io/r/base/library.html)`(`[`heatwave3`](https://robwschlegel.github.io/heatwave3/)`)`\
 \
 `temp_file`` ``<-`` `[`system.file`](https://rdrr.io/r/base/system.file.html)`(``"extdata/glorys_depth_test.nc"``, package ``=`` ``"heatwave3"``)`\
 `clim_period`` ``<-`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1993-01-01"``, ``"2019-12-31"``)`
@@ -41,7 +41,7 @@ analysis.
 \
 `depth_indices`` ``<-`` `[`seq_len`](https://rdrr.io/r/base/seq.html)`(``n_depth``)`` ``-`` ``1L``  ``# depth= is a 0-based index: 0, 1, 2, 3, 4`\
 `purrr``::`[`walk`](https://purrr.tidyverse.org/reference/map.html)`(``depth_indices``, \``(``k``)`` ``{`\
-`  `[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(``temp_file``, name ``=`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"mhw_z"``, ``k``)``)``,`\
+`  `[`detect3`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)`(``temp_file``, name ``=`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``"mhw_z"``, ``k``)``)``,`\
 `          climatologyPeriod ``=`` ``clim_period``,`\
 `          depth ``=`` ``k``, category ``=`` ``TRUE``, quiet ``=`` ``TRUE``)`\
 `}``)`
@@ -57,9 +57,9 @@ this may already be enough – stack the files yourself downstream with
 ### Option B: native `depth_range` (recommended)
 
 `depth_range = c(min_depth, max_depth)` (metres, inclusive) tells
-[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)
+[`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)
 and
-[`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)
+[`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
 to read every depth level whose coordinate falls in that range and
 compute an independent climatology/event table for every
 `(lon, lat, depth)` triple, in **one** call producing **one** 4D file.
@@ -68,20 +68,20 @@ above. The fixture’s 5 levels all fall within 0-10 m:
 
 \
 `stem`` ``<-`` `[`file.path`](https://rdrr.io/r/base/file.path.html)`(`[`tempdir`](https://rdrr.io/r/base/tempfile.html)`(``)``, ``"mhw4d"``)`\
-`clim_file`` ``<-`` `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/index.html/reference/ts2clm3.md)`(``file_in ``=`` ``temp_file``,`\
+`clim_file`` ``<-`` `[`ts2clm3`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md)`(``file_in ``=`` ``temp_file``,`\
 `                     name ``=`` ``stem``,`\
 `                     climatologyPeriod ``=`` ``clim_period``,`\
 `                     depth_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``0``, ``10``)``,`\
 `                     n_threads ``=`` ``2``)`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/glorys_depth_test.nc...`\
+`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/glorys_depth_test.nc...`\
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc`\
 `#> Rows (long format): 7,320   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -105,42 +105,42 @@ above. The fixture’s 5 levels all fall within 0-10 m:
 `#>   seas:   20.98 to 25.55`\
 `#>   thresh:    22 to 26.92`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`
 
-[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 needs no separate depth argument at all: it reads the depth range
 straight back out of the climatology file it is already loading, so
 climatology and event detection can never end up out of sync about which
 levels they are comparing.
 
 \
-`event_file`` ``<-`` `[`detect_event3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)`(``file_in ``=`` ``temp_file``,`\
+`event_file`` ``<-`` `[`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)`(``file_in ``=`` ``temp_file``,`\
 `                            name ``=`` ``stem``,`\
 `                            category ``=`` ``TRUE``,`\
 `                            n_threads ``=`` ``2``, `\
 `                            quiet ``=`` ``TRUE``)`
 
 Or as a single call via
-[`detect3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md):
+[`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md):
 
 \
-[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(``file_in ``=`` ``temp_file``,`\
+[`detect3`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)`(``file_in ``=`` ``temp_file``,`\
 `        name ``=`` ``stem``,`\
 `        climatologyPeriod ``=`` ``clim_period``,`\
 `        depth_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``0``, ``10``)``,`\
 `        category ``=`` ``TRUE``,`\
 `        n_threads ``=`` ``2``)`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/glorys_depth_test.nc...`\
+`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/glorys_depth_test.nc...`\
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc`\
 `#> Rows (long format): 7,320   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -164,20 +164,20 @@ Or as a single call via
 `#>   seas:   20.98 to 25.55`\
 `#>   thresh:    22 to 26.92`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
-`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc...`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/glorys_depth_test.nc...`\
+`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc...`\
+`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/glorys_depth_test.nc...`\
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Detecting events with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
 `#> Found 1614 events across 20 pixels`\
-`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc...`\
+`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc`\
+`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc`\
 `#> Rows (long format): 1,614`\
 `#> `\
 `#> Head:`\
@@ -263,19 +263,19 @@ Or as a single call via
 `#>   intensity_max:   0.9695 to 3.165`\
 `#>   category: I Moderate=1531  II Strong=83`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`
 
 ## Reading the depth-resolved output
 
-[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
 surfaces a `depth` column automatically whenever the source file is
 depth-resolved:
 
 \
-`clim_df``  ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``)`\
-`event_df`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_events.nc"``)``)`\
+`clim_df``  ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``)`\
+`event_df`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_events.nc"``)``)`\
 \
 [`head`](https://rdrr.io/r/utils/head.html)`(``clim_df``)`
 
@@ -337,26 +337,26 @@ graphics functions:
 The per-day product also carries a depth dimension now, so
 `daily = "also"` works together with `depth_range` – no separate depth
 argument needed here either, for the same reason
-[`detect_event3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect_event3.md)
+[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 doesn’t need one:
 
 \
-[`detect3`](https://robwschlegel.github.io/heatwave3/index.html/reference/detect3.md)`(``file_in ``=`` ``temp_file``,`\
+[`detect3`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)`(``file_in ``=`` ``temp_file``,`\
 `        name ``=`` ``stem``,`\
 `        climatologyPeriod ``=`` ``clim_period``,`\
 `        depth_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``0``, ``10``)``,`\
 `        category ``=`` ``TRUE``,`\
 `        daily ``=`` ``"also"``,`\
 `        n_threads ``=`` ``2``)`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/glorys_depth_test.nc...`\
+`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/glorys_depth_test.nc...`\
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc`\
 `#> Rows (long format): 7,320   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -380,22 +380,22 @@ doesn’t need one:
 `#>   seas:   20.98 to 25.55`\
 `#>   thresh:    22 to 26.92`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
-`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_clim.nc...`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/d275e4eb-a4b0-4ead-ae55-1ae3e4b2be32/scratchpad/Rlib-site/heatwave3/extdata/glorys_depth_test.nc...`\
+`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_clim.nc...`\
+`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/glorys_depth_test.nc...`\
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Detecting events with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
 `#> Found 1614 events across 20 pixels`\
-`#> Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events_daily.nc...`\
+`#> Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events_daily.nc...`\
 `#> Done.`\
-`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc...`\
+`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc`\
+`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc`\
 `#> Rows (long format): 1,614`\
 `#> `\
 `#> Head:`\
@@ -481,12 +481,12 @@ doesn’t need one:
 `#>   intensity_max:   0.9695 to 3.165`\
 `#>   category: I Moderate=1531  II Strong=83`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events_daily.nc`\
+`#> Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events_daily.nc`\
 `#> Rows (long format): 233,760   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -522,11 +522,11 @@ doesn’t need one:
 `#>   event-days: 14739`\
 `#>   category: 1=14496  2=138`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events_daily.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwh1HfH/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events_daily.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpmAXxOt/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`
 
-[`hw3_export()`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)
+[`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
 surfaces the same `depth` column on this per-day product, and its
 streaming subset
 (`lon_range`/`lat_range`/`time_range`/`depth_range`/`n`) is depth-aware
@@ -534,7 +534,7 @@ too, so a single pixel’s full depth profile over a short date window
 reads cheaply without loading the whole file:
 
 \
-`daily_df`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_events_daily.nc"``)``,`\
+`daily_df`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_events_daily.nc"``)``,`\
 `                       lon_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``25.16``, ``25.17``)``, lat_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``-``34.92``, ``-``34.91``)``,`\
 `                       time_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1999-01-01"``, ``"2000-12-31"``)``)`\
 [`head`](https://rdrr.io/r/utils/head.html)`(``daily_df``)`
@@ -554,7 +554,7 @@ reads cheaply without loading the whole file:
     #> 5       NA       NA 0.494025
     #> 6       NA       NA 0.494025
 
-[`geom_flame3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)
+[`geom_flame3()`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md)
 automatically folds a mapped `depth` aesthetic into its row grouping –
 each depth level gets its own exceedance runs instead of being treated
 as one continuous series with depths interleaved – so one call plots
@@ -562,7 +562,7 @@ every level:
 
 \
 [`ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)`(``daily_df``, `[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``x ``=`` ``t``, y ``=`` ``temp``, y2 ``=`` ``thresh``, depth ``=`` ``depth``)``)`` ``+`\
-`  `[`geom_flame3`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_flame3.md)`(``)`` ``+`\
+`  `[`geom_flame3`](https://robwschlegel.github.io/heatwave3/reference/geom_flame3.md)`(``)`` ``+`\
 `  `[`geom_line`](https://ggplot2.tidyverse.org/reference/geom_path.html)`(``linewidth ``=`` ``0.3``)`` ``+`\
 `  `[`facet_wrap`](https://ggplot2.tidyverse.org/reference/facet_wrap.html)`(``~`` ``depth``, ncol ``=`` ``1``, labeller ``=`` ``label_both``)`` ``+`\
 `  `[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``title ``=`` ``"Depth-resolved event-line plot"``, x ``=`` ``NULL``,`\
@@ -571,29 +571,29 @@ every level:
 
 ![](depth-range_files/figure-html/geom-flame-depth-1.png)
 
-[`event_line3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)
+[`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)
 also gained a `depth` argument, for the classic single-pixel flame plot
 at one chosen level (matched to the nearest depth actually present in
 the climatology, here 2.6 m):
 
 \
-[`event_line3`](https://robwschlegel.github.io/heatwave3/index.html/reference/event_line3.md)`(``temp_file``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``,`\
+[`event_line3`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)`(``temp_file``, `[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_clim.nc"``)``,`\
 `            lon ``=`` ``25.16667``, lat ``=`` ``-``34.91667``, depth ``=`` ``3``,`\
 `            event_file ``=`` `[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_events.nc"``)``)`
 
 ![](depth-range_files/figure-html/event-line-depth-1.png)
 
-[`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md)
+[`geom_lolli3()`](https://robwschlegel.github.io/heatwave3/reference/geom_lolli3.md)
 needs no special handling for depth: each lollipop is drawn from its own
 row independently of any grouping, so map `depth` to colour (or facet)
 like any other column:
 
 \
-`event_df_1px`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/index.html/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_events.nc"``)``,`\
+`event_df_1px`` ``<-`` `[`hw3_export`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)`(`[`paste0`](https://rdrr.io/r/base/paste.html)`(``stem``, ``"_events.nc"``)``,`\
 `                           lon_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``25.16``, ``25.17``)``, lat_range ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``-``34.92``, ``-``34.91``)``)`\
 \
 [`ggplot`](https://ggplot2.tidyverse.org/reference/ggplot.html)`(``event_df_1px``, `[`aes`](https://ggplot2.tidyverse.org/reference/aes.html)`(``x ``=`` ``date_peak``, y ``=`` ``intensity_max``, colour ``=`` `[`factor`](https://rdrr.io/r/base/factor.html)`(`[`round`](https://rdrr.io/r/base/Round.html)`(``depth``, ``1``)``)``)``)`` ``+`\
-`  `[`geom_lolli3`](https://robwschlegel.github.io/heatwave3/index.html/reference/geom_lolli3.md)`(``)`` ``+`\
+`  `[`geom_lolli3`](https://robwschlegel.github.io/heatwave3/reference/geom_lolli3.md)`(``)`` ``+`\
 `  `[`scale_colour_viridis_d`](https://ggplot2.tidyverse.org/reference/scale_viridis.html)`(``name ``=`` ``"depth (m)"``)`` ``+`\
 `  `[`labs`](https://ggplot2.tidyverse.org/reference/labs.html)`(``title ``=`` `[`expression`](https://rdrr.io/r/base/expression.html)`(``I``[``max``]`` ``~`` ``"by depth and peak date (single pixel)"``)``,`\
 `       x ``=`` ``NULL``, y ``=`` `[`expression`](https://rdrr.io/r/base/expression.html)`(``I``[``max``]`` ``~`` ``"(degC)"``)``)`` ``+`\

@@ -30,7 +30,7 @@ devtools::check()
 
 Documentation is generated with the newest roxygen2 (`Config/roxygen2/version` in `DESCRIPTION`). When a newer roxygen2 changes `DESCRIPTION`, `NAMESPACE` or `man/`, commit those changes (in their own commit) rather than reverting them; do not hand-edit generated files to match an older version.
 
-Python package (same C++ core). **Versions are pinned:** `version` in `pyproject.toml` must equal `Version` in `DESCRIPTION`, because both packages have the same features. Bump them together; `python/tests/test_version.py` and the `py-v` release check enforce it.
+Python package (same C++ core). **Versions are pinned:** `version` in `pyproject.toml` must equal `Version` in `DESCRIPTION`, because both packages have the same features. Bump them together, along with the string returned by `hw3_version()` in `src/heatwave3_init.cpp` (checked by `test-threads.R`); `python/tests/test_version.py` and the `py-v` release check enforce the first two.
 
 ```bash
 pip install .            # builds python/src/bindings.cpp + the shared src/ core

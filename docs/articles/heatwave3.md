@@ -77,15 +77,15 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `        name ``=`` ``stem``,`\
 `        climatologyPeriod ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"1982-01-01"``, ``"2011-12-31"``)``,`\
 `        n_threads ``=`` ``2``)`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...`\
+`#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...`\
 `#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   6/6 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc`\
 `#> Rows (long format): 2,196   grid: 2 lon x 3 lat`\
 `#> `\
 `#> Head:`\
@@ -109,20 +109,20 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `#>   seas:   291.1 to 295.6`\
 `#>   thresh: 292.4 to 297.6`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
-`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_clim.nc...`\
-`#> Reading SST data from /private/tmp/claude-502/-Users-rschlegel-oceanbench/1ef0a80f-ae69-445d-b6af-1ec1fe08861c/scratchpad/rlib/heatwave3/extdata/sst_test.nc...`\
+`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc...`\
+`#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...`\
 `#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels`\
 `#> Detecting events with 2 thread(s)...`\
 `#>   6/6 pixels (100%)`\
 `#> Found 610 events across 6 pixels`\
-`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc...`\
+`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc`\
+`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc`\
 `#> Rows (long format): 610`\
 `#> `\
 `#> Head:`\
@@ -195,8 +195,8 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `#>   duration (days):     5 to    38`\
 `#>   intensity_max:   1.314 to 4.911`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpoIYIFx/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
 \
 `# The two products follow the naming convention <name>_clim.nc / <name>_events.nc`\
@@ -222,7 +222,9 @@ with flame polygons showing events above the threshold.
 Visualise the spatial distribution of any event metric across the grid.
 
 \
-[`plot_metric3`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md)`(``event_file``, metric ``=`` ``"intensity_max"``, summary ``=`` ``"mean"``)`
+[`plot_metric3`](https://robwschlegel.github.io/heatwave3/reference/plot_metric3.md)`(``event_file``, metric ``=`` ``"intensity_max"``, summary ``=`` ``"mean"``)`\
+`#> Coordinate system already present.`\
+`#> ``ℹ`` Adding new coordinate system, which will replace the existing one.`
 
 ![](heatwave3_files/figure-html/spatial-map-1.png)
 
@@ -356,8 +358,8 @@ All six figure types correspond to the example outputs in
 `                      return ``=`` `[`c`](https://rdrr.io/r/base/c.html)`(``"event"``, ``"daily"``, ``"voxel"``)``)`\
 \
 `# Coastline for map overlays`\
-`land`` ``<-`` ``rnaturalearth``::``ne_countries``(``scale ``=`` ``"medium"``, returnclass ``=`` ``"sf"``)`\
-`land_clip`` ``<-`` ``sf``::``st_crop``(``land``, xmin ``=`` ``xlim``[``1``]``, xmax ``=`` ``xlim``[``2``]``,`\
+`land`` ``<-`` ``rnaturalearth``::`[`ne_countries`](https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html)`(``scale ``=`` ``"medium"``, returnclass ``=`` ``"sf"``)`\
+`land_clip`` ``<-`` ``sf``::`[`st_crop`](https://r-spatial.github.io/sf/reference/st_crop.html)`(``land``, xmin ``=`` ``xlim``[``1``]``, xmax ``=`` ``xlim``[``2``]``,`\
 `                         ymin ``=`` ``ylim``[``1``]``, ymax ``=`` ``ylim``[``2``]``)`
 
 ### Figure 1: Top 6 blob peak-day footprints

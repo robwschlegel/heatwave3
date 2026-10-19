@@ -108,11 +108,25 @@ Invisibly returns the output file path.
 ## Examples
 
 ``` r
-if (FALSE) { # \dontrun{
+# \donttest{
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 event_file <- tempfile(fileext = ".nc")
 
 # Detect periods where SST exceeds 295 K
 exceedance3(sst_file, event_file, threshold = 295)
-} # }
+#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161515f78b33c.nc...
+#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...
+#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels
+#> Detecting events with 1 thread(s)...
+#> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)
+#> Found 860 events across 6 pixels
+#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615177c062a.nc...
+#> Done.
+# }
 ```

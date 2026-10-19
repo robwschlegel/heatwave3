@@ -9,7 +9,7 @@ setHW3threads() sets it and returns the new value."><meta property="og:image" co
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -27,7 +27,7 @@ setHW3threads() sets it and returns the new value."><meta property="og:image" co
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_packages.html">Performance benchmark - MHW packages</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -86,7 +86,10 @@ the default (50 percent of cores).</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The default is 50 percent of available cores, which can be overridden by the
-environment variable <code>R_HEATWAVE3_NUM_THREADS</code>. The per-function
+environment variable <code>R_HEATWAVE3_NUM_THREADS</code>. Without that variable,
+the default is at most 2 when <code>_R_CHECK_LIMIT_CORES_</code> is set (as by
+<code>R CMD check --as-cran</code>) and at most <code>OMP_THREAD_LIMIT</code> when that
+is set. The per-function
 <code>n_threads</code> parameter, when greater than zero, takes precedence
 over the package-level setting for that call.</p>
     </div>

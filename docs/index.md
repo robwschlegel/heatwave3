@@ -86,7 +86,7 @@ events = hw3.hw3_export(out["events"])   # a pandas DataFrame
 ```
 
 Documentation: <https://heatwave3.readthedocs.io>. The source is in
-[`python/`](https://robwschlegel.github.io/heatwave3/python/).
+[`python/`](https://github.com/robwschlegel/heatwave3/tree/main/python).
 
 ## Installation
 
@@ -97,14 +97,14 @@ developed:
 
 \
 `# install.packages("remotes")`\
-`remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"robwschlegel/heatwave3@dev"``)`
+`remotes``::``install_github``(``"robwschlegel/heatwave3@dev"``)`
 
 If however you feel like playing it safe, the main branch is the way to
 go:
 
 \
 `# install.packages("remotes")`\
-`remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"robwschlegel/heatwave3"``)`
+`remotes``::``install_github``(``"robwschlegel/heatwave3"``)`
 
 ### System requirements
 

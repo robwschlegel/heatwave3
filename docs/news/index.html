@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,7 +25,7 @@
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_packages.html">Performance benchmark - MHW packages</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -56,12 +56,30 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.1" id="heatwave3-141">heatwave3 1.4.1<a class="anchor" aria-label="anchor" href="#heatwave3-141"></a></h2>
+<p>Preparation for CRAN, and coastlines in the Python maps. Results are unchanged. This version is not released on PyPI; the Python package stays at 1.4.0 there.</p>
+<ul><li>
+<strong>Default thread count.</strong> The default (half of the cores) is now at most 2 when <code>_R_CHECK_LIMIT_CORES_</code> is set (as by <code>R CMD check --as-cran</code>), and at most <code>OMP_THREAD_LIMIT</code> when that is set, as CRAN requires. An explicit <code>n_threads</code>, <code><a href="../reference/getHW3threads.html">setHW3threads()</a></code> or <code>R_HEATWAVE3_NUM_THREADS</code> is used as given.</li>
+<li>
+<strong><code><a href="../reference/plot_metric3.html">plot_metric3()</a></code> (R)</strong> draws the coastline only when <code>rnaturalearthdata</code> is installed as well as <code>rnaturalearth</code> and <code>sf</code>; without it, rnaturalearth tried to install it. <code>rnaturalearthdata</code> is now in Suggests.</li>
+<li>
+<strong><code><a href="../reference/plot_metric3.html">plot_metric3()</a></code> (Python)</strong> draws the coastline whenever <code>cartopy</code> is installed, and <code>cartopy</code> is now part of the <code>[plot]</code> extra. Only the part of the coastline inside the map is drawn, so saved vector files stay small.</li>
+<li>
+<strong>Windows:</strong> netCDF is linked from Rtools with <code>pkg-config</code>; nothing is downloaded when the package is installed.</li>
+<li>
+<strong>Examples</strong> of <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code>, <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>, <code><a href="../reference/exceedance3.html">exceedance3()</a></code> and <code><a href="../reference/category_daily3.html">category_daily3()</a></code> now run on the bundled data (<code>\donttest{}</code>).</li>
+<li>
+<strong>Documentation:</strong> a new article compares heatwave3 with heatwaveR, marineHeatWaves and xmhw on the Bay of Biscay GLORYS12 series (replacing the xmhw article, whose address now redirects to it), with a matching page in the Python documentation.</li>
+<li>
+<strong>Maintainer:</strong> Robert W. Schlegel. Albertus J. Smit remains an author.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.4.0" id="heatwave3-140">heatwave3 1.4.0<a class="anchor" aria-label="anchor" href="#heatwave3-140"></a></h2>
 <div class="section level3">
 <h3 id="breaking-changes-outputs-now-match-heatwaver-exactly-1-4-0">Breaking changes: outputs now match heatwaveR exactly<a class="anchor" aria-label="anchor" href="#breaking-changes-outputs-now-match-heatwaver-exactly-1-4-0"></a></h3>
-<p>heatwaveR is the reference for every heatwave3 output. On the bundled <code>sst_test.nc</code> data (heatwaves and cold-spells), the climatology, all event metrics, the event categories with <code>p_moderate</code> to <code>p_extreme</code>, and the daily categories are now identical to <code><a href="https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code>, <code><a href="https://robwschlegel.github.io/heatwaveR/reference/detect_event.html" class="external-link">detect_event()</a></code> and <code><a href="https://robwschlegel.github.io/heatwaveR/reference/category.html" class="external-link">category()</a></code>. Files written by earlier versions differ; regenerate them.</p>
+<p>heatwaveR is the reference for every heatwave3 output. On the bundled <code>sst_test.nc</code> data (heatwaves and cold-spells), the climatology, all event metrics, the event categories with <code>p_moderate</code> to <code>p_extreme</code>, and the daily categories are now identical to <code><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code>, <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">detect_event()</a></code> and <code><a href="https://rdrr.io/pkg/heatwaveR/man/category.html" class="external-link">category()</a></code>. Files written by earlier versions differ; regenerate them.</p>
 <ul><li>
-<strong><code>p_moderate</code>, <code>p_strong</code>, <code>p_severe</code>, <code>p_extreme</code></strong> are now, as in <code><a href="https://robwschlegel.github.io/heatwaveR/reference/category.html" class="external-link">heatwaveR::category()</a></code>, the percentages of the event’s days at or beyond each category level (whole numbers, rounded half to even). The levels are <code>thresh + k * diff</code> (k = 0 to 3, <code>diff = thresh - seas</code>), each rounded to 4 decimals. The event’s category is the highest one with a non-zero percentage. Days below the threshold within a joined event are not counted, so the percentages can sum to less than 100. Previously they were fractions of the peak intensity.</li>
+<strong><code>p_moderate</code>, <code>p_strong</code>, <code>p_severe</code>, <code>p_extreme</code></strong> are now, as in <code><a href="https://rdrr.io/pkg/heatwaveR/man/category.html" class="external-link">heatwaveR::category()</a></code>, the percentages of the event’s days at or beyond each category level (whole numbers, rounded half to even). The levels are <code>thresh + k * diff</code> (k = 0 to 3, <code>diff = thresh - seas</code>), each rounded to 4 decimals. The event’s category is the highest one with a non-zero percentage. Days below the threshold within a joined event are not counted, so the percentages can sum to less than 100. Previously they were fractions of the peak intensity.</li>
 <li>
 <strong><code><a href="../reference/category3.html">category3()</a></code> gains <code>sst_file</code> (and <code>var_name</code>).</strong> Computing categories for an event file without inline categories needs each event day’s temperature, so it now requires <code>clim_file</code> and <code>sst_file</code>.</li>
 <li>
@@ -73,7 +91,7 @@
 <li>
 <strong>Climatology:</strong> 29 February in non-leap years is filled with the mean of 28 February and 1 March rounded to 2 decimals, and all rounding, means, sums and standard deviations follow R’s <code><a href="https://rdrr.io/r/base/Round.html" class="external-link">round()</a></code>, <code><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean()</a></code>, <code><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum()</a></code> and <code><a href="https://rdrr.io/r/stats/sd.html" class="external-link">sd()</a></code> (new <code>src/hw3_round.h</code>). The climatology is bit-identical to heatwaveR’s.</li>
 <li>
-<strong>Known differences from heatwaveR</strong>, both heatwaveR issues to be fixed there: the season is that of the event’s peak month (December to February = summer in the southern hemisphere), whereas <code><a href="https://robwschlegel.github.io/heatwaveR/reference/category.html" class="external-link">heatwaveR::category()</a></code> uses calendar quarters; and heatwaveR joins up to <code>maxGap</code> non-exceeding days at the very end of the series into the last event, whereas heatwave3 ends the event on its last exceeding day.</li>
+<strong>Known differences from heatwaveR</strong>, both heatwaveR issues to be fixed there: the season is that of the event’s peak month (December to February = summer in the southern hemisphere), whereas <code><a href="https://rdrr.io/pkg/heatwaveR/man/category.html" class="external-link">heatwaveR::category()</a></code> uses calendar quarters; and heatwaveR joins up to <code>maxGap</code> non-exceeding days at the very end of the series into the last event, whereas heatwave3 ends the event on its last exceeding day.</li>
 </ul></div>
 <div class="section level3">
 <h3 id="changes-1-4-0">Changes<a class="anchor" aria-label="anchor" href="#changes-1-4-0"></a></h3>
@@ -251,7 +269,7 @@
 <h3 id="new-features-1-1-3">New features<a class="anchor" aria-label="anchor" href="#new-features-1-1-3"></a></h3>
 <ul><li><p><strong><code>ts2clm3(return_df = TRUE)</code></strong> now returns the computed climatology as a long data frame with <code>lon</code>, <code>lat</code>, <code>doy</code>, <code>seas</code>, and <code>thresh</code>, while still writing the primary NetCDF output.</p></li>
 <li><p><strong>Companion exports now use <code>save_file</code> only.</strong> <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> and <code><a href="../reference/detect_event3.html">detect_event3()</a></code> now infer the requested companion export format from the extension of <code>save_file</code>. Supported extensions are <code>.csv</code>, <code>.rds</code>, and <code>.parquet</code>. If <code>save_file = NULL</code>, no companion file is written.</p></li>
-<li><p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> now implements gridded <code>threshClim2</code>.</strong> Users may supply a secondary logical criterion as a NetCDF file, vector of files, or directory of daily files. Non-zero, non-missing values are treated as <code>TRUE</code>, and the secondary pass uses <code>minDuration2</code> and <code>maxGap2</code> with the same event logic as <code><a href="https://robwschlegel.github.io/heatwaveR/reference/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>.</p></li>
+<li><p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> now implements gridded <code>threshClim2</code>.</strong> Users may supply a secondary logical criterion as a NetCDF file, vector of files, or directory of daily files. Non-zero, non-missing values are treated as <code>TRUE</code>, and the secondary pass uses <code>minDuration2</code> and <code>maxGap2</code> with the same event logic as <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code>.</p></li>
 <li><p><strong>CSV and Parquet companion exports are chunked.</strong> <code><a href="../reference/hw3_export.html">hw3_export()</a></code> now streams CSV rows and writes Parquet row groups using a configurable <code>chunk_size</code>, reducing peak memory pressure for large gridded outputs.</p></li>
 </ul></div>
 <div class="section level3">
@@ -272,7 +290,7 @@
 <div class="section level3">
 <h3 id="bug-fixes-1-1-2">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-1-2"></a></h3>
 <ul><li>
-<p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> no longer glues events across calendar gaps in the input SST stack.</strong> When the input had missing days (e.g. unavailable OSTIA files), the run-length-encoding in <code>detect_pixel_events()</code> walked array indices rather than calendar dates. An event that had above-threshold days on both sides of a missing-data window was joined into one event whose reported <code>date_end − date_start + 1</code> was larger than <code>duration</code> (calendar-span &gt; index-count). The fix expands the per-pixel series to a dense daily array up front (mirroring what <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> has always done in <code>compute_pixel_clim</code>), filling missing dates with <code>NA</code>. <code>proto_event()</code> then breaks runs at the gap exactly as <code><a href="https://robwschlegel.github.io/heatwaveR/reference/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code> does via <code>make_whole()</code>. Verified by pixel-by-pixel agreement with heatwaveR (1705 / 1705 events on a Cape Town OSTIA region match exactly: same count, same date_start / peak / end, same duration, intensities to rounding precision) and by a synthetic 30-day-gap reproducer.</p>
+<p><strong><code><a href="../reference/detect_event3.html">detect_event3()</a></code> no longer glues events across calendar gaps in the input SST stack.</strong> When the input had missing days (e.g. unavailable OSTIA files), the run-length-encoding in <code>detect_pixel_events()</code> walked array indices rather than calendar dates. An event that had above-threshold days on both sides of a missing-data window was joined into one event whose reported <code>date_end − date_start + 1</code> was larger than <code>duration</code> (calendar-span &gt; index-count). The fix expands the per-pixel series to a dense daily array up front (mirroring what <code><a href="../reference/ts2clm3.html">ts2clm3()</a></code> has always done in <code>compute_pixel_clim</code>), filling missing dates with <code>NA</code>. <code>proto_event()</code> then breaks runs at the gap exactly as <code><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">heatwaveR::detect_event()</a></code> does via <code>make_whole()</code>. Verified by pixel-by-pixel agreement with heatwaveR (1705 / 1705 events on a Cape Town OSTIA region match exactly: same count, same date_start / peak / end, same duration, intensities to rounding precision) and by a synthetic 30-day-gap reproducer.</p>
 <p>Internal API change: <code>EventResult</code> gains three integer fields (<code>jd_start</code>, <code>jd_peak</code>, <code>jd_end</code>) holding the absolute Julian Day of the start, peak, and end of each event. <code>index_*</code> fields are now indices into the dense (gap-filled) array rather than the sparse input. Downstream code that uses <code>hw3_read_event_nc()</code> / <code><a href="../reference/category3.html">category3()</a></code> / <code><a href="../reference/block_average3.html">block_average3()</a></code> is unaffected: the NetCDF event-file layout and the R-facing return values are unchanged.</p>
 </li>
 </ul></div>

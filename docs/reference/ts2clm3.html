@@ -11,7 +11,7 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -29,7 +29,7 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
     <li><a class="dropdown-item" href="../articles/netcdf-output.html">NetCDF output internals</a></li>
     <li><a class="dropdown-item" href="../articles/parallelism.html">Parallel performance</a></li>
     <li><a class="dropdown-item" href="../articles/benchmark.html">Performance benchmark - heatwaveR</a></li>
-    <li><a class="dropdown-item" href="../articles/benchmark_xmhw.html">Performance benchmark - xmhw</a></li>
+    <li><a class="dropdown-item" href="../articles/benchmark_packages.html">Performance benchmark - MHW packages</a></li>
   </ul></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-resources" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Resources</button>
@@ -63,7 +63,7 @@ gridded equivalent of heatwaveR::ts2clm()."><meta property="og:image" content="h
     <div class="ref-description section level2">
     <p>Calculates seasonal and threshold climatologies for each pixel in a gridded
 NetCDF file, following the Hobday et al. (2016) methodology. This is the
-gridded equivalent of <code><a href="https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code>.</p>
+gridded equivalent of <code><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.html" class="external-link">heatwaveR::ts2clm()</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -230,12 +230,54 @@ into a <code>data.frame</code> or export it to CSV/RDS/Parquet.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu">ts2clm3</span><span class="op">(</span>file_in <span class="op">=</span> <span class="st">"path/to/sst.nc"</span>,</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">sst_file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/sst_test.nc"</span>, package <span class="op">=</span> <span class="st">"heatwave3"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">ts2clm3</span><span class="op">(</span>file_in <span class="op">=</span> <span class="va">sst_file</span>,</span></span>
 <span class="r-in"><span>        name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"cape_coast"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>        lon_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">25</span>, <span class="fl">26</span><span class="op">)</span>, lat_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">34</span>, <span class="op">-</span><span class="fl">33</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-in"><span>        climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 1 thread(s)...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 
+  1/6 pixels (16%)
+  2/6 pixels (33%)
+  3/6 pixels (50%)
+  4/6 pixels (66%)
+  5/6 pixels (83%)
+  6/6 pixels (100%)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      lon     lat doy     seas   thresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26.525 -34.125   1 294.4208 295.9951</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 26.525 -34.125   2 294.4648 296.0311</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 26.525 -34.125   3 294.5088 296.0720</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 26.525 -34.125   4 294.5524 296.1133</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 26.525 -34.125   5 294.5955 296.1553</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         lon     lat doy     seas   thresh</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2192 26.575 -34.025 362 293.5308 295.1848</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2193 26.575 -34.025 363 293.5672 295.2141</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2194 26.575 -34.025 364 293.6065 295.2460</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2195 26.575 -34.025 365 293.6480 295.2776</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2196 26.575 -34.025 366 293.6907 295.3100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ocean pixels (valid climatology): 6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -86,7 +86,7 @@ events = hw3.hw3_export(out["events"])   # a pandas DataFrame
 ```
 
 Documentation: <https://heatwave3.readthedocs.io>. The source is in
-[`python/`](https://robwschlegel.github.io/heatwave3/python/).
+[`python/`](https://github.com/robwschlegel/heatwave3/tree/main/python).
 
 ## Installation
 
@@ -97,14 +97,14 @@ developed:
 
 \
 `# install.packages("remotes")`\
-`remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"robwschlegel/heatwave3@dev"``)`
+`remotes``::``install_github``(``"robwschlegel/heatwave3@dev"``)`
 
 If however you feel like playing it safe, the main branch is the way to
 go:
 
 \
 `# install.packages("remotes")`\
-`remotes``::`[`install_github`](https://remotes.r-lib.org/reference/install_github.html)`(``"robwschlegel/heatwave3"``)`
+`remotes``::``install_github``(``"robwschlegel/heatwave3"``)`
 
 ### System requirements
 
@@ -378,8 +378,8 @@ By contributing to this project, you agree to abide by its terms.
   parallelism](https://robwschlegel.github.io/heatwave3/articles/parallelism.md):
 - [Performance benchmark: heatwave3 vs
   heatwaveR](https://robwschlegel.github.io/heatwave3/articles/benchmark.md):
-- [Performance benchmark: heatwave3 vs
-  xmhw](https://robwschlegel.github.io/heatwave3/articles/benchmark_xmhw.md):
+- [Performance benchmark: heatwave3 vs other MHW
+  packages](https://robwschlegel.github.io/heatwave3/articles/benchmark_packages.md):
 
 ### Depth-resolved (4D) analysis
 

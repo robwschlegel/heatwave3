@@ -30,7 +30,10 @@
 #' \code{setHW3threads()} sets it and returns the new value.
 #'
 #' The default is 50 percent of available cores, which can be overridden by the
-#' environment variable \code{R_HEATWAVE3_NUM_THREADS}. The per-function
+#' environment variable \code{R_HEATWAVE3_NUM_THREADS}. Without that variable,
+#' the default is at most 2 when \code{_R_CHECK_LIMIT_CORES_} is set (as by
+#' \code{R CMD check --as-cran}) and at most \code{OMP_THREAD_LIMIT} when that
+#' is set. The per-function
 #' \code{n_threads} parameter, when greater than zero, takes precedence
 #' over the package-level setting for that call.
 #'

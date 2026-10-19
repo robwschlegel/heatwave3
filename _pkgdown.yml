@@ -93,7 +93,7 @@ articles:
   - netcdf-output
   - parallelism
   - benchmark
-  - benchmark_xmhw
+  - articles/benchmark_xmhw
 - title: Depth-resolved (4D) analysis
   contents:
   - depth-range

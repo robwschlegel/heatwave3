@@ -73,11 +73,12 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' ts2clm3(file_in = "path/to/sst.nc",
+#' \donttest{
+#' sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+#'
+#' ts2clm3(file_in = sst_file,
 #'         name = file.path(tempdir(), "cape_coast"),
-#'         climatologyPeriod = c("1982-01-01", "2011-12-31"),
-#'         lon_range = c(25, 26), lat_range = c(-34, -33))
+#'         climatologyPeriod = c("1982-01-01", "2011-12-31"))
 #' }
 ts2clm3 <- function(file_in, name,
                     climatologyPeriod,

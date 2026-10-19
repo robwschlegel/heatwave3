@@ -73,7 +73,7 @@ Detects periods where SST exceeds (or falls below) a fixed threshold
 for each pixel, without requiring a climatology baseline.
 }
 \examples{
-\dontrun{
+\donttest{
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 event_file <- tempfile(fileext = ".nc")
 

@@ -41,7 +41,16 @@ inline int hw3_default_threads() {
     }
     unsigned hc = std::thread::hardware_concurrency();
     int procs = (hc > 0) ? static_cast<int>(hc) : 1;
-    return std::max(1, procs / 2);  // 50% of cores, leaving room for other work
+    int n = std::max(1, procs / 2);  // 50% of cores, leaving room for other work
+    // CRAN allows at most 2 cores: R CMD check --as-cran sets
+    // _R_CHECK_LIMIT_CORES_ (read as parallel::detectCores() reads it), and
+    // check machines may set OMP_THREAD_LIMIT.
+    const char* chk = std::getenv("_R_CHECK_LIMIT_CORES_");
+    if (chk && std::strlen(chk) > 0 && std::strcmp(chk, "false") != 0)
+        n = std::min(n, 2);
+    const char* lim = std::getenv("OMP_THREAD_LIMIT");
+    if (lim && std::atoi(lim) > 0) n = std::min(n, std::atoi(lim));
+    return n;
 }
 
 // Thread count for a region with `n_iterations`. Throttles to at least ~100

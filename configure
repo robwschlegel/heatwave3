@@ -1,13 +1,8 @@
 #!/bin/sh
-# configure — find netcdf and auto-detect OpenMP (including macOS)
-#
-# OpenMP detection: compile a small test program that mirrors heatwave3's own
-# parallel regions (schedule(static)), link it, load it in R, and run a
-# parallel reduction to confirm the runtime actually works. On macOS the
-# preferred runtime is R's OWN bundled libomp, so the whole process shares a
-# single OpenMP runtime; Homebrew/system libomp are fallbacks. heatwave3 uses
-# schedule(static) precisely so it needs no symbol (e.g. ___kmpc_dispatch_deinit)
-# that R's bundled libomp lacks.
+# configure: find netcdf (nc-config, pkg-config or common prefixes) and,
+# optionally, the libhdf5 that libnetcdf links, for parallel compression of
+# gridded outputs (skip with HW3_NO_HDF5=1). Parallelism is C++ std::thread,
+# so no OpenMP runtime is probed. Writes src/Makevars from src/Makevars.in.
 
 set -e
 

@@ -1,28 +1,27 @@
 Package: heatwave3
 Version: 1.4.0
-Date: 2026-07-24
 Title: Detect Heatwaves and Cold-Spells in Gridded Data
 Description: Detect marine heatwaves (MHWs) and cold-spells (MCS) directly on gridded
-    NetCDF data using the Hobday et al. (2016, 2018) definition. Implements
-    climatology calculation, event detection, exceedance analysis, event
-    categorisation, blob detection, and visualisation. All core algorithms are
-    written in C++17 with std::thread parallelism for high performance on large datasets.
+    'NetCDF' data using the definition of Hobday et al. (2016)
+    <doi:10.1016/j.pocean.2015.12.014> and the categories of Hobday et al.
+    (2018) <doi:10.5670/oceanog.2018.205>. Implements climatology calculation,
+    event detection, exceedance analysis, event categorisation, blob detection,
+    and visualisation. All core algorithms are written in multi-threaded C++
+    for high performance on large datasets.
 Type: Package
-Authors@R: c(person("Robert W.", "Schlegel", role = c("aut", "cph"),
+Authors@R: c(person("Robert W.", "Schlegel", role = c("aut", "cre", "cph"),
                     email = "robwschlegel@gmail.com",
                     comment = c(ORCID = "0000-0002-0705-1287")),
-            person("Albertus J.", "Smit", role = c("aut", "cre"),
+            person("Albertus J.", "Smit", role = "aut",
                     email = "albertus.smit@gmail.com",
                     comment = c(ORCID = "0000-0002-3799-6126")))
-Maintainer: Albertus J. Smit <albertus.smit@gmail.com>
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports:
     Rcpp (>= 1.0.0)
 LinkingTo:
-    Rcpp,
-    RcppArmadillo
+    Rcpp
 Suggests:
     ggplot2,
     scales,
@@ -31,18 +30,17 @@ Suggests:
     heatwaveR,
     knitr,
     rmarkdown,
-    quarto,
-    reticulate,
     rnaturalearth,
     sf,
     arrow,
-    bench,
     purrr
-VignetteBuilder: knitr, quarto
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Depends:
     R (>= 4.1.0)
 SystemRequirements: GNU make, netcdf (>= 4.0), C++17
 URL: https://robwschlegel.github.io/heatwave3/, https://github.com/robwschlegel/heatwave3
+BugReports: https://github.com/robwschlegel/heatwave3/issues
 NeedsCompilation: yes
+Config/Needs/website: quarto, reticulate
 Config/roxygen2/version: 8.1.1

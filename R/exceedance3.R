@@ -34,7 +34,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 #' event_file <- tempfile(fileext = ".nc")
 #'

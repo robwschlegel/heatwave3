@@ -12,7 +12,6 @@ src/Makevars
 dev/
 docs/CLAUDE.html
 docs/CLAUDE.md
-/windows/
 
 # Python build
 build/

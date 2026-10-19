@@ -35,6 +35,27 @@ test_that("hw3_default_threads() honours R_HEATWAVE3_NUM_THREADS when set", {
   expect_gte(setHW3threads(0L), 1L)
 })
 
+test_that("the default is capped at 2 threads under _R_CHECK_LIMIT_CORES_", {
+  old <- getHW3threads()
+  old_env <- Sys.getenv(c("R_HEATWAVE3_NUM_THREADS", "_R_CHECK_LIMIT_CORES_"),
+                        unset = NA)
+  on.exit({
+    for (v in names(old_env)) {
+      if (is.na(old_env[[v]])) Sys.unsetenv(v)
+      else do.call(Sys.setenv, as.list(old_env[v]))
+    }
+    setHW3threads(old)
+  }, add = TRUE)
+
+  Sys.unsetenv("R_HEATWAVE3_NUM_THREADS")
+  Sys.setenv("_R_CHECK_LIMIT_CORES_" = "TRUE")
+  expect_lte(setHW3threads(0L), 2L)
+
+  # an explicit request is still honoured
+  Sys.setenv(R_HEATWAVE3_NUM_THREADS = "3")
+  expect_equal(setHW3threads(0L), 3L)
+})
+
 test_that("n_threads > 1 exercises the parallel_for worker-pool branch and matches n_threads = 1", {
   sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
   skip_if(sst_file == "", "sst_test.nc not available")

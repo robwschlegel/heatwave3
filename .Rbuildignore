@@ -12,9 +12,7 @@
 ^package_development.R
 ^hex_sticker.R
 ^heatwave3\.code-workspace$
-^configure\.win$
 ^src/Makevars$
-^windows$
 ^CLAUDE\.md$
 ^dev$
 ^vignettes/.*_files$
@@ -22,5 +20,6 @@
 ^python$
 ^pyproject\.toml$
 ^CMakeLists\.txt$
-^build$
 ^\.readthedocs\.yaml$
+^vignettes/articles$
+^cran-comments\.md$

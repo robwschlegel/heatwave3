@@ -41,10 +41,10 @@ test_that("the parallel writer gives the same files as netCDF's serial writer", 
     Sys.setenv(HEATWAVE3_SERIAL_WRITE = if (serial) "1" else "0")
     on.exit(if (is.na(withr_env)) Sys.unsetenv("HEATWAVE3_SERIAL_WRITE")
             else Sys.setenv(HEATWAVE3_SERIAL_WRITE = withr_env))
-    detect3(sst, stem, cp, category = TRUE, daily = "also", n_threads = 4L,
+    detect3(sst, stem, cp, category = TRUE, daily = "also", n_threads = 2L,
             quiet = TRUE, ...)
     detect_event3(sst, paste0(stem, "p"), clim_file = paste0(stem, "_clim.nc"),
-                  protoEvent = TRUE, n_threads = 4L, quiet = TRUE, ...)
+                  protoEvent = TRUE, n_threads = 2L, quiet = TRUE, ...)
     p <- products(stem)
     p$events <- sorted_events(p$events)
     p$proto <- hw3_export(paste0(stem, "p_protoevents.nc"))

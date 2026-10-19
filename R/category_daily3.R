@@ -66,12 +66,17 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
+#' sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+#' stem <- file.path(tempdir(), "demo")
+#' detect3(sst_file, name = stem,
+#'         climatologyPeriod = c("1982-01-01", "2011-12-31"))
+#'
 #' category_daily3(
-#'   sst_file   = "oisst-avhrr-v02r01.ts.0001.nc",
-#'   clim_file  = "MHW_0001_1982-2011_clim.nc",
-#'   event_file = "MHW_0001_1982-2011_events.nc",
-#'   time_range = c("2026-05-10", "2026-05-20")
+#'   sst_file   = sst_file,
+#'   clim_file  = paste0(stem, "_clim.nc"),
+#'   event_file = paste0(stem, "_events.nc"),
+#'   time_range = c("2020-01-01", "2020-03-31")
 #' )
 #' }
 category_daily3 <- function(sst_file, clim_file, event_file, time_range,

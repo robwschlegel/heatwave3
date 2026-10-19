@@ -169,7 +169,7 @@ test_that("detect_event_array3 gives the same results on any number of threads",
   case <- array_case(FALSE)
   one <- detect_event_array3(case$temp, case$seas, case$thresh, outputs = all_outputs,
                              n_threads = 1)
-  four <- detect_event_array3(case$temp, case$seas, case$thresh, outputs = all_outputs,
-                              n_threads = 4)
-  expect_identical(four, one)
+  two <- detect_event_array3(case$temp, case$seas, case$thresh, outputs = all_outputs,
+                             n_threads = 2)
+  expect_identical(two, one)
 })

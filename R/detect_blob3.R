@@ -94,20 +94,19 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' sst_file <- "/path/to/sst.nc"
+#' \donttest{
+#' sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 #' stem <- tempfile()
 #'
 #' # Step 1: compute climatology
 #' ts2clm3(sst_file, name = stem,
 #'         climatologyPeriod = c("1982-01-01", "2011-12-31"),
-#'         n_threads = 4)
+#'         n_threads = 2)
 #'
 #' # Step 2: detect spatial blobs (heatwaves)
 #' blobs <- detect_blob3(
 #'   sst_file  = sst_file,
 #'   clim_file = paste0(stem, "_clim.nc"),
-#'   minVoxels = 200,
 #'   topN      = 10,
 #'   return    = c("event", "daily", "voxel")
 #' )
@@ -120,26 +119,25 @@
 #' stem_cold <- tempfile()
 #' ts2clm3(sst_file, name = stem_cold,
 #'         climatologyPeriod = c("1982-01-01", "2011-12-31"),
-#'         pctile = 10, n_threads = 4)
+#'         pctile = 10, n_threads = 2)
 #'
 #' mcs <- detect_blob3(
 #'   sst_file   = sst_file,
 #'   clim_file  = paste0(stem_cold, "_clim.nc"),
 #'   coldSpells = TRUE,
-#'   minVoxels  = 200,
 #'   topN       = 6
 #' )
 #'
 #' # Step 2c: depth-resolved blobs, connected through the water column too
+#' glorys_file <- system.file("extdata/glorys_depth_test.nc", package = "heatwave3")
 #' stem_4d <- tempfile()
-#' ts2clm3(sst_file, name = stem_4d,
-#'         climatologyPeriod = c("1982-01-01", "2011-12-31"),
-#'         depth_range = c(0, 100), n_threads = 4)
+#' ts2clm3(glorys_file, name = stem_4d,
+#'         climatologyPeriod = c("1993-01-01", "2019-12-31"),
+#'         depth_range = c(0, 10), n_threads = 2)
 #'
 #' blobs_4d <- detect_blob3(
-#'   sst_file  = sst_file,
+#'   sst_file  = glorys_file,
 #'   clim_file = paste0(stem_4d, "_clim.nc"),
-#'   minVoxels = 200,
 #'   topN      = 10
 #' )
 #' head(blobs_4d$event)  # gains depth_min_m/depth_max_m/totalVolume_km3/...

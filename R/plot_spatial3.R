@@ -13,7 +13,8 @@
 #'   One of \code{"mean"} (default), \code{"max"}, \code{"min"},
 #'   \code{"sum"}, or \code{"count"}.
 #' @param coastline Logical. Add a coastline layer? Requires the
-#'   \code{rnaturalearth} and \code{sf} packages. Default \code{TRUE}.
+#'   \code{rnaturalearth}, \code{rnaturalearthdata} and \code{sf} packages
+#'   (skipped otherwise). Default \code{TRUE}.
 #' @param ... Additional arguments passed to
 #'   \code{ggplot2::scale_fill_viridis_c}.
 #'
@@ -54,7 +55,10 @@ plot_metric3 <- function(event_file,
     ggplot2::theme_minimal()
 
   if (coastline) {
+    # rnaturalearthdata holds the medium-scale coastline; without it
+    # rnaturalearth would try to install it.
     if (requireNamespace("rnaturalearth", quietly = TRUE) &&
+        requireNamespace("rnaturalearthdata", quietly = TRUE) &&
         requireNamespace("sf", quietly = TRUE)) {
       coast <- rnaturalearth::ne_coastline(scale = "medium", returnclass = "sf")
       p <- p + ggplot2::geom_sf(data = coast, inherit.aes = FALSE,

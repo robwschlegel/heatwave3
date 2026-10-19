@@ -145,7 +145,10 @@ range(dd$date)
 
 ```{r ribbon, eval = has_test_data}
 ggplot(dd, aes(x = date)) +
-  geom_ribbon(aes(ymin = depth_min_m, ymax = depth_max_m, fill = mean_delta)) +
+  # One rectangle per day: a ribbon with varying fill needs gradient support
+  # from the graphics device, which not every device has.
+  geom_rect(aes(xmin = date - 0.5, xmax = date + 0.5,
+                ymin = depth_min_m, ymax = depth_max_m, fill = mean_delta)) +
   scale_y_reverse(name = "depth (m)") +
   scale_fill_viridis_c(name = expression(Delta*"T (" * degree * "C)"), option = "inferno") +
   labs(title = paste("Vertical extent of blob", b), x = NULL) +

@@ -1,22 +1,15 @@
-VERSION = 4.9.0
-
 CXX_STD = CXX17
 
-# Modern Rtools (R >= 4.2) targets UCRT exclusively, so link against the
-# rwinlib/netcdf ucrt-x86_64 build specifically -- the plain lib/x64 build
-# is compiled against the legacy MSVCRT runtime (__iob_func / _sys_nerr),
-# which is absent from UCRT and fails to link.
-PKG_CPPFLAGS = -I../windows/netcdf-$(VERSION)/include
-PKG_LIBS = -L../windows/netcdf-$(VERSION)/lib/x64-ucrt \
-	-lnetcdf -lhdf5_hl -lhdf5 -lcurl -lssh2 -lssl -lcrypto -lxml2 -lexpat -lintl -lz \
+# netCDF, and the HDF5, curl and compression libraries it links, come with
+# Rtools (R >= 4.2, UCRT); pkg-config gives the static link line. Nothing is
+# downloaded at build time.
+PKG_CONFIG ?= $(BINPREF)pkg-config
+NETCDF_LIBS := $(shell $(PKG_CONFIG) --libs --static netcdf 2>/dev/null)
+
+ifneq ($(NETCDF_LIBS),)
+PKG_CPPFLAGS = $(shell $(PKG_CONFIG) --cflags netcdf)
+PKG_LIBS = $(NETCDF_LIBS)
+else
+PKG_LIBS = -lnetcdf -lhdf5_hl -lhdf5 -lcurl -lssh2 -lssl -lcrypto -lxml2 -lexpat -lintl -lz \
 	-lws2_32 -lcrypt32 -lwldap32 -ladvapi32 -luser32 -lnormaliz -liconv
-
-all: clean winlibs
-
-winlibs:
-	"$(R_HOME)/bin$(R_ARCH_BIN)/Rscript.exe" "../tools/winlibs.R" $(VERSION)
-
-clean:
-	rm -Rf $(SHLIB) $(OBJECTS)
-
-.PHONY: all winlibs clean
+endif

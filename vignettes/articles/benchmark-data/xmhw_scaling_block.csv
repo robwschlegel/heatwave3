@@ -1,0 +1,11 @@
+variant,threads,clim,detect,total
+distributed,1,308.85,12.99,323.22
+distributed,2,149.0,8.33,158.69
+distributed,4,72.68,5.48,79.56
+distributed,8,62.65,5.23,69.28
+processes,1,110.86,10.16,122.35
+processes,2,65.9,6.49,73.64
+processes,4,43.54,4.55,49.32
+processes,8,41.9,4.37,47.52
+synchronous,1,97.89,8.8,107.94
+threads,8,107.69,10.34,119.32

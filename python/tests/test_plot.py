@@ -152,6 +152,24 @@ def test_plot_metric3_coastline_is_optional(runs):
     hw3.plot_metric3(runs["s"] + "_events.nc", coastline=True)
 
 
+def test_coastline_is_drawn_inside_the_view():
+    pytest.importorskip("cartopy")
+    import matplotlib.pyplot as plt
+    from heatwave3.plot import _add_coastline
+
+    # Bay of Biscay: the bundled test grid is open sea, so no coast there
+    _, ax = plt.subplots()
+    ax.set(xlim=(-10, -1), ylim=(43, 48))
+    _add_coastline(ax)
+    assert len(ax.lines) > 0
+    for line in ax.lines:
+        x, y = line.get_xdata(), line.get_ydata()
+        assert x.min() >= -10 - 1e-9 and x.max() <= -1 + 1e-9
+        assert y.min() >= 43 - 1e-9 and y.max() <= 48 + 1e-9
+    assert ax.get_xlim() == (-10, -1) and ax.get_ylim() == (43, 48)
+    plt.close(ax.figure)
+
+
 def test_plot_metric3_without_cartopy_skips_coastline(runs):
     try:
         import cartopy  # noqa: F401

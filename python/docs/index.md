@@ -22,7 +22,7 @@ output against the R package.
 
 ```bash
 pip install heatwave3              # computation and NetCDF/CSV export
-pip install "heatwave3[plot]"      # + matplotlib plotting functions
+pip install "heatwave3[plot]"      # + plotting functions (matplotlib, cartopy)
 pip install "heatwave3[parquet]"   # + Parquet export (pyarrow)
 ```
 
@@ -58,5 +58,6 @@ lists every function and the few differences.
 getting-started
 r-to-python
 r-and-python-notebook
+benchmark
 api
 ```

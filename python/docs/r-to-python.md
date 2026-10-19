@@ -83,8 +83,9 @@ hw3.detect3("sst.nc", name="run1", climatologyPeriod=("1982-01-01", "2011-12-31"
   depth column) plays the role of R's automatic grouping by depth.
   `event_line3()` and `plot_metric3()` take the R arguments plus `ax=`, and
   return the `Axes`.
-- **Coastlines** in `plot_metric3()` use `cartopy` when it is installed (R uses
-  `rnaturalearth`); otherwise they are skipped, as in R.
+- **Coastlines** in `plot_metric3()` are the same 1:50m Natural Earth
+  coastline as in R, drawn with `cartopy` (installed by the `[plot]` extra; R
+  uses `rnaturalearth`). Without cartopy they are skipped, as in R.
 - **Threads**: `HEATWAVE3_NUM_THREADS` sets the default thread count;
   `R_HEATWAVE3_NUM_THREADS` is also read.
 

@@ -1,3 +1,28 @@
+# heatwave3 1.4.1
+
+Preparation for CRAN, and coastlines in the Python maps. Results are unchanged.
+This version is not released on PyPI; the Python package stays at 1.4.0 there.
+
+* **Default thread count.** The default (half of the cores) is now at most 2
+  when `_R_CHECK_LIMIT_CORES_` is set (as by `R CMD check --as-cran`), and at
+  most `OMP_THREAD_LIMIT` when that is set, as CRAN requires. An explicit
+  `n_threads`, `setHW3threads()` or `R_HEATWAVE3_NUM_THREADS` is used as given.
+* **`plot_metric3()` (R)** draws the coastline only when `rnaturalearthdata`
+  is installed as well as `rnaturalearth` and `sf`; without it, rnaturalearth
+  tried to install it. `rnaturalearthdata` is now in Suggests.
+* **`plot_metric3()` (Python)** draws the coastline whenever `cartopy` is
+  installed, and `cartopy` is now part of the `[plot]` extra. Only the part of
+  the coastline inside the map is drawn, so saved vector files stay small.
+* **Windows:** netCDF is linked from Rtools with `pkg-config`; nothing is
+  downloaded when the package is installed.
+* **Examples** of `ts2clm3()`, `detect_blob3()`, `exceedance3()` and
+  `category_daily3()` now run on the bundled data (`\donttest{}`).
+* **Documentation:** a new article compares heatwave3 with heatwaveR,
+  marineHeatWaves and xmhw on the Bay of Biscay GLORYS12 series (replacing the
+  xmhw article, whose address now redirects to it), with a matching page in
+  the Python documentation.
+* **Maintainer:** Robert W. Schlegel. Albertus J. Smit remains an author.
+
 # heatwave3 1.4.0
 
 ## Breaking changes: outputs now match heatwaveR exactly

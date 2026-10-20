@@ -1,7 +1,21 @@
 # heatwave3 1.4.1
 
-Preparation for CRAN, and coastlines in the Python maps. Results are unchanged.
+Preparation for CRAN, coastlines in the Python maps, and a fix to the
+climatology around the new year.
 This version is not released on PyPI; the Python package stays at 1.4.0 there.
+
+* **Climatology window at the new year (bug fix).** The 11-day window of
+  `ts2clm3()` (and so of `detect3()`) now takes the days before 1 January from
+  the end of the previous year, and the days after 31 December from the start
+  of the next year, as they follow each other in the time series. Previously,
+  as in heatwaveR, the window wrapped around within each year, so that
+  1 January was pooled with 27-31 December of the same year. The first and
+  last years of the climatology period have no neighbouring year inside the
+  period, and their windows across the new year are shorter. `seas` and
+  `thresh` change within `windowHalfWidth` plus half of `smoothPercentileWidth`
+  days of the new year (12 December to 20 January with the defaults), and so
+  do the events that overlap these days. heatwaveR 1.0.0 makes the same fix,
+  so the results stay identical to heatwaveR's.
 
 * **Default thread count.** The default (half of the cores) is now at most 2
   when `_R_CHECK_LIMIT_CORES_` is set (as by `R CMD check --as-cran`), and at

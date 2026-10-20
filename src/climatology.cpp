@@ -265,26 +265,29 @@ PixelClimResult compute_pixel_climatology(
         }
     }
 
-    // Step 6: Add circular padding (windowHalfWidth rows at each end)
+    // Step 6: Pad windowHalfWidth rows at each end with the neighbouring days
+    // of the adjacent years, as heatwaveR's clim_pad(): before DOY 1 the last
+    // DOYs of the previous year, after DOY 366 the first DOYs of the next year.
+    // The first and last years have no neighbour in the period (NA, skipped).
     int padded_rows = 366 + 2 * windowHalfWidth;
-    std::vector<double> padded(padded_rows * n_years);
+    std::vector<double> padded(padded_rows * n_years, NA_DOUBLE);
 
-    // Copy tail padding (last windowHalfWidth DOYs)
+    // Tail padding (last windowHalfWidth DOYs of the previous year)
     for (int r = 0; r < windowHalfWidth; ++r) {
         int src_row = 366 - windowHalfWidth + r;
-        std::memcpy(&padded[r * n_years],
+        std::memcpy(&padded[r * n_years + 1],
                      &spread[src_row * n_years],
-                     n_years * sizeof(double));
+                     (n_years - 1) * sizeof(double));
     }
     // Copy main data
     std::memcpy(&padded[windowHalfWidth * n_years],
                  spread.data(),
                  366 * n_years * sizeof(double));
-    // Copy head padding (first windowHalfWidth DOYs)
+    // Head padding (first windowHalfWidth DOYs of the next year)
     for (int r = 0; r < windowHalfWidth; ++r) {
         std::memcpy(&padded[(windowHalfWidth + 366 + r) * n_years],
-                     &spread[r * n_years],
-                     n_years * sizeof(double));
+                     &spread[r * n_years + 1],
+                     (n_years - 1) * sizeof(double));
     }
 
     // Step 7: Compute climatology using sliding window

@@ -186,3 +186,34 @@ test_that("ts2clm3 rejects unsupported CF calendars explicitly", {
     "Unsupported CF calendar"
   )
 })
+
+test_that("each day's window holds its real neighbouring days, within the climatology period", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+  px <- list(lon_range = c(26.52, 26.53), lat_range = c(-34.13, -34.12))
+
+  out <- do.call(ts2clm3, c(list(sst_file, name = tempfile(),
+                                 climatologyPeriod = c("1982-01-01", "2011-12-31"),
+                                 smoothPercentile = FALSE, roundClm = FALSE, quiet = TRUE), px))
+  clim <- hw3_export(out)
+  expect_equal(nrow(clim), 366)
+
+  g <- do.call(hw3_read_sst, c(list(sst_file, "analysed_sst"), px))
+  t <- as.Date(g$time_days - 2440588L, origin = "1970-01-01")
+  keep <- t >= as.Date("1982-01-01") & t <= as.Date("2011-12-31")
+  x <- g$sst[keep]; t <- t[keep]
+  # 366 days per year, as heatwaveR spreads them: 29 February of a common year
+  # is the mean of 28 February and 1 March, rounded to 2 decimals
+  series <- unlist(lapply(1982:2011, function(y) {
+    v <- x[format(t, "%Y") == as.character(y)]
+    if (length(v) == 365) v <- append(v, round(mean(v[59:60]), 2), after = 59)
+    v
+  }))
+  ref <- t(sapply(1:366, function(d) {
+    idx <- outer(d + 366 * (0:29), -5:5, "+")
+    v <- series[idx[idx >= 1 & idx <= length(series)]]
+    c(mean(v), stats::quantile(v, 0.9, type = 7, names = FALSE))
+  }))
+  expect_equal(clim$seas, ref[, 1], tolerance = 1e-12)
+  expect_equal(clim$thresh, ref[, 2], tolerance = 1e-12)
+})

@@ -3,7 +3,7 @@
 Calculates seasonal and threshold climatologies for each pixel in a
 gridded NetCDF file, following the Hobday et al. (2016) methodology.
 This is the gridded equivalent of
-[`heatwaveR::ts2clm()`](https://rdrr.io/pkg/heatwaveR/man/ts2clm.html).
+[`heatwaveR::ts2clm()`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html).
 
 ## Usage
 
@@ -184,36 +184,36 @@ ts2clm3(file_in = sst_file,
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/cape_coast_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/cape_coast_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
 #>      lon     lat doy     seas   thresh
-#> 1 26.525 -34.125   1 294.4208 295.9951
-#> 2 26.525 -34.125   2 294.4648 296.0311
-#> 3 26.525 -34.125   3 294.5088 296.0720
-#> 4 26.525 -34.125   4 294.5524 296.1133
-#> 5 26.525 -34.125   5 294.5955 296.1553
+#> 1 26.525 -34.125   1 294.4175 295.9932
+#> 2 26.525 -34.125   2 294.4615 296.0291
+#> 3 26.525 -34.125   3 294.5055 296.0700
+#> 4 26.525 -34.125   4 294.5491 296.1114
+#> 5 26.525 -34.125   5 294.5922 296.1533
 #> 
 #> Tail:
 #>         lon     lat doy     seas   thresh
-#> 2192 26.575 -34.025 362 293.5308 295.1848
-#> 2193 26.575 -34.025 363 293.5672 295.2141
-#> 2194 26.575 -34.025 364 293.6065 295.2460
-#> 2195 26.575 -34.025 365 293.6480 295.2776
-#> 2196 26.575 -34.025 366 293.6907 295.3100
+#> 2192 26.575 -34.025 362 293.5284 295.1877
+#> 2193 26.575 -34.025 363 293.5648 295.2171
+#> 2194 26.575 -34.025 364 293.6041 295.2490
+#> 2195 26.575 -34.025 365 293.6456 295.2806
+#> 2196 26.575 -34.025 366 293.6883 295.3129
 #> 
 #> Summary:
 #>   ocean pixels (valid climatology): 6
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/cape_coast_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/cape_coast_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/cape_coast_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 # }
 ```

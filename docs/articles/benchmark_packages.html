@@ -154,12 +154,12 @@ categories.</p>
 <tbody>
 <tr class="odd">
 <td>heatwave3</td>
-<td>1.4.0 (PyPI wheel)</td>
+<td>1.4.1 (GitHub, commit <code>4691135</code>)</td>
 <td>C++ core, <code>std::thread</code> over pixels</td>
 </tr>
 <tr class="even">
 <td>heatwaveR</td>
-<td>0.5.5.9000 (GitHub, commit <code>5777be9</code>)</td>
+<td>1.0.0 (GitHub, commit <code>e0ae30d</code>)</td>
 <td>R + C++, one pixel at a time</td>
 </tr>
 <tr class="odd">
@@ -231,9 +231,9 @@ tiles).</li>
 <tbody>
 <tr class="odd">
 <td align="left">heatwaveR, 1 core (projected from 20 × 20)</td>
-<td align="right">394.9</td>
-<td align="right">188.6</td>
-<td align="right">583.5</td>
+<td align="right">390.2</td>
+<td align="right">185.7</td>
+<td align="right">575.9</td>
 <td align="right"></td>
 <td align="right">120</td>
 <td align="left">computation only</td>
@@ -242,7 +242,7 @@ tiles).</li>
 <td align="left">marineHeatWaves, 1 core (projected from 20 × 20)</td>
 <td align="right"></td>
 <td align="right"></td>
-<td align="right">424.2</td>
+<td align="right">419.3</td>
 <td align="right"></td>
 <td align="right">87</td>
 <td align="left">computation only</td>
@@ -253,7 +253,7 @@ tiles).</li>
 <td align="right">130.0</td>
 <td align="right">2,599.0</td>
 <td align="right">4.1</td>
-<td align="right">536</td>
+<td align="right">541</td>
 <td align="left">read + compute + write</td>
 </tr>
 <tr class="even">
@@ -262,7 +262,7 @@ tiles).</li>
 <td align="right">84.5</td>
 <td align="right">2,064.2</td>
 <td align="right">10.8</td>
-<td align="right">426</td>
+<td align="right">430</td>
 <td align="left">read + compute + write</td>
 </tr>
 <tr class="odd">
@@ -271,7 +271,7 @@ tiles).</li>
 <td align="right">59.3</td>
 <td align="right">1,583.4</td>
 <td align="right">5.5</td>
-<td align="right">326</td>
+<td align="right">330</td>
 <td align="left">read + compute + write</td>
 </tr>
 <tr class="even">
@@ -280,34 +280,34 @@ tiles).</li>
 <td align="right"></td>
 <td align="right">361.0</td>
 <td align="right">15.6</td>
-<td align="right">74</td>
+<td align="right">75</td>
 <td align="left">read + compute + write</td>
 </tr>
 <tr class="odd">
 <td align="left">heatwave3, 1 thread</td>
-<td align="right">12.9</td>
-<td align="right">3.3</td>
-<td align="right">16.2</td>
-<td align="right">2.2</td>
+<td align="right">13.1</td>
+<td align="right">2.9</td>
+<td align="right">16.0</td>
+<td align="right">2.1</td>
 <td align="right">3</td>
 <td align="left">read + compute + write</td>
 </tr>
 <tr class="even">
 <td align="left">heatwave3, 8 threads</td>
-<td align="right">3.2</td>
+<td align="right">3.1</td>
 <td align="right">1.7</td>
-<td align="right">4.9</td>
-<td align="right">2.4</td>
+<td align="right">4.8</td>
+<td align="right">2.3</td>
 <td align="right">1</td>
 <td align="left">read + compute + write</td>
 </tr>
 </tbody>
 </table>
-<p>heatwave3 processes the whole zone in 4.9 s on 8 threads and in 16.2
-s on one. On a single core it is 36 times faster than heatwaveR and 160
+<p>heatwave3 processes the whole zone in 4.8 s on 8 threads and in 16.0
+s on one. On a single core it is 36 times faster than heatwaveR and 162
 times faster than xmhw, even though the heatwaveR projection leaves out
 reading the file. The fastest xmhw configuration on 8 cores takes 6.0
-min, i.e. 74 times as long as heatwave3 on 8 threads.</p>
+min, i.e. 75 times as long as heatwave3 on 8 threads.</p>
 </div>
 <div class="section level2">
 <h2 id="xmhw-on-8-cores">xmhw on 8 cores<a class="anchor" aria-label="anchor" href="#xmhw-on-8-cores"></a>
@@ -486,18 +486,20 @@ machine.</p>
 heatwave3’s on pixel, start date and end date, and the paired metrics
 compared (intensities at 4 decimals, as heatwave3 and heatwaveR round
 them).</p>
-<table class="table">
+<table style="width:99%;" class="table">
 <colgroup>
-<col width="9%">
-<col width="4%">
-<col width="11%">
-<col width="12%">
+<col width="7%">
+<col width="3%">
 <col width="8%">
-<col width="7%">
+<col width="8%">
+<col width="6%">
+<col width="5%">
+<col width="8%">
+<col width="8%">
 <col width="11%">
-<col width="10%">
-<col width="15%">
-<col width="7%">
+<col width="14%">
+<col width="12%">
+<col width="5%">
 </colgroup>
 <thead><tr class="header">
 <th align="left">Package</th>
@@ -509,61 +511,80 @@ them).</p>
 <th align="right">Mean intensity (%)</th>
 <th align="right">Max intensity (%)</th>
 <th align="right">Cumulative intensity (%)</th>
+<th align="right">Cum. per day, median diff. (°C)</th>
+<th align="right">Cum. per day, max diff. (°C)</th>
 <th align="right">Category (%)</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">heatwaveR</td>
-<td align="right">28,018</td>
-<td align="right">28,018</td>
-<td align="right">27,996</td>
+<td align="right">28,026</td>
+<td align="right">28,026</td>
+<td align="right">28,026</td>
 <td align="right">100.00</td>
 <td align="right">100</td>
 <td align="right">100.00</td>
 <td align="right">100.00</td>
 <td align="right">99.94</td>
+<td align="right">0</td>
+<td align="right">0.00004</td>
 <td align="right">99.99</td>
 </tr>
 <tr class="even">
 <td align="left">marineHeatWaves</td>
 <td align="right">28,018</td>
-<td align="right">28,018</td>
-<td align="right">27,647</td>
-<td align="right">99.87</td>
+<td align="right">28,026</td>
+<td align="right">27,867</td>
+<td align="right">99.92</td>
 <td align="right">100</td>
-<td align="right">85.64</td>
-<td align="right">86.98</td>
-<td align="right">62.68</td>
+<td align="right">84.11</td>
+<td align="right">86.62</td>
+<td align="right">62.88</td>
+<td align="right">0.000009</td>
+<td align="right">0.001</td>
 <td align="right">99.97</td>
 </tr>
 <tr class="odd">
 <td align="left">xmhw</td>
 <td align="right">28,021</td>
-<td align="right">28,018</td>
-<td align="right">27,588</td>
-<td align="right">99.87</td>
+<td align="right">28,026</td>
+<td align="right">27,873</td>
+<td align="right">99.92</td>
 <td align="right">100</td>
-<td align="right">80.49</td>
-<td align="right">84.97</td>
-<td align="right">62.44</td>
+<td align="right">88.12</td>
+<td align="right">92.78</td>
+<td align="right">71.68</td>
+<td align="right">0.000007</td>
+<td align="right">0.003</td>
 <td align="right">99.95</td>
 </tr>
 </tbody>
 </table>
-<p>heatwaveR and heatwave3 detect the same 28,018 events. The 22
-heatwaveR events without an exact partner are the ones still running at
-the end of the series, which heatwave3 ends on the last day above the
-threshold whereas heatwaveR joins up to <code>maxGap</code> trailing
-days into them. The remaining differences are rounding at the fourth
-decimal and two events whose category falls exactly on a class boundary.
-marineHeatWaves and xmhw each compute their own climatology, so their
-thresholds differ slightly from heatwave3’s. This means that 1.3%
-(marineHeatWaves) and 1.5% (xmhw) of their events start or end on a
-different day, and that paired mean intensities differ by a median of
-0.00003 °C and 0.00003 °C respectively (at most 0.002 °C and 0.003 °C).
-Durations agree in every pair. Across the whole zone, xmhw finds 394,461
-events against heatwave3’s 394,516, with the same count in 86.9% of
-pixels.</p>
+<p>The two columns after the cumulative intensity give its difference
+per event day, namely the absolute difference of each paired event’s
+cumulative intensity divided by its duration, so that differences of
+long and short events can be compared on the same scale.</p>
+<p>heatwaveR and heatwave3 detect the same 28,026 events, and every
+event has an exact partner. The cumulative intensities that differ at
+the fourth decimal come from the CSV file, which holds the temperatures
+to 6 decimals; given the float32 values of the NetCDF file, heatwaveR
+agrees with heatwave3 on every cumulative intensity. The two categories
+that differ belong to events whose peak lies within rounding of a class
+boundary, because <code>detect_event(categories = TRUE)</code> rounds
+the temperatures to 4 decimals before it assigns the category, whereas
+heatwave3, like <code><a href="https://robwschlegel.github.io/heatwaveR/reference/category.html" class="external-link">heatwaveR::category()</a></code>, uses the
+temperatures as read. marineHeatWaves and xmhw each compute their own
+climatology, so their thresholds differ slightly from heatwave3’s. This
+means that 0.5% (marineHeatWaves) and 0.5% (xmhw) of their events start
+or end on a different day, and that paired mean intensities differ by a
+median of 0.00003 °C and 0.00003 °C respectively (at most 0.001 °C and
+0.003 °C). These differences are concentrated in two periods of the
+year, namely around 29 February, which each package handles in its own
+way, and, for marineHeatWaves only, around the new year, where its
+window for the last days of the climatology period takes data from the
+following January. Durations agree in every pair. Across the whole zone,
+xmhw finds 394,461 events against heatwave3’s 394,613, with the same
+count in 92.7% of pixels.</p>
 </div>
 <div class="section level2">
 <h2 id="caveats">Caveats<a class="anchor" aria-label="anchor" href="#caveats"></a>
@@ -599,8 +620,8 @@ package takes the same arguments).</p>
 <span>              maxGap <span class="op">=</span> <span class="fl">2</span>, category <span class="op">=</span> <span class="cn">TRUE</span>, hemisphere <span class="op">=</span> <span class="st">"north"</span>, n_threads <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># heatwaveR, per pixel (ts: data.frame with t and temp)</span></span>
-<span><span class="va">clm</span> <span class="op">&lt;-</span> <span class="fu">heatwaveR</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/heatwaveR/man/ts2clm.html" class="external-link">ts2clm</a></span><span class="op">(</span><span class="va">ts</span>, climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1993-01-01"</span>, <span class="st">"2022-12-31"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ev</span>  <span class="op">&lt;-</span> <span class="fu">heatwaveR</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/heatwaveR/man/detect_event.html" class="external-link">detect_event</a></span><span class="op">(</span><span class="va">clm</span>, categories <span class="op">=</span> <span class="cn">TRUE</span>, S <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">clm</span> <span class="op">&lt;-</span> <span class="fu">heatwaveR</span><span class="fu">::</span><span class="fu"><a href="https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html" class="external-link">ts2clm</a></span><span class="op">(</span><span class="va">ts</span>, climatologyPeriod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1993-01-01"</span>, <span class="st">"2022-12-31"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ev</span>  <span class="op">&lt;-</span> <span class="fu">heatwaveR</span><span class="fu">::</span><span class="fu"><a href="https://robwschlegel.github.io/heatwaveR/reference/detect_event.html" class="external-link">detect_event</a></span><span class="op">(</span><span class="va">clm</span>, categories <span class="op">=</span> <span class="cn">TRUE</span>, S <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb4"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># marineHeatWaves, per pixel (t: ordinal days, sst: numpy array)</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="im">import</span> marineHeatWaves <span class="im">as</span> mhw</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>events, clim <span class="op">=</span> mhw.detect(t, sst, climatologyPeriod<span class="op">=</span>[<span class="dv">1993</span>, <span class="dv">2022</span>],</span>

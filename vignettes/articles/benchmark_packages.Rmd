@@ -78,8 +78,8 @@ of the climatology and threshold, a minimum duration of 5 days, gaps of up to
 
 | Package | Version | Language and parallelism |
 |---------|---------|--------------------------|
-| heatwave3 | 1.4.0 (PyPI wheel) | C++ core, `std::thread` over pixels |
-| heatwaveR | 0.5.5.9000 (GitHub, commit `5777be9`) | R + C++, one pixel at a time |
+| heatwave3 | 1.4.1 (GitHub, commit `4691135`) | C++ core, `std::thread` over pixels |
+| heatwaveR | 1.0.0 (GitHub, commit `e0ae30d`) | R + C++, one pixel at a time |
 | marineHeatWaves | 0.28 (GitHub, commit `d7292bf`) | Python, one pixel at a time |
 | xmhw | 1.0.0 (GitHub tag) | Python, xarray + dask |
 
@@ -239,13 +239,26 @@ pixel, start date and end date, and the paired metrics compared (intensities
 at 4 decimals, as heatwave3 and heatwaveR round them).
 
 ```{r agreement, echo = FALSE}
-knitr::kable(agr[, 1:10], digits = 2, format.args = list(big.mark = ","),
+# per-day differences of the cumulative intensity (|difference| / duration), 1 significant digit
+per_day <- function(x) formatC(x, format = "fg", digits = 1)
+ta <- agr[, 1:10]
+ta$cum_day_median <- per_day(agr$intensity_cumulative_per_day_median_abs_diff)
+ta$cum_day_max <- per_day(agr$intensity_cumulative_per_day_max_abs_diff)
+ta <- ta[, c(1:9, 11, 12, 10)]
+knitr::kable(ta, digits = 2, format.args = list(big.mark = ","),
+             align = c("l", rep("r", 11)),
              col.names = c("Package", "Events", "Events (heatwave3)",
                            "Paired (same dates)", "Peak date (%)",
                            "Duration (%)", "Mean intensity (%)",
                            "Max intensity (%)", "Cumulative intensity (%)",
-                           "Category (%)"))
+                           "Cum. per day, median diff. (°C)",
+                           "Cum. per day, max diff. (°C)", "Category (%)"))
 ```
+
+The two columns after the cumulative intensity give its difference per
+event day, namely the absolute difference of each paired event's cumulative
+intensity divided by its duration, so that differences of long and short
+events can be compared on the same scale.
 
 ```{r agreement-numbers, include = FALSE}
 a <- function(p, k) agr[agr$package == p, k]
@@ -254,22 +267,28 @@ dT <- function(p, k) formatC(a(p, k), format = "fg", digits = 1)
 ```
 
 heatwaveR and heatwave3 detect the same `r format(a("heatwaveR", "events"), big.mark = ",")`
-events. The `r a("heatwaveR", "events") - a("heatwaveR", "paired_identical_dates")`
-heatwaveR events without an exact partner are the ones still running at the
-end of the series, which heatwave3 ends on the last day above the threshold
-whereas heatwaveR joins up to `maxGap` trailing days into them. The remaining
-differences are rounding at the fourth decimal and two events whose category
-falls exactly on a class boundary. marineHeatWaves and xmhw each
-compute their own climatology, so their thresholds differ slightly from
-heatwave3's. This means that
+events, and every event has an exact partner. The cumulative intensities that
+differ at the fourth decimal come from the CSV file, which holds the
+temperatures to 6 decimals; given the float32 values of the NetCDF file,
+heatwaveR agrees with heatwave3 on every cumulative intensity. The two
+categories that differ belong to events whose peak lies within rounding of a
+class boundary, because `detect_event(categories = TRUE)` rounds the
+temperatures to 4 decimals before it assigns the category, whereas heatwave3,
+like `heatwaveR::category()`, uses the temperatures as read. marineHeatWaves
+and xmhw each compute their own climatology, so their thresholds differ
+slightly from heatwave3's. This means that
 `r unpaired_pct("marineHeatWaves")` (marineHeatWaves) and
 `r unpaired_pct("xmhw")` (xmhw) of their events start or end on a different
 day, and that paired mean intensities differ by a median of
 `r dT("marineHeatWaves", "intensity_mean_median_abs_diff")` °C and
 `r dT("xmhw", "intensity_mean_median_abs_diff")` °C respectively (at most
 `r dT("marineHeatWaves", "intensity_mean_max_abs_diff")` °C and
-`r dT("xmhw", "intensity_mean_max_abs_diff")` °C). Durations agree in every
-pair. Across the whole zone, xmhw finds
+`r dT("xmhw", "intensity_mean_max_abs_diff")` °C). These differences are
+concentrated in two periods of the year, namely around 29 February, which
+each package handles in its own way, and, for marineHeatWaves only, around the
+new year, where its window for the last days of the climatology period takes
+data from the following January. Durations agree in every pair. Across the
+whole zone, xmhw finds
 `r format(cmp$full_zone_counts$events, big.mark = ",")` events against
 heatwave3's `r format(cmp$full_zone_counts$events_heatwave3, big.mark = ",")`,
 with the same count in `r cmp$full_zone_counts$pixels_same_count_pct`% of

@@ -1,34 +1,40 @@
 {
   "block": {
     "events": 28021,
-    "events_heatwave3": 28018,
-    "paired_identical_dates": 27588,
-    "date_peak_same_pct": 99.873,
+    "events_heatwave3": 28026,
+    "paired_identical_dates": 27873,
+    "date_peak_same_pct": 99.925,
     "duration_same_pct": 100.0,
-    "intensity_mean_same_pct": 80.492,
-    "intensity_max_same_pct": 84.972,
-    "intensity_cumulative_same_pct": 62.44,
-    "category_same_pct": 99.946
+    "intensity_mean_same_pct": 88.125,
+    "intensity_max_same_pct": 92.782,
+    "intensity_cumulative_same_pct": 71.682,
+    "category_same_pct": 99.95
   },
   "full_zone_counts": {
     "pixels": 5569,
     "events": 394461,
-    "events_heatwave3": 394516,
-    "pixels_same_count_pct": 86.9,
+    "events_heatwave3": 394613,
+    "pixels_same_count_pct": 92.7,
     "max_abs_count_diff": 3
   },
   "intensity_diffs": {
     "xmhw": {
-      "intensity_mean_median_abs_diff": 3.273677825932353e-05,
-      "intensity_mean_max_abs_diff": 0.003022543573379499
+      "intensity_mean_median_abs_diff": 2.884407043457493e-05,
+      "intensity_mean_max_abs_diff": 0.003022543573379499,
+      "intensity_cumulative_per_day_median_abs_diff": 6.841454139069251e-06,
+      "intensity_cumulative_per_day_max_abs_diff": 0.002989220174153632
     },
     "heatwaveR": {
       "intensity_mean_median_abs_diff": 0.0,
-      "intensity_mean_max_abs_diff": 0.00010000000000021103
+      "intensity_mean_max_abs_diff": 0.00010000000000021103,
+      "intensity_cumulative_per_day_median_abs_diff": 0.0,
+      "intensity_cumulative_per_day_max_abs_diff": 3.999999999999559e-05
     },
     "marineHeatWaves": {
-      "intensity_mean_median_abs_diff": 3.2074037145557455e-05,
-      "intensity_mean_max_abs_diff": 0.0015855104265268816
+      "intensity_mean_median_abs_diff": 3.2167761484958035e-05,
+      "intensity_mean_max_abs_diff": 0.001142932593769963,
+      "intensity_cumulative_per_day_median_abs_diff": 8.672602861152386e-06,
+      "intensity_cumulative_per_day_max_abs_diff": 0.0011095992604366087
     }
   }
 }

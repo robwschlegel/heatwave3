@@ -1,4 +1,4 @@
-package,events,events_heatwave3,paired_identical_dates,date_peak_same_pct,duration_same_pct,intensity_mean_same_pct,intensity_max_same_pct,intensity_cumulative_same_pct,category_same_pct,intensity_mean_median_abs_diff,intensity_mean_max_abs_diff
-heatwaveR,28018,28018,27996,100.0,100.0,100.0,100.0,99.94,99.99,0.0,0.00010000000000021103
-marineHeatWaves,28018,28018,27647,99.87,100.0,85.64,86.98,62.68,99.97,3.2074037145557455e-05,0.0015855104265268816
-xmhw,28021,28018,27588,99.87,100.0,80.49,84.97,62.44,99.95,3.273677825932353e-05,0.003022543573379499
+package,events,events_heatwave3,paired_identical_dates,date_peak_same_pct,duration_same_pct,intensity_mean_same_pct,intensity_max_same_pct,intensity_cumulative_same_pct,category_same_pct,intensity_mean_median_abs_diff,intensity_mean_max_abs_diff,intensity_cumulative_per_day_median_abs_diff,intensity_cumulative_per_day_max_abs_diff
+heatwaveR,28026,28026,28026,100.0,100.0,100.0,100.0,99.94,99.99,0.0,0.00010000000000021103,0.0,3.999999999999559e-05
+marineHeatWaves,28018,28026,27867,99.92,100.0,84.11,86.62,62.88,99.97,3.2167761484958035e-05,0.001142932593769963,8.672602861152386e-06,0.0011095992604366087
+xmhw,28021,28026,27873,99.92,100.0,88.12,92.78,71.68,99.95,2.884407043457493e-05,0.003022543573379499,6.841454139069251e-06,0.002989220174153632

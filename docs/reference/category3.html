@@ -133,7 +133,7 @@ percentages), season.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Categories follow <code><a href="https://rdrr.io/pkg/heatwaveR/man/category.html" class="external-link">heatwaveR::category()</a></code>. For each event day the
+    <p>Categories follow <code><a href="https://robwschlegel.github.io/heatwaveR/reference/category.html" class="external-link">heatwaveR::category()</a></code>. For each event day the
 category limits are the threshold and <code>thresh + k * diff</code> (k = 1, 2, 3),
 with <code>diff = thresh - seas</code> and each limit rounded to <code>roundVal</code>
 decimals. <code>p_moderate</code> to <code>p_extreme</code> are the percentages of the
@@ -166,38 +166,38 @@ days, which need each event day's temperature.</p>
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_clim.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      lon     lat doy     seas   thresh</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26.525 -34.125   1 294.4208 295.9951</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 26.525 -34.125   2 294.4648 296.0311</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 26.525 -34.125   3 294.5088 296.0720</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 26.525 -34.125   4 294.5524 296.1133</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 26.525 -34.125   5 294.5955 296.1553</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 26.525 -34.125   1 294.4175 295.9932</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 26.525 -34.125   2 294.4615 296.0291</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 26.525 -34.125   3 294.5055 296.0700</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 26.525 -34.125   4 294.5491 296.1114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 26.525 -34.125   5 294.5922 296.1533</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         lon     lat doy     seas   thresh</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2192 26.575 -34.025 362 293.5308 295.1848</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2193 26.575 -34.025 363 293.5672 295.2141</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2194 26.575 -34.025 364 293.6065 295.2460</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2195 26.575 -34.025 365 293.6480 295.2776</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2196 26.575 -34.025 366 293.6907 295.3100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2192 26.575 -34.025 362 293.5284 295.1877</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2193 26.575 -34.025 363 293.5648 295.2171</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2194 26.575 -34.025 364 293.6041 295.2490</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2195 26.575 -34.025 365 293.6456 295.2806</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2196 26.575 -34.025 366 293.6883 295.3129</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ocean pixels (valid climatology): 6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Grid: 2 lon x 3 lat x 14276 time = 6 pixels</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Detecting events with 1 thread(s)...</span>
@@ -208,13 +208,13 @@ days, which need each event day's temperature.</p>
   4/6 pixels (66%)
   5/6 pixels (83%)
   6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Found 610 events across 6 pixels</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Found 609 events across 6 pixels</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_events.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 610</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_events.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 609</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      lon     lat pixel_index event_no date_start  date_peak   date_end duration</span>
@@ -250,44 +250,44 @@ days, which need each event day's temperature.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Tail:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        lon     lat pixel_index event_no date_start  date_peak   date_end</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 606 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 607 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 608 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 609 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 610 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 605 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     duration intensity_mean intensity_max intensity_var intensity_cumulative</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 606        8         1.9123        2.6167        0.3509              15.2983</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 607        7         2.6135        3.2218        0.6238              18.2944</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 608       12         2.7097        4.2806        0.9613              32.5162</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 609        5         1.9184        2.4610        0.4567               9.5918</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 610        7         1.7027        1.8887        0.1673              11.9191</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 605        8         1.9123        2.6167        0.3509              15.2983</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606        7         2.6135        3.2218        0.6238              18.2944</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607       12         2.7097        4.2806        0.9613              32.5162</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608        5         1.9184        2.4610        0.4567               9.5918</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609        7         1.7027        1.8887        0.1673              11.9191</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 606                   0.5331                  1.2395                  0.3545</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 607                   1.2196                  1.8291                  0.6356</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 608                   1.2481                  2.8252                  0.9574</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 609                   0.5193                  1.0566                  0.4505</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 610                   0.3486                  0.5476                  0.1719</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 605                   0.5331                  1.2395                  0.3545</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606                   1.2196                  1.8291                  0.6356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607                   1.2481                  2.8252                  0.9574</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608                   0.5193                  1.0566                  0.4505</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609                   0.3486                  0.5476                  0.1719</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 606                         4.2646           293.7725            294.47</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 607                         8.5369           293.8743            294.48</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 608                        14.9767           294.3308            295.87</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 609                         2.5966           293.8140            294.37</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 610                         2.4402           292.9757            293.17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 605                         4.2646           293.7725            294.47</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606                         8.5369           293.8743            294.48</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607                        14.9767           294.3308            295.87</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608                         2.5966           293.8140            294.37</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609                         2.4402           292.9757            293.17</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 606            0.3438                  2350.18     0.3962       0.3769</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 607            0.6214                  2057.12     0.4158       0.6025</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 608            0.9940                  3531.97     0.5238       0.4265</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 609            0.4723                  1469.07     0.6940       0.4588</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 610            0.1695                  2050.83     0.4821       0.1454</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 605            0.3438                  2350.18     0.3962       0.3769</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 606            0.6214                  2057.12     0.4158       0.6025</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 607            0.9940                  3531.97     0.5238       0.4265</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 608            0.4723                  1469.07     0.6940       0.4588</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 609            0.1695                  2050.83     0.4821       0.1454</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Summary:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   events: 610   pixels with events: 6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   events: 609   pixels with events: 6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   dates:  1982-11-06 to 2020-09-26</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   duration (days):     5 to    38</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   intensity_max:   1.314 to 4.911</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_events.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">cats</span> <span class="op">&lt;-</span> <span class="fu">category3</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_events.nc"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">stem</span>, <span class="st">"_clim.nc"</span><span class="op">)</span>,</span></span>
@@ -295,7 +295,7 @@ days, which need each event day's temperature.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">cats</span><span class="op">$</span><span class="va">category</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> I Moderate  II Strong III Severe </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        477        131          2 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        476        131          2 </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

@@ -81,49 +81,49 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   6/6 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_clim.nc`\
 `#> Rows (long format): 2,196   grid: 2 lon x 3 lat`\
 `#> `\
 `#> Head:`\
 `#>      lon     lat doy     seas   thresh`\
-`#> 1 26.525 -34.125   1 294.4208 295.9951`\
-`#> 2 26.525 -34.125   2 294.4648 296.0311`\
-`#> 3 26.525 -34.125   3 294.5088 296.0720`\
-`#> 4 26.525 -34.125   4 294.5524 296.1133`\
-`#> 5 26.525 -34.125   5 294.5955 296.1553`\
+`#> 1 26.525 -34.125   1 294.4175 295.9932`\
+`#> 2 26.525 -34.125   2 294.4615 296.0291`\
+`#> 3 26.525 -34.125   3 294.5055 296.0700`\
+`#> 4 26.525 -34.125   4 294.5491 296.1114`\
+`#> 5 26.525 -34.125   5 294.5922 296.1533`\
 `#> `\
 `#> Tail:`\
 `#>         lon     lat doy     seas   thresh`\
-`#> 2192 26.575 -34.025 362 293.5308 295.1848`\
-`#> 2193 26.575 -34.025 363 293.5672 295.2141`\
-`#> 2194 26.575 -34.025 364 293.6065 295.2460`\
-`#> 2195 26.575 -34.025 365 293.6480 295.2776`\
-`#> 2196 26.575 -34.025 366 293.6907 295.3100`\
+`#> 2192 26.575 -34.025 362 293.5284 295.1877`\
+`#> 2193 26.575 -34.025 363 293.5648 295.2171`\
+`#> 2194 26.575 -34.025 364 293.6041 295.2490`\
+`#> 2195 26.575 -34.025 365 293.6456 295.2806`\
+`#> 2196 26.575 -34.025 366 293.6883 295.3129`\
 `#> `\
 `#> Summary:`\
 `#>   ocean pixels (valid climatology): 6`\
 `#>   seas:   291.1 to 295.6`\
 `#>   thresh: 292.4 to 297.6`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
-`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_clim.nc...`\
+`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_clim.nc...`\
 `#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/sst_test.nc...`\
 `#> Grid: 2 lon x 3 lat x 14276 time = 6 pixels`\
 `#> Detecting events with 2 thread(s)...`\
 `#>   6/6 pixels (100%)`\
-`#> Found 610 events across 6 pixels`\
-`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc...`\
+`#> Found 609 events across 6 pixels`\
+`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_events.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc`\
-`#> Rows (long format): 610`\
+`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_events.nc`\
+`#> Rows (long format): 609`\
 `#> `\
 `#> Head:`\
 `#>      lon     lat pixel_index event_no date_start  date_peak   date_end duration`\
@@ -159,44 +159,44 @@ pixels off the Agulhas coast, 1982–2021, 40 years of daily SST).
 `#> `\
 `#> Tail:`\
 `#>        lon     lat pixel_index event_no date_start  date_peak   date_end`\
-`#> 606 26.575 -34.075           4      100 2019-02-27 2019-03-02 2019-03-04`\
-`#> 607 26.575 -34.075           4      101 2019-07-07 2019-07-11 2019-07-14`\
-`#> 608 26.575 -34.075           4      102 2019-08-29 2019-08-31 2019-09-04`\
-`#> 609 26.575 -34.075           4      103 2019-10-19 2019-10-26 2019-10-31`\
-`#> 610 26.575 -34.075           4      104 2020-07-05 2020-07-06 2020-07-09`\
+`#> 605 26.575 -34.025           5       98 2019-07-07 2019-07-11 2019-07-14`\
+`#> 606 26.575 -34.025           5       99 2019-08-30 2019-09-02 2019-09-05`\
+`#> 607 26.575 -34.025           5      100 2019-10-21 2019-10-26 2019-11-01`\
+`#> 608 26.575 -34.025           5      101 2020-07-05 2020-07-06 2020-07-09`\
+`#> 609 26.575 -34.025           5      102 2020-08-24 2020-08-25 2020-08-30`\
 `#>     duration intensity_mean intensity_max intensity_var intensity_cumulative`\
-`#> 606        6         2.3280        2.6521        0.2624              13.9680`\
-`#> 607        8         1.9937        2.4175        0.2732              15.9493`\
-`#> 608        7         2.4202        2.9167        0.5184              16.9417`\
-`#> 609       13         2.5752        3.9481        0.7323              33.4774`\
-`#> 610        5         1.9388        2.5567        0.4944               9.6940`\
+`#> 605        8         1.9123        2.6167        0.3509              15.2983`\
+`#> 606        7         2.6135        3.2218        0.6238              18.2944`\
+`#> 607       12         2.7097        4.2806        0.9613              32.5162`\
+`#> 608        5         1.9184        2.4610        0.4567               9.5918`\
+`#> 609        7         1.7027        1.8887        0.1673              11.9191`\
 `#>     intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh`\
-`#> 606                   0.4701                  0.7911                  0.2549`\
-`#> 607                   0.6743                  1.1037                  0.2807`\
-`#> 608                   1.0094                  1.5135                  0.5207`\
-`#> 609                   1.0904                  2.4535                  0.7207`\
-`#> 610                   0.5972                  1.2075                  0.4848`\
+`#> 605                   0.5331                  1.2395                  0.3545`\
+`#> 606                   1.2196                  1.8291                  0.6356`\
+`#> 607                   1.2481                  2.8252                  0.9574`\
+`#> 608                   0.5193                  1.0566                  0.4505`\
+`#> 609                   0.3486                  0.5476                  0.1719`\
 `#>     intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs`\
-`#> 606                         2.8209           297.2000            297.52`\
-`#> 607                         5.3942           294.2825            294.70`\
-`#> 608                         7.0655           294.1014            294.60`\
-`#> 609                        14.1748           294.5685            295.96`\
-`#> 610                         2.9861           294.2600            294.89`\
+`#> 605                         4.2646           293.7725            294.47`\
+`#> 606                         8.5369           293.8743            294.48`\
+`#> 607                        14.9767           294.3308            295.87`\
+`#> 608                         2.5966           293.8140            294.37`\
+`#> 609                         2.4402           292.9757            293.17`\
 `#>     intensity_var_abs intensity_cumulative_abs rate_onset rate_decline`\
-`#> 606            0.2535                  1783.20     0.3639       0.2594`\
-`#> 607            0.2628                  2354.26     0.3353       0.2459`\
-`#> 608            0.5172                  2058.71     0.6651       0.3258`\
-`#> 609            0.7987                  3829.39     0.3467       0.3855`\
-`#> 610            0.5098                  1471.30     0.7261       0.4756`\
+`#> 605            0.3438                  2350.18     0.3962       0.3769`\
+`#> 606            0.6214                  2057.12     0.4158       0.6025`\
+`#> 607            0.9940                  3531.97     0.5238       0.4265`\
+`#> 608            0.4723                  1469.07     0.6940       0.4588`\
+`#> 609            0.1695                  2050.83     0.4821       0.1454`\
 `#> `\
 `#> Summary:`\
-`#>   events: 610   pixels with events: 6`\
+`#>   events: 609   pixels with events: 6`\
 `#>   dates:  1982-11-06 to 2020-09-26`\
 `#>   duration (days):     5 to    38`\
 `#>   intensity_max:   1.314 to 4.911`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpQN38vU/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_events.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpwhrzl4/demo_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
 \
 `# The two products follow the naming convention <name>_clim.nc / <name>_events.nc`\
@@ -250,7 +250,7 @@ Visualise the spatial distribution of any event metric across the grid.
 [`table`](https://rdrr.io/r/base/table.html)`(``cats``$``category``)`\
 `#> `\
 `#> I Moderate  II Strong III Severe `\
-`#>        477        131          2`
+`#>        476        131          2`
 
 \
 `ba`` ``<-`` `[`block_average3`](https://robwschlegel.github.io/heatwave3/reference/block_average3.md)`(``event_file``)`\
@@ -258,24 +258,24 @@ Visualise the spatial distribution of any event metric across the grid.
 `#>      lon     lat year count duration_mean duration_max intensity_mean`\
 `#> 1 26.525 -34.125 1982     1      19.00000           19       2.209900`\
 `#> 2 26.525 -34.125 1983     5       6.20000            7       2.130060`\
-`#> 3 26.525 -34.125 1984     2       7.00000            9       2.016500`\
+`#> 3 26.525 -34.125 1984     2       7.00000            9       2.018150`\
 `#> 4 26.525 -34.125 1985     2       5.00000            5       1.632900`\
 `#> 5 26.525 -34.125 1986     5       8.40000           14       2.530060`\
-`#> 6 26.525 -34.125 1987     3      11.66667           15       2.399233`\
+`#> 6 26.525 -34.125 1987     3      11.66667           15       2.399433`\
 `#>   intensity_max_mean intensity_max_max intensity_cumulative_mean total_days`\
 `#> 1           3.153100            3.1531                  41.98740         19`\
 `#> 2           2.384700            3.6150                  12.80478         31`\
-`#> 3           2.448550            2.7094                  13.67920         14`\
+`#> 3           2.450200            2.7127                  13.68745         14`\
 `#> 4           1.723400            1.9355                   8.16455         10`\
 `#> 5           3.153800            3.8774                  21.01418         42`\
-`#> 6           2.840733            3.1123                  28.25203         35`\
+`#> 6           2.840733            3.1123                  28.25397         35`\
 `#>   total_icum`\
 `#> 1    41.9874`\
 `#> 2    64.0239`\
-`#> 3    27.3584`\
+`#> 3    27.3749`\
 `#> 4    16.3291`\
 `#> 5   105.0709`\
-`#> 6    84.7561`
+`#> 6    84.7619`
 
 ## Detrended climatology
 

@@ -27,11 +27,18 @@ Bay of Biscay (10°W to 1°W, 43°N to 48°N): 61 × 109 pixels at 1/12°, of wh
 
 All packages use a climatology over 1993 to 2022, the 90th percentile
 threshold, an 11-day window, 31-day smoothing, a minimum duration of 5 days,
-gaps of up to 2 days joined, and the Hobday et al. (2018) categories. The
-versions are heatwave3 1.4.0 (PyPI wheel), heatwaveR 0.5.5.9000 (commit
-`5777be9`), marineHeatWaves 0.28 (commit `d7292bf`) and xmhw 1.0.0, on an
-Apple M2 (4 performance and 4 efficiency cores, 16 GB RAM) with Python 3.12
-and R 4.6.1.
+gaps of up to 2 days joined, and the Hobday et al. (2018) categories.
+
+| Package | Version | Language and parallelism |
+|---------|---------|--------------------------|
+| heatwave3 | 1.4.1 (GitHub, commit `4691135`) | C++ core, `std::thread` over pixels |
+| heatwaveR | 1.0.0 (GitHub, commit `e0ae30d`) | R + C++, one pixel at a time |
+| marineHeatWaves | 0.28 (GitHub, commit `d7292bf`) | Python, one pixel at a time |
+| xmhw | 1.0.0 (GitHub tag) | Python, xarray + dask |
+
+heatwave3 was timed through its Python package, which calls the same C++ core
+as the R package. The machine is an Apple M2 (4 performance and 4 efficiency
+cores, 16 GB RAM) running macOS, with Python 3.12 and R 4.6.1.
 
 ## Timing protocol
 
@@ -52,11 +59,11 @@ block time / 400 × 5,569 ocean pixels (fastest of 3 runs).
 :header-rows: 1
 ```
 
-heatwave3 processes the whole zone in 4.9 s on 8 threads and in 16.2 s on
-one. On a single core it is 36 times faster than heatwaveR and 160 times
+heatwave3 processes the whole zone in 4.8 s on 8 threads and in 16.0 s on
+one. On a single core it is 36 times faster than heatwaveR and 162 times
 faster than xmhw, even though the heatwaveR projection leaves out reading the
 file. The fastest xmhw configuration on 8 cores (8 independent processes, see
-below) takes 6.0 min, i.e. 74 times as long as heatwave3 on 8 threads.
+below) takes 6.0 min, i.e. 75 times as long as heatwave3 on 8 threads.
 
 ## xmhw on 8 cores
 
@@ -132,26 +139,37 @@ of the 16 GB of the test machine.
 
 On the 20 × 20 block, each package's events are paired with heatwave3's on
 pixel, start date and end date, and the paired metrics compared (intensities
-at 4 decimals). Percentages are of the paired events, and the last two columns
-are the median and maximum absolute difference in mean intensity (°C).
+at 4 decimals). Percentages are of the paired events. The two columns after the
+cumulative intensity give its difference per event day, namely the absolute
+difference of each paired event's cumulative intensity divided by its
+duration, so that differences of long and short events can be compared on the
+same scale; the last two columns are the median and maximum absolute
+difference in mean intensity (°C).
 
 ```{csv-table} Events on the 20 × 20 block compared with heatwave3.
 :file: ../../vignettes/articles/benchmark-data/docs_agreement_block.csv
 :header-rows: 1
 ```
 
-heatwaveR and heatwave3 detect the same 28,018 events. The 22 heatwaveR
-events without an exact partner are the ones still running at the end of the
-series, which heatwave3 ends on the last day above the threshold whereas
-heatwaveR joins up to `maxGap` trailing days into them. The remaining
-differences are rounding at the fourth decimal and two events whose category
-falls exactly on a class boundary. marineHeatWaves and xmhw each compute their
-own climatology, so their thresholds differ slightly from heatwave3's. This
-means that 1.3% (marineHeatWaves) and 1.5% (xmhw) of their events start or
+heatwaveR and heatwave3 detect the same 28,026 events, and every event has an
+exact partner. The cumulative intensities that differ at the fourth decimal
+come from the CSV file, which holds the temperatures to 6 decimals; given the
+float32 values of the NetCDF file, heatwaveR agrees with heatwave3 on every
+cumulative intensity. The two categories that differ belong to events whose
+peak lies within rounding of a class boundary, because heatwaveR's
+`detect_event(categories = TRUE)` rounds the temperatures to 4 decimals
+before it assigns the category, whereas heatwave3, like heatwaveR's
+`category()`, uses the temperatures as read. marineHeatWaves and xmhw each
+compute their own climatology, so their thresholds differ slightly from
+heatwave3's. This means that 0.5% of their events (both packages) start or
 end on a different day, and that paired mean intensities differ by a median of
-0.00003 °C for both (at most 0.002 °C and 0.003 °C). Durations agree in every
-pair. Across the whole zone, xmhw finds 394,461 events against heatwave3's
-394,516, with the same count in 86.9% of pixels.
+0.00003 °C for both (at most 0.001 °C and 0.003 °C). These differences are
+concentrated in two periods of the year, namely around 29 February, which
+each package handles in its own way, and, for marineHeatWaves only, around the
+new year, where its window for the last days of the climatology period takes
+data from the following January. Durations agree in every pair. Across the
+whole zone, xmhw finds 394,461 events against heatwave3's 394,613, with the
+same count in 92.7% of pixels.
 
 ## Caveats
 

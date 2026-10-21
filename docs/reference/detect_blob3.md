@@ -173,36 +173,36 @@ ts2clm3(sst_file, name = stem,
 #> Computing climatology with 2 thread(s)...
 #> 
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
 #>      lon     lat doy     seas   thresh
-#> 1 26.525 -34.125   1 294.4208 295.9951
-#> 2 26.525 -34.125   2 294.4648 296.0311
-#> 3 26.525 -34.125   3 294.5088 296.0720
-#> 4 26.525 -34.125   4 294.5524 296.1133
-#> 5 26.525 -34.125   5 294.5955 296.1553
+#> 1 26.525 -34.125   1 294.4175 295.9932
+#> 2 26.525 -34.125   2 294.4615 296.0291
+#> 3 26.525 -34.125   3 294.5055 296.0700
+#> 4 26.525 -34.125   4 294.5491 296.1114
+#> 5 26.525 -34.125   5 294.5922 296.1533
 #> 
 #> Tail:
 #>         lon     lat doy     seas   thresh
-#> 2192 26.575 -34.025 362 293.5308 295.1848
-#> 2193 26.575 -34.025 363 293.5672 295.2141
-#> 2194 26.575 -34.025 364 293.6065 295.2460
-#> 2195 26.575 -34.025 365 293.6480 295.2776
-#> 2196 26.575 -34.025 366 293.6907 295.3100
+#> 2192 26.575 -34.025 362 293.5284 295.1877
+#> 2193 26.575 -34.025 363 293.5648 295.2171
+#> 2194 26.575 -34.025 364 293.6041 295.2490
+#> 2195 26.575 -34.025 365 293.6456 295.2806
+#> 2196 26.575 -34.025 366 293.6883 295.3129
 #> 
 #> Summary:
 #>   ocean pixels (valid climatology): 6
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615136d252c4_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 # Step 2: detect spatial blobs (heatwaves)
@@ -262,36 +262,36 @@ ts2clm3(sst_file, name = stem_cold,
 #> Computing climatology with 2 thread(s)...
 #> 
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
 #>      lon     lat doy     seas   thresh
-#> 1 26.525 -34.125   1 294.4208 292.6104
-#> 2 26.525 -34.125   2 294.4648 292.6534
-#> 3 26.525 -34.125   3 294.5088 292.6952
-#> 4 26.525 -34.125   4 294.5524 292.7380
-#> 5 26.525 -34.125   5 294.5955 292.7771
+#> 1 26.525 -34.125   1 294.4175 292.6069
+#> 2 26.525 -34.125   2 294.4615 292.6500
+#> 3 26.525 -34.125   3 294.5055 292.6917
+#> 4 26.525 -34.125   4 294.5491 292.7345
+#> 5 26.525 -34.125   5 294.5922 292.7736
 #> 
 #> Tail:
 #>         lon     lat doy     seas   thresh
-#> 2192 26.575 -34.025 362 293.5308 291.6945
-#> 2193 26.575 -34.025 363 293.5672 291.7234
-#> 2194 26.575 -34.025 364 293.6065 291.7597
-#> 2195 26.575 -34.025 365 293.6480 291.8034
-#> 2196 26.575 -34.025 366 293.6907 291.8467
+#> 2192 26.575 -34.025 362 293.5284 291.6923
+#> 2193 26.575 -34.025 363 293.5648 291.7211
+#> 2194 26.575 -34.025 364 293.6041 291.7575
+#> 2195 26.575 -34.025 365 293.6456 291.8012
+#> 2196 26.575 -34.025 366 293.6883 291.8445
 #> 
 #> Summary:
 #>   ocean pixels (valid climatology): 6
 #>   seas:   291.1 to 295.6
 #>   thresh: 289.7 to 293.5
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file161512a37ddfa_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 mcs <- detect_blob3(
@@ -312,36 +312,36 @@ ts2clm3(glorys_file, name = stem_4d,
 #> Computing climatology with 2 thread(s)...
 #> 
   20/20 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc
 #> Rows (long format): 7,320   grid: 2 lon x 2 lat
 #> 
 #> Head:
 #>        lon       lat doy    seas  thresh    depth
-#> 1 25.16667 -34.91667   1 24.4421 25.7957 0.494025
-#> 2 25.16667 -34.91667   2 24.4798 25.8305 0.494025
-#> 3 25.16667 -34.91667   3 24.5167 25.8673 0.494025
-#> 4 25.16667 -34.91667   4 24.5528 25.9038 0.494025
-#> 5 25.16667 -34.91667   5 24.5878 25.9396 0.494025
+#> 1 25.16667 -34.91667   1 24.4399 25.7963 0.494025
+#> 2 25.16667 -34.91667   2 24.4776 25.8311 0.494025
+#> 3 25.16667 -34.91667   3 24.5145 25.8679 0.494025
+#> 4 25.16667 -34.91667   4 24.5506 25.9044 0.494025
+#> 5 25.16667 -34.91667   5 24.5857 25.9402 0.494025
 #> 
 #> Tail:
 #>        lon       lat doy    seas  thresh    depth
-#> 7316 25.25 -34.83333 362 24.0087 25.4949 5.078224
-#> 7317 25.25 -34.83333 363 24.0447 25.5349 5.078224
-#> 7318 25.25 -34.83333 364 24.0814 25.5727 5.078224
-#> 7319 25.25 -34.83333 365 24.1189 25.6097 5.078224
-#> 7320 25.25 -34.83333 366 24.1567 25.6499 5.078224
+#> 7316 25.25 -34.83333 362 24.0061 25.4965 5.078224
+#> 7317 25.25 -34.83333 363 24.0422 25.5364 5.078224
+#> 7318 25.25 -34.83333 364 24.0788 25.5742 5.078224
+#> 7319 25.25 -34.83333 365 24.1164 25.6112 5.078224
+#> 7320 25.25 -34.83333 366 24.1542 25.6515 5.078224
 #> 
 #> Summary:
 #>   ocean pixels (valid climatology): 4
 #>   seas:   20.98 to 25.55
 #>   thresh:    22 to 26.92
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpYxNu1M/file1615139ce5dbd_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 blobs_4d <- detect_blob3(
@@ -354,7 +354,7 @@ head(blobs_4d$event)  # gains depth_min_m/depth_max_m/totalVolume_km3/...
 #> 1   67       22 2000-01-25 2000-02-15 2000-01-25     61533.09     1412.072
 #> 2   54       28 1999-05-31 1999-06-27 1999-06-02     49120.23     1412.072
 #> 3   85       24 2001-04-14 2001-05-07 2001-04-17     49058.69     1412.072
-#> 4  294       21 2015-12-08 2015-12-28 2015-12-08     47221.12     1412.072
+#> 4  294       21 2015-12-08 2015-12-28 2015-12-08     47262.29     1412.072
 #> 5  290       21 2015-10-07 2015-10-27 2015-10-08     43830.41     1412.072
 #> 6  390       23 2023-05-03 2023-05-25 2023-05-03     42414.75     1412.072
 #>   meanArea_km2 centroid_lon centroid_lat depth_min_m depth_max_m

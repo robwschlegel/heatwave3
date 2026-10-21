@@ -9,6 +9,11 @@
 #   end of the series into the last event; heatwave3 does not.
 
 skip_if_not_installed("heatwaveR")
+# heatwaveR 1.0.0 takes the climatology window's neighbours across the new
+# year from the adjacent years, as heatwave3 does; earlier versions wrap
+# within each year
+skip_if(utils::packageVersion("heatwaveR") < "1.0.0",
+        "needs heatwaveR >= 1.0.0 (climatology window at the new year)")
 
 sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
 cp <- c("1982-01-01", "2011-12-31")

@@ -7,7 +7,6 @@ after any change that alters outputs.
 
 import gzip
 import json
-import platform
 import shutil
 from pathlib import Path
 
@@ -24,19 +23,14 @@ SST, GLO, GLO_DIR = EXT / "sst_test.nc", EXT / "glorys_depth_test.nc", EXT / "gl
 CP = ("1982-01-01", "2011-12-31")
 INT_MIN = np.iinfo(np.int32).min
 
-# detect_blob3() event columns aggregated with R's sum()/mean() (80-bit long
-# double accumulation) in R and pandas in Python. About 93% are bit-exact and
-# the rest differ by at most ~4e-16 relative (1-2 ulp), so rtol 1e-14 leaves a
-# wide margin. Everything else must match exactly.
-AGGREGATED = {"cumI_km2_day", "meanArea_km2", "centroid_lon", "centroid_lat",
-              "totalVolume_km3", "meanVolume_km3"}
-
-# The R references come from x86-64. Elsewhere (e.g. ARM) compilers fuse
-# multiply-adds (FMA) by default, so blob metrics accumulated in C++ differ in
-# the last bit (<= ~4e-16 relative) and exactly tied blobs can be ranked in a
-# different order. This is accepted (decision 2026-10-11): on such platforms
-# blobs are matched by id and compared to rtol 1e-14, without their rank.
-EXACT_FP = platform.machine().lower() in ("x86_64", "amd64")
+# detect_blob3() output is compared to rtol 1e-14 rather than exactly, for two
+# reasons (decision 2026-10-11): event columns aggregated with sum()/mean() use
+# 80-bit long double in R but not in pandas (1-2 ulp), and C++ blob metrics
+# differ in the last bit between CPU types (<= ~4e-16 relative), because
+# compilers fuse multiply-adds (FMA) by default on ARM but not on x86-64. The
+# golden files may come from either CPU type, and exactly tied blobs can be
+# ranked in a different order, so on every platform blobs are matched by id
+# and compared without their rank. Everything else must match exactly.
 BLOB_KEYS = {"event": ["blob"], "daily": ["blob", "t_idx"], "voxel": ["blob", "t_idx", "lon", "lat"]}
 
 pytestmark = pytest.mark.skipif(not (SST.exists() and GOLDEN.exists()),
@@ -79,7 +73,7 @@ def as_r(series, rtype):
     raise AssertionError(rtype)
 
 
-def assert_matches_r(df, name, approx=()):
+def assert_matches_r(df, name):
     n, cols = load_golden(name)
     assert list(df.columns) == list(cols), f"{name}: columns differ"
     assert len(df) == n, f"{name}: {len(df)} rows vs {n} in R"
@@ -87,8 +81,6 @@ def assert_matches_r(df, name, approx=()):
         got = as_r(df[col], rtype)
         if rtype == "character":
             assert got == ref, f"{name}.{col} differs"
-        elif rtype == "double" and col in approx:
-            np.testing.assert_allclose(got, ref, rtol=1e-14, atol=0, err_msg=f"{name}.{col}")
         elif rtype == "double":
             assert np.array_equal(got, ref, equal_nan=True), f"{name}.{col} differs"
         else:
@@ -204,7 +196,4 @@ def assert_blob_matches_r_unordered(df, name, keys):
 def test_blob_matches_r(blob_runs, blob, part):
     res = blob_runs[blob]
     assert set(res) == {p for b, p in BLOB_CASES if b == blob}
-    if EXACT_FP:
-        assert_matches_r(res[part], f"{blob}_{part}", approx=AGGREGATED if part == "event" else ())
-    else:
-        assert_blob_matches_r_unordered(res[part], f"{blob}_{part}", BLOB_KEYS[part])
+    assert_blob_matches_r_unordered(res[part], f"{blob}_{part}", BLOB_KEYS[part])

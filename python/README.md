@@ -31,5 +31,4 @@ because `return` is a Python keyword.
 
 Documentation: <https://heatwave3.readthedocs.io>
 
-Its version is pinned to the R package's: heatwave3 1.4.0 in Python has the
-same functions and outputs as heatwave3 1.4.0 in R.
+The version is pinned to the R package, meaning both languages have the same functions and outputs.

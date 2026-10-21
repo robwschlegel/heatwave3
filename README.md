@@ -62,22 +62,12 @@ Documentation: <https://heatwave3.readthedocs.io>. The source is in [`python/`](
 
 ## Installation
 
-### Development version (recommended)
-
-The `dev` branch contains all of the most cutting-edge things being developed:
-
-```r
-# install.packages("remotes")
-remotes::install_github("robwschlegel/heatwave3@dev")
-```
-
-If however you feel like playing it safe, the main branch is the way to go:
+The package is not yet up on CRAN, though there are plans to get it there. For the time being it can be installed directly from GitHub with:
 
 ```r
 # install.packages("remotes")
 remotes::install_github("robwschlegel/heatwave3")
 ```
-
 
 ### System requirements
 

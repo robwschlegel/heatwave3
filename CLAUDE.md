@@ -32,6 +32,8 @@ Documentation is generated with the newest roxygen2 (`Config/roxygen2/version` i
 
 Python package (same C++ core). **Versions are pinned:** `version` in `pyproject.toml` must equal `Version` in `DESCRIPTION`, because both packages have the same features. Bump them together, along with the string returned by `hw3_version()` in `src/heatwave3_init.cpp` (checked by `test-threads.R`); `python/tests/test_version.py` and the `py-v` release check enforce the first two.
 
+No test checks the version number written in prose. With every bump, grep the documentation sources (`README.md`, `python/README.md`, `python/docs/`, `vignettes/`) for the old number and update each statement of the current version; leave historical mentions (`NEWS.md` entries, dated decisions) as they are.
+
 ```bash
 pip install .            # builds python/src/bindings.cpp + the shared src/ core
 python -m pytest         # runs python/tests

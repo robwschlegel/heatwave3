@@ -105,7 +105,8 @@ q(detect3(glo_dir, name = m, climatologyPeriod = c("1993-01-01", "2019-12-31"),
 save_golden(hw3_export(paste0(m, "_events.nc")), "multi_events")
 
 # Blobs: 3D (all components), wrapped + filtered + ranked, cold-spells,
-# depth-resolved (4D) and multi-file input
+# depth-resolved (4D), multi-file input, and the wider connectivity settings
+# (3D with dateline wrap, and 4D)
 save_blob <- function(res, name) for (k in names(res)) save_golden(res[[k]], paste0(name, "_", k))
 save_blob(detect_blob3(sst, paste0(s, "_clim.nc"), return = c("event", "daily", "voxel")), "blob")
 save_blob(detect_blob3(sst, paste0(s, "_clim.nc"), wrapDateline = TRUE, minVoxels = 20L,
@@ -113,6 +114,10 @@ save_blob(detect_blob3(sst, paste0(s, "_clim.nc"), wrapDateline = TRUE, minVoxel
 save_blob(detect_blob3(sst, paste0(k, "_clim.nc"), coldSpells = TRUE), "blob_cold")
 save_blob(detect_blob3(glo, paste0(g, "_clim.nc"), minVoxels = 10L, rankBy = "totalVolume_km3",
                        return = c("event", "daily", "voxel")), "blob_depth")
+save_blob(detect_blob3(sst, paste0(s, "_clim.nc"), wrapDateline = TRUE, connectivity = 18L,
+                       return = c("event", "daily", "voxel")), "blob_conn")
+save_blob(detect_blob3(glo, paste0(g, "_clim.nc"), connectivity = 26L,
+                       return = c("event", "daily", "voxel")), "blob_depth_conn")
 q(save_blob(detect_blob3(glo_dir, paste0(g, "_clim.nc"), topN = 3L), "blob_multi"))
 
 # Plotting: the data each R plot draws. Flame polygons come straight from

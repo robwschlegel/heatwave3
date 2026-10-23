@@ -11,7 +11,7 @@ mask across longitude, latitude, (optionally) depth, and time.'><meta property="
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,7 +78,8 @@ mask across longitude, latitude, (optionally) depth, and time.</p>
 <span>  rankBy <span class="op">=</span> <span class="st">"cumI_km2_day"</span>,</span>
 <span>  coldSpells <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  return <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"event"</span>, <span class="st">"daily"</span><span class="op">)</span>,</span>
-<span>  skip_bad_files <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  skip_bad_files <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  connectivity <span class="op">=</span> <span class="fl">6L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -159,6 +160,14 @@ footprint maps and persistence analysis. Can be large.</p></dd>
 files or files with mismatched grids instead of failing. Default
 <code>FALSE</code>.</p></dd>
 
+
+<dt id="arg-connectivity">connectivity<a class="anchor" aria-label="anchor" href="#arg-connectivity"></a></dt>
+<dd><p>Integer. Which neighbouring voxels in the lon/lat/time
+cube join a blob: <code>6</code> (default, faces only), <code>10</code> (adds
+horizontal diagonals), <code>18</code> (adds edges, including space-time
+diagonals) or <code>26</code> (all neighbours). Depth levels join only
+straight up and down, whatever the setting. See <strong>Connectivity</strong>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -182,6 +191,47 @@ directly is that the event file stores per-pixel event <em>summaries</em>
 needed for spatial connectivity analysis.</p>
     </div>
     <div class="section level2">
+    <h2 id="connectivity">Connectivity<a class="anchor" aria-label="anchor" href="#connectivity"></a></h2>
+
+
+<p>Two exceedance voxels belong to the same blob when they are neighbours,
+namely when their grid indices differ by at most one step along each axis.
+<code>connectivity</code> sets which of these neighbours count, named by their
+number in the 3 x 3 x 3 lon/lat/time cube:</p><dl><dt><code>6</code> (default)</dt>
+<dd><p>Faces only: one axis changes. East, west,
+north and south on the same day, and the same pixel on the previous and
+next day. Pixels that touch only at a corner are not connected
+(4-connectivity in the horizontal plane), and a blob continues from one
+day to the next only through pixels that exceed the threshold on both
+days.</p></dd>
+
+<dt><code>10</code></dt>
+<dd><p>Faces plus the four horizontal diagonals on the same
+day (8-connectivity in the horizontal plane). Days still join only
+through pixels that exceed on both days.</p></dd>
+
+<dt><code>18</code></dt>
+<dd><p>Faces and edges: up to two axes change at once. Adds
+space-time diagonals, so a pixel joins its neighbour on the next day
+even when the two never exceed on the same day.</p></dd>
+
+<dt><code>26</code></dt>
+<dd><p>All neighbours in the cube, including corners.</p></dd>
+
+
+</dl><p>The setting names the same neighbourhood whether or not the input is
+depth-resolved: with depth, the cube applies on each depth level, and a
+voxel also joins the same pixel on the same day one level above and below
+(see <strong>Depth connectivity</strong>), so 8, 12, 20 or 28 neighbours in all.
+Higher settings only merge blobs, never split them: every blob found with
+<code>6</code> lies inside one blob found with <code>26</code>. Adjacency is by grid
+index alone: the
+distance between neighbours in kilometres, metres or days plays no role,
+so a space-time diagonal step stands for a displacement of one grid cell
+per day, a speed that depends on the grid. With <code>wrapDateline = TRUE</code>
+the first and last longitude columns are neighbours under the same rule.</p>
+    </div>
+    <div class="section level2">
     <h2 id="depth-connectivity">Depth connectivity<a class="anchor" aria-label="anchor" href="#depth-connectivity"></a></h2>
 
 
@@ -189,9 +239,10 @@ needed for spatial connectivity analysis.</p>
 <code>ts2clm3(depth_range = ...)</code>), <code>detect_blob3()</code> detects this
 automatically – no separate argument is needed, the same pattern used by
 <code><a href="detect_event3.html">detect_event3</a></code> and <code><a href="category_daily3.html">category_daily3</a></code>. Voxels are
-then connected across 4 axes (lon, lat, depth, time) instead of 3, using
-face-adjacency by depth <em>index</em>: a voxel connects to the level
-immediately above/below it, whatever that level's actual depth in metres
+then also connected through the water column: a voxel joins the same pixel
+on the same day at the level immediately above/below it, by depth
+<em>index</em>, whatever <code>connectivity</code> is (there are no depth
+diagonals), and whatever that level's actual depth in metres
 happens to be, with no minimum/maximum depth gap or distance threshold.
 <code>event</code>/<code>daily</code> gain <code>depth_min_m</code>, <code>depth_max_m</code>,
 <code>depthOfPeakIntensity_m</code>, and volumetric analogues of the area
@@ -234,11 +285,11 @@ spatial blob detection).</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 2 thread(s)...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 
   6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -262,8 +313,8 @@ spatial blob detection).</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 292.4 to 297.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Step 2: detect spatial blobs (heatwaves)</span></span></span>
@@ -323,11 +374,11 @@ spatial blob detection).</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 2 thread(s)...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 
   6/6 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 2,196   grid: 2 lon x 3 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -351,8 +402,8 @@ spatial blob detection).</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   291.1 to 295.6</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   thresh: 289.7 to 293.5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">mcs</span> <span class="op">&lt;-</span> <span class="fu">detect_blob3</span><span class="op">(</span></span></span>
@@ -373,11 +424,11 @@ spatial blob detection).</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Computing climatology with 2 thread(s)...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 
   20/20 pixels (100%)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Done.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Rows (long format): 7,320   grid: 2 lon x 2 lat</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Head:</span>
@@ -401,8 +452,8 @@ spatial blob detection).</p></div>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   seas:   20.98 to 25.55</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   thresh:    22 to 26.92</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc", n = 20)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc", n = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ------------------------------------------------------------------</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">blobs_4d</span> <span class="op">&lt;-</span> <span class="fu">detect_blob3</span><span class="op">(</span></span></span>

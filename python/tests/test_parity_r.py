@@ -150,12 +150,19 @@ BLOBS = {
                                              rankBy="totalVolume_km3",
                                              return_=("event", "daily", "voxel")),
     "blob_multi": lambda r: hw3.detect_blob3(GLO_DIR, r["g"] + "_clim.nc", topN=3),
+    "blob_conn": lambda r: hw3.detect_blob3(SST, r["s"] + "_clim.nc", wrapDateline=True,
+                                            connectivity=18,
+                                            return_=("event", "daily", "voxel")),
+    "blob_depth_conn": lambda r: hw3.detect_blob3(GLO, r["g"] + "_clim.nc", connectivity=26,
+                                                  return_=("event", "daily", "voxel")),
 }
 BLOB_CASES = [(b, part) for b, parts in [("blob", "event daily voxel"),
                                          ("blob_filtered", "event daily"),
                                          ("blob_cold", "event daily"),
                                          ("blob_depth", "event daily voxel"),
-                                         ("blob_multi", "event daily")]
+                                         ("blob_multi", "event daily"),
+                                         ("blob_conn", "event daily voxel"),
+                                         ("blob_depth_conn", "event daily voxel")]
               for part in parts.split()]
 
 

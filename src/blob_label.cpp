@@ -13,7 +13,8 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 IntegerVector label_components_cpp(IntegerVector mask,
                                    int nx, int ny, int nz, int nt,
-                                   bool wrap_dateline = false) {
+                                   bool wrap_dateline = false,
+                                   int connectivity = 6) {
   const R_xlen_t n = static_cast<R_xlen_t>(nx) * ny * nz * nt;
   if (mask.size() != n) {
     stop("mask length does not match nx * ny * nz * nt");
@@ -21,7 +22,7 @@ IntegerVector label_components_cpp(IntegerVector mask,
 
   IntegerVector labels(n);  // initialised to 0
   int k = hw3::label_components(mask.begin(), labels.begin(),
-                                nx, ny, nz, nt, wrap_dateline);
+                                nx, ny, nz, nt, wrap_dateline, connectivity);
 
   labels.attr("dim") = IntegerVector::create(nx, ny, nz, nt);
   labels.attr("n_components") = k;

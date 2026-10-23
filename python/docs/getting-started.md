@@ -177,8 +177,10 @@ hw3.detect_event3(sst_file, "demo_cold", coldSpells=True, category=True)
 
 {func}`~heatwave3.detect_blob3` links exceedance days that touch in longitude,
 latitude and time (and depth, for a depth-resolved climatology) into spatially
-coherent events, and summarises each one overall and per day. Its `return_`
-argument chooses the outputs; the voxel table holds the full footprint.
+coherent events, and summarises each one overall and per day. By default only
+face neighbours touch (one grid step along one axis); `connectivity=10`, `18`
+or `26` adds diagonal neighbours. Its `return_` argument chooses the outputs;
+the voxel table holds the full footprint.
 
 ```python
 blobs = hw3.detect_blob3(sst_file, clim_file, minVoxels=20, topN=3,

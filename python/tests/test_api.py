@@ -224,6 +224,7 @@ def test_detect_blob3_return_handling(stem):
 @pytest.mark.parametrize("kwargs, exc, msg", [
     (dict(return_=("event", "blobs")), ValueError, "unsupported value: blobs"),
     (dict(rankBy="totalVolume_km3"), ValueError, "rankBy must be one of"),
+    (dict(connectivity=8), ValueError, "connectivity must be one of"),
     (dict(sst_file="/no/such.nc"), FileNotFoundError, "sst_file file does not exist"),
 ])
 def test_detect_blob3_errors(stem, kwargs, exc, msg):

@@ -17,7 +17,8 @@ detect_blob3(
   rankBy = "cumI_km2_day",
   coldSpells = FALSE,
   return = c("event", "daily"),
-  skip_bad_files = FALSE
+  skip_bad_files = FALSE,
+  connectivity = 6L
 )
 ```
 
@@ -100,6 +101,14 @@ detect_blob3(
   Logical. For multi-file SST inputs, skip unreadable files or files
   with mismatched grids instead of failing. Default `FALSE`.
 
+- connectivity:
+
+  Integer. Which neighbouring voxels in the lon/lat/time cube join a
+  blob: `6` (default, faces only), `10` (adds horizontal diagonals),
+  `18` (adds edges, including space-time diagonals) or `26` (all
+  neighbours). Depth levels join only straight up and down, whatever the
+  setting. See **Connectivity**.
+
 ## Value
 
 A named list containing the requested components (`event`, `daily`,
@@ -121,6 +130,49 @@ cannot be used directly is that the event file stores per-pixel event
 *summaries* (start/end dates, intensity metrics), not the daily
 per-pixel boolean mask needed for spatial connectivity analysis.
 
+## Connectivity
+
+Two exceedance voxels belong to the same blob when they are neighbours,
+namely when their grid indices differ by at most one step along each
+axis. `connectivity` sets which of these neighbours count, named by
+their number in the 3 x 3 x 3 lon/lat/time cube:
+
+- `6` (default):
+
+  Faces only: one axis changes. East, west, north and south on the same
+  day, and the same pixel on the previous and next day. Pixels that
+  touch only at a corner are not connected (4-connectivity in the
+  horizontal plane), and a blob continues from one day to the next only
+  through pixels that exceed the threshold on both days.
+
+- `10`:
+
+  Faces plus the four horizontal diagonals on the same day
+  (8-connectivity in the horizontal plane). Days still join only through
+  pixels that exceed on both days.
+
+- `18`:
+
+  Faces and edges: up to two axes change at once. Adds space-time
+  diagonals, so a pixel joins its neighbour on the next day even when
+  the two never exceed on the same day.
+
+- `26`:
+
+  All neighbours in the cube, including corners.
+
+The setting names the same neighbourhood whether or not the input is
+depth-resolved: with depth, the cube applies on each depth level, and a
+voxel also joins the same pixel on the same day one level above and
+below (see **Depth connectivity**), so 8, 12, 20 or 28 neighbours in
+all. Higher settings only merge blobs, never split them: every blob
+found with `6` lies inside one blob found with `26`. Adjacency is by
+grid index alone: the distance between neighbours in kilometres, metres
+or days plays no role, so a space-time diagonal step stands for a
+displacement of one grid cell per day, a speed that depends on the grid.
+With `wrapDateline = TRUE` the first and last longitude columns are
+neighbours under the same rule.
+
 ## Depth connectivity
 
 When `clim_file` is depth-resolved (from `ts2clm3(depth_range = ...)`),
@@ -129,11 +181,12 @@ needed, the same pattern used by
 [`detect_event3`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 and
 [`category_daily3`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md).
-Voxels are then connected across 4 axes (lon, lat, depth, time) instead
-of 3, using face-adjacency by depth *index*: a voxel connects to the
-level immediately above/below it, whatever that level's actual depth in
-metres happens to be, with no minimum/maximum depth gap or distance
-threshold. `event`/`daily` gain `depth_min_m`, `depth_max_m`,
+Voxels are then also connected through the water column: a voxel joins
+the same pixel on the same day at the level immediately above/below it,
+by depth *index*, whatever `connectivity` is (there are no depth
+diagonals), and whatever that level's actual depth in metres happens to
+be, with no minimum/maximum depth gap or distance threshold.
+`event`/`daily` gain `depth_min_m`, `depth_max_m`,
 `depthOfPeakIntensity_m`, and volumetric analogues of the area metrics
 (`totalVolume_km3`/`peakVolume_km3`/`meanVolume_km3` at the event level,
 `volume_km3` at the daily level, both computed as area x vertical layer
@@ -173,11 +226,11 @@ ts2clm3(sst_file, name = stem,
 #> Computing climatology with 2 thread(s)...
 #> 
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -201,8 +254,8 @@ ts2clm3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f6600a566_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead49250417bf_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 # Step 2: detect spatial blobs (heatwaves)
@@ -262,11 +315,11 @@ ts2clm3(sst_file, name = stem_cold,
 #> Computing climatology with 2 thread(s)...
 #> 
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -290,8 +343,8 @@ ts2clm3(sst_file, name = stem_cold,
 #>   seas:   291.1 to 295.6
 #>   thresh: 289.7 to 293.5
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f346affdb_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead492fb30f95_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 mcs <- detect_blob3(
@@ -312,11 +365,11 @@ ts2clm3(glorys_file, name = stem_4d,
 #> Computing climatology with 2 thread(s)...
 #> 
   20/20 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc
 #> Rows (long format): 7,320   grid: 2 lon x 2 lat
 #> 
 #> Head:
@@ -340,8 +393,8 @@ ts2clm3(glorys_file, name = stem_4d,
 #>   seas:   20.98 to 25.55
 #>   thresh:    22 to 26.92
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpql0oVu/file4e7f5cc39dbf_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpR5AtWA/filead4914c417aa_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 blobs_4d <- detect_blob3(

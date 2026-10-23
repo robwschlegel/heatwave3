@@ -56,6 +56,106 @@ test_that("label_components_cpp connects a single blob chained across all 4 axes
   expect_equal(attr(labels, "n_components"), 1L)
 })
 
+# ---- connectivity: which neighbours join a blob ----
+
+# Number of components of a two-voxel mask at each connectivity setting
+n_pair <- function(dims, a, b, wrap = FALSE) {
+  mask <- array(0L, dim = dims)
+  mask[matrix(a, 1)] <- 1L
+  mask[matrix(b, 1)] <- 1L
+  vapply(c(6L, 10L, 18L, 26L), function(conn)
+    attr(label_components_cpp(as.integer(mask), dims[1], dims[2], dims[3], dims[4],
+                              wrap, conn), "n_components"), integer(1))
+}
+
+test_that("connectivity sets which diagonal neighbours join (6/10/18/26)", {
+  d3 <- c(3, 3, 1, 3)
+  # Horizontal diagonal, same day: joined from 10 up
+  expect_equal(n_pair(d3, c(1, 1, 1, 1), c(2, 2, 1, 1)), c(2L, 1L, 1L, 1L))
+  # Space-time diagonal (lon + time): joined from 18 up
+  expect_equal(n_pair(d3, c(1, 1, 1, 1), c(2, 1, 1, 2)), c(2L, 2L, 1L, 1L))
+  # Corner (lon + lat + time): joined only at 26
+  expect_equal(n_pair(d3, c(1, 1, 1, 1), c(2, 2, 1, 2)), c(2L, 2L, 2L, 1L))
+  # Two steps apart: never joined
+  expect_equal(n_pair(d3, c(1, 1, 1, 1), c(3, 1, 1, 1)), c(2L, 2L, 2L, 2L))
+
+  d4 <- c(3, 3, 3, 3)
+  # The lon/lat/time cube applies on each depth level, named as in 3D
+  expect_equal(n_pair(d4, c(1, 1, 2, 1), c(2, 2, 2, 1)), c(2L, 1L, 1L, 1L))
+  expect_equal(n_pair(d4, c(1, 1, 2, 1), c(2, 2, 2, 2)), c(2L, 2L, 2L, 1L))
+  # Same pixel and day, adjacent level: always joined
+  expect_equal(n_pair(d4, c(1, 1, 1, 1), c(1, 1, 2, 1)), c(1L, 1L, 1L, 1L))
+  # Depth diagonals (with lon, or with time, or all four axes): never joined
+  expect_equal(n_pair(d4, c(1, 1, 1, 1), c(2, 1, 2, 1)), c(2L, 2L, 2L, 2L))
+  expect_equal(n_pair(d4, c(1, 1, 1, 1), c(1, 1, 2, 2)), c(2L, 2L, 2L, 2L))
+  expect_equal(n_pair(d4, c(1, 1, 1, 1), c(2, 2, 2, 2)), c(2L, 2L, 2L, 2L))
+})
+
+test_that("dateline wrap joins diagonal neighbours across the boundary", {
+  d <- c(4, 3, 1, 2)
+  # First and last longitude columns, one row apart, same day
+  expect_equal(n_pair(d, c(1, 1, 1, 1), c(4, 2, 1, 1), wrap = TRUE), c(2L, 1L, 1L, 1L))
+  expect_equal(n_pair(d, c(1, 1, 1, 1), c(4, 2, 1, 1), wrap = FALSE), c(2L, 2L, 2L, 2L))
+  # Across the boundary and one day later
+  expect_equal(n_pair(d, c(4, 1, 1, 1), c(1, 1, 1, 2), wrap = TRUE), c(2L, 2L, 1L, 1L))
+})
+
+# Brute-force labelling: flood fill from each unlabelled voxel in raster
+# order, so labels are numbered as label_components_cpp() numbers them.
+label_bruteforce <- function(mask, conn, wrap) {
+  d <- dim(mask)
+  # lon/lat/time cube on one level, plus straight up and down in depth
+  steps <- as.matrix(expand.grid(-1:1, -1:1, 0, -1:1))
+  axes <- rowSums(steps != 0)
+  keep <- axes == 1 | (conn == 10 & axes == 2 & steps[, 4] == 0) |
+    (conn == 18 & axes == 2) | (conn == 26 & axes > 0)
+  steps <- steps[keep, , drop = FALSE]
+  if (d[3] > 1) steps <- rbind(steps, c(0, 0, -1, 0), c(0, 0, 1, 0))
+  lab <- array(0L, d)
+  k <- 0L
+  for (v in which(mask == 1L)) {
+    if (lab[v] > 0L) next
+    k <- k + 1L
+    lab[v] <- k
+    queue <- v
+    while (length(queue)) {
+      p <- arrayInd(queue[1], d); queue <- queue[-1]
+      nb <- sweep(steps, 2, p, "+")
+      if (wrap) nb[, 1] <- (nb[, 1] - 1) %% d[1] + 1
+      ok <- apply(nb, 1, function(x) all(x >= 1 & x <= d))
+      nb <- nb[ok, , drop = FALSE]
+      if (!nrow(nb)) next
+      idx <- 1 + colSums((t(nb) - 1) * cumprod(c(1, d[-4])))
+      idx <- idx[mask[idx] == 1L & lab[idx] == 0L]
+      lab[idx] <- k
+      queue <- c(queue, idx)
+    }
+  }
+  lab
+}
+
+test_that("label_components_cpp matches a brute-force labelling at every connectivity", {
+  set.seed(42)
+  for (d in list(c(6, 5, 1, 7), c(4, 4, 3, 5))) {
+    for (p in c(0.15, 0.35)) {
+      mask <- array(as.integer(runif(prod(d)) < p), d)
+      for (conn in c(6L, 10L, 18L, 26L)) for (wrap in c(FALSE, TRUE)) {
+        got <- label_components_cpp(as.integer(mask), d[1], d[2], d[3], d[4], wrap, conn)
+        ref <- label_bruteforce(mask, conn, wrap)
+        expect_identical(as.vector(got), as.vector(ref),
+                         info = sprintf("dims %s, p = %g, conn = %d, wrap = %s",
+                                        paste(d, collapse = "x"), p, conn, wrap))
+        expect_equal(attr(got, "n_components"), max(ref))
+      }
+    }
+  }
+})
+
+test_that("label_components_cpp rejects other connectivity values", {
+  expect_error(label_components_cpp(rep(0L, 8), 2, 2, 1, 2, FALSE, 8L),
+               "connectivity must be 6, 10, 18 or 26")
+})
+
 # ---- blob_daily_summary_cpp(): hand-computed depth/volume fields ----
 
 test_that("blob_daily_summary_cpp computes volume/depth fields correctly", {
@@ -173,4 +273,30 @@ test_that("detect_blob3 minVoxels filters depth-resolved blobs", {
   all_blobs <- detect_blob3(glorys_file, paste0(stem, "_clim.nc"), minVoxels = 1, return = "event")
   filtered <- detect_blob3(glorys_file, paste0(stem, "_clim.nc"), minVoxels = 50, return = "event")
   expect_true(nrow(filtered$event) <= nrow(all_blobs$event))
+})
+
+test_that("detect_blob3 connectivity only merges blobs, and 6 is the default", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          quiet = TRUE)
+  clim <- paste0(stem, "_clim.nc")
+  run <- function(...) detect_blob3(sst_file, clim, return = "voxel", ...)$voxel
+  key <- function(v) paste(v$lon, v$lat, v$t_idx)
+
+  expect_identical(run(), run(connectivity = 6))
+  v6 <- run(connectivity = 6)
+  for (conn in c(10, 18, 26)) {
+    v <- run(connectivity = conn)
+    # Same exceedance voxels; each 6-connected blob lies inside one blob
+    expect_setequal(key(v), key(v6))
+    merged <- v$blob[match(key(v6), key(v))]
+    expect_true(all(tapply(merged, v6$blob, function(x) length(unique(x))) == 1))
+    expect_lte(length(unique(v$blob)), length(unique(v6$blob)))
+  }
+
+  expect_error(detect_blob3(sst_file, clim, connectivity = 8),
+               "connectivity must be one of 6, 10, 18 or 26")
 })

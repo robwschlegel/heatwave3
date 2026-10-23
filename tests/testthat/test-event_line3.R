@@ -48,12 +48,11 @@ test_that("event_line3 errors clearly when no data is found", {
           quiet = TRUE)
   clim_file <- paste0(stem, "_clim.nc")
 
-  # hw3_read_sst() itself throws for an out-of-range lon/lat before
-  # event_line3's own "No data found" check is ever reached (that check
-  # appears to be unreachable given current hw3_read_sst() behaviour).
+  # hw3_read_sst() throws for an out-of-range lon/lat; event_line3 reports
+  # it with its own message.
   expect_error(
     event_line3(sst_file, clim_file, lon = 999, lat = 999),
-    "No coordinates found"
+    "No data found at lon = 999, lat = 999"
   )
   expect_error(
     event_line3(sst_file, clim_file, lon = 26.525, lat = -34.125,

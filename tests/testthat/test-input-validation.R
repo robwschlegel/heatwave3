@@ -45,6 +45,8 @@ test_that("category_daily3 checks its inputs", {
                "Events file does not exist")
   expect_error(category_daily3(sst_file, clim, ev, c("2010-01-01", "not a date")),
                "time_range must be dates")
+  expect_error(category_daily3(sst_file, clim, ev, c("not", "dates")),
+               "time_range must be dates")
   expect_error(category_daily3(empty_dir(), clim, ev, window),
                "No .nc or .nc4 files found in the SST directory")
 })
@@ -58,5 +60,7 @@ test_that("event_line3 checks its inputs", {
   expect_error(event_line3(empty_dir(), clim, lon = 26.525, lat = -34.125),
                "No .nc/.nc4 files in")
   expect_error(event_line3(sst_file, clim, lon = 0, lat = 0),
-               "No coordinates found within specified range")
+               "No data found at lon = 0, lat = 0")
+  expect_error(event_line3(sst_file, clim, lon = 0, lat = 0, var_name = "nope"),
+               "nope")  # other reader errors still come through
 })

@@ -91,16 +91,21 @@ event_line3 <- function(sst_file, clim_file, lon, lat,
                              full.names = TRUE))
     if (length(files) == 0)
       stop("No .nc/.nc4 files in ", sst_file, call. = FALSE)
-    gd <- hw3_read_sst_multi(files, vn,
-                              lon_range = c(lon - eps, lon + eps),
-                              lat_range = c(lat - eps, lat + eps),
-                              depth_range = depth_range)
+    read <- function() hw3_read_sst_multi(files, vn,
+                                          lon_range = c(lon - eps, lon + eps),
+                                          lat_range = c(lat - eps, lat + eps),
+                                          depth_range = depth_range)
   } else {
-    gd <- hw3_read_sst(sst_file, vn,
-                       lon_range = c(lon - eps, lon + eps),
-                       lat_range = c(lat - eps, lat + eps),
-                       depth_range = depth_range)
+    read <- function() hw3_read_sst(sst_file, vn,
+                                    lon_range = c(lon - eps, lon + eps),
+                                    lat_range = c(lat - eps, lat + eps),
+                                    depth_range = depth_range)
   }
+  # A point outside the SST grid stops the reader before any data is read
+  gd <- tryCatch(read(), error = function(e) {
+    if (!grepl("No coordinates found", conditionMessage(e))) stop(e)
+    list(nlon = 0L, nlat = 0L)
+  })
   if (gd$nlon * gd$nlat == 0)
     stop("No data found at lon = ", lon, ", lat = ", lat, call. = FALSE)
 

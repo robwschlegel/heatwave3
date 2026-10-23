@@ -92,7 +92,8 @@ category_daily3 <- function(sst_file, clim_file, event_file, time_range,
   if (length(time_range) != 2) {
     stop("time_range must be a vector of two dates.", call. = FALSE)
   }
-  d <- as.Date(time_range)
+  # as.Date() errors (rather than giving NA) when no date can be parsed
+  d <- tryCatch(as.Date(time_range), error = function(e) as.Date(c(NA, NA)))
   if (anyNA(d)) {
     stop("time_range must be dates, e.g. c(\"2026-05-10\", \"2026-05-20\").",
          call. = FALSE)

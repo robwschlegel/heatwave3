@@ -1,7 +1,7 @@
 # heatwave3 1.4.2
 
 A choice of neighbourhood for `detect_blob3()`.
-This version is not released on CRAN or PyPI.
+This version is released on PyPI but not on CRAN.
 
 * **`detect_blob3()` gains `connectivity`** (R and Python, last argument),
   which sets the neighbours in the 3 x 3 x 3 lon/lat/time cube that join

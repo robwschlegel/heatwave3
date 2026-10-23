@@ -1,5 +1,31 @@
 # Changelog
 
+## heatwave3 1.4.2
+
+A choice of neighbourhood for
+[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md).
+This version is not released on CRAN or PyPI.
+
+- **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
+  gains `connectivity`** (R and Python, last argument), which sets the
+  neighbours in the 3 x 3 x 3 lon/lat/time cube that join exceedance
+  voxels into one blob: `6` (the default and the previous behaviour,
+  faces only), `10` (adds the horizontal diagonals on the same day),
+  `18` (adds all edges, including space-time diagonals) or `26` (all
+  neighbours). The setting means the same with depth-resolved input: the
+  cube applies on each depth level, and depth levels join only straight
+  up and down at the same pixel and day, as before (8, 12, 20 or 28
+  neighbours in all). The dateline wrap joins the same neighbours across
+  the antimeridian. Higher settings only merge blobs. On the Bay of
+  Biscay GLORYS12 series (1/12 degree, 1993-2025), 26 instead of 6 gave
+  24% fewer blobs but only 3% fewer blobs of 5 days or more, and moved
+  0.3% of exceedance voxels into another blob; the horizontal
+  diagonals (10) accounted for most of the difference.
+- **Documentation** of
+  [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
+  now states exactly which neighbours connect (the “8-connectivity” of
+  depth-resolved input meant faces only).
+
 ## heatwave3 1.4.1
 
 Preparation for CRAN, coastlines in the Python maps, and a fix to the

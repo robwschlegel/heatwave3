@@ -14,13 +14,13 @@ Source:
 [`DESCRIPTION`](https://github.com/robwschlegel/heatwave3/blob/HEAD/DESCRIPTION)
 
 Schlegel R, Smit A (2026). *heatwave3: Detect Heatwaves and Cold-Spells
-in Gridded Data*. R package version 1.4.1,
+in Gridded Data*. R package version 1.4.2,
 <https://robwschlegel.github.io/heatwave3/>.
 
 @Manual{,\
   title = {heatwave3: Detect Heatwaves and Cold-Spells in Gridded Data},\
   author = {Robert W. Schlegel and Albertus J. Smit},\
   year = {2026},\
-  note = {R package version 1.4.1},\
+  note = {R package version 1.4.2},\
   url = {https://robwschlegel.github.io/heatwave3/},\
 }

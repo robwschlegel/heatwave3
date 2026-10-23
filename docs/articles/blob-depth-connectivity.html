@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,11 +102,19 @@ exceedance mask. Given a depth-resolved climatology (from
 <code>ts2clm3(depth_range = ...)</code>, see
 <code><a href="../articles/depth-range.html">vignette("depth-range")</a></code>), it now does this natively in 4D:
 a voxel connects to its neighbours in longitude, latitude, depth,
-<em>and</em> time, instead of just the first three. No new argument is
-needed – exactly like <code><a href="../reference/detect_event3.html">detect_event3()</a></code> and
-<code><a href="../reference/category_daily3.html">category_daily3()</a></code>, <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> reads the
-depth range straight off <code>clim_file</code> and switches to 4D
-connectivity automatically.</p>
+<em>and</em> time, instead of just the first three. By default
+(<code>connectivity = 6</code>) these are the face neighbours, which
+differ by one grid step along exactly one axis, so each voxel has 8 of
+them (6 without depth); diagonal neighbours, such as pixels that touch
+only at a corner, are not connected. <code>connectivity = 10</code>,
+<code>18</code> or <code>26</code> adds diagonal neighbours in the
+lon/lat/time cube on each level (see <code><a href="../reference/detect_blob3.html">?detect_blob3</a></code>); depth
+levels still join only straight up and down, at the same pixel on the
+same day. No new argument is needed for depth – exactly like
+<code><a href="../reference/detect_event3.html">detect_event3()</a></code> and <code><a href="../reference/category_daily3.html">category_daily3()</a></code>,
+<code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> reads the depth range straight off
+<code>clim_file</code> and switches to 4D connectivity
+automatically.</p>
 <p><strong>Connectivity is by depth <em>index</em>, not a depth
 <em>range</em>.</strong> A voxel connects to whichever level is
 immediately above or below it – level 3 to level 4, say – regardless of

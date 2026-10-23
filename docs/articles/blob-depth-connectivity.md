@@ -9,7 +9,14 @@ depth-resolved climatology (from `ts2clm3(depth_range = ...)`, see
 [`vignette("depth-range")`](https://robwschlegel.github.io/heatwave3/articles/depth-range.md)),
 it now does this natively in 4D: a voxel connects to its neighbours in
 longitude, latitude, depth, *and* time, instead of just the first three.
-No new argument is needed – exactly like
+By default (`connectivity = 6`) these are the face neighbours, which
+differ by one grid step along exactly one axis, so each voxel has 8 of
+them (6 without depth); diagonal neighbours, such as pixels that touch
+only at a corner, are not connected. `connectivity = 10`, `18` or `26`
+adds diagonal neighbours in the lon/lat/time cube on each level (see
+[`?detect_blob3`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md));
+depth levels still join only straight up and down, at the same pixel on
+the same day. No new argument is needed for depth – exactly like
 [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
 and
 [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md),

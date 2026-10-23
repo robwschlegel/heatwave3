@@ -77,11 +77,11 @@ above. The fixture’s 5 levels all fall within 0-10 m:
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc`\
 `#> Rows (long format): 7,320   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -105,8 +105,8 @@ above. The fixture’s 5 levels all fall within 0-10 m:
 `#>   seas:   20.98 to 25.55`\
 `#>   thresh:    22 to 26.92`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`
 
 [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
@@ -136,11 +136,11 @@ Or as a single call via
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc`\
 `#> Rows (long format): 7,320   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -164,20 +164,20 @@ Or as a single call via
 `#>   seas:   20.98 to 25.55`\
 `#>   thresh:    22 to 26.92`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
-`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc...`\
+`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...`\
 `#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/glorys_depth_test.nc...`\
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Detecting events with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
 `#> Found 1611 events across 20 pixels`\
-`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc...`\
+`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc`\
+`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc`\
 `#> Rows (long format): 1,611`\
 `#> `\
 `#> Head:`\
@@ -263,8 +263,8 @@ Or as a single call via
 `#>   intensity_max:   0.9695 to 3.165`\
 `#>   category: I Moderate=1528  II Strong=83`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`
 
 ## Reading the depth-resolved output
@@ -352,11 +352,11 @@ doesn’t need one:
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Computing climatology with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
-`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc...`\
+`#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc`\
+`#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc`\
 `#> Rows (long format): 7,320   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -380,22 +380,22 @@ doesn’t need one:
 `#>   seas:   20.98 to 25.55`\
 `#>   thresh:    22 to 26.92`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
-`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_clim.nc...`\
+`#> Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...`\
 `#> Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/glorys_depth_test.nc...`\
 `#> Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels`\
 `#> Detecting events with 2 thread(s)...`\
 `#>   20/20 pixels (100%)`\
 `#> Found 1611 events across 20 pixels`\
-`#> Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events_daily.nc...`\
+`#> Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc...`\
 `#> Done.`\
-`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc...`\
+`#> Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc...`\
 `#> Done.`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc`\
+`#> Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc`\
 `#> Rows (long format): 1,611`\
 `#> `\
 `#> Head:`\
@@ -481,12 +481,12 @@ doesn’t need one:
 `#>   intensity_max:   0.9695 to 3.165`\
 `#>   category: I Moderate=1528  II Strong=83`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`\
 `#> `\
 `#> ------------------------------------------------------------------`\
-`#> Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events_daily.nc`\
+`#> Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc`\
 `#> Rows (long format): 233,760   grid: 2 lon x 2 lat`\
 `#> `\
 `#> Head:`\
@@ -522,8 +522,8 @@ doesn’t need one:
 `#>   event-days: 14717`\
 `#>   category: 1=14476  2=138`\
 `#> `\
-`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events_daily.nc", n = 20)`\
-`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpXcG8b7/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
+`#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc", n = 20)`\
+`#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)`\
 `#> ------------------------------------------------------------------`
 
 [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)

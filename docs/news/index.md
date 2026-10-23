@@ -4,7 +4,7 @@
 
 A choice of neighbourhood for
 [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md).
-This version is not released on CRAN or PyPI.
+This version is released on PyPI but not on CRAN.
 
 - **[`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
   gains `connectivity`** (R and Python, last argument), which sets the
@@ -25,6 +25,15 @@ This version is not released on CRAN or PyPI.
   [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md)
   now states exactly which neighbours connect (the “8-connectivity” of
   depth-resolved input meant faces only).
+- **Clearer errors.**
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md) (R)
+  reports “time_range must be dates” when no date in `time_range` can be
+  read (base R’s “character string is not in a standard unambiguous
+  format” came first), and
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md)
+  (R and Python) reports “No data found at lon = …, lat = …” for a point
+  outside the SST grid (the netCDF reader’s “No coordinates found within
+  specified range” came first).
 
 ## heatwave3 1.4.1
 

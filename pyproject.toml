@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "heatwave3"
-version = "1.4.1"  # pinned to Version in DESCRIPTION (R): same features
+version = "1.4.2"  # pinned to Version in DESCRIPTION (R): same features
 description = "Detect marine heatwaves and cold-spells directly in gridded NetCDF data"
 readme = "python/README.md"
 requires-python = ">=3.10"

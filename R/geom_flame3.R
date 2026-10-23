@@ -85,86 +85,96 @@ GeomFlame3 <- NULL
   # different depths would land in one group and get RLE'd together as if
   # they were one continuous series. Re-derive group to include depth
   # whenever it's present, preserving each existing group's row order.
-  setup_data = function(data, params) {
-    if (!is.null(data$depth)) {
-      data$group <- match(
-        interaction(data$group, data$depth, drop = TRUE, lex.order = TRUE),
-        unique(interaction(data$group, data$depth, drop = TRUE, lex.order = TRUE))
-      )
-    }
-    data
-  },
+  setup_data = function(data, params) .flame3_setup_data(data, params),
 
   draw_group = function(data, panel_params, coord,
                         n = 0, n_gap = 0, reverse = FALSE, na.rm = FALSE) {
-    if (reverse) {
-      exceed <- data$y < data$y2
-    } else {
-      exceed <- data$y > data$y2
-    }
-    # A missing value is not an exceedance (an NA in rle() would otherwise
-    # break the if()/&& tests below)
-    exceed[is.na(exceed)] <- FALSE
+    .flame3_draw_group(data, panel_params, coord, n, n_gap, reverse)
+  }
+)
 
-    rle_exc <- rle(exceed)
-    ends <- cumsum(rle_exc$lengths)
-    starts <- c(1L, ends[-length(ends)] + 1L)
+# The methods' bodies live in these functions rather than inside ggproto():
+# the geom is built when R CMD INSTALL stores the namespace, so code written
+# inside ggproto() is never instrumented by covr, whereas these functions are
+# looked up by name each time a method runs.
+.flame3_setup_data <- function(data, params) {
+  if (!is.null(data$depth)) {
+    data$group <- match(
+      interaction(data$group, data$depth, drop = TRUE, lex.order = TRUE),
+      unique(interaction(data$group, data$depth, drop = TRUE, lex.order = TRUE))
+    )
+  }
+  data
+}
 
-    keep <- rle_exc$values & rle_exc$lengths >= max(1, n + 1)
+.flame3_draw_group <- function(data, panel_params, coord, n, n_gap, reverse) {
+  if (reverse) {
+    exceed <- data$y < data$y2
+  } else {
+    exceed <- data$y > data$y2
+  }
+  # A missing value is not an exceedance (an NA in rle() would otherwise
+  # break the if()/&& tests below)
+  exceed[is.na(exceed)] <- FALSE
 
-    if (n_gap > 0 && sum(keep) > 1) {
-      for (i in seq_along(keep)[-1]) {
-        if (!keep[i] && !rle_exc$values[i] && rle_exc$lengths[i] <= n_gap) {
-          if (i > 1 && keep[i - 1] && i < length(keep) && keep[i + 1]) {
-            keep[i] <- TRUE
-          }
+  rle_exc <- rle(exceed)
+  ends <- cumsum(rle_exc$lengths)
+  starts <- c(1L, ends[-length(ends)] + 1L)
+
+  keep <- rle_exc$values & rle_exc$lengths >= max(1, n + 1)
+
+  if (n_gap > 0 && sum(keep) > 1) {
+    for (i in seq_along(keep)[-1]) {
+      if (!keep[i] && !rle_exc$values[i] && rle_exc$lengths[i] <= n_gap) {
+        if (i > 1 && keep[i - 1] && i < length(keep) && keep[i + 1]) {
+          keep[i] <- TRUE
         }
       }
     }
-
-    if (!any(keep)) return(grid::nullGrob())
-
-    polys <- list()
-    seg_id <- 0
-    for (i in which(keep)) {
-      s <- starts[i]; e <- ends[i]
-      seg <- data[s:e, , drop = FALSE]
-
-      if (reverse) {
-        upper <- data.frame(x = seg$x, y = seg$y2)
-        lower <- data.frame(x = rev(seg$x), y = rev(seg$y))
-      } else {
-        upper <- data.frame(x = seg$x, y = seg$y)
-        lower <- data.frame(x = rev(seg$x), y = rev(seg$y2))
-      }
-      poly <- rbind(upper, lower)
-
-      seg_id <- seg_id + 1
-      poly$group <- seg_id
-      poly$colour <- seg$colour[1]
-      poly$fill <- seg$fill[1]
-      poly$linewidth <- seg$linewidth[1]
-      poly$linetype <- seg$linetype[1]
-      poly$alpha <- seg$alpha[1]
-
-      polys[[seg_id]] <- poly
-    }
-
-    poly_data <- do.call(rbind, polys)
-    poly_data <- coord$transform(poly_data, panel_params)
-
-    grid::polygonGrob(
-      x = poly_data$x, y = poly_data$y,
-      id = poly_data$group,
-      gp = grid::gpar(
-        col = poly_data$colour[!duplicated(poly_data$group)],
-        fill = scales::alpha(
-          poly_data$fill[!duplicated(poly_data$group)],
-          poly_data$alpha[!duplicated(poly_data$group)]
-        ),
-        lwd = poly_data$linewidth[!duplicated(poly_data$group)] * ggplot2::.pt,
-        lty = poly_data$linetype[!duplicated(poly_data$group)]
-      )
-    )
   }
-)
+
+  if (!any(keep)) return(grid::nullGrob())
+
+  polys <- list()
+  seg_id <- 0
+  for (i in which(keep)) {
+    s <- starts[i]; e <- ends[i]
+    seg <- data[s:e, , drop = FALSE]
+
+    if (reverse) {
+      upper <- data.frame(x = seg$x, y = seg$y2)
+      lower <- data.frame(x = rev(seg$x), y = rev(seg$y))
+    } else {
+      upper <- data.frame(x = seg$x, y = seg$y)
+      lower <- data.frame(x = rev(seg$x), y = rev(seg$y2))
+    }
+    poly <- rbind(upper, lower)
+
+    seg_id <- seg_id + 1
+    poly$group <- seg_id
+    poly$colour <- seg$colour[1]
+    poly$fill <- seg$fill[1]
+    poly$linewidth <- seg$linewidth[1]
+    poly$linetype <- seg$linetype[1]
+    poly$alpha <- seg$alpha[1]
+
+    polys[[seg_id]] <- poly
+  }
+
+  poly_data <- do.call(rbind, polys)
+  poly_data <- coord$transform(poly_data, panel_params)
+
+  grid::polygonGrob(
+    x = poly_data$x, y = poly_data$y,
+    id = poly_data$group,
+    gp = grid::gpar(
+      col = poly_data$colour[!duplicated(poly_data$group)],
+      fill = scales::alpha(
+        poly_data$fill[!duplicated(poly_data$group)],
+        poly_data$alpha[!duplicated(poly_data$group)]
+      ),
+      lwd = poly_data$linewidth[!duplicated(poly_data$group)] * ggplot2::.pt,
+      lty = poly_data$linetype[!duplicated(poly_data$group)]
+    )
+  )
+}

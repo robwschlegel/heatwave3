@@ -121,8 +121,10 @@ def test_event_line3_draws_the_r_data(runs, name):
 
 
 def test_event_line3_errors(runs):
-    with pytest.raises(RuntimeError, match="No coordinates found"):
+    with pytest.raises(ValueError, match="No data found at lon = 999, lat = 999"):
         hw3.event_line3(tp.SST, runs["s"] + "_clim.nc", 999, 999)
+    with pytest.raises(RuntimeError, match="nope"):  # other reader errors come through
+        hw3.event_line3(tp.SST, runs["s"] + "_clim.nc", 999, 999, var_name="nope")
     with pytest.raises(ValueError, match="No data in the specified date range"):
         hw3.event_line3(tp.SST, runs["s"] + "_clim.nc", 26.525, -34.125,
                         start_date="1900-01-01", end_date="1900-01-02")

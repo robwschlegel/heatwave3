@@ -38,3 +38,20 @@ test_that("with ggplot2 the geoms are built on first use", {
   expect_s3_class(.geom_if_ggplot2(.make_geom_flame3), "Geom")
   expect_s3_class(GeomLolli3, "Geom")
 })
+
+test_that("geom_lolli3 draws one stem and one point per row", {
+  skip_if_not_installed("ggplot2")
+  d <- data.frame(x = 1:4, y = c(1.2, 2.1, 0.8, 1.5), colour = "grey35", shape = 19,
+                  size = 1, fill = NA, alpha = NA, stroke = 0.5, group = 1)
+  coord <- list(transform = function(data, panel_params) data)
+  g <- GeomLolli3$draw_group(d, NULL, coord)
+  stems <- g$children[[1]]; points <- g$children[[2]]
+  expect_s3_class(stems, "segments")
+  expect_s3_class(points, "points")
+  # Stems run from y = 0 up to each value, at each point's x
+  expect_equal(as.numeric(stems$x0), d$x)
+  expect_equal(as.numeric(stems$x1), d$x)
+  expect_equal(as.numeric(stems$y0), rep(0, 4))
+  expect_equal(as.numeric(stems$y1), d$y)
+  expect_equal(as.numeric(points$y), d$y)
+})

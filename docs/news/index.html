@@ -57,11 +57,13 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.4.2" id="heatwave3-142">heatwave3 1.4.2<a class="anchor" aria-label="anchor" href="#heatwave3-142"></a></h2>
-<p>A choice of neighbourhood for <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>. This version is not released on CRAN or PyPI.</p>
+<p>A choice of neighbourhood for <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code>. This version is released on PyPI but not on CRAN.</p>
 <ul><li>
 <strong><code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> gains <code>connectivity</code></strong> (R and Python, last argument), which sets the neighbours in the 3 x 3 x 3 lon/lat/time cube that join exceedance voxels into one blob: <code>6</code> (the default and the previous behaviour, faces only), <code>10</code> (adds the horizontal diagonals on the same day), <code>18</code> (adds all edges, including space-time diagonals) or <code>26</code> (all neighbours). The setting means the same with depth-resolved input: the cube applies on each depth level, and depth levels join only straight up and down at the same pixel and day, as before (8, 12, 20 or 28 neighbours in all). The dateline wrap joins the same neighbours across the antimeridian. Higher settings only merge blobs. On the Bay of Biscay GLORYS12 series (1/12 degree, 1993-2025), 26 instead of 6 gave 24% fewer blobs but only 3% fewer blobs of 5 days or more, and moved 0.3% of exceedance voxels into another blob; the horizontal diagonals (10) accounted for most of the difference.</li>
 <li>
 <strong>Documentation</strong> of <code><a href="../reference/detect_blob3.html">detect_blob3()</a></code> now states exactly which neighbours connect (the “8-connectivity” of depth-resolved input meant faces only).</li>
+<li>
+<strong>Clearer errors.</strong> <code><a href="../reference/category_daily3.html">category_daily3()</a></code> (R) reports “time_range must be dates” when no date in <code>time_range</code> can be read (base R’s “character string is not in a standard unambiguous format” came first), and <code><a href="../reference/event_line3.html">event_line3()</a></code> (R and Python) reports “No data found at lon = …, lat = …” for a point outside the SST grid (the netCDF reader’s “No coordinates found within specified range” came first).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.4.1" id="heatwave3-141">heatwave3 1.4.1<a class="anchor" aria-label="anchor" href="#heatwave3-141"></a></h2>

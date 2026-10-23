@@ -226,9 +226,16 @@ def event_line3(sst_file, clim_file, lon, lat, depth=None, var_name=None, start_
                   depth_range=depth_range)
     if isinstance(sst_file, (str, os.PathLike)) and os.path.isdir(sst_file):
         files = list_nc(sst_file, os.fspath(sst_file))
-        gd = _core.hw3_read_sst_multi(files, vn, **window)
+        read = lambda: _core.hw3_read_sst_multi(files, vn, **window)
     else:
-        gd = _core.hw3_read_sst(os.fspath(sst_file), vn, **window)
+        read = lambda: _core.hw3_read_sst(os.fspath(sst_file), vn, **window)
+    # A point outside the SST grid stops the reader before any data is read
+    try:
+        gd = read()
+    except RuntimeError as e:
+        if "No coordinates found" not in str(e):
+            raise
+        gd = {"nlon": 0, "nlat": 0}
     if gd["nlon"] * gd["nlat"] == 0:
         raise ValueError(f"No data found at lon = {lon}, lat = {lat}")
 

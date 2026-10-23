@@ -300,3 +300,51 @@ test_that("detect_blob3 connectivity only merges blobs, and 6 is the default", {
   expect_error(detect_blob3(sst_file, clim, connectivity = 8),
                "connectivity must be one of 6, 10, 18 or 26")
 })
+
+test_that("detect_blob3 checks its inputs", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+  expect_error(detect_blob3(sst_file), "must both be provided")
+  expect_error(detect_blob3(sst_file, tempfile(fileext = ".nc")),
+               "Climatology file does not exist")
+
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          quiet = TRUE)
+  expect_error(detect_blob3(sst_file, paste0(stem, "_clim.nc"), return = "blobs"),
+               "unsupported value: blobs")
+})
+
+test_that("detect_blob3 returns empty frames when nothing exceeds", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+  clim <- tempfile(fileext = ".nc")
+  hw3_write_const_clim(sst_file, clim, "", 1000)  # nothing exceeds 1000 K
+  res <- detect_blob3(sst_file, clim, return = c("event", "daily", "voxel"))
+  expect_named(res, c("event", "daily", "voxel"))
+  expect_true(all(vapply(res, nrow, integer(1)) == 0L))
+})
+
+test_that("detect_blob3 cold-spells: positive anomalies, minVoxels and topN filter every table", {
+  sst_file <- system.file("extdata/sst_test.nc", package = "heatwave3")
+  skip_if(sst_file == "", "sst_test.nc not available")
+  stem <- tempfile()
+  ts2clm3(sst_file, name = stem, climatologyPeriod = c("1982-01-01", "2011-12-31"),
+          pctile = 10, quiet = TRUE)
+  clim <- paste0(stem, "_clim.nc")
+  all3 <- c("event", "daily", "voxel")
+
+  res <- detect_blob3(sst_file, clim, coldSpells = TRUE, return = all3)
+  # delta is the anomaly below the seasonal climatology, reported as positive
+  expect_true(all(res$voxel$delta > 0))
+
+  big <- detect_blob3(sst_file, clim, coldSpells = TRUE, minVoxels = 10, return = all3)
+  sizes <- table(res$voxel$blob)
+  expect_setequal(big$event$blob, as.integer(names(sizes)[sizes >= 10]))
+  expect_setequal(unique(big$voxel$blob), big$event$blob)
+
+  top <- detect_blob3(sst_file, clim, coldSpells = TRUE, topN = 3, return = all3)
+  expect_equal(nrow(top$event), 3)
+  expect_setequal(unique(top$voxel$blob), top$event$blob)
+  expect_setequal(unique(top$daily$blob), top$event$blob)
+})

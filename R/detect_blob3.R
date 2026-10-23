@@ -18,14 +18,47 @@
 #' (start/end dates, intensity metrics), not the daily per-pixel boolean mask
 #' needed for spatial connectivity analysis.
 #'
+#' @section Connectivity:
+#' Two exceedance voxels belong to the same blob when they are neighbours,
+#' namely when their grid indices differ by at most one step along each axis.
+#' \code{connectivity} sets which of these neighbours count, named by their
+#' number in the 3 x 3 x 3 lon/lat/time cube:
+#' \describe{
+#'   \item{\code{6} (default)}{Faces only: one axis changes. East, west,
+#'     north and south on the same day, and the same pixel on the previous and
+#'     next day. Pixels that touch only at a corner are not connected
+#'     (4-connectivity in the horizontal plane), and a blob continues from one
+#'     day to the next only through pixels that exceed the threshold on both
+#'     days.}
+#'   \item{\code{10}}{Faces plus the four horizontal diagonals on the same
+#'     day (8-connectivity in the horizontal plane). Days still join only
+#'     through pixels that exceed on both days.}
+#'   \item{\code{18}}{Faces and edges: up to two axes change at once. Adds
+#'     space-time diagonals, so a pixel joins its neighbour on the next day
+#'     even when the two never exceed on the same day.}
+#'   \item{\code{26}}{All neighbours in the cube, including corners.}
+#' }
+#' The setting names the same neighbourhood whether or not the input is
+#' depth-resolved: with depth, the cube applies on each depth level, and a
+#' voxel also joins the same pixel on the same day one level above and below
+#' (see \strong{Depth connectivity}), so 8, 12, 20 or 28 neighbours in all.
+#' Higher settings only merge blobs, never split them: every blob found with
+#' \code{6} lies inside one blob found with \code{26}. Adjacency is by grid
+#' index alone: the
+#' distance between neighbours in kilometres, metres or days plays no role,
+#' so a space-time diagonal step stands for a displacement of one grid cell
+#' per day, a speed that depends on the grid. With \code{wrapDateline = TRUE}
+#' the first and last longitude columns are neighbours under the same rule.
+#'
 #' @section Depth connectivity:
 #' When \code{clim_file} is depth-resolved (from
 #' \code{ts2clm3(depth_range = ...)}), \code{detect_blob3()} detects this
 #' automatically -- no separate argument is needed, the same pattern used by
 #' \code{\link{detect_event3}} and \code{\link{category_daily3}}. Voxels are
-#' then connected across 4 axes (lon, lat, depth, time) instead of 3, using
-#' face-adjacency by depth \emph{index}: a voxel connects to the level
-#' immediately above/below it, whatever that level's actual depth in metres
+#' then also connected through the water column: a voxel joins the same pixel
+#' on the same day at the level immediately above/below it, by depth
+#' \emph{index}, whatever \code{connectivity} is (there are no depth
+#' diagonals), and whatever that level's actual depth in metres
 #' happens to be, with no minimum/maximum depth gap or distance threshold.
 #' \code{event}/\code{daily} gain \code{depth_min_m}, \code{depth_max_m},
 #' \code{depthOfPeakIntensity_m}, and volumetric analogues of the area
@@ -75,6 +108,11 @@
 #' @param skip_bad_files Logical. For multi-file SST inputs, skip unreadable
 #'   files or files with mismatched grids instead of failing. Default
 #'   \code{FALSE}.
+#' @param connectivity Integer. Which neighbouring voxels in the lon/lat/time
+#'   cube join a blob: \code{6} (default, faces only), \code{10} (adds
+#'   horizontal diagonals), \code{18} (adds edges, including space-time
+#'   diagonals) or \code{26} (all neighbours). Depth levels join only
+#'   straight up and down, whatever the setting. See \strong{Connectivity}.
 #'
 #' @return A named list containing the requested components (\code{event},
 #'   \code{daily}, and/or \code{voxel} data.frames).
@@ -151,7 +189,8 @@ detect_blob3 <- function(sst_file, clim_file,
                          rankBy = "cumI_km2_day",
                          coldSpells = FALSE,
                          return = c("event", "daily"),
-                         skip_bad_files = FALSE) {
+                         skip_bad_files = FALSE,
+                         connectivity = 6L) {
 
   if (missing(sst_file) || missing(clim_file)) {
     stop("sst_file and clim_file must both be provided.", call. = FALSE)
@@ -166,6 +205,10 @@ detect_blob3 <- function(sst_file, clim_file,
     stop("return contains unsupported value: ", bad_return[1], call. = FALSE)
   }
   return <- unique(return)
+
+  if (length(connectivity) != 1L || !connectivity %in% c(6L, 10L, 18L, 26L)) {
+    stop("connectivity must be one of 6, 10, 18 or 26.", call. = FALSE)
+  }
 
   # Read SST and climatology
   vn <- if (is.null(var_name)) "" else var_name
@@ -236,10 +279,11 @@ detect_blob3 <- function(sst_file, clim_file,
   storage.mode(mask) <- "integer"
   rm(exceed)
 
-  # Connected-component labelling: 6-connectivity (lon/lat/time) for
-  # ordinary 3D input, 8-connectivity (lon/lat/depth/time) when
-  # depth-resolved -- adjacency is by depth index, not a metres threshold.
-  labels <- label_components_cpp(as.integer(mask), nlon, nlat, ndepth, ntime, wrapDateline)
+  # Connected-component labelling with the lon/lat/time neighbours set by
+  # connectivity (6: faces only); depth levels join only straight up and down
+  # -- adjacency is by depth index, not a metres threshold.
+  labels <- label_components_cpp(as.integer(mask), nlon, nlat, ndepth, ntime, wrapDateline,
+                                 as.integer(connectivity))
   n_components <- attr(labels, "n_components")
 
   if (n_components == 0) {

@@ -16,15 +16,21 @@ _RETURNS = ("event", "daily", "voxel")
 
 def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxels=1,
                  topN=None, rankBy="cumI_km2_day", coldSpells=False,
-                 return_=("event", "daily"), skip_bad_files=False):
+                 return_=("event", "daily"), skip_bad_files=False, connectivity=6):
     """Detect spatially connected marine heatwave (or cold-spell) blobs.
 
     Builds the exceedance mask (``temp > thresh``, or ``temp < thresh`` for
     cold-spells) from the SST and the climatology, then labels connected
     voxels across longitude, latitude, (optionally) depth and time with a
-    union-find algorithm. When ``clim_file`` is depth-resolved (from
-    ``ts2clm3(depth_range=...)``), voxels also connect to the depth level
-    immediately above and below, and volume and depth metrics are added.
+    union-find algorithm. Neighbours differ by at most one grid step along
+    each axis, and ``connectivity`` sets which of them in the lon/lat/time
+    cube count. With the default (6, faces only) a voxel has no horizontal
+    or space-time diagonal neighbours, so a blob continues from one day to
+    the next only through pixels that exceed on both days. When
+    ``clim_file`` is depth-resolved (from ``ts2clm3(depth_range=...)``), a
+    voxel also joins the same pixel on the same day one level above and
+    below (never diagonally in depth), and volume and depth metrics are
+    added.
 
     Parameters
     ----------
@@ -53,6 +59,16 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
         keyword.
     skip_bad_files : bool
         For multi-file SST input, skip unreadable or mismatched files.
+    connectivity : {6, 10, 18, 26}
+        Which neighbours in the 3 x 3 x 3 lon/lat/time cube join a blob:
+        6 (default) faces only; 10 adds the horizontal diagonals on the same
+        day; 18 adds all edges, including space-time diagonals (a pixel joins
+        its neighbour on the next day even if the two never exceed on the
+        same day); 26 adds the corners. With depth the cube applies on each
+        level and depth levels join only straight up and down, so 8, 12, 20
+        or 28 neighbours in all. Higher settings only merge blobs. Adjacency
+        is by grid index, so a space-time diagonal stands for a displacement
+        of one grid cell per day.
 
     Returns
     -------
@@ -81,6 +97,9 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
     if bad:
         raise ValueError(f"return contains unsupported value: {bad[0]}")
     ret = list(dict.fromkeys(ret))
+
+    if connectivity not in (6, 10, 18, 26) or isinstance(connectivity, bool):
+        raise ValueError("connectivity must be one of 6, 10, 18 or 26.")
 
     vn = "" if var_name is None else var_name
     cd = _core.hw3_read_clim_nc(clim_file)
@@ -124,9 +143,10 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
     exceed = sst < thresh if coldSpells else sst > thresh
     mask = np.asfortranarray(exceed.astype(np.int32))
 
-    # Connected components: 6-connectivity (lon/lat/time), 8 with depth
+    # Connected components with the lon/lat/time neighbours set by connectivity
+    # (6: faces only); depth levels join only straight up and down
     labels, n_components = _core.label_components(mask, nlon, nlat, ndepth, ntime,
-                                                  bool(wrapDateline))
+                                                  bool(wrapDateline), int(connectivity))
     if n_components == 0:
         return {r: pd.DataFrame() for r in _RETURNS if r in ret}
 

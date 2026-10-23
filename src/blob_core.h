@@ -12,10 +12,12 @@ namespace hw3 {
 
 // 3D/4D connected-component labelling. `mask` and `labels` both hold
 // nx*ny*nz*nt values in column-major [i, j, kd, kt] order; `labels` must be
-// zero-initialised. Writes dense labels 1..K and returns K.
+// zero-initialised. `connectivity` is 6, 10, 18 or 26, counted in the
+// lon/lat/time cube; depth always joins only straight up and down (see
+// blob_core.cpp). Other values throw. Writes dense labels 1..K and returns K.
 int label_components(const int* mask, int* labels,
                      int nx, int ny, int nz, int nt,
-                     bool wrap_dateline);
+                     bool wrap_dateline, int connectivity);
 
 // Per-(blob, day) metrics, ordered by (blob, t_idx). The depth vectors are
 // filled only when has_depth is true.

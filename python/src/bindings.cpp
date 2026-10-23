@@ -697,7 +697,7 @@ PYBIND11_MODULE(_core, m) {
 
     m.def("label_components",
           [](py::array_t<int, py::array::f_style | py::array::forcecast> mask,
-             int nx, int ny, int nz, int nt, bool wrap_dateline) {
+             int nx, int ny, int nz, int nt, bool wrap_dateline, int connectivity) {
               const py::ssize_t n = static_cast<py::ssize_t>(nx) * ny * nz * nt;
               if (mask.size() != n)
                   throw std::invalid_argument("mask length does not match nx * ny * nz * nt");
@@ -708,13 +708,13 @@ PYBIND11_MODULE(_core, m) {
               {
                   py::gil_scoped_release nogil;
                   k = hw3::label_components(mask.data(), labels.mutable_data(),
-                                            nx, ny, nz, nt, wrap_dateline);
+                                            nx, ny, nz, nt, wrap_dateline, connectivity);
               }
               return py::make_tuple(labels, k);
           },
           "Column-major [i, j, kd, kt] labelling; returns (labels, n_components).",
           py::arg("mask"), py::arg("nx"), py::arg("ny"), py::arg("nz"), py::arg("nt"),
-          py::arg("wrap_dateline") = false);
+          py::arg("wrap_dateline") = false, py::arg("connectivity") = 6);
 
     m.def("blob_daily_summary",
           [](py::array_t<int, py::array::c_style | py::array::forcecast> labels,

@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // label_components_cpp
-IntegerVector label_components_cpp(IntegerVector mask, int nx, int ny, int nz, int nt, bool wrap_dateline);
-RcppExport SEXP _heatwave3_label_components_cpp(SEXP maskSEXP, SEXP nxSEXP, SEXP nySEXP, SEXP nzSEXP, SEXP ntSEXP, SEXP wrap_datelineSEXP) {
+IntegerVector label_components_cpp(IntegerVector mask, int nx, int ny, int nz, int nt, bool wrap_dateline, int connectivity);
+RcppExport SEXP _heatwave3_label_components_cpp(SEXP maskSEXP, SEXP nxSEXP, SEXP nySEXP, SEXP nzSEXP, SEXP ntSEXP, SEXP wrap_datelineSEXP, SEXP connectivitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,7 +23,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type nz(nzSEXP);
     Rcpp::traits::input_parameter< int >::type nt(ntSEXP);
     Rcpp::traits::input_parameter< bool >::type wrap_dateline(wrap_datelineSEXP);
-    rcpp_result_gen = Rcpp::wrap(label_components_cpp(mask, nx, ny, nz, nt, wrap_dateline));
+    Rcpp::traits::input_parameter< int >::type connectivity(connectivitySEXP);
+    rcpp_result_gen = Rcpp::wrap(label_components_cpp(mask, nx, ny, nz, nt, wrap_dateline, connectivity));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -463,7 +464,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_heatwave3_label_components_cpp", (DL_FUNC) &_heatwave3_label_components_cpp, 6},
+    {"_heatwave3_label_components_cpp", (DL_FUNC) &_heatwave3_label_components_cpp, 7},
     {"_heatwave3_blob_daily_summary_cpp", (DL_FUNC) &_heatwave3_blob_daily_summary_cpp, 13},
     {"_heatwave3_hw3_set_quiet", (DL_FUNC) &_heatwave3_hw3_set_quiet, 1},
     {"_heatwave3_hw3_get_threads", (DL_FUNC) &_heatwave3_hw3_get_threads, 0},

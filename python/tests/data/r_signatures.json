@@ -205,6 +205,7 @@
     "rankBy": "\"cumI_km2_day\"",
     "coldSpells": "FALSE",
     "return": "c(\"event\", \"daily\")",
-    "skip_bad_files": "FALSE"
+    "skip_bad_files": "FALSE",
+    "connectivity": "6L"
   }
 }

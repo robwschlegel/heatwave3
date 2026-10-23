@@ -32,7 +32,8 @@ trap 'rm -rf "$WORK"' EXIT
 fetch() {  # url sha256 -> extracted into $WORK
   local url=$1 sha=$2 out
   out="$WORK/$(basename "$url")"
-  curl -fsSL --retry 3 -o "$out" "$url"
+  # Time limits make a stalled transfer fail, so that --retry can retry it
+  curl -fsSL --retry 3 --connect-timeout 30 --max-time 600 -o "$out" "$url"
   if command -v sha256sum >/dev/null; then
     echo "$sha  $out" | sha256sum -c -
   else

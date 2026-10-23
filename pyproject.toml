@@ -70,7 +70,9 @@ test-command = "pytest python/tests -p no:cacheprovider"
 
 [tool.cibuildwheel.linux]
 # Pinned HDF5 + netcdf-c built from source; auditwheel bundles them.
-before-all = "dnf install -y zlib-devel && bash python/tools/build_netcdf.sh /opt/hw3-netcdf"
+# zlib-devel is installed only if the image lacks it, and dnf drops a mirror
+# slower than 500 kB/s (the repository index alone is ~100 MB).
+before-all = "(rpm -q zlib-devel || dnf install -y --setopt=minrate=500k zlib-devel) && bash python/tools/build_netcdf.sh /opt/hw3-netcdf"
 environment = { CMAKE_PREFIX_PATH = "/opt/hw3-netcdf", HDF5_ROOT = "/opt/hw3-netcdf" }
 
 [tool.cibuildwheel.macos]

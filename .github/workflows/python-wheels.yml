@@ -55,6 +55,9 @@ jobs:
   wheels:
     name: wheels (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # Usually 5-12 min (up to ~25 min with an empty macOS cache); a stalled
+    # download would otherwise run to GitHub's 6-hour limit.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

@@ -60,30 +60,36 @@ GeomLolli3 <- NULL
   ),
 
   draw_group = function(data, panel_params, coord, na.rm = FALSE) {
-    # Stems
-    stem_data <- data.frame(
-      x = data$x, xend = data$x,
-      y = 0, yend = data$y
-    )
-    stem_data <- coord$transform(stem_data, panel_params)
-
-    stems <- grid::segmentsGrob(
-      x0 = stem_data$x, y0 = stem_data$y,
-      x1 = stem_data$xend, y1 = stem_data$yend,
-      gp = grid::gpar(col = data$colour, lwd = 0.5 * ggplot2::.pt)
-    )
-
-    # Points
-    pt_data <- coord$transform(data, panel_params)
-    points <- grid::pointsGrob(
-      x = pt_data$x, y = pt_data$y,
-      pch = data$shape, size = grid::unit(data$size, "mm"),
-      gp = grid::gpar(
-        col = data$colour,
-        fill = scales::alpha(data$fill, data$alpha)
-      )
-    )
-
-    grid::grobTree(stems, points)
+    .lolli3_draw_group(data, panel_params, coord)
   }
 )
+
+# Body of draw_group, outside ggproto() so that covr instruments it (see
+# .flame3_setup_data() in geom_flame3.R).
+.lolli3_draw_group <- function(data, panel_params, coord) {
+  # Stems
+  stem_data <- data.frame(
+    x = data$x, xend = data$x,
+    y = 0, yend = data$y
+  )
+  stem_data <- coord$transform(stem_data, panel_params)
+
+  stems <- grid::segmentsGrob(
+    x0 = stem_data$x, y0 = stem_data$y,
+    x1 = stem_data$xend, y1 = stem_data$yend,
+    gp = grid::gpar(col = data$colour, lwd = 0.5 * ggplot2::.pt)
+  )
+
+  # Points
+  pt_data <- coord$transform(data, panel_params)
+  points <- grid::pointsGrob(
+    x = pt_data$x, y = pt_data$y,
+    pch = data$shape, size = grid::unit(data$size, "mm"),
+    gp = grid::gpar(
+      col = data$colour,
+      fill = scales::alpha(data$fill, data$alpha)
+    )
+  )
+
+  grid::grobTree(stems, points)
+}

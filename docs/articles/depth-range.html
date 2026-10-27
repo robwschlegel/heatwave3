@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -173,11 +173,11 @@ fall within 0-10 m:</p>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 7,320   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -201,8 +201,8 @@ fall within 0-10 m:</p>
 <span><span class="co">#&gt;   seas:   20.98 to 25.55</span></span>
 <span><span class="co">#&gt;   thresh:    22 to 26.92</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span></code></pre></div>
 <p><code><a href="../reference/detect_event3.html">detect_event3()</a></code> needs no separate depth argument at all:
 it reads the depth range straight back out of the climatology file it is
@@ -226,11 +226,11 @@ of sync about which levels they are comparing.</p>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 7,320   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -254,20 +254,20 @@ of sync about which levels they are comparing.</p>
 <span><span class="co">#&gt;   seas:   20.98 to 25.55</span></span>
 <span><span class="co">#&gt;   thresh:    22 to 26.92</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 1611 events across 20 pixels</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc</span></span>
+<span><span class="co">#&gt; Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 1,611</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -353,8 +353,8 @@ of sync about which levels they are comparing.</p>
 <span><span class="co">#&gt;   intensity_max:   0.9695 to 3.165</span></span>
 <span><span class="co">#&gt;   category: I Moderate=1528  II Strong=83</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span></code></pre></div>
 </div>
 </div>
@@ -433,11 +433,11 @@ without any new graphics functions:</p>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Computing climatology with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
-<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc</span></span>
+<span><span class="co">#&gt; Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 7,320   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -461,22 +461,22 @@ without any new graphics functions:</p>
 <span><span class="co">#&gt;   seas:   20.98 to 25.55</span></span>
 <span><span class="co">#&gt;   thresh:    22 to 26.92</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_clim.nc...</span></span>
+<span><span class="co">#&gt; Reading climatology from /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_clim.nc...</span></span>
 <span><span class="co">#&gt; Reading SST data from /Users/rschlegel/Library/R/arm64/4.6/library/heatwave3/extdata/glorys_depth_test.nc...</span></span>
 <span><span class="co">#&gt; Grid: 2 lon x 2 lat x 5 depth x 11688 time = 20 pixels</span></span>
 <span><span class="co">#&gt; Detecting events with 2 thread(s)...</span></span>
 <span><span class="co">#&gt;   20/20 pixels (100%)</span></span>
 <span><span class="co">#&gt; Found 1611 events across 20 pixels</span></span>
-<span><span class="co">#&gt; Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc...</span></span>
+<span><span class="co">#&gt; Writing per-day series to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events_daily.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
-<span><span class="co">#&gt; Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc...</span></span>
+<span><span class="co">#&gt; Writing events to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc...</span></span>
 <span><span class="co">#&gt; Done.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc</span></span>
+<span><span class="co">#&gt; Events written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 1,611</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -519,41 +519,41 @@ without any new graphics functions:</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Tail:</span></span>
 <span><span class="co">#&gt;        lon       lat pixel_index event_no date_start  date_peak   date_end</span></span>
-<span><span class="co">#&gt; 1607 25.25 -34.83333          19       77 2024-06-23 2024-06-25 2024-07-01</span></span>
-<span><span class="co">#&gt; 1608 25.25 -34.83333          19       78 2024-07-15 2024-07-19 2024-07-28</span></span>
-<span><span class="co">#&gt; 1609 25.25 -34.83333          19       79 2024-08-07 2024-08-20 2024-09-03</span></span>
-<span><span class="co">#&gt; 1610 25.25 -34.83333          19       80 2024-12-08 2024-12-08 2024-12-14</span></span>
-<span><span class="co">#&gt; 1611 25.25 -34.83333          19       81 2024-12-18 2024-12-23 2024-12-29</span></span>
+<span><span class="co">#&gt; 1607 25.25 -34.83333          18       79 2024-06-23 2024-06-25 2024-07-01</span></span>
+<span><span class="co">#&gt; 1608 25.25 -34.83333          18       80 2024-07-15 2024-07-19 2024-07-28</span></span>
+<span><span class="co">#&gt; 1609 25.25 -34.83333          18       81 2024-08-07 2024-08-20 2024-09-03</span></span>
+<span><span class="co">#&gt; 1610 25.25 -34.83333          18       82 2024-12-08 2024-12-08 2024-12-14</span></span>
+<span><span class="co">#&gt; 1611 25.25 -34.83333          18       83 2024-12-18 2024-12-23 2024-12-29</span></span>
 <span><span class="co">#&gt;      duration intensity_mean intensity_max intensity_var intensity_cumulative</span></span>
-<span><span class="co">#&gt; 1607        9         1.5018        1.6837        0.1564              13.5160</span></span>
-<span><span class="co">#&gt; 1608       14         1.1989        1.6394        0.1932              16.7848</span></span>
-<span><span class="co">#&gt; 1609       28         1.4304        2.3920        0.3483              40.0519</span></span>
-<span><span class="co">#&gt; 1610        7         2.0315        2.4793        0.3986              14.2208</span></span>
-<span><span class="co">#&gt; 1611       12         2.0912        2.3956        0.2650              25.0941</span></span>
+<span><span class="co">#&gt; 1607        9         1.5017        1.6836        0.1564              13.5150</span></span>
+<span><span class="co">#&gt; 1608       14         1.1987        1.6393        0.1932              16.7822</span></span>
+<span><span class="co">#&gt; 1609       28         1.4298        2.3913        0.3482              40.0337</span></span>
+<span><span class="co">#&gt; 1610        7         2.0257        2.4800        0.4032              14.1799</span></span>
+<span><span class="co">#&gt; 1611       12         2.0800        2.3821        0.2662              24.9601</span></span>
 <span><span class="co">#&gt;      intensity_mean_relThresh intensity_max_relThresh intensity_var_relThresh</span></span>
 <span><span class="co">#&gt; 1607                   0.3836                  0.5506                  0.1543</span></span>
-<span><span class="co">#&gt; 1608                   0.2598                  0.6808                  0.1793</span></span>
-<span><span class="co">#&gt; 1609                   0.4680                  1.4450                  0.3469</span></span>
-<span><span class="co">#&gt; 1610                   0.8005                  1.2799                  0.4231</span></span>
-<span><span class="co">#&gt; 1611                   0.6479                  0.9620                  0.2617</span></span>
+<span><span class="co">#&gt; 1608                   0.2597                  0.6807                  0.1793</span></span>
+<span><span class="co">#&gt; 1609                   0.4674                  1.4444                  0.3469</span></span>
+<span><span class="co">#&gt; 1610                   0.7980                  1.2835                  0.4274</span></span>
+<span><span class="co">#&gt; 1611                   0.6432                  0.9547                  0.2627</span></span>
 <span><span class="co">#&gt;      intensity_cumulative_relThresh intensity_mean_abs intensity_max_abs</span></span>
 <span><span class="co">#&gt; 1607                         3.4525            23.4180           23.6375</span></span>
-<span><span class="co">#&gt; 1608                         3.6376            22.7199           23.1878</span></span>
-<span><span class="co">#&gt; 1609                        13.1050            22.5689           23.5094</span></span>
-<span><span class="co">#&gt; 1610                         5.6035            25.5093           25.8656</span></span>
-<span><span class="co">#&gt; 1611                         7.7747            25.9745           26.2589</span></span>
+<span><span class="co">#&gt; 1608                         3.6362            22.7199           23.1878</span></span>
+<span><span class="co">#&gt; 1609                        13.0874            22.5690           23.5094</span></span>
+<span><span class="co">#&gt; 1610                         5.5863            25.5139           25.8759</span></span>
+<span><span class="co">#&gt; 1611                         7.7183            25.9767           26.2589</span></span>
 <span><span class="co">#&gt;      intensity_var_abs intensity_cumulative_abs rate_onset rate_decline</span></span>
 <span><span class="co">#&gt; 1607            0.1754                 210.7624     0.1927       0.1080</span></span>
 <span><span class="co">#&gt; 1608            0.2205                 318.0784     0.1454       0.0814</span></span>
-<span><span class="co">#&gt; 1609            0.3456                 631.9298     0.0981       0.0854</span></span>
-<span><span class="co">#&gt; 1610            0.3408                 178.5654     1.4157       0.2332</span></span>
-<span><span class="co">#&gt; 1611            0.2870                 311.6935     0.1820       0.1563</span></span>
+<span><span class="co">#&gt; 1609            0.3456                 631.9313     0.0981       0.0854</span></span>
+<span><span class="co">#&gt; 1610            0.3446                 178.5976     1.3979       0.2349</span></span>
+<span><span class="co">#&gt; 1611            0.2882                 311.7206     0.1818       0.1543</span></span>
 <span><span class="co">#&gt;         depth   category p_moderate p_strong p_severe p_extreme season</span></span>
-<span><span class="co">#&gt; 1607 5.078224 I Moderate        100        0        0         0 Winter</span></span>
-<span><span class="co">#&gt; 1608 5.078224 I Moderate        100        0        0         0 Winter</span></span>
-<span><span class="co">#&gt; 1609 5.078224  II Strong         82        7        0         0 Winter</span></span>
-<span><span class="co">#&gt; 1610 5.078224  II Strong         71       29        0         0 Summer</span></span>
-<span><span class="co">#&gt; 1611 5.078224 I Moderate        100        0        0         0 Summer</span></span>
+<span><span class="co">#&gt; 1607 3.819495 I Moderate        100        0        0         0 Winter</span></span>
+<span><span class="co">#&gt; 1608 3.819495 I Moderate        100        0        0         0 Winter</span></span>
+<span><span class="co">#&gt; 1609 3.819495  II Strong         82        7        0         0 Winter</span></span>
+<span><span class="co">#&gt; 1610 3.819495  II Strong         71       29        0         0 Summer</span></span>
+<span><span class="co">#&gt; 1611 3.819495 I Moderate        100        0        0         0 Summer</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Summary:</span></span>
 <span><span class="co">#&gt;   events: 1611   pixels with events: 4</span></span>
@@ -562,12 +562,12 @@ without any new graphics functions:</p>
 <span><span class="co">#&gt;   intensity_max:   0.9695 to 3.165</span></span>
 <span><span class="co">#&gt;   category: I Moderate=1528  II Strong=83</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span><span class="co">#&gt; Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc</span></span>
+<span><span class="co">#&gt; Daily series written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events_daily.nc</span></span>
 <span><span class="co">#&gt; Rows (long format): 233,760   grid: 2 lon x 2 lat</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Head:</span></span>
@@ -603,8 +603,8 @@ without any new graphics functions:</p>
 <span><span class="co">#&gt;   event-days: 14717</span></span>
 <span><span class="co">#&gt;   category: 1=14476  2=138</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc", n = 20)</span></span>
-<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpZXud5I/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
+<span><span class="co">#&gt; Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events_daily.nc", n = 20)</span></span>
+<span><span class="co">#&gt; or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//RtmpF2BZly/mhw4d_events_daily.nc", file_out = "out.csv")  (.csv/.rds/.parquet)</span></span>
 <span><span class="co">#&gt; ------------------------------------------------------------------</span></span></code></pre></div>
 <p><code><a href="../reference/hw3_export.html">hw3_export()</a></code> surfaces the same <code>depth</code> column
 on this per-day product, and its streaming subset

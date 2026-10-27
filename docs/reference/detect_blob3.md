@@ -226,11 +226,11 @@ ts2clm3(sst_file, name = stem,
 #> Computing climatology with 2 thread(s)...
 #> 
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa04278f8ab1_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e2d5a4bfb_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa04278f8ab1_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e2d5a4bfb_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -254,8 +254,8 @@ ts2clm3(sst_file, name = stem,
 #>   seas:   291.1 to 295.6
 #>   thresh: 292.4 to 297.6
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa04278f8ab1_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa04278f8ab1_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e2d5a4bfb_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e2d5a4bfb_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 # Step 2: detect spatial blobs (heatwaves)
@@ -315,11 +315,11 @@ ts2clm3(sst_file, name = stem_cold,
 #> Computing climatology with 2 thread(s)...
 #> 
   6/6 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0440da7ec1_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e3326300_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0440da7ec1_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e3326300_clim.nc
 #> Rows (long format): 2,196   grid: 2 lon x 3 lat
 #> 
 #> Head:
@@ -343,8 +343,8 @@ ts2clm3(sst_file, name = stem_cold,
 #>   seas:   291.1 to 295.6
 #>   thresh: 289.7 to 293.5
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0440da7ec1_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0440da7ec1_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e3326300_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e3326300_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 mcs <- detect_blob3(
@@ -365,11 +365,11 @@ ts2clm3(glorys_file, name = stem_4d,
 #> Computing climatology with 2 thread(s)...
 #> 
   20/20 pixels (100%)
-#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0448b7d22a_clim.nc...
+#> Writing climatology to /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e610196a3_clim.nc...
 #> Done.
 #> 
 #> ------------------------------------------------------------------
-#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0448b7d22a_clim.nc
+#> Climatology written to: /var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e610196a3_clim.nc
 #> Rows (long format): 7,320   grid: 2 lon x 2 lat
 #> 
 #> Head:
@@ -393,8 +393,8 @@ ts2clm3(glorys_file, name = stem_4d,
 #>   seas:   20.98 to 25.55
 #>   thresh:    22 to 26.92
 #> 
-#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0448b7d22a_clim.nc", n = 20)
-#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmpe7lMQ4/filefa0448b7d22a_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
+#> Examine with  hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e610196a3_clim.nc", n = 20)
+#> or export with hw3_export("/var/folders/w8/8kw9l4sx1v57nx6l9s0rrklw0000gp/T//Rtmp4xYh4P/file9c7e610196a3_clim.nc", file_out = "out.csv")  (.csv/.rds/.parquet)
 #> ------------------------------------------------------------------
 
 blobs_4d <- detect_blob3(

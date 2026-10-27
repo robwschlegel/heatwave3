@@ -14,7 +14,9 @@
 #' @param var_name Name of the SST variable. If \code{NULL}, auto-detected.
 #' @param lon_range Optional \code{c(min, max)} longitude range.
 #' @param lat_range Optional \code{c(min, max)} latitude range.
-#' @param time_range Optional \code{c("start", "end")} date range.
+#' @param time_range Optional \code{c("start", "end")} date range: only these
+#'   days are read, for the climatology and for event detection (single-file
+#'   input only).
 #' @param depth Optional depth/level index for 4D data.
 #' @param depth_range Optional numeric vector of length 2:
 #'   \code{c(min_depth, max_depth)}. Runs the climatology and event detection
@@ -143,6 +145,7 @@ detect3 <- function(file_in, name,
   written <- detect_event3(
     file_in = file_in, name = name, clim_file = clim_file,
     var_name = var_name,
+    time_range = time_range,
     minDuration = minDuration,
     minDuration2 = minDuration2,
     joinAcrossGaps = joinAcrossGaps,

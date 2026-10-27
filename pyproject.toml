@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "heatwave3"
-version = "1.4.2"  # pinned to Version in DESCRIPTION (R): same features
+version = "1.5.0"  # pinned to Version in DESCRIPTION (R): same features
 description = "Detect marine heatwaves and cold-spells directly in gridded NetCDF data"
 readme = "python/README.md"
 requires-python = ">=3.10"
@@ -32,6 +32,9 @@ dependencies = ["numpy>=1.23", "pandas>=1.5"]
 [project.optional-dependencies]
 parquet = ["pyarrow>=10"]
 plot = ["matplotlib>=3.6", "cartopy>=0.22"]  # cartopy: plot_metric3() coastlines
+# Zarr input (local, http/https); s3:// also needs s3fs
+zarr = ["xarray>=2024.10", "zarr>=3", "fsspec>=2024.6", "aiohttp>=3.9", "requests",
+        "netCDF4>=1.6", "cftime>=1.6"]
 test = ["pytest>=7", "pyarrow>=10", "matplotlib>=3.6"]
 
 [project.urls]
@@ -66,6 +69,9 @@ build-verbosity = 1
 # Tests run against the installed wheel, from copies of these folders.
 test-sources = ["python/tests", "inst/extdata", "DESCRIPTION"]
 test-requires = ["pytest", "matplotlib"]
+# Zarr input is tested against the installed wheel, which also checks that
+# netCDF4's bundled HDF5 coexists with the one bundled in heatwave3
+test-extras = ["zarr"]
 test-command = "pytest python/tests -p no:cacheprovider"
 
 [tool.cibuildwheel.linux]

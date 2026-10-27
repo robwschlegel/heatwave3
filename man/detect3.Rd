@@ -58,7 +58,9 @@ dates of the baseline period, for example \code{c("1991-01-01", "2020-12-31")}.}
 
 \item{lat_range}{Optional \code{c(min, max)} latitude range.}
 
-\item{time_range}{Optional \code{c("start", "end")} date range.}
+\item{time_range}{Optional \code{c("start", "end")} date range: only these
+days are read, for the climatology and for event detection (single-file
+input only).}
 
 \item{depth}{Optional depth/level index for 4D data.}
 

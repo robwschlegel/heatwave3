@@ -29,6 +29,12 @@ with `pip install heatwave3[plot]`, the matplotlib plots `event_line3()`,
 naming difference from R: `detect_blob3()`'s `return` argument is `return_`,
 because `return` is a Python keyword.
 
+With `pip install 'heatwave3[zarr]'`, every function that reads sea surface
+temperature or a climatology also accepts a Zarr store, local or remote (a
+path or URL ending in `.zarr`). This is the one feature that is Python only:
+the R package reads and writes NetCDF, and will gain Zarr once an R Zarr
+library supports what heatwave3 needs.
+
 Documentation: <https://heatwave3.readthedocs.io>
 
 The version is pinned to the R package, meaning both languages have the same functions and outputs.

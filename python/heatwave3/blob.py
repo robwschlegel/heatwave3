@@ -10,6 +10,7 @@ import pandas as pd
 
 from . import _core
 from ._utils import jd_to_datetime, list_nc
+from ._zarr import check_clim, clim_input, local_dir, nc_input
 
 _RETURNS = ("event", "daily", "voxel")
 
@@ -36,9 +37,10 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
     ----------
     sst_file : str, path-like, or list of these
         SST NetCDF file (as passed to :func:`ts2clm3`), directory of daily
-        files, or list of files.
+        files, list of files, or a Zarr store.
     clim_file : str or path-like
-        Climatology from :func:`ts2clm3`; its grid sets the region analysed.
+        Climatology from :func:`ts2clm3`, NetCDF or Zarr (see
+        :func:`detect_event3`); its grid sets the region analysed.
     var_name : str, optional
         SST variable name; auto-detected when ``None``.
     wrapDateline : bool
@@ -89,8 +91,7 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
     if sst_file is None or clim_file is None:
         raise ValueError("sst_file and clim_file must both be provided.")
     clim_file = os.fspath(clim_file)
-    if not os.path.exists(clim_file):
-        raise FileNotFoundError(f"Climatology file does not exist: {clim_file}")
+    check_clim(clim_file)
 
     ret = [return_] if isinstance(return_, str) else list(return_)
     bad = [r for r in ret if r not in _RETURNS]
@@ -101,8 +102,9 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
     if connectivity not in (6, 10, 18, 26) or isinstance(connectivity, bool):
         raise ValueError("connectivity must be one of 6, 10, 18 or 26.")
 
-    vn = "" if var_name is None else var_name
-    cd = _core.hw3_read_clim_nc(clim_file)
+    tmp_dir = local_dir(clim_file, sst_file)
+    with clim_input(clim_file, tmp_dir) as f:
+        cd = _core.hw3_read_clim_nc(f)
     if len(cd["lon"]) < 2 or len(cd["lat"]) < 2:
         raise ValueError("detect_blob3 requires at least two longitude and two latitude "
                          "cells to compute cell area.")
@@ -116,14 +118,17 @@ def detect_blob3(sst_file, clim_file, var_name=None, wrapDateline=False, minVoxe
     if rankBy not in valid_rank:
         raise ValueError(f"rankBy must be one of: {', '.join(valid_rank)}")
 
-    sst_files, multi = _resolve_sst(sst_file)
     extent = dict(lon_range=[float(cd["lon"].min()), float(cd["lon"].max())],
                   lat_range=[float(cd["lat"].min()), float(cd["lat"].max())],
                   depth_range=depth_range)
-    if multi:
-        gd = _core.hw3_read_sst_multi(sst_files, vn, skip_bad_files=bool(skip_bad_files), **extent)
-    else:
-        gd = _core.hw3_read_sst(sst_files[0], vn, **extent)
+    with nc_input(sst_file, tmp_dir, var_name, **extent) as (sst_file, var_name, _):
+        vn = "" if var_name is None else var_name
+        sst_files, multi = _resolve_sst(sst_file)
+        if multi:
+            gd = _core.hw3_read_sst_multi(sst_files, vn, skip_bad_files=bool(skip_bad_files),
+                                          **extent)
+        else:
+            gd = _core.hw3_read_sst(sst_files[0], vn, **extent)
 
     nlon, nlat, ntime = gd["nlon"], gd["nlat"], gd["ntime"]
     if nlon != cd["nlon"] or nlat != cd["nlat"] or gd["ndepth"] != cd["ndepth"]:

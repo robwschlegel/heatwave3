@@ -712,7 +712,32 @@ void write_clim_netcdf(const std::string& file_out,
 
 // ---- Read climatology NetCDF ----
 
-ClimData read_clim_netcdf(const std::string& clim_file) {
+// Data variables are read as one block, so they must be stored in the layout
+// write_clim_netcdf() writes: [lon, lat, doy] or [lon, lat, depth, doy]. A
+// transposed copy (e.g. reordered by another tool) would otherwise be read
+// without error and give wrong values.
+static void check_clim_dims(int ncid, int varid, const std::string& var,
+                            const std::vector<int>& want, const std::string& file) {
+    int ndims;
+    int dimids[NC_MAX_VAR_DIMS];
+    nc_check(nc_inq_var(ncid, varid, nullptr, nullptr, &ndims, dimids, nullptr),
+             "inq var dims " + var);
+    bool ok = ndims == static_cast<int>(want.size());
+    for (int d = 0; ok && d < ndims; ++d) ok = dimids[d] == want[d];
+    if (ok) return;
+    std::string got;
+    for (int d = 0; d < ndims; ++d) {
+        char dn[NC_MAX_NAME + 1];
+        nc_inq_dimname(ncid, dimids[d], dn);
+        got += (d ? ", " : "") + std::string(dn);
+    }
+    nc_close(ncid);
+    throw std::runtime_error(
+        file + ": '" + var + "' is stored as (" + got + "); a heatwave3 climatology "
+        "stores it as (lon, lat, doy), or (lon, lat, depth, doy) with depth.");
+}
+
+ClimData read_clim_netcdf(const std::string& clim_file, const SubsetSpec& region) {
     ClimData cd;
     int ncid;
     nc_check(nc_open(clim_file.c_str(), NC_NOWRITE, &ncid), "open " + clim_file);
@@ -733,18 +758,28 @@ ClimData read_clim_netcdf(const std::string& clim_file) {
     nc_check(nc_inq_dimlen(ncid, lat_dimid, &nlat), "inq nlat");
     nc_check(nc_inq_dimlen(ncid, doy_dimid, &ndoy), "inq ndoy");
 
-    cd.nlon = static_cast<int>(nlon);
-    cd.nlat = static_cast<int>(nlat);
-    cd.ndoy = static_cast<int>(ndoy);
+    // Optional lon/lat window (region); the whole grid by default
+    std::vector<double> full_lon(nlon), full_lat(nlat);
+    nc_check(nc_get_var_double(ncid, lon_varid, full_lon.data()), "get lon");
+    nc_check(nc_get_var_double(ncid, lat_varid, full_lat.data()), "get lat");
+    size_t lon_start, lon_count, lat_start, lat_count;
+    try {
+        find_subset_indices(full_lon, region.lon_min, region.lon_max, lon_start, lon_count);
+        find_subset_indices(full_lat, region.lat_min, region.lat_max, lat_start, lat_count);
+    } catch (...) {
+        nc_close(ncid);
+        throw;
+    }
+    cd.lon.assign(full_lon.begin() + lon_start, full_lon.begin() + lon_start + lon_count);
+    cd.lat.assign(full_lat.begin() + lat_start, full_lat.begin() + lat_start + lat_count);
 
-    cd.lon.resize(nlon);
-    cd.lat.resize(nlat);
-    nc_check(nc_get_var_double(ncid, lon_varid, cd.lon.data()), "get lon");
-    nc_check(nc_get_var_double(ncid, lat_varid, cd.lat.data()), "get lat");
+    cd.nlon = static_cast<int>(lon_count);
+    cd.nlat = static_cast<int>(lat_count);
+    cd.ndoy = static_cast<int>(ndoy);
 
     // Optional depth dimension (depth-resolved climatology written with
     // ndepth > 1). Absent in ordinary 3D climatology files.
-    int depth_dimid;
+    int depth_dimid = -1;
     if (nc_inq_dimid(ncid, "depth", &depth_dimid) == NC_NOERR) {
         size_t ndepth;
         nc_check(nc_inq_dimlen(ncid, depth_dimid, &ndepth), "inq ndepth");
@@ -754,6 +789,7 @@ ClimData read_clim_netcdf(const std::string& clim_file) {
         cd.depth.resize(ndepth);
         nc_check(nc_get_var_double(ncid, depth_varid, cd.depth.data()), "get depth");
     } else {
+        depth_dimid = -1;
         // Legacy single-level squeeze: no depth dimension, but the resolved
         // depth value may be recorded as a global attribute (see
         // write_clim_netcdf). cd.ndepth stays 1; cd.depth carries the one
@@ -764,17 +800,34 @@ ClimData read_clim_netcdf(const std::string& clim_file) {
         }
     }
 
-    size_t total = nlon * nlat * static_cast<size_t>(cd.ndepth) * ndoy;
+    std::vector<int> want = {lon_dimid, lat_dimid};
+    std::vector<size_t> start = {lon_start, lat_start}, count = {lon_count, lat_count};
+    if (depth_dimid >= 0) {
+        want.push_back(depth_dimid);
+        start.push_back(0);
+        count.push_back(static_cast<size_t>(cd.ndepth));
+    }
+    want.push_back(doy_dimid);
+    start.push_back(0);
+    count.push_back(ndoy);
+    check_clim_dims(ncid, seas_varid, "seas", want, clim_file);
+    check_clim_dims(ncid, thresh_varid, "thresh", want, clim_file);
+
+    size_t total = lon_count * lat_count * static_cast<size_t>(cd.ndepth) * ndoy;
     cd.seas.resize(total);
     cd.thresh.resize(total);
-    nc_check(nc_get_var_double(ncid, seas_varid, cd.seas.data()), "get seas");
-    nc_check(nc_get_var_double(ncid, thresh_varid, cd.thresh.data()), "get thresh");
+    nc_check(nc_get_vara_double(ncid, seas_varid, start.data(), count.data(), cd.seas.data()),
+             "get seas");
+    nc_check(nc_get_vara_double(ncid, thresh_varid, start.data(), count.data(),
+                                cd.thresh.data()), "get thresh");
 
     // Check for var
     int var_varid;
     if (nc_inq_varid(ncid, "var", &var_varid) == NC_NOERR) {
+        check_clim_dims(ncid, var_varid, "var", want, clim_file);
         cd.var.resize(total);
-        nc_check(nc_get_var_double(ncid, var_varid, cd.var.data()), "get var");
+        nc_check(nc_get_vara_double(ncid, var_varid, start.data(), count.data(),
+                                    cd.var.data()), "get var");
     }
 
     nc_close(ncid);

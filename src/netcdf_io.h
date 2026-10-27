@@ -179,7 +179,11 @@ void write_event_netcdf(const std::string& file_out,
                         const std::vector<double>& event_depth = {},
                         const WriteOpts& wo = WriteOpts());
 
-ClimData read_clim_netcdf(const std::string& clim_file);
+// Reads the lon/lat window of `region` (the whole grid by default; time and
+// depth fields are ignored). Throws if seas/thresh/var are not stored as
+// [lon, lat, doy] or [lon, lat, depth, doy].
+ClimData read_clim_netcdf(const std::string& clim_file,
+                          const SubsetSpec& region = SubsetSpec());
 
 EventData read_event_netcdf(const std::string& event_file);
 

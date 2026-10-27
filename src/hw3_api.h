@@ -95,12 +95,16 @@ struct DetectParams {
 
 // Output is selected by which paths are non-empty (events_file, daily_file,
 // proto_file); an empty threshClim2 path/vector skips the secondary pass.
+// `region` limits detection to a lon/lat window of the climatology and a
+// time window of the SST (single-file only); its depth fields are ignored,
+// the climatology's depth(s) are used.
 void detect_events(const std::string& file_in, const std::string& clim_file,
                    const std::string& events_file, std::string var_name,
                    const DetectParams& p,
                    const std::string& threshClim2_file,
                    const std::string& threshClim2_var_name,
-                   const std::string& daily_file, const std::string& proto_file);
+                   const std::string& daily_file, const std::string& proto_file,
+                   const SubsetSpec& region = SubsetSpec());
 
 void detect_events_multi(const std::vector<std::string>& files,
                          const std::string& clim_file,
@@ -109,7 +113,8 @@ void detect_events_multi(const std::vector<std::string>& files,
                          const std::vector<std::string>& threshClim2_files,
                          const std::string& threshClim2_var_name,
                          bool skip_bad_files,
-                         const std::string& daily_file, const std::string& proto_file);
+                         const std::string& daily_file, const std::string& proto_file,
+                         const SubsetSpec& region = SubsetSpec());
 
 // ---- Per-day detection on arrays (detect_event_array3) ----
 

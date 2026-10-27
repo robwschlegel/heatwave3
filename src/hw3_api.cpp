@@ -239,6 +239,12 @@ static SubsetSpec clim_extent_subset(const ClimData& cd,
     return ss;
 }
 
+// The [jd0, jd1] time window of a SubsetSpec, or empty when it has none
+static std::vector<int> time_window(const SubsetSpec& s) {
+    if (std::isinf(s.time_min) && std::isinf(s.time_max)) return {};
+    return {static_cast<int>(s.time_min), static_cast<int>(s.time_max)};
+}
+
 // Shared helper: detect events from pre-loaded GridData + ClimData
 // Output is selected by which paths are non-empty:
 //   events_file : event-metrics table (ragged NetCDF)
@@ -412,10 +418,11 @@ void detect_events(const std::string& file_in, const std::string& clim_file,
                    const DetectParams& p,
                    const std::string& threshClim2_file,
                    const std::string& threshClim2_var_name,
-                   const std::string& daily_file, const std::string& proto_file) {
+                   const std::string& daily_file, const std::string& proto_file,
+                   const SubsetSpec& region) {
     out() << "Reading climatology from " << clim_file << "..." << std::endl;
-    ClimData cd = read_clim_netcdf(clim_file);
-    SubsetSpec ss = clim_extent_subset(cd);
+    ClimData cd = read_clim_netcdf(clim_file, region);
+    SubsetSpec ss = clim_extent_subset(cd, time_window(region));
 
     if (var_name.empty()) var_name = detect_sst_variable(file_in);
 
@@ -441,10 +448,11 @@ void detect_events_multi(const std::vector<std::string>& files,
                          const std::vector<std::string>& threshClim2_files,
                          const std::string& threshClim2_var_name,
                          bool skip_bad_files,
-                         const std::string& daily_file, const std::string& proto_file) {
+                         const std::string& daily_file, const std::string& proto_file,
+                         const SubsetSpec& region) {
     out() << "Reading climatology from " << clim_file << "..." << std::endl;
-    ClimData cd = read_clim_netcdf(clim_file);
-    SubsetSpec ss = clim_extent_subset(cd);
+    ClimData cd = read_clim_netcdf(clim_file, region);
+    SubsetSpec ss = clim_extent_subset(cd, time_window(region));
 
     if (var_name.empty() && !skip_bad_files && !files.empty())
         var_name = detect_sst_variable(files[0]);

@@ -44,7 +44,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libnetcdf-dev
           python3 -m venv .venv
-          .venv/bin/pip install "$(ls dist/*.tar.gz)[test]"
+          .venv/bin/pip install "$(ls dist/*.tar.gz)[test,zarr]"
           .venv/bin/python -m pytest python/tests -p no:cacheprovider
 
       - uses: actions/upload-artifact@v7

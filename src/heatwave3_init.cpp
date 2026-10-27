@@ -117,7 +117,7 @@ void hw3_init_fork_safety() {
 Rcpp::List hw3_version() {
     return Rcpp::List::create(
         Rcpp::Named("package") = "heatwave3",
-        Rcpp::Named("version") = "1.4.2",
+        Rcpp::Named("version") = "1.5.0",
         Rcpp::Named("cpp_standard") = "C++17"
     );
 }
@@ -434,14 +434,19 @@ void hw3_detect_events(std::string file_in,
                        std::string daily_file = "",
                        std::string proto_file = "",
                        int compression = 1,
-                       bool slim = false) {
+                       bool slim = false,
+                       Rcpp::Nullable<Rcpp::NumericVector> lon_range = R_NilValue,
+                       Rcpp::Nullable<Rcpp::NumericVector> lat_range = R_NilValue,
+                       Rcpp::Nullable<Rcpp::CharacterVector> time_range = R_NilValue) {
     hw3::DetectParams p = detect_params(minDuration, minDuration2, joinAcrossGaps,
                                         maxGap, maxGap2, coldSpells, roundRes,
                                         n_threads, category, southHemisphere);
     p.compression = compression;
     p.slim = slim;
     hw3::detect_events(file_in, clim_file, events_file, var_name, p,
-                       threshClim2_file, threshClim2_var_name, daily_file, proto_file);
+                       threshClim2_file, threshClim2_var_name, daily_file, proto_file,
+                       hw3::make_subset(opt_dbl(lon_range), opt_dbl(lat_range),
+                                        opt_str(time_range), -1, {}));
 }
 
 // Multi-file event detection
@@ -466,7 +471,9 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
                              std::string daily_file = "",
                              std::string proto_file = "",
                              int compression = 1,
-                             bool slim = false) {
+                             bool slim = false,
+                             Rcpp::Nullable<Rcpp::NumericVector> lon_range = R_NilValue,
+                             Rcpp::Nullable<Rcpp::NumericVector> lat_range = R_NilValue) {
     hw3::DetectParams p = detect_params(minDuration, minDuration2, joinAcrossGaps,
                                         maxGap, maxGap2, coldSpells, roundRes,
                                         n_threads, category, southHemisphere);
@@ -474,7 +481,9 @@ void hw3_detect_events_multi(Rcpp::CharacterVector files,
     p.slim = slim;
     hw3::detect_events_multi(Rcpp::as<std::vector<std::string>>(files), clim_file,
                              events_file, var_name, p, opt_str(threshClim2_files),
-                             threshClim2_var_name, skip_bad_files, daily_file, proto_file);
+                             threshClim2_var_name, skip_bad_files, daily_file, proto_file,
+                             hw3::make_subset(opt_dbl(lon_range), opt_dbl(lat_range), {},
+                                              -1, {}));
 }
 
 // Per-day detection on arrays (detect_event_array3). temp, seas and thresh

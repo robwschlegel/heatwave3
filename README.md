@@ -46,7 +46,7 @@ For larger grids using daily files (Benguela region, 260 &times; 360 pixels, 16,
 
 ## Python
 
-A Python package with the same functions, arguments and outputs, built on the same C++ core, is on PyPI. Its version is pinned to the R package's, so both have the same features, with one exception: Python also reads Zarr stores (local or remote), which R will gain once an R Zarr library supports what heatwave3 needs.
+A Python package with the same functions, arguments and outputs, built on the same C++ core, is on PyPI. Its version is pinned to the R package's, so both have the same features, with one exception: Python also reads and writes Zarr stores (local or remote), which R will gain once an R Zarr library supports what heatwave3 needs.
 
 ```bash
 pip install heatwave3

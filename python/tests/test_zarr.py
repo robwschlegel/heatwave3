@@ -396,3 +396,103 @@ def test_glorys_arco_store(tmp_path):
     with netCDF4.Dataset(out["clim"]) as nc:
         assert abs(nc.depth_value - 0.494) < 1e-3  # level 0 is the surface
     assert len(hw3.hw3_export(out["events"])) > 0
+
+
+# ---- Zarr output ----
+
+def same_as_netcdf(nc, store):
+    """The store decodes as the NetCDF does, and holds the same raw values,
+    types, attributes and chunks."""
+    import zarr
+    a, b = xr.open_dataset(nc), xr.open_zarr(store)
+    assert a.identical(b.load())
+    ra, rb = xr.open_dataset(nc, decode_cf=False), xr.open_zarr(store, decode_cf=False)
+    assert ra.identical(rb.load())
+    import netCDF4
+    g = zarr.open_group(store, mode="r")
+    assert g.metadata.zarr_format == 3
+    with netCDF4.Dataset(nc) as d:
+        for name, v in d.variables.items():
+            ch = v.chunking()
+            assert g[name].chunks == (v.shape if ch == "contiguous" else tuple(ch))
+            assert g[name].dtype == v.dtype
+
+
+@pytest.fixture(scope="module")
+def products(tmp_path_factory):
+    d = tmp_path_factory.mktemp("products")
+    out = hw3.detect3(SST, d / "t", CP, category=True, daily="also", quiet=True)
+    out["protoevents"] = hw3.detect_event3(SST, d / "p", clim_file=out["clim"],
+                                           protoEvent=True, quiet=True)["protoevents"]
+    out["depth"] = hw3.detect3(DEPTH, d / "dz", CP_DEPTH, depth_range=(0, 20),
+                               daily="also", quiet=True)["daily"]
+    return out
+
+
+@pytest.mark.parametrize("product", ["clim", "events", "daily", "protoevents", "depth"])
+def test_hw3_export_to_zarr(products, tmp_path, product):
+    store = str(tmp_path / f"{product}.zarr")
+    assert hw3.hw3_export(products[product], file_out=store) == store
+    same_as_netcdf(products[product], store)
+    # Replaces an existing store
+    hw3.hw3_export(products[product], file_out=store)
+    same_as_netcdf(products[product], store)
+
+
+def test_blocks_cover_every_chunk(tmp_path):
+    import netCDF4
+    nc = str(tmp_path / "b.nc")
+    with netCDF4.Dataset(nc, "w") as d:
+        for n, size in (("lon", 7), ("lat", 5), ("time", 11)):
+            d.createDimension(n, size)
+        v = d.createVariable("x", "f4", ("lon", "lat", "time"), chunksizes=(3, 2, 4))
+        v[:] = np.arange(7 * 5 * 11, dtype="f4").reshape(7, 5, 11)
+        v.units = "kelvin"
+    store = _zarr.write_zarr(nc, str(tmp_path / "b.zarr"))
+    same_as_netcdf(nc, store)
+
+
+def test_zarr_climatology_output_used_as_clim_file(products, tmp_path):
+    store = hw3.hw3_export(products["clim"], file_out=tmp_path / "c.zarr")
+    a = hw3.detect_event3(SST, tmp_path / "nc", clim_file=products["clim"], quiet=True)
+    b = hw3.detect_event3(SST, tmp_path / "z", clim_file=store, quiet=True)
+    same_product(a["events"], b["events"])
+
+
+def test_zarr_output_to_url(products):
+    import zarr
+    url = "memory://hw3/events.zarr"
+    hw3.hw3_export(products["events"], file_out=url)
+    a = xr.open_dataset(products["events"])
+    b = xr.open_zarr(zarr.storage.FsspecStore.from_url(url, read_only=True))
+    assert a.identical(b.load())
+
+
+def test_zarr_out_copies_every_product(stores, tmp_path):
+    zdir = tmp_path / "zarr"
+    zdir.mkdir()
+    out = hw3.detect3(stores["v3"], tmp_path / "x", CP, category=True, daily="also",
+                      quiet=True, zarr_out=zdir)
+    assert sorted(out) == ["clim", "daily", "events"]
+    for f in out.values():
+        assert f.endswith(".nc") and os.path.exists(f)
+        same_as_netcdf(f, str(zdir / (Path(f).stem + ".zarr")))
+    # source_file names the input store in the copies too
+    assert xr.open_zarr(zdir / "x_clim.zarr").attrs["source_file"] == stores["v3"]
+    assert no_temp_files(tmp_path)
+
+    clim = hw3.ts2clm3(SST, tmp_path / "y", CP, quiet=True, zarr_out=zdir)
+    same_as_netcdf(clim, str(zdir / "y_clim.zarr"))
+    p = hw3.detect_event3(SST, tmp_path / "y", protoEvent=True, quiet=True, zarr_out=zdir)
+    same_as_netcdf(p["protoevents"], str(zdir / "y_protoevents.zarr"))
+
+
+def test_zarr_output_errors(products, tmp_path):
+    with pytest.raises(ValueError, match="whole product"):
+        hw3.hw3_export(products["daily"], file_out=tmp_path / "d.zarr", n=5)
+    with pytest.raises(FileNotFoundError, match="Output directory"):
+        hw3.hw3_export(products["clim"], file_out=tmp_path / "no" / "c.zarr")
+    # zarr_out is checked before anything is computed
+    with pytest.raises(FileNotFoundError, match="zarr_out"):
+        hw3.ts2clm3(SST, tmp_path / "e", CP, quiet=True, zarr_out=tmp_path / "missing")
+    assert not os.path.exists(tmp_path / "e_clim.nc")

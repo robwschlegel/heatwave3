@@ -1,6 +1,6 @@
 # heatwave3 1.5.0
 
-Zarr input (Python) and regional event detection from a larger climatology.
+Zarr input and output (Python) and regional event detection from a larger climatology.
 
 * **Zarr input (Python only).** With `pip install 'heatwave3[zarr]'`, every
   function that reads sea surface temperature or a climatology (`ts2clm3()`,
@@ -18,6 +18,16 @@ Zarr input (Python) and regional event detection from a larger climatology.
   as `source_file`. A climatology may also be a Zarr store holding a
   heatwave3 climatology. Zarr input is the one feature R does not have: it
   will be added once an R Zarr library supports what heatwave3 needs.
+* **Zarr output (Python only).** `hw3_export()` writes any product
+  (climatology, events, daily series, proto-events) to a Zarr v3 store when
+  `file_out` ends in `.zarr`, local or at a URL (`s3://` needs `s3fs`).
+  `ts2clm3()`, `detect_event3()` and `detect3()` gain a Python-only argument
+  `zarr_out`, a directory or URL that receives a Zarr copy of every product
+  they write, as `<name>_clim.zarr` and so on, next to the NetCDF files they
+  still write and return. The store holds the product as stored in the
+  NetCDF (variables, types, attributes and chunk shape), so it decodes to the
+  same values, and is copied one block of chunks at a time, so memory use does
+  not grow with the size of the product.
 * **`detect_event3()` gains `lon_range`, `lat_range` and `time_range`** (R and
   Python, after `var_name`). `lon_range`/`lat_range` restrict detection to
   part of the climatology's grid, so one climatology (e.g. global) can serve

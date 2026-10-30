@@ -100,7 +100,7 @@ def test_column_dtypes(stem):
      ValueError, "must be dates"),
     (lambda s: hw3.hw3_export(s + "_clim.nc", vars="nope"), RuntimeError, "not in this"),
     (lambda s: hw3.hw3_export(s + "_clim.nc", file_out=s + ".rds"), ValueError, "R format"),
-    (lambda s: hw3.hw3_export(s + "_clim.nc", file_out=s + ".xlsx"), ValueError, ".csv or"),
+    (lambda s: hw3.hw3_export(s + "_clim.nc", file_out=s + ".xlsx"), ValueError, ".parquet or .zarr"),
 ])
 def test_errors(stem, call, exc, msg):
     with pytest.raises(exc, match=msg):

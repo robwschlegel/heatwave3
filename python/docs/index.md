@@ -27,7 +27,7 @@ pip install "heatwave3[plot]"      # + plotting functions (matplotlib, cartopy)
 pip install "heatwave3[parquet]"   # + Parquet export (pyarrow)
 ```
 
-Pre-built wheels are available for Python 3.10 to 3.14 on Linux (x86-64 and
+Pre-built wheels are available for Python 3.11 to 3.14 on Linux (x86-64 and
 ARM64) and macOS (Apple Silicon and Intel, macOS 11 or later). They include
 their own copy of the NetCDF and HDF5 libraries, so nothing else needs to be
 installed. On other platforms, pip builds the package from source, which needs

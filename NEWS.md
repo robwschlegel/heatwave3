@@ -34,6 +34,9 @@ Zarr input (Python) and regional event detection from a larger climatology.
   climatology must be stored as `(lon, lat, doy)` or `(lon, lat, depth, doy)`;
   a file reordered by another tool was read without error and gave wrong
   values, and now stops with an error naming the order found.
+* **Python 3.11 or later is required** (Python). Python 3.10 reaches its end
+  of life in October 2026, and zarr 3, which Zarr input needs, does not
+  support it. Wheels are built for Python 3.11 to 3.14.
 
 # heatwave3 1.4.2
 

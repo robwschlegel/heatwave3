@@ -7,7 +7,7 @@ name = "heatwave3"
 version = "1.5.0"  # pinned to Version in DESCRIPTION (R): same features
 description = "Detect marine heatwaves and cold-spells directly in gridded NetCDF data"
 readme = "python/README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE.md"]
 authors = [
@@ -60,10 +60,10 @@ sdist.include = [
 ]
 
 [tool.cibuildwheel]
-# CPython 3.10-3.14. CPython 3.15 and free-threaded builds can be added once
+# CPython 3.11-3.14. CPython 3.15 and free-threaded builds can be added once
 # numpy and pandas publish wheels for them; musllinux (Alpine) users install
 # from the sdist for now.
-build = "cp310-* cp311-* cp312-* cp313-* cp314-*"
+build = "cp311-* cp312-* cp313-* cp314-*"
 skip = "cp31?t-* *-musllinux_*"
 build-verbosity = 1
 # Tests run against the installed wheel, from copies of these folders.

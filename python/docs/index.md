@@ -13,9 +13,10 @@ function names, arguments and output columns are also the same, which means
 code moves between the two languages almost line for line.
 
 ```{note}
-The Python and R packages share one version number: heatwave3 1.4.1 has the
+The Python and R packages share one version number: heatwave3 1.5.0 has the
 same functions and outputs in both languages, and the test suite checks every
-output against the R package.
+output against the R package. The one difference is Zarr input, which only
+Python reads (see "Differences" in [R to Python](r-to-python.md)).
 ```
 
 ## Installation
@@ -26,7 +27,7 @@ pip install "heatwave3[plot]"      # + plotting functions (matplotlib, cartopy)
 pip install "heatwave3[parquet]"   # + Parquet export (pyarrow)
 ```
 
-Pre-built wheels are available for Python 3.10 to 3.14 on Linux (x86-64 and
+Pre-built wheels are available for Python 3.11 to 3.14 on Linux (x86-64 and
 ARM64) and macOS (Apple Silicon and Intel, macOS 11 or later). They include
 their own copy of the NetCDF and HDF5 libraries, so nothing else needs to be
 installed. On other platforms, pip builds the package from source, which needs

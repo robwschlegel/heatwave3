@@ -14,6 +14,15 @@
 #' @param clim_file Path to the climatology NetCDF from \code{\link{ts2clm3}}.
 #'   When \code{NULL} (the default), \code{paste0(name, "_clim.nc")} is used.
 #' @param var_name Name of the SST variable. If \code{NULL}, auto-detected.
+#' @param lon_range,lat_range Optional numeric vectors of length 2,
+#'   \code{c(min, max)}: detect events only in this part of the climatology's
+#'   grid, so one climatology (e.g. global) can serve regional runs. The
+#'   results equal those of a climatology made for the region alone. If
+#'   \code{NULL} (the default), the climatology's whole longitude (latitude)
+#'   extent is used.
+#' @param time_range Optional character vector of length 2,
+#'   \code{c("start", "end")}: detect events only in this period of the SST
+#'   (single-file input only). If \code{NULL}, all time steps are used.
 #' @param minDuration Minimum duration (days) for an event. Default \code{5}.
 #' @param minDuration2 Minimum duration for events that also satisfy
 #'   \code{threshClim2}. Used only when \code{threshClim2} is supplied.
@@ -99,6 +108,9 @@ detect_event3 <- function(
   name,
   clim_file = NULL,
   var_name = NULL,
+  lon_range = NULL,
+  lat_range = NULL,
+  time_range = NULL,
   minDuration = 5L,
   minDuration2 = minDuration,
   joinAcrossGaps = TRUE,
@@ -174,6 +186,10 @@ detect_event3 <- function(
     multi_file <- TRUE
   }
 
+  if (multi_file && !is.null(time_range)) {
+    stop("time_range applies to single-file input only.", call. = FALSE)
+  }
+
   thresh2_files <- NULL
   if (!is.null(threshClim2)) {
     thresh2_files <- .resolve_nc_input(threshClim2, "threshClim2")
@@ -208,7 +224,9 @@ detect_event3 <- function(
       skip_bad_files = skip_bad_files,
       daily_file = daily_path,
       proto_file = proto_path,
-      slim = isTRUE(slim)
+      slim = isTRUE(slim),
+      lon_range = lon_range,
+      lat_range = lat_range
     )
   } else {
     if (!file.exists(file_in)) {
@@ -234,7 +252,10 @@ detect_event3 <- function(
       threshClim2_var_name = t2_vn,
       daily_file = daily_path,
       proto_file = proto_path,
-      slim = isTRUE(slim)
+      slim = isTRUE(slim),
+      lon_range = lon_range,
+      lat_range = lat_range,
+      time_range = time_range
     )
   }
 

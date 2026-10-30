@@ -5,13 +5,15 @@ from __future__ import annotations
 
 import os
 import warnings
+from contextlib import ExitStack
 
 import numpy as np
 import pandas as pd
 
 from . import _core
 from ._frames import CAT_LABELS
-from ._utils import choose, jd_to_datetime, nullable_int, resolve_input, to_jd
+from ._utils import choose, date_strings, jd_to_datetime, nullable_int, resolve_input, to_jd
+from ._zarr import check_clim, clim_extent, clim_input, is_zarr, local_dir, nc_input
 from .events import _resolve_nc_input
 
 _SEASONS = np.array(["", "Summer", "Fall", "Winter", "Spring"], dtype=object)
@@ -39,7 +41,8 @@ def category3(event_file, clim_file=None, hemisphere="south", roundVal=4, S=None
     event_file : str or path-like
         Events NetCDF from :func:`detect_event3`.
     clim_file : str or path-like, optional
-        Climatology NetCDF; required when the event file has no categories.
+        Climatology, NetCDF or Zarr (see :func:`detect_event3`); required
+        when the event file has no categories.
     hemisphere : {"south", "north"}
         Season naming convention.
     roundVal : int
@@ -47,8 +50,9 @@ def category3(event_file, clim_file=None, hemisphere="south", roundVal=4, S=None
     S : bool, optional
         Deprecated; use ``hemisphere``.
     sst_file : str, path-like, or list of these, optional
-        The SST used for detection (a file, a directory of daily files or a
-        list of files); required when the event file has no categories.
+        The SST used for detection (a file, a directory of daily files, a
+        list of files or a Zarr store, see :func:`ts2clm3`); required when
+        the event file has no categories.
     var_name : str, optional
         SST variable name; auto-detected when ``None``.
 
@@ -74,13 +78,17 @@ def category3(event_file, clim_file=None, hemisphere="south", roundVal=4, S=None
             raise ValueError("clim_file and sst_file are required because the event file "
                              "does not contain pre-computed categories.")
         clim_file = ""
-    elif not os.path.exists(clim_file):
-        raise FileNotFoundError(f"Climatology file does not exist: {clim_file}")
+    else:
+        check_clim(clim_file)
 
-    sst_files = None if sst_file is None else _resolve_nc_input(sst_file, "sst_file")
-    r = _core.hw3_category(event_file, os.fspath(clim_file), hemisphere=hemisphere,
-                           roundVal=int(roundVal), sst_files=sst_files,
-                           var_name="" if var_name is None else var_name)
+    tmp_dir = local_dir(clim_file, event_file)
+    with clim_input(clim_file, tmp_dir) as clim_file:
+        zarr_ext = clim_extent(clim_file) if is_zarr(sst_file) and clim_file else {}
+        with nc_input(sst_file, tmp_dir, var_name, **zarr_ext) as (sst_file, var_name, _):
+            sst_files = None if sst_file is None else _resolve_nc_input(sst_file, "sst_file")
+            r = _core.hw3_category(event_file, os.fspath(clim_file), hemisphere=hemisphere,
+                                   roundVal=int(roundVal), sst_files=sst_files,
+                                   var_name="" if var_name is None else var_name)
     return pd.DataFrame({
         "event_no": r["event_no"],
         "lon": r["lon"],
@@ -107,9 +115,11 @@ def category_daily3(sst_file, clim_file, event_file, time_range, var_name=None,
     Parameters
     ----------
     sst_file : str, path-like, or list of these
-        SST NetCDF file, directory of daily files, or list of files.
+        SST NetCDF file, directory of daily files, list of files, or a Zarr
+        store (see :func:`ts2clm3`).
     clim_file, event_file : str or path-like
-        Outputs of :func:`ts2clm3` and :func:`detect_event3`.
+        Outputs of :func:`ts2clm3` and :func:`detect_event3`; the
+        climatology may also be a Zarr store (see :func:`detect_event3`).
     time_range : (start, end) dates
         The window, e.g. ``("2026-05-10", "2026-05-20")``.
     var_name : str, optional
@@ -131,8 +141,7 @@ def category_daily3(sst_file, clim_file, event_file, time_range, var_name=None,
         ``category`` is set on event-member exceedance days and missing
         elsewhere.
     """
-    if not os.path.exists(clim_file):
-        raise FileNotFoundError(f"Climatology file does not exist: {clim_file}")
+    check_clim(clim_file)
     if not os.path.exists(event_file):
         raise FileNotFoundError(f"Events file does not exist: {event_file}")
     if time_range is None or len(time_range) != 2:
@@ -142,18 +151,25 @@ def category_daily3(sst_file, clim_file, event_file, time_range, var_name=None,
     except ValueError:
         raise ValueError('time_range must be dates, e.g. ("2026-05-10", '
                          '"2026-05-20").') from None
-    files, multi = resolve_input(sst_file, missing_msg="File does not exist: ",
-                                 dir_what="the SST directory")
-    vn = "" if var_name is None else var_name
-    common = dict(t_jd_range=t_jd, var_name=vn, coldSpells=bool(coldSpells),
-                  ice_thresh=float(ice_thresh), roundRes=int(roundRes))
-    if multi:
-        res = _core.hw3_category_daily_multi(files, os.fspath(clim_file),
-                                             os.fspath(event_file),
-                                             skip_bad_files=bool(skip_bad_files), **common)
-    else:
-        res = _core.hw3_category_daily(files[0], os.fspath(clim_file),
-                                       os.fspath(event_file), **common)
+    tmp_dir = local_dir(clim_file, event_file)
+    with ExitStack() as stack:
+        clim_file = stack.enter_context(clim_input(clim_file, tmp_dir))
+        zarr_ext = clim_extent(clim_file) if is_zarr(sst_file) else {}
+        sst_file, var_name, _ = stack.enter_context(
+            nc_input(sst_file, tmp_dir, var_name, time_range=date_strings(time_range),
+                     **zarr_ext))
+        files, multi = resolve_input(sst_file, missing_msg="File does not exist: ",
+                                     dir_what="the SST directory")
+        vn = "" if var_name is None else var_name
+        common = dict(t_jd_range=t_jd, var_name=vn, coldSpells=bool(coldSpells),
+                      ice_thresh=float(ice_thresh), roundRes=int(roundRes))
+        if multi:
+            res = _core.hw3_category_daily_multi(files, os.fspath(clim_file),
+                                                 os.fspath(event_file),
+                                                 skip_bad_files=bool(skip_bad_files), **common)
+        else:
+            res = _core.hw3_category_daily(files[0], os.fspath(clim_file),
+                                           os.fspath(event_file), **common)
     df = pd.DataFrame({
         "lon": res["lon"],
         "lat": res["lat"],

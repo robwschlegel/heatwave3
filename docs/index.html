@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">heatwave3</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -166,7 +166,7 @@
 <div class="section level2">
 <h2 id="python">Python<a class="anchor" aria-label="anchor" href="#python"></a>
 </h2>
-<p>A Python package with the same functions, arguments and outputs, built on the same C++ core, is on PyPI. Its version is pinned to the R package’s, so both have the same features:</p>
+<p>A Python package with the same functions, arguments and outputs, built on the same C++ core, is on PyPI. Its version is pinned to the R package’s, so both have the same features, with one exception: Python also reads Zarr stores (local or remote), which R will gain once an R Zarr library supports what heatwave3 needs.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="ex">pip</span> install heatwave3</span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="im">import</span> heatwave3 <span class="im">as</span> hw3</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>out <span class="op">=</span> hw3.detect3(<span class="st">"sst.nc"</span>, <span class="st">"run1"</span>, (<span class="st">"1982-01-01"</span>, <span class="st">"2011-12-31"</span>), category<span class="op">=</span><span class="va">True</span>)</span>

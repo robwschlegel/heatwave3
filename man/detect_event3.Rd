@@ -9,6 +9,9 @@ detect_event3(
   name,
   clim_file = NULL,
   var_name = NULL,
+  lon_range = NULL,
+  lat_range = NULL,
+  time_range = NULL,
   minDuration = 5L,
   minDuration2 = minDuration,
   joinAcrossGaps = TRUE,
@@ -43,6 +46,17 @@ exist.}
 When \code{NULL} (the default), \code{paste0(name, "_clim.nc")} is used.}
 
 \item{var_name}{Name of the SST variable. If \code{NULL}, auto-detected.}
+
+\item{lon_range, lat_range}{Optional numeric vectors of length 2,
+\code{c(min, max)}: detect events only in this part of the climatology's
+grid, so one climatology (e.g. global) can serve regional runs. The
+results equal those of a climatology made for the region alone. If
+\code{NULL} (the default), the climatology's whole longitude (latitude)
+extent is used.}
+
+\item{time_range}{Optional character vector of length 2,
+\code{c("start", "end")}: detect events only in this period of the SST
+(single-file input only). If \code{NULL}, all time steps are used.}
 
 \item{minDuration}{Minimum duration (days) for an event. Default \code{5}.}
 

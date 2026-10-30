@@ -193,3 +193,49 @@ test_that(".event_df_from_indices keeps row count when category codes include 0"
   expect_equal(nrow(df), n)
   expect_equal(df$category, c(NA, "I Moderate", NA, "II Strong", "IV Extreme"))
 })
+
+test_that("detect_event3 lon_range/lat_range equal a climatology made for the region", {
+  m <- make_clim()
+  skip_if(m$sst == "", "sst_test.nc not available")
+  reg <- list(lon_range = c(26.5, 26.53), lat_range = c(-34.1, -34.0))
+  stem_r <- tempfile()
+  do.call(ts2clm3, c(list(m$sst, name = stem_r, climatologyPeriod = cp, quiet = TRUE), reg))
+  detect_event3(m$sst, name = stem_r, category = TRUE, daily = "also",
+                n_threads = 1, quiet = TRUE)
+  stem_g <- tempfile()
+  do.call(detect_event3, c(list(m$sst, name = stem_g, clim_file = paste0(m$stem, "_clim.nc"),
+                                category = TRUE, daily = "also", n_threads = 1,
+                                quiet = TRUE), reg))
+  expect_equal(hw3_export(paste0(stem_g, "_events.nc")),
+               hw3_export(paste0(stem_r, "_events.nc")))
+  expect_equal(hw3_export(paste0(stem_g, "_events_daily.nc")),
+               hw3_export(paste0(stem_r, "_events_daily.nc")))
+  expect_error(detect_event3(m$sst, name = tempfile(), clim_file = paste0(m$stem, "_clim.nc"),
+                             lon_range = c(0, 1), quiet = TRUE),
+               "No coordinates found")
+})
+
+test_that("detect_event3 time_range limits detection to the period", {
+  m <- make_clim()
+  skip_if(m$sst == "", "sst_test.nc not available")
+  tr <- c("2000-01-01", "2009-12-31")
+  detect_event3(m$sst, name = m$stem, n_threads = 1, quiet = TRUE)
+  stem_t <- tempfile()
+  detect_event3(m$sst, name = stem_t, clim_file = paste0(m$stem, "_clim.nc"),
+                time_range = tr, n_threads = 1, quiet = TRUE)
+  all_ev <- hw3_export(paste0(m$stem, "_events.nc"))
+  ev <- hw3_export(paste0(stem_t, "_events.nc"))
+  expect_true(all(ev$date_start >= as.Date(tr[1]) & ev$date_end <= as.Date(tr[2])))
+  # Events clear of the window edges are those of the full series
+  inner <- function(x) x[x$date_start > as.Date(tr[1]) + 10 &
+                         x$date_end < as.Date(tr[2]) - 10, ]
+  cols <- c("lon", "lat", "date_start", "date_peak", "date_end", "intensity_max")
+  a <- inner(all_ev)[, cols]
+  b <- inner(ev)[, cols]
+  rownames(a) <- rownames(b) <- NULL
+  expect_equal(b, a)
+  expect_error(detect_event3(c(m$sst, m$sst), name = tempfile(),
+                             clim_file = paste0(m$stem, "_clim.nc"), time_range = tr,
+                             quiet = TRUE),
+               "single-file input only")
+})

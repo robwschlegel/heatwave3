@@ -67,6 +67,11 @@ hw3.detect3("sst.nc", name="run1", climatologyPeriod=("1982-01-01", "2011-12-31"
 
 ## Differences
 
+- **Zarr input (Python only)**: every function that reads sea surface
+  temperature or a climatology also accepts a Zarr store, local or remote,
+  with `pip install 'heatwave3[zarr]'` (see {ref}`zarr-input`). R reads and
+  writes NetCDF only; Zarr support will be added to R once an R Zarr library
+  supports what heatwave3 needs (Zarr v3, remote stores and parallel writes).
 - **`detect_blob3(return_=...)`**: the R argument `return` is a Python
   keyword, so it is `return_` in Python.
 - **`detect_event_array3()` axis order**: time is the *last* axis in Python

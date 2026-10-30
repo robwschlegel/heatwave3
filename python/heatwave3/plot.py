@@ -16,6 +16,7 @@ import pandas as pd
 
 from . import _core
 from ._utils import jd_to_datetime, list_nc, to_datetime64
+from ._zarr import clim_input, local_dir, nc_input
 
 # R colours used by the R package
 _SALMON = "#FA8072"       # "salmon"
@@ -173,9 +174,11 @@ def event_line3(sst_file, clim_file, lon, lat, depth=None, var_name=None, start_
     Parameters
     ----------
     sst_file : str, path-like, or directory
-        SST NetCDF file, or a directory of daily files.
+        SST NetCDF file, a directory of daily files, or a Zarr store (see
+        :func:`ts2clm3`).
     clim_file : str or path-like
-        Climatology from :func:`ts2clm3`.
+        Climatology from :func:`ts2clm3`, NetCDF or Zarr (see
+        :func:`detect_event3`).
     lon, lat : float
         The pixel (the nearest grid cell is used).
     depth : float, optional
@@ -203,8 +206,9 @@ def event_line3(sst_file, clim_file, lon, lat, depth=None, var_name=None, start_
     """
     plt = _plt()
     eps = 0.01
-    vn = "" if var_name is None else var_name
-    cd = _core.hw3_read_clim_nc(os.fspath(clim_file))
+    tmp_dir = local_dir(clim_file, event_file, sst_file)
+    with clim_input(os.fspath(clim_file), tmp_dir) as f:
+        cd = _core.hw3_read_clim_nc(f)
     lon_idx = int(np.argmin(np.abs(cd["lon"] - lon)))
     lat_idx = int(np.argmin(np.abs(cd["lat"] - lat)))
     ndepth = max(1, cd["ndepth"])
@@ -224,14 +228,15 @@ def event_line3(sst_file, clim_file, lon, lat, depth=None, var_name=None, start_
 
     window = dict(lon_range=[lon - eps, lon + eps], lat_range=[lat - eps, lat + eps],
                   depth_range=depth_range)
-    if isinstance(sst_file, (str, os.PathLike)) and os.path.isdir(sst_file):
-        files = list_nc(sst_file, os.fspath(sst_file))
-        read = lambda: _core.hw3_read_sst_multi(files, vn, **window)
-    else:
-        read = lambda: _core.hw3_read_sst(os.fspath(sst_file), vn, **window)
     # A point outside the SST grid stops the reader before any data is read
     try:
-        gd = read()
+        with nc_input(sst_file, tmp_dir, var_name, **window) as (src, vn, _):
+            vn = "" if vn is None else vn
+            if isinstance(src, (str, os.PathLike)) and os.path.isdir(src):
+                files = list_nc(src, os.fspath(src))
+                gd = _core.hw3_read_sst_multi(files, vn, **window)
+            else:
+                gd = _core.hw3_read_sst(os.fspath(src), vn, **window)
     except RuntimeError as e:
         if "No coordinates found" not in str(e):
             raise

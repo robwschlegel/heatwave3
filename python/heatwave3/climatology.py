@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import os
+
 from . import _core
 from ._utils import (check_out_dir, clim_path, compression_level, date_strings, int_or_zero, nthreads, pair,
                      quiet_core, resolve_input)
+from ._zarr import nc_input, set_source
 from .export import console_summary
 
 
@@ -23,7 +26,11 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
     ----------
     file_in : str, path-like, or list of these
         A NetCDF file of daily SST, a directory of daily ``.nc``/``.nc4``
-        files, or a list of files.
+        files, a list of files, or a Zarr store (a local path or URL ending
+        in ``.zarr``; needs ``pip install 'heatwave3[zarr]'``). From a Zarr
+        store only the requested region is read, into a temporary NetCDF
+        next to the output in the store's own packing; depth levels are
+        ordered from the surface down, so ``depth=0`` is the surface.
     name : str or path-like
         Output path stem; the climatology is written to ``<name>_clim.nc``.
         The directory must exist.
@@ -87,33 +94,39 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
 
     file_out = clim_path(name)
     check_out_dir(file_out)
+    lon_range, lat_range = pair(lon_range, "lon_range"), pair(lat_range, "lat_range")
+    time_range = None if time_range is None else date_strings(time_range)
 
-    files, multi = resolve_input(file_in)
-    common = dict(
-        file_out=file_out,
-        var_name="" if var_name is None else var_name,
-        climatologyPeriod=date_strings(climatologyPeriod),
-        lon_range=pair(lon_range, "lon_range"),
-        lat_range=pair(lat_range, "lat_range"),
-        depth=-1 if depth is None else int(depth),
-        depth_range=depth_range,
-        maxPadLength=int_or_zero(maxPadLength),
-        windowHalfWidth=int(windowHalfWidth),
-        pctile=float(pctile),
-        smoothPercentile=bool(smoothPercentile),
-        smoothPercentileWidth=int(smoothPercentileWidth),
-        compute_var=bool(var),
-        roundClm=int_or_zero(roundClm),
-        n_threads=nthreads(n_threads),
-        compression=compression_level(compression),
-        detrend=bool(detrend),
-    )
-    with quiet_core(quiet):
-        if multi:
-            _core.hw3_compute_clim_multi(files, skip_bad_files=bool(skip_bad_files), **common)
-        else:
-            time_range = None if time_range is None else date_strings(time_range)
-            _core.hw3_compute_clim(files[0], time_range=time_range, **common)
+    source = file_in
+    with nc_input(file_in, os.path.dirname(os.path.abspath(file_out)), var_name, lon_range,
+                  lat_range, time_range, depth, depth_range, quiet) as (file_in, var_name, depth):
+        files, multi = resolve_input(file_in)
+        common = dict(
+            file_out=file_out,
+            var_name="" if var_name is None else var_name,
+            climatologyPeriod=date_strings(climatologyPeriod),
+            lon_range=lon_range,
+            lat_range=lat_range,
+            depth=-1 if depth is None else int(depth),
+            depth_range=depth_range,
+            maxPadLength=int_or_zero(maxPadLength),
+            windowHalfWidth=int(windowHalfWidth),
+            pctile=float(pctile),
+            smoothPercentile=bool(smoothPercentile),
+            smoothPercentileWidth=int(smoothPercentileWidth),
+            compute_var=bool(var),
+            roundClm=int_or_zero(roundClm),
+            n_threads=nthreads(n_threads),
+            compression=compression_level(compression),
+            detrend=bool(detrend),
+        )
+        with quiet_core(quiet):
+            if multi:
+                _core.hw3_compute_clim_multi(files, skip_bad_files=bool(skip_bad_files),
+                                             **common)
+            else:
+                _core.hw3_compute_clim(files[0], time_range=time_range, **common)
+    set_source([file_out], source)
 
     console_summary(file_out, quiet=quiet)
     return file_out

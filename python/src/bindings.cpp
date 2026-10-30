@@ -338,7 +338,8 @@ PYBIND11_MODULE(_core, m) {
              bool coldSpells, int roundRes, int n_threads, bool category,
              bool southHemisphere, const std::string& threshClim2_file,
              const std::string& threshClim2_var_name, const std::string& daily_file,
-             const std::string& proto_file, int compression, bool slim) {
+             const std::string& proto_file, int compression, bool slim,
+             const OptDbl& lon_range, const OptDbl& lat_range, const OptStr& time_range) {
               py::gil_scoped_release nogil;
               hw3::detect_events(file_in, clim_file, events_file, var_name,
                                  detect_params(minDuration, minDuration2, joinAcrossGaps,
@@ -346,7 +347,9 @@ PYBIND11_MODULE(_core, m) {
                                                n_threads, category, southHemisphere,
                                                compression, slim),
                                  threshClim2_file, threshClim2_var_name, daily_file,
-                                 proto_file);
+                                 proto_file,
+                                 hw3::make_subset(val(lon_range), val(lat_range),
+                                                  val(time_range), -1, {}));
           },
           py::arg("file_in"), py::arg("clim_file"), py::arg("events_file"),
           py::arg("var_name"), py::arg("minDuration") = 5, py::arg("minDuration2") = 5,
@@ -355,7 +358,9 @@ PYBIND11_MODULE(_core, m) {
           py::arg("category") = false, py::arg("southHemisphere") = true,
           py::arg("threshClim2_file") = "", py::arg("threshClim2_var_name") = "",
           py::arg("daily_file") = "", py::arg("proto_file") = "",
-          py::arg("compression") = 1, py::arg("slim") = false);
+          py::arg("compression") = 1, py::arg("slim") = false,
+          py::arg("lon_range") = py::none(), py::arg("lat_range") = py::none(),
+          py::arg("time_range") = py::none());
 
     m.def("hw3_detect_events_multi",
           [](const std::vector<std::string>& files, const std::string& clim_file,
@@ -365,7 +370,7 @@ PYBIND11_MODULE(_core, m) {
              bool southHemisphere, const OptStr& threshClim2_files,
              const std::string& threshClim2_var_name, bool skip_bad_files,
              const std::string& daily_file, const std::string& proto_file,
-             int compression, bool slim) {
+             int compression, bool slim, const OptDbl& lon_range, const OptDbl& lat_range) {
               py::gil_scoped_release nogil;
               hw3::detect_events_multi(files, clim_file, events_file, var_name,
                                        detect_params(minDuration, minDuration2,
@@ -374,7 +379,9 @@ PYBIND11_MODULE(_core, m) {
                                                      category, southHemisphere, compression,
                                                      slim),
                                        val(threshClim2_files), threshClim2_var_name,
-                                       skip_bad_files, daily_file, proto_file);
+                                       skip_bad_files, daily_file, proto_file,
+                                       hw3::make_subset(val(lon_range), val(lat_range), {},
+                                                        -1, {}));
           },
           py::arg("files"), py::arg("clim_file"), py::arg("events_file"),
           py::arg("var_name"), py::arg("minDuration") = 5, py::arg("minDuration2") = 5,
@@ -383,7 +390,8 @@ PYBIND11_MODULE(_core, m) {
           py::arg("category") = false, py::arg("southHemisphere") = true,
           py::arg("threshClim2_files") = py::none(), py::arg("threshClim2_var_name") = "",
           py::arg("skip_bad_files") = false, py::arg("daily_file") = "",
-          py::arg("proto_file") = "", py::arg("compression") = 1, py::arg("slim") = false);
+          py::arg("proto_file") = "", py::arg("compression") = 1, py::arg("slim") = false,
+          py::arg("lon_range") = py::none(), py::arg("lat_range") = py::none());
 
     // Per-day detection on arrays (detect_event_array3). temp, seas and thresh
     // share one shape, time on the last axis, so a C-ordered array is already

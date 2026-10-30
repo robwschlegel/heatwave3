@@ -1,5 +1,53 @@
 # Changelog
 
+## heatwave3 1.5.0
+
+Zarr input (Python) and regional event detection from a larger
+climatology.
+
+- **Zarr input (Python only).** With `pip install 'heatwave3[zarr]'`,
+  every function that reads sea surface temperature or a climatology
+  ([`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md),
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md),
+  [`exceedance3()`](https://robwschlegel.github.io/heatwave3/reference/exceedance3.md),
+  [`category3()`](https://robwschlegel.github.io/heatwave3/reference/category3.md),
+  [`category_daily3()`](https://robwschlegel.github.io/heatwave3/reference/category_daily3.md),
+  [`detect_blob3()`](https://robwschlegel.github.io/heatwave3/reference/detect_blob3.md),
+  [`event_line3()`](https://robwschlegel.github.io/heatwave3/reference/event_line3.md))
+  also accepts a Zarr store: a local path or a URL ending in `.zarr`
+  (Zarr v2 or v3; `s3://` also needs `s3fs`). Only the region a call
+  needs is read, into a temporary NetCDF next to the outputs that is
+  removed afterwards, in the store’s own storage type and packing, so
+  the results are those of a NetCDF holding the same data. Depth levels
+  are counted from the surface down, so `depth = 0` is the surface level
+  whatever the store’s convention (Copernicus Marine ARCO stores hold
+  negative elevations, deepest first). A remote store that answers 403
+  for a chunk it does not hold (e.g. all land) is read as missing data
+  there; any other server error stops the run. Outputs record the store
+  as `source_file`. A climatology may also be a Zarr store holding a
+  heatwave3 climatology. Zarr input is the one feature R does not have:
+  it will be added once an R Zarr library supports what heatwave3 needs.
+- **[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
+  gains `lon_range`, `lat_range` and `time_range`** (R and Python, after
+  `var_name`). `lon_range`/`lat_range` restrict detection to part of the
+  climatology’s grid, so one climatology (e.g. global) can serve
+  regional runs; the results equal those of a climatology made for the
+  region alone. Without them, the climatology’s whole extent is used, as
+  before. `time_range` limits detection to a period of the SST
+  (single-file input only; a directory or list of files gives an error).
+- **[`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
+  passes `time_range` on to the detection** (R and Python), so events
+  are detected only in that period, as the climatology already was.
+  Before, the period applied to the climatology only and events were
+  detected over the whole series. With a directory or list of files,
+  `time_range` now gives an error instead of being ignored.
+- **A transposed climatology file is refused** (R and Python). The data
+  of a climatology must be stored as `(lon, lat, doy)` or
+  `(lon, lat, depth, doy)`; a file reordered by another tool was read
+  without error and gave wrong values, and now stops with an error
+  naming the order found.
+
 ## heatwave3 1.4.2
 
 A choice of neighbourhood for

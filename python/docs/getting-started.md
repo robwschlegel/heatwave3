@@ -25,7 +25,8 @@ given as one of:
 
 - a single NetCDF file with many time steps;
 - a directory of daily `.nc` or `.nc4` files;
-- a list of file paths.
+- a list of file paths;
+- a Zarr store, local or remote (see {ref}`zarr-input`).
 
 Variable and dimension names are detected from the CF conventions and common
 naming patterns, so GHRSST, OISST, OSTIA, ERA5, CMIP6 and similar products
@@ -65,6 +66,67 @@ clim_file, event_file = out["clim"], out["events"]
 The compute functions always write NetCDF and return the paths they wrote.
 After each step they print a short summary of the product (its head, tail and
 a few statistics); `quiet=True` turns this, and the progress messages, off.
+
+(zarr-input)=
+## Zarr input
+
+Every function that reads sea surface temperature or a climatology also
+accepts a Zarr store: a local path or a URL ending in `.zarr`. This needs the
+optional dependencies (`s3://` URLs also need `s3fs`):
+
+```bash
+pip install 'heatwave3[zarr]'
+```
+
+On macOS 14 or earlier, add `--only-binary netCDF4`: recent netCDF4 releases
+have wheels for macOS 15 or later only, and pip otherwise tries to build one
+from source.
+
+Only the region a call needs is read from the store, into a temporary NetCDF
+next to the outputs that is removed afterwards. The data keep the store's own
+storage type and packing, so the results are those of a NetCDF holding the
+same data. Depth levels are counted from the surface down, so `depth=0` is
+always the surface level, whatever the store's own convention. Zarr input is
+available in Python only.
+
+The example reads the GLORYS12 reanalysis from the public Copernicus Marine
+store (no account needed), for a small area of the Bay of Biscay:
+
+```python
+import heatwave3 as hw3
+
+glorys = ("https://s3.waw3-1.cloudferro.com/mdl-arco-geo-025/arco/"
+          "GLOBAL_MULTIYEAR_PHY_001_030/cmems_mod_glo_phy_my_0.083deg_P1D-m_202311/"
+          "geoChunked.zarr")
+clim = ("1993-01-01", "2022-12-31")
+biscay = dict(lon_range=(-5.0, -0.92), lat_range=(43.25, 47.33))
+
+# Climatology and events in one call (surface temperature)
+hw3.detect3(glorys, "biscay", clim, var_name="thetao", category=True,
+            hemisphere="north", **biscay)
+
+# Or in two steps: the climatology alone ...
+hw3.ts2clm3(glorys, "biscay", clim, var_name="thetao", **biscay)
+
+# ... then the events, from the climatology written above
+hw3.detect_event3(glorys, "biscay", var_name="thetao", category=True,
+                  hemisphere="north")
+```
+
+A climatology computed once can serve many later runs. It may be kept as
+NetCDF or as Zarr (a heatwave3 climatology stored with xarray), and
+{func}`~heatwave3.detect_event3` can work on part of it with `lon_range`,
+`lat_range` and `time_range`, for example one region of a global climatology:
+
+```python
+import xarray as xr
+
+xr.open_dataset("biscay_clim.nc").to_zarr("biscay_clim.zarr", consolidated=False)
+
+hw3.detect_event3(glorys, "gironde", clim_file="biscay_clim.zarr",
+                  var_name="thetao", lon_range=(-2.5, -1.2),
+                  lat_range=(45.0, 46.0), time_range=("2020-01-01", "2024-12-31"))
+```
 
 ## Reading and exporting the results
 

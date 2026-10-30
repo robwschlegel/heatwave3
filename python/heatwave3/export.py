@@ -11,6 +11,7 @@ import pandas as pd
 from . import _core
 from ._frames import clim_df, daily_df, event_df, subset_df
 from ._utils import choose, pair, to_datetime64, to_jd
+from ._zarr import is_url, is_zarr, write_zarr
 
 # Row count above which whole-table reads warn and inline previews are skipped.
 PREVIEW_LIMIT = 5_000_000
@@ -37,9 +38,14 @@ def hw3_export(file, file_out=None, vars=None, lon_range=None, lat_range=None,
         A heatwave3 NetCDF output file.
     file_out : str or path-like, optional
         Path for a flat companion file ending in ``.csv`` or ``.parquet``
-        (the latter needs ``pyarrow``). When given, the product is written
-        there and the path is returned. When ``None`` (the default), the
-        product is returned as a DataFrame.
+        (the latter needs ``pyarrow``), or a Zarr store ending in ``.zarr``:
+        a local path or a URL such as ``s3://bucket/x_clim.zarr`` (needs
+        ``pip install 'heatwave3[zarr]'``; ``s3://`` also needs ``s3fs``).
+        A Zarr store holds the whole product as stored in the NetCDF (same
+        variables, types, attributes and chunks, Zarr v3), replacing any
+        store there; it cannot be combined with the subset arguments. When
+        given, the product is written there and the path is returned. When
+        ``None`` (the default), the product is returned as a DataFrame.
     vars : list of str, optional
         Data variables to read, e.g. ``["seas", "thresh"]``. ``None`` reads all.
     lon_range, lat_range : (min, max), optional
@@ -88,6 +94,13 @@ def hw3_export(file, file_out=None, vars=None, lon_range=None, lat_range=None,
         return read_product_df(file, product)
 
     file_out = os.fspath(file_out)
+    if is_zarr(file_out):
+        if subset_requested:
+            raise ValueError("A Zarr file_out holds the whole product: remove "
+                             "vars/lon_range/lat_range/time_range/depth_range/n.")
+        if not is_url(file_out):
+            _validate_out_dir(file_out)
+        return write_zarr(file, file_out)
     fmt = _validate_save_file(file_out)
 
     if subset_requested:
@@ -229,15 +242,19 @@ def _iterate_chunks(file: str, ctype: str, chunk_size: int):
 
 # ---- Writers ----
 
-def _validate_save_file(file_out: str) -> str:
+def _validate_out_dir(file_out: str) -> None:
     out_dir = os.path.dirname(os.path.abspath(file_out))
     if not os.path.isdir(out_dir):
         raise FileNotFoundError(f"Output directory does not exist: {os.path.dirname(file_out)}")
+
+
+def _validate_save_file(file_out: str) -> str:
+    _validate_out_dir(file_out)
     ext = os.path.splitext(file_out)[1].lower().lstrip(".")
     if ext == "rds":
         raise ValueError(".rds is an R format; use .csv or .parquet from Python.")
     if ext not in ("csv", "parquet"):
-        raise ValueError("file_out must end in .csv or .parquet.")
+        raise ValueError("file_out must end in .csv, .parquet or .zarr.")
     return ext
 
 

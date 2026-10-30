@@ -13,7 +13,8 @@ from . import _core
 from ._utils import (check_out_dir, choose, clim_path, compression_level, daily_path, date_strings,
                      events_path, is_multi, list_nc, nthreads, pair, proto_path, quiet_core,
                      resolve_input)
-from ._zarr import clim_extent, clim_input, is_zarr, nc_input, set_source
+from ._zarr import (check_zarr_out, clim_extent, clim_input, is_zarr, nc_input, set_source,
+                    zarr_copies)
 from .climatology import ts2clm3
 from .export import console_summary
 
@@ -23,7 +24,7 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, lon_range=None,
                   threshClim2=None, threshClim2_var_name=None, coldSpells=False,
                   category=False, hemisphere="south", roundRes=4, daily="none",
                   slim=False, protoEvent=False, n_threads=None, compression=1,
-                  skip_bad_files=False, quiet=False):
+                  skip_bad_files=False, quiet=False, zarr_out=None):
     """Detect marine heatwaves (or cold-spells) in gridded data.
 
     The gridded equivalent of ``heatwaveR::detect_event()``, using a
@@ -103,6 +104,13 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, lon_range=None,
         Suppress all console output: the progress messages from the
         computation and the post-computation summary. Warnings, such as
         skipped files, are still shown.
+    zarr_out : str or path-like, optional
+        Python only. Also copy each NetCDF product written to a Zarr store
+        ``<zarr_out>/<file name>.zarr`` (e.g. ``<name>_clim.zarr``), as
+        :func:`hw3_export` does with a ``.zarr`` ``file_out``. A local
+        directory, which must exist, or a URL such as ``s3://bucket/run1``
+        (needs ``pip install 'heatwave3[zarr]'``; ``s3://`` also needs
+        ``s3fs``). The NetCDF files are kept, and returned as before.
 
     Returns
     -------
@@ -128,6 +136,7 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, lon_range=None,
             f"Climatology file does not exist: {clim_file}. It defaults to "
             "<name>_clim.nc; pass 'clim_file' to override.")
     check_out_dir(events_path(name))
+    check_zarr_out(zarr_out)
 
     # A non-empty path tells the C++ layer to write that product; "" skips it.
     ev_file = "" if (protoEvent or daily == "only") else events_path(name)
@@ -195,6 +204,7 @@ def detect_event3(file_in, name, clim_file=None, var_name=None, lon_range=None,
     written = {k: v for k, v in (("events", ev_file), ("daily", d_file),
                                  ("protoevents", p_file)) if v and os.path.exists(v)}
     set_source(written.values(), source)
+    zarr_copies(written.values(), zarr_out, quiet)
     for f in written.values():
         console_summary(f, quiet=quiet)
     return written
@@ -208,11 +218,12 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
             threshClim2_var_name=None, coldSpells=False, category=False,
             hemisphere="south", roundClm=4, roundRes=4, daily="none", slim=False,
             protoEvent=False, n_threads=None, compression=1, skip_bad_files=False,
-            quiet=False):
+            quiet=False, zarr_out=None):
     """Climatology and event detection in one call (the primary entry point).
 
     Runs :func:`ts2clm3` then :func:`detect_event3` with the same ``name``
-    stem; see those functions for the parameters.
+    stem; see those functions for the parameters (``zarr_out`` copies every
+    product written, the climatology included).
 
     Returns
     -------
@@ -226,6 +237,7 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
         raise ValueError("Specify only one of 'depth' or 'depth_range', not both.")
     # A Zarr store is read once, into one temporary NetCDF for both steps
     check_out_dir(clim_path(name))
+    check_zarr_out(zarr_out)
     source = file_in
     with nc_input(file_in, os.path.dirname(os.path.abspath(clim_path(name))), var_name,
                   pair(lon_range, "lon_range"), pair(lat_range, "lat_range"),
@@ -250,6 +262,7 @@ def detect3(file_in, name, climatologyPeriod, var_name=None, lon_range=None,
                                 compression=compression,
                                 skip_bad_files=skip_bad_files, quiet=quiet)
     set_source([clim_file, *written.values()], source)
+    zarr_copies([clim_file, *written.values()], zarr_out, quiet)
     return {"clim": clim_file, **written}
 
 

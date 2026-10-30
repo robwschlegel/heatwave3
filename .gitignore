@@ -23,3 +23,7 @@ python/docs/_build/
 .jupyter_cache/
 tests/testthat/_problems/
 tests/testthat/testthat-problems.rds
+
+# Local demo script (network, figures); run by hand, not by pytest
+python/tests/demo_biscay_zarr.py
+biscay_demo/

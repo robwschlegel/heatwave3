@@ -1,4 +1,4 @@
-"""Zarr input (Python only; decision 9 in CLAUDE.md).
+"""Zarr input and output (Python only; decision 9 in CLAUDE.md).
 
 heatwave3 reads its input in C++ through libnetcdf. For a Zarr store, local or
 remote, the part of the store a call needs is copied to a temporary NetCDF next
@@ -17,11 +17,16 @@ A climatology may also be a Zarr store holding a heatwave3 climatology
 (``seas``/``thresh`` on lon, lat, doy and optionally depth). It is copied
 (the requested region plus one cell, or whole) to a temporary NetCDF in the
 dimension order the C++ reads.
+
+Output: a heatwave3 NetCDF product is copied to a Zarr v3 store as it is
+stored (types, attributes and chunk shape unchanged, nothing decoded), so the
+store decodes exactly as the NetCDF does.
 """
 
 from __future__ import annotations
 
 import datetime as dt
+import itertools
 import os
 import uuid
 import warnings
@@ -59,7 +64,7 @@ def _xarray():
         import xarray as xr
         import zarr  # noqa: F401
     except ImportError as e:
-        raise ImportError("Reading a Zarr store needs the optional dependencies: "
+        raise ImportError("Zarr input and output need the optional dependencies: "
                           "pip install 'heatwave3[zarr]'") from e
     return xr
 
@@ -315,6 +320,87 @@ def clim_input(clim_file, tmp_dir, lon_range=None, lat_range=None):
         yield tmp
     finally:
         _remove(tmp)
+
+
+def check_zarr_out(zarr_out) -> None:
+    """Fail before any computation if ``zarr_out`` cannot receive outputs: a
+    local directory must exist; a URL is checked when written."""
+    if zarr_out is None:
+        return
+    _xarray()
+    p = os.fspath(zarr_out)
+    if not is_url(p) and not os.path.isdir(p):
+        raise FileNotFoundError(f"zarr_out directory does not exist: {p}")
+
+
+def zarr_copies(files, zarr_out, quiet=True) -> None:
+    """Copy each written NetCDF product to ``<zarr_out>/<file stem>.zarr``."""
+    if zarr_out is None:
+        return
+    out = os.fspath(zarr_out)
+    for f in files:
+        stem = os.path.splitext(os.path.basename(f))[0] + ".zarr"
+        dest = out.rstrip("/") + "/" + stem if is_url(out) else os.path.join(out, stem)
+        write_zarr(f, dest)
+        if not quiet:
+            print(f"Zarr copy written to: {dest}")
+
+
+def is_url(path: str) -> bool:
+    # Outputs go through fsspec, so any of its protocols (s3://, memory://, ...)
+    return "://" in path
+
+
+def write_zarr(nc_file, dest) -> str:
+    """Copy a heatwave3 NetCDF product to a Zarr v3 store (local path or URL),
+    replacing any store there. Values are copied as stored, one block of
+    chunks at a time (whole along the dimensions after the first two)."""
+    _xarray()
+    import netCDF4
+    import zarr
+
+    dest = os.fspath(dest)
+    with netCDF4.Dataset(os.fspath(nc_file)) as nc:
+        nc.set_auto_maskandscale(False)
+        root = zarr.open_group(dest, mode="w", zarr_format=3,
+                               attributes={a: _attr(nc.getncattr(a)) for a in nc.ncattrs()})
+        for name, v in nc.variables.items():
+            chunking = v.chunking()
+            chunks = v.shape if chunking == "contiguous" else chunking
+            arr = root.create_array(
+                name, shape=v.shape, dtype=v.dtype, chunks=tuple(max(1, c) for c in chunks),
+                dimension_names=v.dimensions,
+                attributes={a: _attr(v.getncattr(a)) for a in v.ncattrs()})
+            for block in _blocks(v.shape, chunks):
+                arr[block] = v[block]
+    with warnings.catch_warnings():
+        # Read by xarray and zarr-python, and one request instead of one per
+        # array on a remote store
+        warnings.filterwarnings("ignore", message="Consolidated metadata is currently not part")
+        zarr.consolidate_metadata(dest)
+    return dest
+
+
+def _attr(x):
+    # netCDF4 attributes as JSON values
+    if isinstance(x, bytes):
+        return x.decode()
+    if isinstance(x, np.ndarray):
+        return x.tolist()
+    if isinstance(x, np.generic):
+        return x.item()
+    return x
+
+
+def _blocks(shape, chunks):
+    if not shape:
+        yield ()
+        return
+    if 0 in shape:
+        return
+    steps = [c if i < 2 else n for i, (n, c) in enumerate(zip(shape, chunks))]
+    for starts in itertools.product(*(range(0, n, s) for n, s in zip(shape, steps))):
+        yield tuple(slice(a, min(a + s, n)) for a, s, n in zip(starts, steps, shape))
 
 
 def local_dir(*paths) -> str:

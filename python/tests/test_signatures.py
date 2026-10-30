@@ -17,8 +17,9 @@ NOT_YET = set()
 # ggplot2 layers in R, matplotlib functions in Python: Python-native signatures.
 PYTHON_NATIVE = {"geom_flame3", "geom_lolli3"}
 
-# Python-only trailing arguments (the matplotlib Axes to draw on).
-PYTHON_ONLY = {"event_line3": {"ax"}, "plot_metric3": {"ax"}}
+# Python-only trailing arguments (the matplotlib Axes to draw on; Zarr output).
+PYTHON_ONLY = {"event_line3": {"ax"}, "plot_metric3": {"ax"}, "ts2clm3": {"zarr_out"},
+               "detect_event3": {"zarr_out"}, "detect3": {"zarr_out"}}
 
 # R argument names that are Python keywords: R name -> Python name.
 RENAMED = {("detect_blob3", "return"): "return_"}

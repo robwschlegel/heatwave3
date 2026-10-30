@@ -31,7 +31,9 @@ because `return` is a Python keyword.
 
 With `pip install 'heatwave3[zarr]'`, every function that reads sea surface
 temperature or a climatology also accepts a Zarr store, local or remote (a
-path or URL ending in `.zarr`). This is the one feature that is Python only:
+path or URL ending in `.zarr`), and every product can also be written as a
+Zarr store (`hw3_export(file_out="x.zarr")`, or `zarr_out=` on `ts2clm3()`,
+`detect_event3()` and `detect3()`). This is the one feature that is Python only:
 the R package reads and writes NetCDF, and will gain Zarr once an R Zarr
 library supports what heatwave3 needs.
 

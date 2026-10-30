@@ -114,19 +114,40 @@ hw3.detect_event3(glorys, "biscay", var_name="thetao", category=True,
 ```
 
 A climatology computed once can serve many later runs. It may be kept as
-NetCDF or as Zarr (a heatwave3 climatology stored with xarray), and
+NetCDF or as Zarr (see {ref}`zarr-output`), and
 {func}`~heatwave3.detect_event3` can work on part of it with `lon_range`,
 `lat_range` and `time_range`, for example one region of a global climatology:
 
 ```python
-import xarray as xr
-
-xr.open_dataset("biscay_clim.nc").to_zarr("biscay_clim.zarr", consolidated=False)
+hw3.hw3_export("biscay_clim.nc", file_out="biscay_clim.zarr")
 
 hw3.detect_event3(glorys, "gironde", clim_file="biscay_clim.zarr",
                   var_name="thetao", lon_range=(-2.5, -1.2),
                   lat_range=(45.0, 46.0), time_range=("2020-01-01", "2024-12-31"))
 ```
+
+(zarr-output)=
+## Zarr output
+
+heatwave3 writes NetCDF, and any of its products (climatology, events, daily
+series, proto-events) can also be written as a Zarr v3 store, local or at a
+URL (`s3://` needs `s3fs`). {func}`~heatwave3.hw3_export` converts a product
+already written; the argument `zarr_out` of {func}`~heatwave3.ts2clm3`,
+{func}`~heatwave3.detect_event3` and {func}`~heatwave3.detect3` copies every
+product as it is written, as `<name>_clim.zarr` and so on, and keeps the
+NetCDF files, which the other heatwave3 functions read:
+
+```python
+hw3.hw3_export("biscay_events_daily.nc", file_out="s3://my-bucket/biscay_daily.zarr")
+
+hw3.detect3(glorys, "biscay", clim, var_name="thetao", category=True,
+            hemisphere="north", zarr_out="s3://my-bucket/biscay", **biscay)
+```
+
+The store holds the product as it is stored in the NetCDF, with the same
+variables, types, attributes and chunk shape, so it opens with
+`xarray.open_zarr()` to the same values as the NetCDF with
+`xarray.open_dataset()`. Zarr output is available in Python only.
 
 ## Reading and exporting the results
 

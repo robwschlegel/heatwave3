@@ -7,7 +7,7 @@ import os
 from . import _core
 from ._utils import (check_out_dir, clim_path, compression_level, date_strings, int_or_zero, nthreads, pair,
                      quiet_core, resolve_input)
-from ._zarr import nc_input, set_source
+from ._zarr import check_zarr_out, nc_input, set_source, zarr_copies
 from .export import console_summary
 
 
@@ -15,7 +15,8 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
             time_range=None, depth=None, depth_range=None, var_name=None,
             maxPadLength=False, windowHalfWidth=5, pctile=90, smoothPercentile=True,
             smoothPercentileWidth=31, var=False, detrend=False, roundClm=4,
-            n_threads=None, compression=1, skip_bad_files=False, quiet=False):
+            n_threads=None, compression=1, skip_bad_files=False, quiet=False,
+            zarr_out=None):
     """Compute a gridded climatology and write it to ``<name>_clim.nc``.
 
     The gridded equivalent of ``heatwaveR::ts2clm()``: for every pixel, the
@@ -80,6 +81,13 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
         Suppress all console output: the progress messages from the
         computation and the post-computation summary. Warnings, such as
         skipped files, are still shown.
+    zarr_out : str or path-like, optional
+        Python only. Also copy each NetCDF product written to a Zarr store
+        ``<zarr_out>/<file name>.zarr`` (e.g. ``<name>_clim.zarr``), as
+        :func:`hw3_export` does with a ``.zarr`` ``file_out``. A local
+        directory, which must exist, or a URL such as ``s3://bucket/run1``
+        (needs ``pip install 'heatwave3[zarr]'``; ``s3://`` also needs
+        ``s3fs``). The NetCDF files are kept, and returned as before.
 
     Returns
     -------
@@ -94,6 +102,7 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
 
     file_out = clim_path(name)
     check_out_dir(file_out)
+    check_zarr_out(zarr_out)
     lon_range, lat_range = pair(lon_range, "lon_range"), pair(lat_range, "lat_range")
     time_range = None if time_range is None else date_strings(time_range)
 
@@ -127,6 +136,7 @@ def ts2clm3(file_in, name, climatologyPeriod, lon_range=None, lat_range=None,
             else:
                 _core.hw3_compute_clim(files[0], time_range=time_range, **common)
     set_source([file_out], source)
+    zarr_copies([file_out], zarr_out, quiet)
 
     console_summary(file_out, quiet=quiet)
     return file_out

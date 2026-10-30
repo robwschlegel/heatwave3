@@ -2,8 +2,8 @@
 
 ## heatwave3 1.5.0
 
-Zarr input (Python) and regional event detection from a larger
-climatology.
+Zarr input and output (Python) and regional event detection from a
+larger climatology.
 
 - **Zarr input (Python only).** With `pip install 'heatwave3[zarr]'`,
   every function that reads sea surface temperature or a climatology
@@ -28,6 +28,22 @@ climatology.
   as `source_file`. A climatology may also be a Zarr store holding a
   heatwave3 climatology. Zarr input is the one feature R does not have:
   it will be added once an R Zarr library supports what heatwave3 needs.
+- **Zarr output (Python only).**
+  [`hw3_export()`](https://robwschlegel.github.io/heatwave3/reference/hw3_export.md)
+  writes any product (climatology, events, daily series, proto-events)
+  to a Zarr v3 store when `file_out` ends in `.zarr`, local or at a URL
+  (`s3://` needs `s3fs`).
+  [`ts2clm3()`](https://robwschlegel.github.io/heatwave3/reference/ts2clm3.md),
+  [`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
+  and
+  [`detect3()`](https://robwschlegel.github.io/heatwave3/reference/detect3.md)
+  gain a Python-only argument `zarr_out`, a directory or URL that
+  receives a Zarr copy of every product they write, as
+  `<name>_clim.zarr` and so on, next to the NetCDF files they still
+  write and return. The store holds the product as stored in the NetCDF
+  (variables, types, attributes and chunk shape), so it decodes to the
+  same values, and is copied one block of chunks at a time, so memory
+  use does not grow with the size of the product.
 - **[`detect_event3()`](https://robwschlegel.github.io/heatwave3/reference/detect_event3.md)
   gains `lon_range`, `lat_range` and `time_range`** (R and Python, after
   `var_name`). `lon_range`/`lat_range` restrict detection to part of the
@@ -47,6 +63,9 @@ climatology.
   `(lon, lat, depth, doy)`; a file reordered by another tool was read
   without error and gave wrong values, and now stops with an error
   naming the order found.
+- **Python 3.11 or later is required** (Python). Python 3.10 reaches its
+  end of life in October 2026, and zarr 3, which Zarr input needs, does
+  not support it. Wheels are built for Python 3.11 to 3.14.
 
 ## heatwave3 1.4.2
 
@@ -151,10 +170,8 @@ heatwaveR is the reference for every heatwave3 output. On the bundled
 event metrics, the event categories with `p_moderate` to `p_extreme`,
 and the daily categories are now identical to
 [`heatwaveR::ts2clm()`](https://robwschlegel.github.io/heatwaveR/reference/ts2clm.html),
-[`detect_event()`](https://robwschlegel.github.io/heatwaveR/reference/detect_event.html)
-and
-[`category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html).
-Files written by earlier versions differ; regenerate them.
+`detect_event()` and `category()`. Files written by earlier versions
+differ; regenerate them.
 
 - **`p_moderate`, `p_strong`, `p_severe`, `p_extreme`** are now, as in
   [`heatwaveR::category()`](https://robwschlegel.github.io/heatwaveR/reference/category.html),

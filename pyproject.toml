@@ -87,6 +87,10 @@ environment = { CMAKE_PREFIX_PATH = "/opt/hw3-netcdf", HDF5_ROOT = "/opt/hw3-net
 archs = ["native"]
 before-all = "MACOSX_DEPLOYMENT_TARGET=11.0 bash python/tools/build_netcdf.sh /tmp/hw3-netcdf"
 environment = { CMAKE_PREFIX_PATH = "/tmp/hw3-netcdf", HDF5_ROOT = "/tmp/hw3-netcdf", MACOSX_DEPLOYMENT_TARGET = "11.0" }
+# netCDF4 >= 1.7.5 has wheels for macOS 15+ only; on the macOS 14 runner pip
+# would build its sdist (and fail without netCDF headers) instead of using
+# the 1.7.4 wheel
+test-environment = { PIP_ONLY_BINARY = "netCDF4" }
 
 [tool.pytest.ini_options]
 testpaths = ["python/tests"]

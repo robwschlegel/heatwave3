@@ -78,6 +78,10 @@ optional dependencies (`s3://` URLs also need `s3fs`):
 pip install 'heatwave3[zarr]'
 ```
 
+On macOS 14 or earlier, add `--only-binary netCDF4`: recent netCDF4 releases
+have wheels for macOS 15 or later only, and pip otherwise tries to build one
+from source.
+
 Only the region a call needs is read from the store, into a temporary NetCDF
 next to the outputs that is removed afterwards. The data keep the store's own
 storage type and packing, so the results are those of a NetCDF holding the
